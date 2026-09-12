@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../models/attendance_models.dart';
 import '../attendance_format.dart';
+import 'attendance_grid_metrics.dart';
 import 'attendance_status_visual.dart';
 
 export 'attendance_status_visual.dart';
@@ -158,16 +159,22 @@ class AttendanceStatusChip extends StatelessWidget {
 
 /// The one square the month grid is made of.
 ///
-/// Token first, glyph under it — the colour is the third channel, not the only
+/// Token first, glyph under it. The colour is a third signal, never the only
 /// one.
+///
+/// Its OUTER footprint is exactly [width] x [height], which default to the
+/// grid slot in [AttendanceGridMetrics]. The gap between cells is drawn
+/// inside that space with [AttendanceGridMetrics.cellInset]. Outer margin
+/// would grow the footprint and push the grid out of line with its date
+/// headers and name column.
 class AttendanceStatusSquare extends StatelessWidget {
   const AttendanceStatusSquare({
     super.key,
     required this.status,
     this.lateMinutes,
     this.graceMinutes = 15,
-    this.width = 46,
-    this.height = 52,
+    this.width = AttendanceGridMetrics.cellWidth,
+    this.height = AttendanceGridMetrics.rowHeight,
     this.isCover = false,
   });
 
@@ -192,38 +199,53 @@ class AttendanceStatusSquare extends StatelessWidget {
     final minutes = lateMinutes ?? 0;
     final showMinutes = status == AttendanceStatus.late && minutes > 0;
 
-    return Container(
+    // SizedBox sets the footprint; Padding draws the gap inside it. Swapping
+    // these for a Container with a margin is the drift bug.
+    return SizedBox(
       width: width,
       height: height,
-      margin: const EdgeInsets.all(1),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: style.background,
-        borderRadius: BorderRadius.circular(6),
-        border: isCover
-            ? Border.all(color: theme.colorScheme.primary, width: 1.5)
-            : null,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            style.token,
-            style: attendanceNumeric(
-              theme.textTheme.labelMedium,
-            )?.copyWith(color: style.foreground, fontWeight: FontWeight.w700),
+      child: Padding(
+        padding: AttendanceGridMetrics.cellInset,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: style.background,
+            borderRadius: BorderRadius.circular(6),
+            border: isCover
+                ? Border.all(color: theme.colorScheme.primary, width: 1.5)
+                : null,
           ),
-          Icon(style.icon, size: 10, color: style.foreground),
-          if (showMinutes)
-            Text(
-              attendanceCount(context, minutes),
-              style: attendanceNumeric(theme.textTheme.labelSmall)?.copyWith(
-                color: style.foreground,
-                fontSize: 9,
-                height: 1,
+          child: Center(
+            // FittedBox keeps a large system text size from overflowing the
+            // fixed slot. The slot must not grow to fit its content.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    style.token,
+                    style: attendanceNumeric(theme.textTheme.labelMedium)
+                        ?.copyWith(
+                          color: style.foreground,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  Icon(style.icon, size: 10, color: style.foreground),
+                  if (showMinutes)
+                    Text(
+                      attendanceCount(context, minutes),
+                      style: attendanceNumeric(theme.textTheme.labelSmall)
+                          ?.copyWith(
+                            color: style.foreground,
+                            fontSize: 9,
+                            height: 1,
+                          ),
+                    ),
+                ],
               ),
             ),
-        ],
+          ),
+        ),
       ),
     );
   }

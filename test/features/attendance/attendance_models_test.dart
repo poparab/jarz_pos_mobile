@@ -331,6 +331,9 @@ void main() {
       for (final employee in payload['employees'] as List) {
         for (final day in (employee['days'] as Map).values) {
           (day as Map)['checkin_count'] = 0;
+          // No punch means no present/late status either: a present day is
+          // itself evidence of a check-in.
+          day['status'] = 'absent';
         }
       }
       final month = AttendanceMonth.fromJson(payload);
@@ -484,6 +487,7 @@ void main() {
       for (final branch in payload['branches'] as List) {
         for (final row in (branch as Map)['rows'] as List) {
           (row as Map)['checkin_count'] = 0;
+          row['status'] = 'pending';
         }
       }
 
@@ -1370,6 +1374,214 @@ void main() {
 
       expect(checkin.geoOk, isNull);
       expect(checkin.hasCoordinates, isFalse);
+    });
+  });
+
+  // ── Release review of b4792ab ──────────────────────────────────────────
+
+  group('day rows inherit their branch from the group', () {
+    // The backend leaves `shift_location` off day rows on purpose; it lives on
+    // the branch group only. Before this fix every row's day sheet said
+    // "No branch resolved".
+    Map<String, dynamic> dayWith(List<Map<String, dynamic>> branches) => {
+      'hrms_available': true,
+      'date': '2026-09-12',
+      'branches': branches,
+    };
+
+    test('a row inside a named group reports that group\'s branch', () {
+      final day = AttendanceDay.fromJson(
+        dayWith([
+          {
+            'shift_location': 'Nasr City',
+            'totals': {'rostered': 1, 'present': 1},
+            'rows': [
+              {
+                'employee': 'HR-EMP-00001',
+                'employee_name': 'Mona Adel',
+                'status': 'present',
+                'date': '2026-09-12',
+                'checkin_count': 1,
+              },
+            ],
+          },
+        ]),
+      );
+
+      expect(day.branches.single.rows.single.cell.shiftLocation, 'Nasr City');
+    });
+
+    test('a row in the null group still reports no branch', () {
+      final day = AttendanceDay.fromJson(
+        dayWith([
+          {
+            'shift_location': null,
+            'totals': {'rostered': 1, 'pending': 1},
+            'rows': [
+              {
+                'employee': 'HR-EMP-00009',
+                'employee_name': 'Unassigned Person',
+                'status': 'pending',
+              },
+            ],
+          },
+        ]),
+      );
+
+      final row = day.branches.single.rows.single;
+      expect(row.cell.shiftLocation, isNull);
+      expect(day.branches.single.isUnresolvedBranch, isTrue);
+    });
+
+    test('a branch on the row itself, if ever sent, wins over the group', () {
+      final branch = AttendanceBranchDay.fromJson({
+        'shift_location': 'Nasr City',
+        'totals': <String, dynamic>{},
+        'rows': [
+          {
+            'employee': 'HR-EMP-00001',
+            'employee_name': 'Mona Adel',
+            'status': 'present',
+            'shift_location': 'Obour',
+          },
+        ],
+      }, date: '2026-09-12');
+
+      expect(branch.rows.single.cell.shiftLocation, 'Obour');
+    });
+
+    test('rows in two named groups each keep their own group\'s branch', () {
+      final day = AttendanceDay.fromJson(
+        dayWith([
+          {
+            'shift_location': 'Nasr City',
+            'rows': [
+              {'employee': 'E1', 'employee_name': 'A', 'status': 'present'},
+            ],
+          },
+          {
+            'shift_location': 'Obour',
+            'rows': [
+              {'employee': 'E2', 'employee_name': 'B', 'status': 'late'},
+            ],
+          },
+        ]),
+      );
+
+      expect(day.branches[0].rows.single.cell.shiftLocation, 'Nasr City');
+      expect(day.branches[1].rows.single.cell.shiftLocation, 'Obour');
+    });
+  });
+
+  group('late_unmatched counts as having clocked in', () {
+    test('a late_unmatched cell has a check-in even with no counted punch', () {
+      final cell = AttendanceCell.fromJson({
+        'date': '2026-09-12',
+        'status': 'late_unmatched',
+        'checkin_count': 0,
+      });
+
+      expect(cell.hasCheckin, isTrue);
+    });
+
+    test('present and late also imply a check-in', () {
+      for (final status in const ['present', 'late']) {
+        final cell = AttendanceCell.fromJson({
+          'date': '2026-09-12',
+          'status': status,
+          'checkin_count': 0,
+        });
+        expect(cell.hasCheckin, isTrue, reason: status);
+      }
+    });
+
+    test('absent, pending, off, holiday and not_rostered do not', () {
+      for (final status in const [
+        'absent',
+        'pending',
+        'off',
+        'holiday',
+        'not_rostered',
+        'invented_status',
+      ]) {
+        final cell = AttendanceCell.fromJson({
+          'date': '2026-09-12',
+          'status': status,
+          'checkin_count': 0,
+        });
+        expect(cell.hasCheckin, isFalse, reason: status);
+      }
+    });
+
+    test('a day where everyone arrived outside the window is not '
+        '"no check-ins"', () {
+      final day = AttendanceDay.fromJson({
+        'hrms_available': true,
+        'date': '2026-09-12',
+        'branches': [
+          {
+            'shift_location': 'Nasr City',
+            'totals': {'rostered': 2, 'late_unmatched': 2},
+            'rows': [
+              {'employee': 'E1', 'employee_name': 'A', 'status': 'late_unmatched'},
+              {'employee': 'E2', 'employee_name': 'B', 'status': 'late_unmatched'},
+            ],
+          },
+        ],
+      });
+
+      expect(day.hasAnyCheckin, isTrue);
+    });
+
+    test('a month of only late_unmatched days is not "no check-ins"', () {
+      final month = AttendanceMonth.fromJson({
+        'hrms_available': true,
+        'month': '2026-09',
+        'employees': [
+          {
+            'employee': 'E1',
+            'employee_name': 'A',
+            'days': {
+              '2026-09-01': {'date': '2026-09-01', 'status': 'late_unmatched'},
+            },
+          },
+        ],
+      });
+
+      expect(month.hasAnyCheckin, isTrue);
+    });
+
+    test('a summary whose only arrivals are late_unmatched has attendance', () {
+      final summary = AttendanceSummary.fromJson({
+        'group_by': 'branch',
+        'rows': [
+          {
+            'key': 'Nasr City',
+            'label': 'Nasr City',
+            'rostered_days': 3,
+            'late_unmatched_days': 3,
+          },
+        ],
+        'totals': {'rostered_days': 3, 'late_unmatched_days': 3},
+      });
+
+      expect(summary.hasAnyAttendance, isTrue);
+    });
+
+    test('an employee range with late_unmatched days but no raw check-ins '
+        'still counts', () {
+      final detail = AttendanceEmployeeDetail.fromJson({
+        'employee': 'E1',
+        'employee_name': 'A',
+        'days': [
+          {'date': '2026-09-01', 'status': 'late_unmatched'},
+        ],
+        'totals': <String, dynamic>{},
+        'by_branch': [],
+        'checkins': [],
+      });
+
+      expect(detail.hasAnyCheckin, isTrue);
     });
   });
 }

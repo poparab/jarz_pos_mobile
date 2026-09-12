@@ -21335,6 +21335,30 @@ abstract class AppLocalizations {
   /// **'–'**
   String get attendanceTokenNotRostered;
 
+  /// No description provided for @attendanceRangeShortened.
+  ///
+  /// In en, this message translates to:
+  /// **'Range limited to {days} days'**
+  String attendanceRangeShortened(int days);
+
+  /// No description provided for @attendanceRangeAdjusted.
+  ///
+  /// In en, this message translates to:
+  /// **'The other end of the range was moved to fit.'**
+  String get attendanceRangeAdjusted;
+
+  /// No description provided for @attendanceServerRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'The server refused this request'**
+  String get attendanceServerRefused;
+
+  /// No description provided for @attendanceServerRefusedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust the dates or filters and try again.'**
+  String get attendanceServerRefusedHint;
+
   /// No description provided for @attendanceTokenUnknown.
   ///
   /// In en, this message translates to:

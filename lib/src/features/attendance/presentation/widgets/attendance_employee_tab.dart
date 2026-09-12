@@ -22,38 +22,74 @@ class AttendanceEmployeeTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final options = ref.watch(attendanceEmployeeOptionsProvider);
-    final selected = ref.watch(attendanceSelectedEmployeeProvider);
-    final range = ref.watch(attendanceRangeProvider);
+    final stored = ref.watch(attendanceSelectedEmployeeProvider);
+    final range = effectiveAttendanceRange(
+      ref,
+      kAttendanceMaxRangeDays.employee,
+    ).range;
     final monthAsync = ref.watch(attendanceMonthDataProvider);
+
+    // "Settled" means the picker's list is final: loaded, not reloading, and
+    // not failed. Only then can a missing employee be treated as removed.
+    final listSettled =
+        monthAsync.hasValue && !monthAsync.isLoading && !monthAsync.hasError;
+    final selected = reconcileAttendanceSelection(
+      stored,
+      options,
+      listSettled: listSettled,
+    );
+    if (selected != stored) {
+      // The month or branch filter moved this person out of the list. Render
+      // as unselected right now, so their data is never shown under an empty
+      // picker, and clear the stored selection after this frame. Writing to a
+      // provider during build is not allowed.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (ref.read(attendanceSelectedEmployeeProvider) == stored) {
+          ref.read(attendanceSelectedEmployeeProvider.notifier).state = null;
+        }
+      });
+    }
+
+    final Widget body;
+    if (options.isEmpty && monthAsync.hasError) {
+      // A 403 or a network failure on the month call that feeds the picker.
+      // This used to read "No employees to pick", which blamed the roster for
+      // a permission or connection problem. It now goes through the same
+      // access-denied and load-failed states as every other tab.
+      body = AttendanceErrorState(
+        error: monthAsync.error!,
+        onRetry: () => ref.invalidate(attendanceMonthDataProvider),
+      );
+    } else if (options.isEmpty && monthAsync.isLoading) {
+      // An empty list while the month call is still running means "not yet",
+      // not "no employees".
+      body = const Center(child: CircularProgressIndicator());
+    } else if (options.isEmpty) {
+      body = AttendanceMessageState(
+        icon: Icons.person_search_outlined,
+        message: l10n.attendanceNoEmployeesToPick,
+        detail: l10n.attendanceNoEmployeesToPickHint,
+      );
+    } else if (selected == null) {
+      body = AttendanceMessageState(
+        icon: Icons.person_outline,
+        message: l10n.attendancePickEmployee,
+      );
+    } else {
+      body = _EmployeeBody(
+        query: AttendanceEmployeeQuery(
+          employee: selected,
+          fromDate: range.fromDate,
+          toDate: range.toDate,
+        ),
+      );
+    }
 
     return Column(
       children: [
         _EmployeePicker(options: options, selected: selected),
-        const AttendanceRangeBar(),
-        Expanded(
-          child: switch ((selected, options.isEmpty, monthAsync.isLoading)) {
-            // The picker's options come from the month payload, so an empty
-            // list while that call is still in flight is "not yet", not "no
-            // employees".
-            (_, true, true) => const Center(child: CircularProgressIndicator()),
-            (_, true, false) => AttendanceMessageState(
-              icon: Icons.person_search_outlined,
-              message: l10n.attendanceNoEmployeesToPick,
-              detail: l10n.attendanceNoEmployeesToPickHint,
-            ),
-            (null, _, _) => AttendanceMessageState(
-              icon: Icons.person_outline,
-              message: l10n.attendancePickEmployee,
-            ),
-            (final String employee, _, _) => _EmployeeBody(
-              query: AttendanceEmployeeQuery(
-                employee: employee,
-                fromDate: range.fromDate,
-                toDate: range.toDate,
-              ),
-            ),
-          },
-        ),
+        AttendanceRangeBar(maxDays: kAttendanceMaxRangeDays.employee),
+        Expanded(child: body),
       ],
     );
   }

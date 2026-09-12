@@ -7,6 +7,7 @@ import '../../state/attendance_providers.dart';
 import '../attendance_format.dart';
 import 'attendance_controls.dart';
 import 'attendance_day_sheet.dart';
+import 'attendance_grid_metrics.dart';
 import 'attendance_legend.dart';
 import 'attendance_states.dart';
 import 'attendance_status_style.dart';
@@ -79,7 +80,7 @@ class _MonthBody extends StatelessWidget {
             ),
           ],
         ),
-        Expanded(child: _MonthGrid(month: month)),
+        Expanded(child: AttendanceMonthGrid(month: month)),
       ],
     );
   }
@@ -216,20 +217,31 @@ class AttendanceMetric extends StatelessWidget {
   }
 }
 
+/// Key of an employee's name cell in the month grid.
+Key attendanceGridNameKey(String employee) =>
+    ValueKey<String>('attendance-grid-name-$employee');
+
+/// Key of a date's header cell in the month grid.
+Key attendanceGridHeaderKey(String date) =>
+    ValueKey<String>('attendance-grid-header-$date');
+
+/// Key of one (employee, date) cell in the month grid.
+Key attendanceGridCellKey(String employee, String date) =>
+    ValueKey<String>('attendance-grid-cell-$employee-$date');
+
 /// A pinned employee column beside horizontally scrolling days.
 ///
-/// One outer vertical scroll wraps both halves so they cannot drift out of
-/// alignment — synchronising two vertical controllers is the usual way this
-/// kind of table ends up one row out.
-class _MonthGrid extends StatelessWidget {
-  const _MonthGrid({required this.month});
+/// Both halves sit inside one vertical scroll view. Keeping two separate
+/// vertical controllers in sync is the usual way a table like this ends up
+/// one row out.
+///
+/// The halves are separate strips that line up only because every piece
+/// takes its size from [AttendanceGridMetrics]. See that class for the rules,
+/// and `attendance_month_grid_test.dart` for the test that checks them.
+class AttendanceMonthGrid extends StatelessWidget {
+  const AttendanceMonthGrid({super.key, required this.month});
 
   final AttendanceMonth month;
-
-  static const double _rowHeight = 54;
-  static const double _headerHeight = 44;
-  static const double _cellWidth = 46;
-  static const double _nameWidth = 136;
 
   @override
   Widget build(BuildContext context) {
@@ -243,8 +255,8 @@ class _MonthGrid extends StatelessWidget {
           Column(
             children: [
               Container(
-                width: _nameWidth,
-                height: _headerHeight,
+                width: AttendanceGridMetrics.nameWidth,
+                height: AttendanceGridMetrics.headerHeight,
                 alignment: AlignmentDirectional.centerStart,
                 padding: const EdgeInsetsDirectional.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
@@ -255,30 +267,30 @@ class _MonthGrid extends StatelessWidget {
                 ),
                 child: Text(
                   context.l10n.attendanceEmployeeColumn,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall,
                 ),
               ),
-              ...month.employees.map(
-                (employee) => _EmployeeNameCell(
+              for (final employee in month.employees)
+                _EmployeeNameCell(
+                  key: attendanceGridNameKey(employee.employee),
                   employee: employee,
-                  width: _nameWidth,
-                  height: _rowHeight,
                 ),
-              ),
             ],
           ),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       for (final date in dates)
                         _DayHeaderCell(
+                          key: attendanceGridHeaderKey(date),
                           date: date,
-                          width: _cellWidth,
-                          height: _headerHeight,
                         ),
                     ],
                   ),
@@ -287,12 +299,11 @@ class _MonthGrid extends StatelessWidget {
                       children: [
                         for (final date in dates)
                           _MonthCell(
+                            key: attendanceGridCellKey(employee.employee, date),
                             employee: employee,
                             date: date,
                             cell: employee.cellFor(date),
                             graceMinutes: month.graceMinutes,
-                            width: _cellWidth,
-                            height: _rowHeight,
                           ),
                       ],
                     ),
@@ -307,24 +318,20 @@ class _MonthGrid extends StatelessWidget {
 }
 
 class _EmployeeNameCell extends StatelessWidget {
-  const _EmployeeNameCell({
-    required this.employee,
-    required this.width,
-    required this.height,
-  });
+  const _EmployeeNameCell({super.key, required this.employee});
 
   final AttendanceEmployeeMonth employee;
-  final double width;
-  final double height;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final rate = employee.totals.attendanceRate;
+    // Exactly one row slot. The divider is a border painted inside it, so it
+    // adds nothing to the height.
     return Container(
-      width: width,
-      height: height,
+      width: AttendanceGridMetrics.nameSlot.width,
+      height: AttendanceGridMetrics.nameSlot.height,
       padding: const EdgeInsetsDirectional.symmetric(
         horizontal: 8,
         vertical: 4,
@@ -350,7 +357,7 @@ class _EmployeeNameCell extends StatelessWidget {
             attendanceRateIsMeaningful(employee.totals.rosteredDays)
                 ? '${l10n.attendanceMetricAttendanceRate} '
                       '${attendanceRate(context, rate)}'
-                // Not "—": nobody was rostered, which is a fact about the
+                // Not a dash: nobody was rostered, which is a fact about the
                 // month rather than a gap in the data.
                 : l10n.attendanceNotRosteredThisMonth,
             maxLines: 1,
@@ -366,15 +373,9 @@ class _EmployeeNameCell extends StatelessWidget {
 }
 
 class _DayHeaderCell extends StatelessWidget {
-  const _DayHeaderCell({
-    required this.date,
-    required this.width,
-    required this.height,
-  });
+  const _DayHeaderCell({super.key, required this.date});
 
   final String date;
-  final double width;
-  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -382,9 +383,10 @@ class _DayHeaderCell extends StatelessWidget {
     final parsed = DateTime.tryParse(date);
     final isFriday = parsed != null && parsed.weekday == DateTime.friday;
 
+    // Exactly one column slot, the same width as the cells under it.
     return Container(
-      width: width,
-      height: height,
+      width: AttendanceGridMetrics.headerSlot.width,
+      height: AttendanceGridMetrics.headerSlot.height,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: isFriday
@@ -392,20 +394,23 @@ class _DayHeaderCell extends StatelessWidget {
             : theme.colorScheme.surfaceContainerHighest,
         border: Border(bottom: BorderSide(color: theme.dividerColor)),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            attendanceDayNumber(context, date),
-            style: attendanceNumeric(
-              theme.textTheme.labelMedium,
-            )?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          Text(
-            attendanceWeekdayLabel(context, date),
-            style: theme.textTheme.labelSmall?.copyWith(fontSize: 9),
-          ),
-        ],
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              attendanceDayNumber(context, date),
+              style: attendanceNumeric(
+                theme.textTheme.labelMedium,
+              )?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            Text(
+              attendanceWeekdayLabel(context, date),
+              style: theme.textTheme.labelSmall?.copyWith(fontSize: 9),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -413,20 +418,17 @@ class _DayHeaderCell extends StatelessWidget {
 
 class _MonthCell extends StatelessWidget {
   const _MonthCell({
+    super.key,
     required this.employee,
     required this.date,
     required this.cell,
     required this.graceMinutes,
-    required this.width,
-    required this.height,
   });
 
   final AttendanceEmployeeMonth employee;
   final String date;
   final AttendanceCell? cell;
   final int graceMinutes;
-  final double width;
-  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -441,6 +443,7 @@ class _MonthCell extends StatelessWidget {
           rawStatus: 'not_rostered',
         );
 
+    // The InkWell adds no size, so the footprint is the square's: one slot.
     return InkWell(
       onTap: () => showAttendanceDaySheet(
         context,
@@ -453,8 +456,8 @@ class _MonthCell extends StatelessWidget {
         status: data.status,
         lateMinutes: data.lateMinutes,
         graceMinutes: graceMinutes,
-        width: width,
-        height: height,
+        width: AttendanceGridMetrics.slot.width,
+        height: AttendanceGridMetrics.slot.height,
         isCover: data.isCover,
       ),
     );

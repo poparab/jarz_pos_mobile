@@ -106,7 +106,10 @@ final attendanceSummaryDataProvider =
 final attendanceEmployeeOptionsProvider = Provider<List<AttendanceEmployeeOption>>(
   (ref) {
     final month = ref.watch(attendanceMonthDataProvider);
-    final employees = month.asData?.value.employees ?? const [];
+    // valueOrNull, not asData: while the month reloads after a filter change,
+    // Riverpod keeps the previous value on an AsyncLoading. asData would empty
+    // the picker for the length of every refresh.
+    final employees = month.valueOrNull?.employees ?? const [];
     final options = employees
         .map(
           (e) => AttendanceEmployeeOption(
@@ -300,6 +303,149 @@ List<AttendanceSummaryRow> sortAttendanceSummaryRows(
 
   sorted.sort((a, b) => sort.ascending ? compare(a, b) : compare(b, a));
   return sorted;
+}
+
+// ── Range limits ───────────────────────────────────────────────────────
+
+/// The longest date range the server accepts, per tab, as an INCLUSIVE day
+/// count (`end - start + 1`).
+///
+/// Mirrors `_range_bounds` in `jarz_pos/services/attendance.py`. Change the
+/// two together. If they differ, the server refuses with a ValidationError,
+/// which `AttendanceErrorState` shows word for word. The picker enforces the
+/// same limits up front so users should never see that refusal.
+const kAttendanceMaxRangeDays = (summary: 93, employee: 366);
+
+/// Inclusive day count of [range], or 0 when either end does not parse.
+///
+/// Computed on UTC calendar dates, so a daylight-saving change inside the
+/// range cannot make one day 23 hours long and drop it from the count.
+int attendanceRangeDays(AttendanceRange range) {
+  final from = _utcDay(range.fromDate);
+  final to = _utcDay(range.toDate);
+  if (from == null || to == null) return 0;
+  return to.difference(from).inDays + 1;
+}
+
+/// Which end of a range the user just chose, and so must not move.
+enum AttendanceRangeEdge { from, to }
+
+/// A range after it has been fitted to a limit, plus what had to change.
+class AttendanceRangeFit {
+  const AttendanceRangeFit({
+    required this.range,
+    this.shortened = false,
+    this.reordered = false,
+  });
+
+  final AttendanceRange range;
+
+  /// The span was over the limit, so the other end moved in.
+  final bool shortened;
+
+  /// The ends were the wrong way round, so the other end moved to meet the one
+  /// that was chosen.
+  final bool reordered;
+
+  bool get adjusted => shortened || reordered;
+}
+
+/// Fits [range] into [maxDays] by moving the end the user did NOT choose.
+///
+/// [keep] is the end that was just picked, and it never moves. If both ends
+/// came from somewhere else (the shared range arriving at a tab with a tighter
+/// limit), keep `to`: the most recent days are what a manager opened the
+/// screen to see.
+AttendanceRangeFit fitAttendanceRange(
+  AttendanceRange range,
+  int maxDays, {
+  AttendanceRangeEdge keep = AttendanceRangeEdge.to,
+}) {
+  var from = _utcDay(range.fromDate);
+  var to = _utcDay(range.toDate);
+  if (from == null || to == null || maxDays < 1) {
+    return AttendanceRangeFit(range: range);
+  }
+
+  var reordered = false;
+  if (from.isAfter(to)) {
+    reordered = true;
+    if (keep == AttendanceRangeEdge.from) {
+      to = from;
+    } else {
+      from = to;
+    }
+  }
+
+  var shortened = false;
+  if (to.difference(from).inDays + 1 > maxDays) {
+    shortened = true;
+    if (keep == AttendanceRangeEdge.from) {
+      to = from.add(Duration(days: maxDays - 1));
+    } else {
+      from = to.subtract(Duration(days: maxDays - 1));
+    }
+  }
+
+  if (!reordered && !shortened) return AttendanceRangeFit(range: range);
+  return AttendanceRangeFit(
+    range: AttendanceRange(
+      fromDate: attendanceIsoDate(from),
+      toDate: attendanceIsoDate(to),
+    ),
+    shortened: shortened,
+    reordered: reordered,
+  );
+}
+
+DateTime? _utcDay(String iso) {
+  final parsed = DateTime.tryParse(iso);
+  if (parsed == null) return null;
+  return DateTime.utc(parsed.year, parsed.month, parsed.day);
+}
+
+// ── Date picker window ─────────────────────────────────────────────────
+
+/// The dates the picker offers: three years back to the end of next year.
+({DateTime first, DateTime last}) attendancePickerWindow(DateTime now) => (
+  first: DateTime(now.year - 3, 1, 1),
+  last: DateTime(now.year + 1, 12, 31),
+);
+
+/// Moves [date] inside `[first, last]`.
+///
+/// `showDatePicker` throws an assertion if `initialDate` falls outside its
+/// window, and a date stepped forward from the Day tab or restored from an
+/// old range can do that. Clamping first means the picker always opens.
+DateTime clampAttendancePickerDate(
+  DateTime date, {
+  required DateTime first,
+  required DateTime last,
+}) {
+  final day = DateTime(date.year, date.month, date.day);
+  if (day.isBefore(first)) return first;
+  if (day.isAfter(last)) return last;
+  return day;
+}
+
+// ── Employee selection ─────────────────────────────────────────────────
+
+/// The Employee tab's selection after the picker's list changes.
+///
+/// Returns null when a loaded list no longer contains the selected employee.
+/// That happens when the month or branch filter moves them out of view, and
+/// showing their data with nobody chosen in the picker would present one
+/// person's attendance under an empty selector. While the list is still
+/// loading ([listSettled] false), the selection is kept rather than cleared
+/// on a guess.
+String? reconcileAttendanceSelection(
+  String? selected,
+  List<AttendanceEmployeeOption> options, {
+  required bool listSettled,
+}) {
+  if (selected == null) return null;
+  if (!listSettled) return selected;
+  return options.any((o) => o.employee == selected) ? selected : null;
 }
 
 // ── Date helpers ───────────────────────────────────────────────────────

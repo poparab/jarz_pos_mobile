@@ -19,7 +19,12 @@ class AttendanceSummaryTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final range = ref.watch(attendanceRangeProvider);
+    // The shared range fitted to Summary's server limit. The bar shows the
+    // same fitted range, so the dates on screen are the dates queried.
+    final range = effectiveAttendanceRange(
+      ref,
+      kAttendanceMaxRangeDays.summary,
+    ).range;
     final groupBy = ref.watch(attendanceGroupByProvider);
     final location = ref.watch(attendanceLocationFilterProvider);
     final query = AttendanceSummaryQuery(
@@ -32,7 +37,10 @@ class AttendanceSummaryTab extends ConsumerWidget {
 
     return Column(
       children: [
-        const AttendanceRangeBar(showBranchFilter: true),
+        AttendanceRangeBar(
+          maxDays: kAttendanceMaxRangeDays.summary,
+          showBranchFilter: true,
+        ),
         const _GroupByToggle(),
         Expanded(
           child: summaryAsync.when(

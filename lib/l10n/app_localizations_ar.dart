@@ -12982,5 +12982,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attendanceTokenNotRostered => '–';
 
   @override
+  String attendanceRangeShortened(int days) {
+    return 'تم تقليص الفترة إلى $days يومًا كحد أقصى';
+  }
+
+  @override
+  String get attendanceRangeAdjusted =>
+      'تم تحريك الطرف الآخر من الفترة ليتوافق مع اختيارك.';
+
+  @override
+  String get attendanceServerRefused => 'رفض الخادم هذا الطلب';
+
+  @override
+  String get attendanceServerRefusedHint =>
+      'عدّل التواريخ أو الفلاتر ثم حاول مرة أخرى.';
+
+  @override
   String get attendanceTokenUnknown => '؟';
 }

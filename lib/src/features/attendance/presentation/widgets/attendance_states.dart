@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -121,6 +123,21 @@ class AttendanceErrorState extends StatelessWidget {
         tone: AttendanceMessageTone.warning,
       );
     }
+    // A `frappe.throw` refusal, such as a date range past the server's limit
+    // if the client limit ever falls out of step with it. The shared presenter
+    // would drop the English sentence in an Arabic UI and leave a generic
+    // failure. Here the localized headline says what happened, and the
+    // server's own words go underneath, readable even if untranslated.
+    final serverMessage = attendanceServerValidationMessage(error);
+    if (serverMessage != null) {
+      return AttendanceMessageState(
+        icon: Icons.rule,
+        message: l10n.attendanceServerRefused,
+        detail: '$serverMessage\n${l10n.attendanceServerRefusedHint}',
+        tone: AttendanceMessageTone.warning,
+        onRetry: onRetry,
+      );
+    }
     return AttendanceMessageState(
       icon: Icons.error_outline,
       message: context.userErrorMessage(error),
@@ -129,6 +146,85 @@ class AttendanceErrorState extends StatelessWidget {
       onRetry: onRetry,
     );
   }
+}
+
+/// The plain-text message of a Frappe ValidationError, or null if [error] is
+/// not one.
+///
+/// Frappe sends `frappe.throw` as HTTP 417, with the message in
+/// `_server_messages`: a JSON string holding a list of JSON strings, each
+/// with a `message`. Some paths only fill `exception`
+/// (`"frappe.exceptions.ValidationError: <message>"`). Both are read. Markup
+/// is removed and the text is capped, so a traceback can never fill the
+/// screen.
+String? attendanceServerValidationMessage(Object? error) {
+  if (error is! DioException) return null;
+  final status = error.response?.statusCode;
+  final data = error.response?.data;
+  final Map<String, dynamic>? body = switch (data) {
+    Map() => Map<String, dynamic>.from(data),
+    String() => _tryDecodeMap(data),
+    _ => null,
+  };
+  final excType = body?['exc_type']?.toString() ?? '';
+  final exception = body?['exception']?.toString() ?? '';
+  final isValidation =
+      status == 417 ||
+      status == 422 ||
+      excType == 'ValidationError' ||
+      exception.contains('ValidationError');
+  if (!isValidation || body == null) return null;
+
+  final fromServerMessages = _firstServerMessage(body['_server_messages']);
+  if (fromServerMessages != null) return fromServerMessages;
+
+  // Checked on the whole line, before the prefix is cut off: a traceback's own
+  // first line contains ": ", and cutting there would hide the evidence.
+  if (exception.isNotEmpty && !exception.toLowerCase().contains('traceback')) {
+    final colon = exception.indexOf(': ');
+    final text = colon >= 0 ? exception.substring(colon + 2) : exception;
+    final cleaned = _cleanServerText(text);
+    if (cleaned != null) return cleaned;
+  }
+  final message = body['message'];
+  return message is String ? _cleanServerText(message) : null;
+}
+
+String? _firstServerMessage(dynamic raw) {
+  dynamic list = raw;
+  if (list is String) list = _tryDecode(list);
+  if (list is! List) return null;
+  for (final item in list) {
+    final decoded = item is String ? _tryDecode(item) : item;
+    final text = decoded is Map
+        ? decoded['message']?.toString()
+        : (decoded is String ? decoded : null);
+    final cleaned = _cleanServerText(text);
+    if (cleaned != null) return cleaned;
+  }
+  return null;
+}
+
+String? _cleanServerText(String? raw) {
+  if (raw == null) return null;
+  var text = raw.replaceAll(RegExp(r'<[^>]*>'), ' ');
+  text = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (text.isEmpty) return null;
+  if (text.toLowerCase().contains('traceback')) return null;
+  return text.length > 240 ? '${text.substring(0, 239)}…' : text;
+}
+
+dynamic _tryDecode(String value) {
+  try {
+    return jsonDecode(value);
+  } catch (_) {
+    return null;
+  }
+}
+
+Map<String, dynamic>? _tryDecodeMap(String value) {
+  final decoded = _tryDecode(value);
+  return decoded is Map ? Map<String, dynamic>.from(decoded) : null;
 }
 
 /// The server's own notice, shown verbatim.

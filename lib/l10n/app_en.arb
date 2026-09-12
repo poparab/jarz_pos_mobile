@@ -7526,5 +7526,16 @@
   "attendanceTokenOff": "O",
   "attendanceTokenHoliday": "H",
   "attendanceTokenNotRostered": "–",
+  "attendanceRangeShortened": "Range limited to {days} days",
+  "@attendanceRangeShortened": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "attendanceRangeAdjusted": "The other end of the range was moved to fit.",
+  "attendanceServerRefused": "The server refused this request",
+  "attendanceServerRefusedHint": "Adjust the dates or filters and try again.",
   "attendanceTokenUnknown": "?"
 }

@@ -5093,5 +5093,9 @@
   "attendanceTokenOff": "ج",
   "attendanceTokenHoliday": "ع",
   "attendanceTokenNotRostered": "–",
+  "attendanceRangeShortened": "تم تقليص الفترة إلى {days} يومًا كحد أقصى",
+  "attendanceRangeAdjusted": "تم تحريك الطرف الآخر من الفترة ليتوافق مع اختيارك.",
+  "attendanceServerRefused": "رفض الخادم هذا الطلب",
+  "attendanceServerRefusedHint": "عدّل التواريخ أو الفلاتر ثم حاول مرة أخرى.",
   "attendanceTokenUnknown": "؟"
 }

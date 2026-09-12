@@ -286,7 +286,18 @@ class AttendanceCell {
   final AttendanceDayOff? dayOff;
   final bool isCover;
 
-  bool get hasCheckin => checkinCount > 0;
+  /// Did this person clock in at all on this day?
+  ///
+  /// True for a counted punch, and also for any status that can only exist
+  /// because somebody punched: `present`, `late`, and `late_unmatched`. The
+  /// last one matters most. A day where everyone arrived outside the shift
+  /// window is a day full of check-ins, and it must not show the
+  /// "no check-ins recorded" banner.
+  bool get hasCheckin =>
+      checkinCount > 0 ||
+      status == AttendanceStatus.present ||
+      status == AttendanceStatus.late ||
+      status == AttendanceStatus.lateUnmatched;
 
   /// Lateness that counts. Early arrivals are not negative lateness for any
   /// purpose the screen has — they are simply "not late".
@@ -302,9 +313,12 @@ class AttendanceCell {
       status != AttendanceStatus.holiday &&
       status != AttendanceStatus.unknown;
 
+  /// [fallbackDate] and [fallbackShiftLocation] fill in fields the payload
+  /// leaves to its enclosing group. A value on the row itself always wins.
   factory AttendanceCell.fromJson(
     Map<String, dynamic> json, {
     String? fallbackDate,
+    String? fallbackShiftLocation,
   }) {
     final off = json['day_off'];
     return AttendanceCell(
@@ -312,7 +326,9 @@ class AttendanceCell {
       status: attendanceStatusFromWire(json['status']),
       rawStatus: (json['status'] ?? '').toString(),
       shiftType: _nullIfBlank(json['shift_type']),
-      shiftLocation: _nullIfBlank(json['shift_location']),
+      shiftLocation:
+          _nullIfBlank(json['shift_location']) ??
+          _nullIfBlank(fallbackShiftLocation),
       scheduledStart: _nullIfBlank(json['scheduled_start']),
       scheduledEnd: _nullIfBlank(json['scheduled_end']),
       firstIn: _nullIfBlank(json['first_in']),
@@ -602,15 +618,25 @@ class AttendanceDayRow {
   /// day it was rostered for. Stamping the response date over it (what this
   /// did before the backend added the field) is exactly the bug that would
   /// have moved those rows.
+  ///
+  /// [shiftLocation] is the enclosing branch group's location. Like [date], it
+  /// is a fallback only: a `shift_location` on the row itself, if one is ever
+  /// sent, wins. A row inside the `null` group gets `null`, so it still reads
+  /// "no branch resolved", which is true for that group.
   factory AttendanceDayRow.fromJson(
     Map<String, dynamic> json, {
     required String date,
+    String? shiftLocation,
   }) => AttendanceDayRow(
     employee: (json['employee'] ?? '').toString(),
     employeeName: (json['employee_name'] ?? '').toString(),
     designation: _nullIfBlank(json['designation']),
     isCourier: json['is_courier'] == true,
-    cell: AttendanceCell.fromJson(json, fallbackDate: date),
+    cell: AttendanceCell.fromJson(
+      json,
+      fallbackDate: date,
+      fallbackShiftLocation: shiftLocation,
+    ),
   );
 }
 
@@ -688,19 +714,29 @@ class AttendanceBranchDay {
   factory AttendanceBranchDay.fromJson(
     Map<String, dynamic> json, {
     required String date,
-  }) => AttendanceBranchDay(
-    shiftLocation: _nullIfBlank(json['shift_location']),
-    totals: AttendanceDayTotals.fromJson(
-      Map<String, dynamic>.from(json['totals'] as Map? ?? const {}),
-    ),
-    rows: (json['rows'] as List<dynamic>? ?? const [])
-        .whereType<Map>()
-        .map(
-          (e) =>
-              AttendanceDayRow.fromJson(Map<String, dynamic>.from(e), date: date),
-        )
-        .toList(),
-  );
+  }) {
+    final shiftLocation = _nullIfBlank(json['shift_location']);
+    return AttendanceBranchDay(
+      shiftLocation: shiftLocation,
+      totals: AttendanceDayTotals.fromJson(
+        Map<String, dynamic>.from(json['totals'] as Map? ?? const {}),
+      ),
+      rows: (json['rows'] as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map(
+            (e) => AttendanceDayRow.fromJson(
+              Map<String, dynamic>.from(e),
+              date: date,
+              // The backend leaves `shift_location` off day rows on purpose
+              // (`_DAY_ROW_KEYS` in services/attendance.py). The branch lives
+              // on the group only. Without passing it down, every row's day
+              // sheet said "No branch resolved".
+              shiftLocation: shiftLocation,
+            ),
+          )
+          .toList(),
+    );
+  }
 }
 
 /// `jarz_pos.api.attendance.get_day`.
@@ -877,7 +913,8 @@ class AttendanceEmployeeDetail {
 
   final String? notice;
 
-  bool get hasAnyCheckin => checkins.isNotEmpty;
+  bool get hasAnyCheckin =>
+      checkins.isNotEmpty || days.any((day) => day.hasCheckin);
 
   /// True when this person's days span more than one branch — the case the
   /// by-branch breakdown exists for.
@@ -1054,8 +1091,7 @@ class AttendanceSummary {
   final String? notice;
 
   /// Nobody clocked in anywhere in the range.
-  bool get hasAnyAttendance =>
-      rows.any((r) => r.presentDays > 0 || r.lateDays > 0);
+  bool get hasAnyAttendance => rows.any((r) => r.attendedDays > 0);
 
   factory AttendanceSummary.fromJson(Map<String, dynamic> json) =>
       AttendanceSummary(

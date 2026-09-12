@@ -13001,5 +13001,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceTokenNotRostered => '–';
 
   @override
+  String attendanceRangeShortened(int days) {
+    return 'Range limited to $days days';
+  }
+
+  @override
+  String get attendanceRangeAdjusted =>
+      'The other end of the range was moved to fit.';
+
+  @override
+  String get attendanceServerRefused => 'The server refused this request';
+
+  @override
+  String get attendanceServerRefusedHint =>
+      'Adjust the dates or filters and try again.';
+
+  @override
   String get attendanceTokenUnknown => '?';
 }

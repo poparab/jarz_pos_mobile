@@ -114,45 +114,106 @@ class AttendanceDateBar extends ConsumerWidget {
   }
 }
 
-/// From/to range picker, for the Employee and Summary tabs.
-class AttendanceRangeBar extends ConsumerWidget {
-  const AttendanceRangeBar({super.key, this.showBranchFilter = false});
+/// The range a tab actually queries: the shared range fitted to that tab's
+/// server limit.
+///
+/// The Employee and Summary tabs share one stored range but have different
+/// limits (see [kAttendanceMaxRangeDays]). A long range chosen on Employee is
+/// kept as stored, so switching back restores it, and Summary reads the
+/// latest [maxDays] of it. The bar displays this same fitted range, so the
+/// dates on screen are always the dates that were queried.
+AttendanceRangeFit effectiveAttendanceRange(WidgetRef ref, int maxDays) =>
+    fitAttendanceRange(ref.watch(attendanceRangeProvider), maxDays);
 
+/// From/to range picker, for the Employee and Summary tabs.
+///
+/// [maxDays] is the tab's server limit. A pick that would exceed it, or put
+/// the ends out of order, moves the OTHER end to fit and says so in a
+/// SnackBar, so the user never reaches the server's refusal.
+class AttendanceRangeBar extends ConsumerWidget {
+  const AttendanceRangeBar({
+    super.key,
+    required this.maxDays,
+    this.showBranchFilter = false,
+  });
+
+  final int maxDays;
   final bool showBranchFilter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final range = ref.watch(attendanceRangeProvider);
+    final stored = ref.watch(attendanceRangeProvider);
+    final effective = fitAttendanceRange(stored, maxDays);
+
+    void apply(String picked, AttendanceRangeEdge edge) {
+      final candidate = edge == AttendanceRangeEdge.from
+          ? stored.copyWith(fromDate: picked)
+          : stored.copyWith(toDate: picked);
+      final fit = fitAttendanceRange(candidate, maxDays, keep: edge);
+      ref.read(attendanceRangeProvider.notifier).state = fit.range;
+      if (fit.adjusted) {
+        final messenger = ScaffoldMessenger.maybeOf(context);
+        messenger?.hideCurrentSnackBar();
+        messenger?.showSnackBar(
+          SnackBar(
+            content: Text(
+              fit.shortened
+                  ? l10n.attendanceRangeShortened(maxDays)
+                  : l10n.attendanceRangeAdjusted,
+            ),
+          ),
+        );
+      }
+    }
 
     return _ControlSurface(
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: _RangeButton(
-              caption: l10n.attendanceFromDate,
-              value: range.fromDate,
-              onPick: (picked) =>
-                  ref.read(attendanceRangeProvider.notifier).state = range
-                      .copyWith(fromDate: picked),
+          Row(
+            children: [
+              Expanded(
+                child: _RangeButton(
+                  caption: l10n.attendanceFromDate,
+                  value: effective.range.fromDate,
+                  onPick: (picked) => apply(picked, AttendanceRangeEdge.from),
+                ),
+              ),
+              Expanded(
+                child: _RangeButton(
+                  caption: l10n.attendanceToDate,
+                  value: effective.range.toDate,
+                  onPick: (picked) => apply(picked, AttendanceRangeEdge.to),
+                ),
+              ),
+              IconButton(
+                tooltip: l10n.attendanceThisMonth,
+                icon: const Icon(Icons.calendar_month),
+                onPressed: () =>
+                    ref.read(attendanceRangeProvider.notifier).state =
+                        AttendanceRange.ofMonth(
+                          attendanceMonthOf(DateTime.now()),
+                        ),
+              ),
+              if (showBranchFilter) const AttendanceBranchFilter(),
+            ],
+          ),
+          // The stored range is longer than this tab allows. Said once, in a
+          // line, rather than silently querying different dates.
+          if (effective.shortened)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 6, bottom: 2),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  l10n.attendanceRangeShortened(maxDays),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
             ),
-          ),
-          Expanded(
-            child: _RangeButton(
-              caption: l10n.attendanceToDate,
-              value: range.toDate,
-              onPick: (picked) =>
-                  ref.read(attendanceRangeProvider.notifier).state = range
-                      .copyWith(toDate: picked),
-            ),
-          ),
-          IconButton(
-            tooltip: l10n.attendanceThisMonth,
-            icon: const Icon(Icons.calendar_month),
-            onPressed: () => ref.read(attendanceRangeProvider.notifier).state =
-                AttendanceRange.ofMonth(attendanceMonthOf(DateTime.now())),
-          ),
-          if (showBranchFilter) const AttendanceBranchFilter(),
         ],
       ),
     );
@@ -270,12 +331,20 @@ class _ControlSurface extends StatelessWidget {
 /// escapes this function, so no part of the feature can start doing timezone
 /// arithmetic on a server-local day.
 Future<String?> _pickDate(BuildContext context, String isoDate) async {
-  final current = DateTime.tryParse(isoDate) ?? DateTime.now();
+  final now = DateTime.now();
+  final window = attendancePickerWindow(now);
+  // Clamped: showDatePicker asserts when initialDate is outside the window,
+  // and a day stepped forward on the Day tab can land there.
+  final initial = clampAttendancePickerDate(
+    DateTime.tryParse(isoDate) ?? now,
+    first: window.first,
+    last: window.last,
+  );
   final picked = await showDatePicker(
     context: context,
-    initialDate: current,
-    firstDate: DateTime(current.year - 3),
-    lastDate: DateTime(DateTime.now().year + 1, 12, 31),
+    initialDate: initial,
+    firstDate: window.first,
+    lastDate: window.last,
   );
   return picked == null ? null : attendanceIsoDate(picked);
 }
