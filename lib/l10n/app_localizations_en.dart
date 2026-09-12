@@ -12419,4 +12419,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get replenishmentRefresh => 'Refresh';
+
+  @override
+  String get settingsBackgroundDeliveryTitle => 'Background delivery';
+
+  @override
+  String get settingsBackgroundDeliveryOk =>
+      'This phone will receive order alerts while the app is closed.';
+
+  @override
+  String get settingsBackgroundDeliveryWarning =>
+      'Android may put this app to sleep. While it is asleep, order alerts do not arrive at all — not even silently.';
+
+  @override
+  String get settingsBackgroundDeliveryFix => 'Allow background running';
+
+  @override
+  String get settingsBackgroundDeliveryOpenSettings => 'Open app settings';
+
+  @override
+  String get settingsBackgroundDeliveryHint =>
+      'On Samsung, also turn off «Put unused apps to sleep» for Jarz POS under Battery.';
+
+  @override
+  String get settingsBackgroundDeliveryNoScreen =>
+      'Could not open that screen. Open Settings > Apps > Jarz POS > Battery and allow background running.';
 }

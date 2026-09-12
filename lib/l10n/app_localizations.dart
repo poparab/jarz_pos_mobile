@@ -20272,6 +20272,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Refresh'**
   String get replenishmentRefresh;
+
+  /// No description provided for @settingsBackgroundDeliveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Background delivery'**
+  String get settingsBackgroundDeliveryTitle;
+
+  /// No description provided for @settingsBackgroundDeliveryOk.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone will receive order alerts while the app is closed.'**
+  String get settingsBackgroundDeliveryOk;
+
+  /// No description provided for @settingsBackgroundDeliveryWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Android may put this app to sleep. While it is asleep, order alerts do not arrive at all — not even silently.'**
+  String get settingsBackgroundDeliveryWarning;
+
+  /// No description provided for @settingsBackgroundDeliveryFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow background running'**
+  String get settingsBackgroundDeliveryFix;
+
+  /// No description provided for @settingsBackgroundDeliveryOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open app settings'**
+  String get settingsBackgroundDeliveryOpenSettings;
+
+  /// No description provided for @settingsBackgroundDeliveryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On Samsung, also turn off «Put unused apps to sleep» for Jarz POS under Battery.'**
+  String get settingsBackgroundDeliveryHint;
+
+  /// No description provided for @settingsBackgroundDeliveryNoScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open that screen. Open Settings > Apps > Jarz POS > Battery and allow background running.'**
+  String get settingsBackgroundDeliveryNoScreen;
 }
 
 class _AppLocalizationsDelegate

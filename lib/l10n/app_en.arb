@@ -7302,5 +7302,12 @@
   "replenishmentEmptyNoBranches": "No selling branches yet. A branch appears here once it has a POS profile.",
   "replenishmentLoadFailed": "Couldn''t load what to send",
   "replenishmentNotAllowed": "You do not have access to send stock.",
-  "replenishmentRefresh": "Refresh"
+  "replenishmentRefresh": "Refresh",
+  "settingsBackgroundDeliveryTitle": "Background delivery",
+  "settingsBackgroundDeliveryOk": "This phone will receive order alerts while the app is closed.",
+  "settingsBackgroundDeliveryWarning": "Android may put this app to sleep. While it is asleep, order alerts do not arrive at all — not even silently.",
+  "settingsBackgroundDeliveryFix": "Allow background running",
+  "settingsBackgroundDeliveryOpenSettings": "Open app settings",
+  "settingsBackgroundDeliveryHint": "On Samsung, also turn off «Put unused apps to sleep» for Jarz POS under Battery.",
+  "settingsBackgroundDeliveryNoScreen": "Could not open that screen. Open Settings > Apps > Jarz POS > Battery and allow background running."
 }

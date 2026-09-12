@@ -20,12 +20,40 @@ class UserProfileScreen extends ConsumerStatefulWidget {
   ConsumerState<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
-class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
+class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
+    with WidgetsBindingObserver {
   bool _isEnablingWebPush = false;
   String? _webPushDiagnosticMessage;
+  late Future<bool> _backgroundDeliveryOk;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _backgroundDeliveryOk =
+        OrderAlertNativeChannel.isIgnoringBatteryOptimizations();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // The exemption is granted in a system dialog outside this app, so coming
+    // back is the only moment we can learn the answer.
+    if (state == AppLifecycleState.resumed) {
+      _refreshBackgroundDelivery();
+    }
+  }
+
+  void _refreshBackgroundDelivery() {
+    if (!mounted) return;
+    setState(() {
+      _backgroundDeliveryOk =
+          OrderAlertNativeChannel.isIgnoringBatteryOptimizations();
+    });
+  }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     // Stop any playing preview when leaving the screen
     OrderAlertNativeChannel.stopPreview();
     super.dispose();
@@ -235,6 +263,20 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 const SizedBox(height: 12),
               ],
               
+              // Background delivery.
+              //
+              // Deliberately NOT gated on a role: a new-order alert is a
+              // data-only push, so it can only be delivered by starting this
+              // app. Once Android parks the app in stopped state -- which is
+              // what Samsung's sleep setting does -- every alert is dropped
+              // outright, FCM still reports it as sent, and nothing on the
+              // server records the loss. This card is the only place a person
+              // can find that out, so everyone who receives orders sees it.
+              if (!kIsWeb) ...[
+                _buildBackgroundDeliveryCard(context),
+                const SizedBox(height: 12),
+              ],
+
               // Global Mute Toggle (only for authorized roles)
               if (userRoles.canMuteNotifications) ...[
                 Card(
@@ -716,5 +758,129 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     if (parts.isEmpty) return '?';
     if (parts.length == 1) return parts[0][0].toUpperCase();
     return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
+  }
+
+  Widget _buildBackgroundDeliveryCard(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _backgroundDeliveryOk,
+      builder: (context, snapshot) {
+        // Until we know, say nothing. A warning that turns out to be wrong
+        // teaches people to ignore this card, which is worse than silence.
+        if (!snapshot.hasData) return const SizedBox.shrink();
+        final ok = snapshot.data!;
+        final scheme = Theme.of(context).colorScheme;
+
+        if (ok) {
+          return Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Icon(Icons.cloud_done, color: scheme.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.l10n.settingsBackgroundDeliveryTitle,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          context.l10n.settingsBackgroundDeliveryOk,
+                          style:
+                              TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Card(
+          elevation: 2,
+          color: Colors.orange[50],
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.cloud_off, color: Colors.orange),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        context.l10n.settingsBackgroundDeliveryTitle,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  context.l10n.settingsBackgroundDeliveryWarning,
+                  style: TextStyle(fontSize: 13, color: Colors.orange[900]),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  context.l10n.settingsBackgroundDeliveryHint,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    FilledButton.icon(
+                      icon: const Icon(Icons.battery_saver, size: 18),
+                      label: Text(context.l10n.settingsBackgroundDeliveryFix),
+                      onPressed: () => _openBackgroundDeliveryScreen(
+                        context,
+                        OrderAlertNativeChannel
+                            .requestIgnoreBatteryOptimizations,
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.settings, size: 18),
+                      label: Text(
+                        context.l10n.settingsBackgroundDeliveryOpenSettings,
+                      ),
+                      onPressed: () => _openBackgroundDeliveryScreen(
+                        context,
+                        OrderAlertNativeChannel.openAppSettings,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Opens a system screen and says so only when nothing opened at all.
+  ///
+  /// A true result means a screen appeared, not that the user accepted; the
+  /// answer arrives later through didChangeAppLifecycleState.
+  Future<void> _openBackgroundDeliveryScreen(
+    BuildContext context,
+    Future<bool> Function() open,
+  ) async {
+    final opened = await open();
+    if (!context.mounted || opened) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.settingsBackgroundDeliveryNoScreen),
+        backgroundColor: Colors.orange,
+      ),
+    );
   }
 }

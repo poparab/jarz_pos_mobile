@@ -86,6 +86,15 @@ class OrderAlertChannel : FlutterPlugin, MethodChannel.MethodCallHandler {
                 OrderAlertNative.stopPreview()
                 result.success(null)
             }
+            "isIgnoringBatteryOptimizations" -> {
+                result.success(PushReliabilityNative.isIgnoringBatteryOptimizations(appContext))
+            }
+            "requestIgnoreBatteryOptimizations" -> {
+                result.success(PushReliabilityNative.requestIgnoreBatteryOptimizations(appContext))
+            }
+            "openAppSettings" -> {
+                result.success(PushReliabilityNative.openAppSettings(appContext))
+            }
             else -> result.notImplemented()
         }
     }

@@ -116,6 +116,55 @@ class OrderAlertNativeChannel {
     return _channel.invokeMethod('stopPreview');
   }
 
+  /// Whether Android will let a push wake this app at all.
+  ///
+  /// A new-order alert is data-only, so its delivery requires starting this
+  /// app's process. Once a battery manager parks the app in "stopped state" --
+  /// Samsung's "Put unused apps to sleep" is the common one -- every alert is
+  /// dropped, FCM still reports success, and nothing on the server records it.
+  /// Returns true on web and on anything that cannot answer, because a false
+  /// warning would train staff to dismiss the banner that matters.
+  static Future<bool> isIgnoringBatteryOptimizations() async {
+    if (kIsWeb) return true;
+    try {
+      final result = await _channel.invokeMethod<bool>(
+        'isIgnoringBatteryOptimizations',
+      );
+      return result ?? true;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  /// Opens the system "allow this app to run in the background?" dialog.
+  ///
+  /// Returns false when no screen could be opened at all, which is the only
+  /// case worth telling the user about; a true result means something opened,
+  /// not that they accepted.
+  static Future<bool> requestIgnoreBatteryOptimizations() async {
+    if (kIsWeb) return false;
+    try {
+      final result = await _channel.invokeMethod<bool>(
+        'requestIgnoreBatteryOptimizations',
+      );
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Opens this app's own settings page -- where the per-manufacturer battery
+  /// controls live for anyone who has to turn the sleep setting off by hand.
+  static Future<bool> openAppSettings() async {
+    if (kIsWeb) return false;
+    try {
+      final result = await _channel.invokeMethod<bool>('openAppSettings');
+      return result ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   static Future<Map<String, String>?> consumeLaunchPayload() async {
     if (kIsWeb) return null; // No launch payload on web
     final result = await _channel.invokeMethod<dynamic>('consumeLaunchPayload');

@@ -12400,4 +12400,29 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get replenishmentRefresh => 'تحديث';
+
+  @override
+  String get settingsBackgroundDeliveryTitle => 'استقبال الطلبات في الخلفية';
+
+  @override
+  String get settingsBackgroundDeliveryOk =>
+      'الهاتف ده هيستقبل تنبيهات الطلبات والتطبيق مقفول.';
+
+  @override
+  String get settingsBackgroundDeliveryWarning =>
+      'أندرويد ممكن ينيّم التطبيق، ووقتها تنبيهات الطلبات مش بتوصل خالص — ولا حتى بدون صوت.';
+
+  @override
+  String get settingsBackgroundDeliveryFix => 'اسمح بالعمل في الخلفية';
+
+  @override
+  String get settingsBackgroundDeliveryOpenSettings => 'افتح إعدادات التطبيق';
+
+  @override
+  String get settingsBackgroundDeliveryHint =>
+      'في سامسونج، اقفل كمان خيار «تنويم التطبيقات غير المستخدمة» لتطبيق Jarz POS من إعدادات البطارية.';
+
+  @override
+  String get settingsBackgroundDeliveryNoScreen =>
+      'تعذّر فتح الشاشة. افتح الإعدادات > التطبيقات > Jarz POS > البطارية واسمح بالعمل في الخلفية.';
 }

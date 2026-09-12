@@ -4915,5 +4915,12 @@
   "replenishmentEmptyNoBranches": "مفيش فروع بيع لسه. الفرع بيظهر هنا أول ما يبقى ليه POS profile.",
   "replenishmentLoadFailed": "مقدرناش نحمّل المطلوب إرساله",
   "replenishmentNotAllowed": "معندكش صلاحية تبعت مخزون.",
-  "replenishmentRefresh": "تحديث"
+  "replenishmentRefresh": "تحديث",
+  "settingsBackgroundDeliveryTitle": "استقبال الطلبات في الخلفية",
+  "settingsBackgroundDeliveryOk": "الهاتف ده هيستقبل تنبيهات الطلبات والتطبيق مقفول.",
+  "settingsBackgroundDeliveryWarning": "أندرويد ممكن ينيّم التطبيق، ووقتها تنبيهات الطلبات مش بتوصل خالص — ولا حتى بدون صوت.",
+  "settingsBackgroundDeliveryFix": "اسمح بالعمل في الخلفية",
+  "settingsBackgroundDeliveryOpenSettings": "افتح إعدادات التطبيق",
+  "settingsBackgroundDeliveryHint": "في سامسونج، اقفل كمان خيار «تنويم التطبيقات غير المستخدمة» لتطبيق Jarz POS من إعدادات البطارية.",
+  "settingsBackgroundDeliveryNoScreen": "تعذّر فتح الشاشة. افتح الإعدادات > التطبيقات > Jarz POS > البطارية واسمح بالعمل في الخلفية."
 }
