@@ -346,7 +346,339 @@ class RecurringExpenseItem {
       _maps(value).map(RecurringExpenseItem.fromJson).toList();
 }
 
-/// One employee's salary for the month.
+/// The three ways a penalty can be expressed. Server vocabulary, verbatim:
+/// `Jarz Employee Penalty.unit` is a Select with exactly these options, and the
+/// conversion below is the DocType's `validate` mirrored locally so the sheet
+/// can show the equivalence before anything is sent.
+class PenaltyUnit {
+  static const days = 'Days';
+  static const halfDays = 'Half Days';
+  static const money = 'Money';
+
+  static const all = <String>[days, halfDays, money];
+
+  const PenaltyUnit._();
+}
+
+/// The money value of a penalty, from whatever the user typed.
+///
+/// Mirrors `Jarz Employee Penalty.validate` exactly — Days multiply the day
+/// rate, Half Days multiply half of it, Money is taken as given. Duplicated on
+/// the client ON PURPOSE: the sheet has to show the equivalence on every
+/// keystroke, and a round trip per keystroke is not that.
+double penaltyAmountFor({
+  required String unit,
+  required double quantity,
+  required double amount,
+  required double dayRate,
+}) {
+  switch (unit) {
+    case PenaltyUnit.days:
+      return quantity * dayRate;
+    case PenaltyUnit.halfDays:
+      return quantity * dayRate / 2;
+    case PenaltyUnit.money:
+    default:
+      return amount;
+  }
+}
+
+/// The day value of a penalty, from whatever the user typed.
+///
+/// Deliberately NOT rounded to a whole day: half a day is a real answer, and
+/// 600 against a 400 day rate is 1.5 days, not "1" or "2". A day rate of 0
+/// yields 0 rather than infinity — that employee has no salary structure, so a
+/// day genuinely has no value for them.
+double penaltyDaysFor({
+  required String unit,
+  required double quantity,
+  required double amount,
+  required double dayRate,
+}) {
+  switch (unit) {
+    case PenaltyUnit.days:
+      return quantity;
+    case PenaltyUnit.halfDays:
+      return quantity / 2;
+    case PenaltyUnit.money:
+    default:
+      return dayRate > 0 ? amount / dayRate : 0;
+  }
+}
+
+/// One submitted `Jarz Employee Penalty` deducted from this month's salary.
+///
+/// [dayRate] is the rate SNAPSHOTTED when the penalty was entered, not the
+/// employee's rate today: a raise afterwards must not silently re-price a
+/// penalty already agreed with them.
+class PenaltyEntry {
+  final String name;
+  final DateTime? penaltyDate;
+  final String periodMonth;
+  final String unit;
+  final double quantity;
+  final double amount;
+  final double equivalentDays;
+  final double dayRate;
+  final String reason;
+
+  /// Already discharged by a salary payment. A settled penalty cannot be
+  /// cancelled — the server refuses it, so the card hides the action.
+  final bool settled;
+
+  const PenaltyEntry({
+    required this.name,
+    this.penaltyDate,
+    this.periodMonth = '',
+    this.unit = PenaltyUnit.money,
+    this.quantity = 0,
+    this.amount = 0,
+    this.equivalentDays = 0,
+    this.dayRate = 0,
+    this.reason = '',
+    this.settled = false,
+  });
+
+  factory PenaltyEntry.fromJson(Map<String, dynamic> json) {
+    final unit = _str(json['unit']);
+    return PenaltyEntry(
+      name: _str(json['name']),
+      penaltyDate: _date(json['penalty_date']),
+      periodMonth: _str(json['period_month']),
+      unit: unit.isEmpty ? PenaltyUnit.money : unit,
+      quantity: _num(json['quantity']),
+      amount: _num(json['amount']),
+      equivalentDays: _num(json['equivalent_days']),
+      dayRate: _num(json['day_rate']),
+      reason: _str(json['reason']),
+      settled: _bool(json['settled']),
+    );
+  }
+
+  static List<PenaltyEntry> listFrom(dynamic value) =>
+      _maps(value).map(PenaltyEntry.fromJson).toList();
+}
+
+/// One submitted `Employee Advance` with money still outstanding.
+///
+/// The balance is ALL-TIME, not this month's: windowing it would hide exactly
+/// the stale debt worth collecting. Belal's two advances are why this class
+/// exists — they were invisible on this screen while the money was out.
+class AdvanceEntry {
+  final String name;
+  final DateTime? postingDate;
+
+  /// What was advanced originally.
+  final double amount;
+
+  /// What is still open: paid − claimed − returned − already settled here.
+  final double outstanding;
+
+  final String purpose;
+  final String status;
+
+  /// Where the advance sits in the ledger. Reported, never repointed: on
+  /// production all three open advances sit on `Debtors - J`, which is customer
+  /// AR, and the server raises a gap about it rather than moving anything.
+  final String advanceAccount;
+
+  const AdvanceEntry({
+    required this.name,
+    this.postingDate,
+    this.amount = 0,
+    this.outstanding = 0,
+    this.purpose = '',
+    this.status = '',
+    this.advanceAccount = '',
+  });
+
+  factory AdvanceEntry.fromJson(Map<String, dynamic> json) {
+    return AdvanceEntry(
+      name: _str(json['name']),
+      postingDate: _date(json['posting_date']),
+      amount: _num(json['amount']),
+      outstanding: _num(json['outstanding']),
+      purpose: _str(json['purpose']),
+      status: _str(json['status']),
+      advanceAccount: _str(json['advance_account']),
+    );
+  }
+
+  static List<AdvanceEntry> listFrom(dynamic value) =>
+      _maps(value).map(AdvanceEntry.fromJson).toList();
+}
+
+/// One unpaid Sales Invoice rung up with the Employee order policy — staff who
+/// took jars and have not paid for them.
+///
+/// Only invoices carrying `custom_order_purpose = "Employee"` count. A customer
+/// merely linked to an employee does NOT: production has 48 such links and they
+/// are misused, so trusting them would bill people for other people's orders.
+class EmployeeOrderEntry {
+  final String invoice;
+  final DateTime? postingDate;
+  final String customer;
+  final String customerName;
+  final double grandTotal;
+  final double outstanding;
+  final String status;
+
+  const EmployeeOrderEntry({
+    required this.invoice,
+    this.postingDate,
+    this.customer = '',
+    this.customerName = '',
+    this.grandTotal = 0,
+    this.outstanding = 0,
+    this.status = '',
+  });
+
+  String get displayCustomer =>
+      customerName.trim().isNotEmpty ? customerName.trim() : customer;
+
+  factory EmployeeOrderEntry.fromJson(Map<String, dynamic> json) {
+    return EmployeeOrderEntry(
+      invoice: _str(json['invoice'] ?? json['name']),
+      postingDate: _date(json['posting_date']),
+      customer: _str(json['customer']),
+      customerName: _str(json['customer_name']),
+      grandTotal: _num(json['grand_total']),
+      outstanding: _num(json['outstanding']),
+      status: _str(json['status']),
+    );
+  }
+
+  static List<EmployeeOrderEntry> listFrom(dynamic value) =>
+      _maps(value).map(EmployeeOrderEntry.fromJson).toList();
+}
+
+/// The month's deductions across everybody — the top-level `deductions` block.
+class DeductionsSummary {
+  final double penaltyTotal;
+  final double penaltyDays;
+  final double advanceTotal;
+  final double orderTotal;
+  final double total;
+
+  /// What is left to hand over in cash once the open balances come off.
+  final double netPayable;
+
+  /// HRMS answered. When false the advance figures are not zero, they are
+  /// UNKNOWN, and the server raises an `advances_unreadable` gap saying so.
+  final bool advancesReadable;
+
+  /// At least one Sales Invoice has ever been rung up as an Employee order.
+  /// False on production today, which is why the board legitimately shows no
+  /// jar debt — the server emits an INFO gap explaining exactly that.
+  final bool employeeOrdersPresent;
+
+  /// The Select options for a new penalty, in the server's own vocabulary.
+  final List<String> penaltyUnits;
+
+  /// The fixed calendar basis behind the day rate: monthly salary / this.
+  final int daysPerMonth;
+
+  const DeductionsSummary({
+    this.penaltyTotal = 0,
+    this.penaltyDays = 0,
+    this.advanceTotal = 0,
+    this.orderTotal = 0,
+    this.total = 0,
+    this.netPayable = 0,
+    this.advancesReadable = true,
+    this.employeeOrdersPresent = false,
+    this.penaltyUnits = PenaltyUnit.all,
+    this.daysPerMonth = 30,
+  });
+
+  bool get hasAny =>
+      penaltyTotal.abs() > 0.005 ||
+      advanceTotal.abs() > 0.005 ||
+      orderTotal.abs() > 0.005;
+
+  factory DeductionsSummary.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const DeductionsSummary();
+    final units = _stringList(json['penalty_units']);
+    return DeductionsSummary(
+      penaltyTotal: _num(json['penalty_total']),
+      penaltyDays: _num(json['penalty_days']),
+      advanceTotal: _num(json['advance_total']),
+      orderTotal: _num(json['order_total']),
+      total: _num(json['total']),
+      netPayable: _num(json['net_payable']),
+      // Absent means readable: a server build that never had this flag was
+      // reading HRMS fine, and defaulting to "unreadable" would warn about a
+      // problem that does not exist.
+      advancesReadable: json.containsKey('advances_readable')
+          ? _bool(json['advances_readable'])
+          : true,
+      employeeOrdersPresent: _bool(json['employee_orders_present']),
+      penaltyUnits: units.isEmpty ? PenaltyUnit.all : units,
+      daysPerMonth:
+          json['days_per_month'] == null ? 30 : _int(json['days_per_month']),
+    );
+  }
+}
+
+/// One advance to discharge as part of a salary payment.
+class AdvanceSettlement {
+  final String name;
+  final double amount;
+
+  const AdvanceSettlement({required this.name, required this.amount});
+
+  Map<String, dynamic> toJson() => {'name': name, 'amount': amount};
+}
+
+/// One staff order to discharge as part of a salary payment.
+class OrderSettlement {
+  final String invoice;
+  final double amount;
+
+  const OrderSettlement({required this.invoice, required this.amount});
+
+  Map<String, dynamic> toJson() => {'invoice': invoice, 'amount': amount};
+}
+
+/// A penalty about to be created.
+///
+/// A class rather than a loose map so the field names are written once: the
+/// sheet, the repository and the test read the same definition, and a typo is a
+/// compile error instead of a field the server silently ignores.
+class PenaltyDraft {
+  final String employee;
+  final String unit;
+
+  /// Days or half-days. Null when [unit] is Money.
+  final double? quantity;
+
+  /// Money. Null when [unit] is Days or Half Days — the server derives it from
+  /// the day rate it snapshots, so sending a client-computed amount as well
+  /// would be two sources of truth for one number.
+  final double? amount;
+
+  final String reason;
+
+  /// `YYYY-MM-DD`. Null lets the server stamp today.
+  final String? penaltyDate;
+
+  const PenaltyDraft({
+    required this.employee,
+    required this.unit,
+    required this.reason,
+    this.quantity,
+    this.amount,
+    this.penaltyDate,
+  });
+}
+
+/// One employee's salary for the month, and everything that reduces it.
+///
+/// The money model has one meaning per number: [grossDue] is the structure's
+/// salary, [dueAmount] is that minus this month's penalties, [remaining] is the
+/// obligation still open, and [netPayable] is the cash to hand over once the
+/// advance and staff-order balances come off. Four fields because they answer
+/// four different questions — collapsing any two is how someone gets paid twice.
 class SalaryRow {
   final String employee;
   final String employeeName;
@@ -354,10 +686,44 @@ class SalaryRow {
   final String? department;
   final double base;
   final double variable;
+
+  /// The month's salary BEFORE penalties.
+  final double grossDue;
+
+  /// `gross_due / days_per_month`, snapshotted server-side. 0 for an employee
+  /// with no salary structure — which is exactly why the penalty sheet has to
+  /// refuse Days for them and ask for money instead.
+  final double dayRate;
+
   final double dueAmount;
   final double paidAmount;
   final double remaining;
   final String paymentStatus;
+
+  final double penaltyTotal;
+  final double penaltyDays;
+  final List<PenaltyEntry> penalties;
+
+  /// Open advance balance, ALL-TIME rather than month-scoped.
+  final double advanceTotal;
+  final List<AdvanceEntry> advances;
+
+  /// Open balance on staff orders — jars taken and not paid for.
+  final double orderTotal;
+  final List<EmployeeOrderEntry> orders;
+
+  final double deductionsTotal;
+
+  /// How much of the deductions a payment has already discharged.
+  final double settledAmount;
+
+  /// Cash to hand over now.
+  final double netPayable;
+
+  /// No salary structure at all: the row exists only because this employee
+  /// carries an advance, a staff order or a penalty. Two people are deliberately
+  /// off payroll on production, and an advance to either still has to appear.
+  final bool offPayroll;
 
   /// A submitted Salary Slip already exists for this period, so paying here
   /// would double-post. The backend refuses it; the card hides the button.
@@ -380,12 +746,56 @@ class SalaryRow {
     required this.hasSalarySlip,
     required this.canPay,
     required this.payments,
+    this.grossDue = 0,
+    this.dayRate = 0,
+    this.penaltyTotal = 0,
+    this.penaltyDays = 0,
+    this.penalties = const [],
+    this.advanceTotal = 0,
+    this.advances = const [],
+    this.orderTotal = 0,
+    this.orders = const [],
+    this.deductionsTotal = 0,
+    this.settledAmount = 0,
+    this.netPayable = 0,
+    this.offPayroll = false,
   });
 
   String get displayName =>
       employeeName.trim().isNotEmpty ? employeeName.trim() : employee;
 
+  /// Whether anything at all reduces what the company hands over. Drives
+  /// whether the card renders a deductions block: a clean row has to stay the
+  /// single line it is today, because this screen lists sixteen people.
+  bool get hasDeductions =>
+      penaltyTotal.abs() > 0.005 ||
+      advanceTotal.abs() > 0.005 ||
+      orderTotal.abs() > 0.005;
+
+  /// Balances one payment could settle in the same action.
+  bool get hasOpenBalances => advances.isNotEmpty || orders.isNotEmpty;
+
   factory SalaryRow.fromJson(Map<String, dynamic> json) {
+    final dueAmount = _num(json['due_amount']);
+    final remaining = _num(json['remaining']);
+    final penaltyTotal = _num(json['penalty_total']);
+    final advanceTotal = _num(json['advance_total']);
+    final orderTotal = _num(json['order_total']);
+
+    // Every derived figure falls back to its own definition rather than to
+    // zero: a server that has not shipped these fields yet must still render a
+    // correct card, and a zero `gross_due` would read as "earns nothing".
+    final grossDue = json['gross_due'] == null
+        ? dueAmount + penaltyTotal
+        : _num(json['gross_due']);
+    final deductionsTotal = json['deductions_total'] == null
+        ? penaltyTotal + advanceTotal + orderTotal
+        : _num(json['deductions_total']);
+    final netRaw = remaining - advanceTotal - orderTotal;
+    final netPayable = json['net_payable'] == null
+        ? (netRaw > 0 ? netRaw : 0.0)
+        : _num(json['net_payable']);
+
     return SalaryRow(
       employee: _str(json['employee']),
       employeeName: _str(json['employee_name']),
@@ -393,10 +803,23 @@ class SalaryRow {
       department: _strOrNull(json['department']),
       base: _num(json['base']),
       variable: _num(json['variable']),
-      dueAmount: _num(json['due_amount']),
+      grossDue: grossDue,
+      dayRate: _num(json['day_rate']),
+      dueAmount: dueAmount,
       paidAmount: _num(json['paid_amount']),
-      remaining: _num(json['remaining']),
+      remaining: remaining,
       paymentStatus: _str(json['payment_status']),
+      penaltyTotal: penaltyTotal,
+      penaltyDays: _num(json['penalty_days']),
+      penalties: PenaltyEntry.listFrom(json['penalties']),
+      advanceTotal: advanceTotal,
+      advances: AdvanceEntry.listFrom(json['advances']),
+      orderTotal: orderTotal,
+      orders: EmployeeOrderEntry.listFrom(json['orders']),
+      deductionsTotal: deductionsTotal,
+      settledAmount: _num(json['settled_amount']),
+      netPayable: netPayable,
+      offPayroll: _bool(json['off_payroll']),
       hasSalarySlip: _bool(json['has_salary_slip']),
       canPay: _bool(json['can_pay']),
       payments: MonthlyExpensePayment.listFrom(json['payments']),
@@ -595,6 +1018,18 @@ class MonthlyExpenseGap {
     return s == 'critical' || s == 'error' || s == 'danger';
   }
 
+  /// Purely informational: nothing is wrong, there is simply something the
+  /// manager should know before reading a zero as a fact — "no order has ever
+  /// been rung up as a staff order" is the case this was added for.
+  ///
+  /// Split out from [isCritical] so a month whose only gaps are INFO stops
+  /// painting itself in the error colour. A banner that is always red is a
+  /// banner nobody reads by the third month.
+  bool get isInfo {
+    final s = severity.toLowerCase();
+    return s == 'info' || s == 'information' || s == 'notice';
+  }
+
   factory MonthlyExpenseGap.fromJson(Map<String, dynamic> json) {
     return MonthlyExpenseGap(
       severity: _str(json['severity']),
@@ -627,6 +1062,13 @@ class MonthlyExpensesPayload {
   final List<String> categories;
   final List<String> frequencies;
   final List<MonthlyExpenseGap> gaps;
+
+  /// What reduces the month's payroll bill, company-wide: penalties, open
+  /// advances and unpaid staff orders. Never folded into [summary] — that block
+  /// answers "what does the company owe", this one answers "what do we actually
+  /// hand over", and the two differ by exactly the money staff already took.
+  final DeductionsSummary deductions;
+
   final bool canManage;
 
   /// Whether this user may reverse a posted payment.
@@ -656,6 +1098,7 @@ class MonthlyExpensesPayload {
     this.categories = const [],
     this.frequencies = const [],
     this.gaps = const [],
+    this.deductions = const DeductionsSummary(),
     this.canManage = false,
     this.canCancelPayments = false,
   });
@@ -721,6 +1164,11 @@ class MonthlyExpensesPayload {
       categories: _stringList(json['categories']),
       frequencies: _stringList(json['frequencies']),
       gaps: MonthlyExpenseGap.listFrom(json['gaps']),
+      deductions: DeductionsSummary.fromJson(
+        json['deductions'] is Map
+            ? Map<String, dynamic>.from(json['deductions'] as Map)
+            : null,
+      ),
       canManage: _bool(json['can_manage']),
       canCancelPayments: _bool(json['can_cancel_payments']),
     );

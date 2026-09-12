@@ -20,9 +20,17 @@ class MonthlyExpenseGapsBanner extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = context.l10n;
 
+    // A month whose only gaps are INFO is not a month with a problem. Those
+    // entries are standing facts — "no order has ever been rung up as a staff
+    // order", so the jar-debt column is legitimately zero — and painting them
+    // in the error colour every month is how a banner stops being read.
+    final onlyInfo = gaps.every((gap) => gap.isInfo);
+
     return Card(
       elevation: 0,
-      color: theme.colorScheme.errorContainer.withValues(alpha: 0.35),
+      color: onlyInfo
+          ? theme.colorScheme.secondaryContainer.withValues(alpha: 0.45)
+          : theme.colorScheme.errorContainer.withValues(alpha: 0.35),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -31,11 +39,20 @@ class MonthlyExpenseGapsBanner extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.warning_amber_rounded,
-                    size: 18, color: theme.colorScheme.error),
+                Icon(
+                  onlyInfo
+                      ? Icons.lightbulb_outline
+                      : Icons.warning_amber_rounded,
+                  size: 18,
+                  color: onlyInfo
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.error,
+                ),
                 const SizedBox(width: 8),
                 Text(
-                  l10n.monthlyExpensesGapsTitle,
+                  onlyInfo
+                      ? l10n.monthlyExpensesGapsInfoTitle
+                      : l10n.monthlyExpensesGapsTitle,
                   style: theme.textTheme.titleSmall
                       ?.copyWith(fontWeight: FontWeight.w700),
                 ),

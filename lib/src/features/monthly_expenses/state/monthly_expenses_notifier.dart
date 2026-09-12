@@ -185,6 +185,8 @@ class MonthlyExpensesNotifier extends StateNotifier<MonthlyExpensesState> {
     String? paymentDate,
     String? remarks,
     bool allowOverpay = false,
+    List<AdvanceSettlement> settleAdvances = const [],
+    List<OrderSettlement> settleOrders = const [],
   }) {
     return _mutate(() => _repository.paySalary(
           employee: employee,
@@ -194,7 +196,35 @@ class MonthlyExpensesNotifier extends StateNotifier<MonthlyExpensesState> {
           paymentDate: paymentDate,
           remarks: remarks,
           allowOverpay: allowOverpay,
+          settleAdvances: settleAdvances,
+          settleOrders: settleOrders,
         ));
+  }
+
+  /// Record a penalty for the selected month.
+  ///
+  /// Goes through [_mutate] like every other write, so the month is refetched
+  /// before success is reported: a penalty moves `due_amount`, the payroll
+  /// total, the Salaries category subtotal and the row's net payable all at
+  /// once, and only the server can recompute that set.
+  Future<MonthlyExpenseActionResult> addPenalty({
+    required PenaltyDraft draft,
+    bool allowOverpay = false,
+  }) {
+    return _mutate(() => _repository.addEmployeePenalty(
+          draft: draft,
+          month: state.selectedMonth,
+          allowOverpay: allowOverpay,
+        ));
+  }
+
+  Future<MonthlyExpenseActionResult> cancelPenalty({
+    required String name,
+    required String reason,
+  }) {
+    return _mutate(
+      () => _repository.cancelEmployeePenalty(name: name, reason: reason),
+    );
   }
 
   Future<MonthlyExpenseActionResult> saveRecurringExpense(

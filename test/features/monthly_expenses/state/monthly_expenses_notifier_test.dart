@@ -47,10 +47,42 @@ class _FakeRepository extends MonthlyExpensesRepository {
     String? paymentDate,
     String? remarks,
     bool allowOverpay = false,
+    List<AdvanceSettlement> settleAdvances = const [],
+    List<OrderSettlement> settleOrders = const [],
   }) async {
     calls.add('paySalary:$employee:$month:$amount:$allowOverpay');
+    // The settlements are recorded verbatim: they are the half of the payment
+    // that clears a debt without cash moving, and a silent drop here would be
+    // an advance left open with the employee already paid.
+    for (final advance in settleAdvances) {
+      calls.add('settleAdvance:${advance.name}:${advance.amount}');
+    }
+    for (final order in settleOrders) {
+      calls.add('settleOrder:${order.invoice}:${order.amount}');
+    }
     allowOverpayFlags.add(allowOverpay);
     _maybeThrow(allowOverpay);
+  }
+
+  @override
+  Future<void> addEmployeePenalty({
+    required PenaltyDraft draft,
+    required String month,
+    bool allowOverpay = false,
+  }) async {
+    calls.add('penalty:${draft.employee}:$month:${draft.unit}:'
+        '${draft.quantity}:${draft.amount}:${draft.reason}:$allowOverpay');
+    allowOverpayFlags.add(allowOverpay);
+    _maybeThrow(allowOverpay);
+  }
+
+  @override
+  Future<void> cancelEmployeePenalty({
+    required String name,
+    required String reason,
+  }) async {
+    calls.add('cancelPenalty:$name:$reason');
+    _maybeThrow(false);
   }
 
   @override
@@ -249,6 +281,63 @@ void main() {
       expect(repo.calls, contains('status:JRE-0001:Paused'));
       expect(repo.calls, contains('cancel:JER-0009:wrong account'));
       expect(repo.calls, contains('save:<new>'));
+    });
+
+    test('a salary payment carries the settlements it was given', () async {
+      final repo = _FakeRepository()..payload = _payload();
+      final notifier = MonthlyExpensesNotifier(repo);
+      await notifier.load();
+      repo.calls.clear();
+
+      final result = await notifier.paySalary(
+        employee: 'HR-EMP-00001',
+        amount: 8200,
+        payingAccount: 'Cash - J',
+        settleAdvances: const [
+          AdvanceSettlement(name: 'HR-EAD-2026-00004', amount: 500),
+        ],
+        settleOrders: const [
+          OrderSettlement(invoice: 'ACC-SINV-2026-18146', amount: 184),
+        ],
+      );
+
+      expect(result.success, isTrue);
+      expect(repo.calls, [
+        'paySalary:HR-EMP-00001:2026-09:8200.0:false',
+        'settleAdvance:HR-EAD-2026-00004:500.0',
+        'settleOrder:ACC-SINV-2026-18146:184.0',
+        'fetch:2026-09',
+      ]);
+    });
+
+    test('a penalty is recorded for the selected month and refetches it',
+        () async {
+      final repo = _FakeRepository()..payload = _payload();
+      final notifier = MonthlyExpensesNotifier(repo);
+      await notifier.load();
+      repo.calls.clear();
+
+      await notifier.addPenalty(
+        draft: const PenaltyDraft(
+          employee: 'HR-EMP-00001',
+          unit: PenaltyUnit.days,
+          quantity: 2,
+          reason: 'No-show',
+        ),
+      );
+      await notifier.cancelPenalty(name: 'JPEN-00001', reason: 'agreed to drop');
+
+      expect(
+        repo.calls,
+        containsAllInOrder([
+          // Only the quantity travels for a Days penalty; the server owns the
+          // conversion and snapshots the rate it used.
+          'penalty:HR-EMP-00001:2026-09:Days:2.0:null:No-show:false',
+          'fetch:2026-09',
+          'cancelPenalty:JPEN-00001:agreed to drop',
+          'fetch:2026-09',
+        ]),
+      );
     });
 
     test('a failed mutation does not refetch and does surface the error',

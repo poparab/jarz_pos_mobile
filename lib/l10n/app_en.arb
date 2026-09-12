@@ -7054,6 +7054,94 @@
   "monthlyExpensesReadOnlyNotice": "You can see this month but not change the registry.",
   "monthlyExpensesFormMissingOptions": "The server did not send the categories, frequencies and accounts this form needs.",
   "monthlyExpensesSalarySlipBadge": "Salary slip",
+  "monthlyExpensesGrossLabel": "Gross",
+  "monthlyExpensesPenaltyLabel": "Penalty",
+  "monthlyExpensesAdvanceLabel": "Advance",
+  "monthlyExpensesJarsLabel": "Jars",
+  "monthlyExpensesNetPayableLabel": "Net to pay",
+  "monthlyExpensesDeductionAmount": "− {amount}",
+  "@monthlyExpensesDeductionAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "monthlyExpensesDeductionsSummary": "Deductions {total} • net to hand over {net}",
+  "@monthlyExpensesDeductionsSummary": {
+    "placeholders": {
+      "total": {},
+      "net": {}
+    }
+  },
+  "monthlyExpensesOutstandingOf": "{outstanding} left of {amount}",
+  "@monthlyExpensesOutstandingOf": {
+    "placeholders": {
+      "outstanding": {},
+      "amount": {}
+    }
+  },
+  "monthlyExpensesOffPayrollBadge": "Off payroll",
+  "monthlyExpensesOffPayrollExplain": "No salary structure for this month. This row is here because the employee still owes an advance, a staff order or a penalty.",
+  "monthlyExpensesPenaltiesTitle": "Penalties",
+  "monthlyExpensesAdvancesTitle": "Advances",
+  "monthlyExpensesOrdersTitle": "Staff orders",
+  "monthlyExpensesPenaltyDaysAmount": "{days} days",
+  "@monthlyExpensesPenaltyDaysAmount": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "monthlyExpensesPenaltyEquals": "= {value}",
+  "@monthlyExpensesPenaltyEquals": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "monthlyExpensesPenaltyAddAction": "Add penalty",
+  "monthlyExpensesPenaltyTitle": "Penalty for {name}",
+  "@monthlyExpensesPenaltyTitle": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "monthlyExpensesPenaltyUnitDays": "Days",
+  "monthlyExpensesPenaltyUnitHalfDays": "Half days",
+  "monthlyExpensesPenaltyUnitMoney": "Money",
+  "monthlyExpensesPenaltyDaysLabel": "Number of days",
+  "monthlyExpensesPenaltyHalfDaysLabel": "Number of half days",
+  "monthlyExpensesPenaltyAmountLabel": "Penalty amount",
+  "monthlyExpensesPenaltyQuantityInvalid": "Enter a number greater than zero",
+  "monthlyExpensesPenaltyReasonLabel": "Reason",
+  "monthlyExpensesPenaltyReasonRequired": "Say why this penalty is being applied",
+  "monthlyExpensesPenaltyDateLabel": "Date of the penalty",
+  "monthlyExpensesPenaltySubmit": "Save penalty",
+  "monthlyExpensesPenaltyDayRateHint": "A day is worth {amount} — monthly salary ÷ {days}",
+  "@monthlyExpensesPenaltyDayRateHint": {
+    "placeholders": {
+      "amount": {},
+      "days": {}
+    }
+  },
+  "monthlyExpensesPenaltyNoDayRate": "This employee has no salary structure, so a day has no value here. Enter the penalty as money.",
+  "monthlyExpensesPenaltyRecorded": "Penalty recorded",
+  "monthlyExpensesPenaltyCancelAction": "Cancel penalty",
+  "monthlyExpensesPenaltyCancelTitle": "Cancel this penalty?",
+  "monthlyExpensesPenaltyCancelBody": "This removes the {amount} penalty from the salary. It cannot be undone; enter a new penalty if it is still owed.",
+  "@monthlyExpensesPenaltyCancelBody": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "monthlyExpensesPenaltyCancelHint": "Why is it being cancelled?",
+  "monthlyExpensesPenaltyCancelConfirm": "Cancel penalty",
+  "monthlyExpensesPenaltyCancelled": "Penalty cancelled",
+  "monthlyExpensesPenaltySettledBadge": "Settled",
+  "monthlyExpensesSettleAdvancesTitle": "Advances to clear",
+  "monthlyExpensesSettleOrdersTitle": "Staff orders to clear",
+  "monthlyExpensesSettleHint": "Ticked balances are cleared by this payment, on top of the cash.",
+  "monthlyExpensesCashToHandOver": "Cash to hand over",
+  "monthlyExpensesTotalDischarged": "Total discharged",
+  "monthlyExpensesPayAmountOrSettlement": "Enter an amount, or tick a balance to clear",
+  "monthlyExpensesGapsInfoTitle": "Good to know",
   "paymentMethodCredit": "Credit (on account)",
   "paymentMethodCreditSubtitle": "Delivered now, paid later",
   "paymentMethodCreditNotAllowed": "This customer is not approved for credit",

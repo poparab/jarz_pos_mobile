@@ -9,6 +9,7 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/reason_prompt_dialog.dart';
 import '../models/monthly_expense_models.dart';
 import '../state/monthly_expenses_notifier.dart';
+import 'widgets/employee_penalty_sheet.dart';
 import 'widgets/monthly_expense_gaps_banner.dart';
 import 'widgets/monthly_expense_pay_sheet.dart';
 import 'widgets/monthly_expenses_summary_header.dart';
@@ -225,6 +226,11 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
           required String paymentDate,
           String? remarks,
           bool allowOverpay = false,
+          // A registry item owes nobody anything, so the settlement arguments
+          // arrive empty and are dropped here rather than being sent as empty
+          // lists the endpoint has no field for.
+          List<AdvanceSettlement> settleAdvances = const [],
+          List<OrderSettlement> settleOrders = const [],
         }) =>
             notifier.payRecurringExpense(
           recurringExpense: item.name,
@@ -392,6 +398,29 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
       return widgets;
     }
 
+    // What the company will NOT be handing over, stated once above the rows.
+    // Only when there is something to state: on a month with no advances, no
+    // penalties and no staff orders this line would be three zeros.
+    if (payload.deductions.hasAny) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            l10n.monthlyExpensesDeductionsSummary(
+              formatCurrency(context, payload.deductions.total,
+                  currencyCode: payload.currency),
+              formatCurrency(context, payload.deductions.netPayable,
+                  currencyCode: payload.currency),
+            ),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ),
+      );
+    }
+
     widgets.add(const SizedBox(height: 8));
     for (final row in payroll.rows) {
       widgets.add(
@@ -405,10 +434,82 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
               ? (payment) =>
                   _cancelPayment(context, payment, currency: payload.currency)
               : null,
+          onAddPenalty:
+              payload.canManage ? () => _addPenalty(context, state, row) : null,
+          // Cancelling a penalty takes money back OUT of a deduction, so it is
+          // gated on the same narrower role set as reversing a payment rather
+          // than on `can_manage`.
+          onCancelPenalty: payload.canCancelPayments
+              ? (penalty) => _cancelPenalty(context, penalty,
+                  currency: payload.currency)
+              : null,
         ),
       );
     }
     return widgets;
+  }
+
+  // ── Penalties ───────────────────────────────────────────────────────
+
+  Future<void> _addPenalty(
+    BuildContext context,
+    MonthlyExpensesState state,
+    SalaryRow row,
+  ) async {
+    final l10n = context.l10n;
+    final notifier = ref.read(monthlyExpensesNotifierProvider.notifier);
+    final payload = state.payload;
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => EmployeePenaltySheet(
+        row: row,
+        currency: payload.currency,
+        periodLabel:
+            ctx.l10n.monthlyExpensesPayPeriod(_monthLabel(ctx, state)),
+        penaltyUnits: payload.deductions.penaltyUnits,
+        daysPerMonth: payload.deductions.daysPerMonth,
+        onSubmit: ({
+          required PenaltyDraft draft,
+          bool allowOverpay = false,
+        }) =>
+            notifier.addPenalty(draft: draft, allowOverpay: allowOverpay),
+      ),
+    );
+
+    if (saved == true && mounted) {
+      _messengerKey.currentState?.showSnackBar(
+        SnackBar(content: Text(l10n.monthlyExpensesPenaltyRecorded)),
+      );
+    }
+  }
+
+  Future<void> _cancelPenalty(
+    BuildContext context,
+    PenaltyEntry penalty, {
+    required String currency,
+  }) async {
+    final l10n = context.l10n;
+    final notifier = ref.read(monthlyExpensesNotifierProvider.notifier);
+
+    final reason = await promptForReason(
+      context,
+      title: l10n.monthlyExpensesPenaltyCancelTitle,
+      message: l10n.monthlyExpensesPenaltyCancelBody(
+        formatCurrency(context, penalty.amount, currencyCode: currency),
+      ),
+      hint: l10n.monthlyExpensesPenaltyCancelHint,
+      confirmLabel: l10n.monthlyExpensesPenaltyCancelConfirm,
+    );
+    if (reason == null || reason.isEmpty) return;
+
+    final result =
+        await notifier.cancelPenalty(name: penalty.name, reason: reason);
+    if (!mounted || !result.success) return;
+    _messengerKey.currentState?.showSnackBar(
+      SnackBar(content: Text(l10n.monthlyExpensesPenaltyCancelled)),
+    );
   }
 
   Future<void> _paySalary(
@@ -428,14 +529,23 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
         periodLabel:
             ctx.l10n.monthlyExpensesPayPeriod(_monthLabel(ctx, state)),
         remaining: row.remaining,
+        // The prefill is the NET: an advance the employee is already holding
+        // must not be handed to them a second time in cash. The hint above it
+        // still shows `remaining`, so the month's obligation and today's cash
+        // stay two visibly different numbers.
+        suggestedAmount: row.netPayable,
         currency: payload.currency,
         paymentSources: payload.paymentSources,
+        advances: row.advances,
+        orders: row.orders,
         onSubmit: ({
           required double amount,
           required String payingAccount,
           required String paymentDate,
           String? remarks,
           bool allowOverpay = false,
+          List<AdvanceSettlement> settleAdvances = const [],
+          List<OrderSettlement> settleOrders = const [],
         }) =>
             notifier.paySalary(
           employee: row.employee,
@@ -444,6 +554,8 @@ class _MonthlyExpensesScreenState extends ConsumerState<MonthlyExpensesScreen> {
           paymentDate: paymentDate,
           remarks: remarks,
           allowOverpay: allowOverpay,
+          settleAdvances: settleAdvances,
+          settleOrders: settleOrders,
         ),
       ),
     );

@@ -11871,6 +11871,162 @@ class AppLocalizationsAr extends AppLocalizations {
   String get monthlyExpensesSalarySlipBadge => 'قسيمة راتب';
 
   @override
+  String get monthlyExpensesGrossLabel => 'الراتب قبل الخصم';
+
+  @override
+  String get monthlyExpensesPenaltyLabel => 'جزاء';
+
+  @override
+  String get monthlyExpensesAdvanceLabel => 'سلفة';
+
+  @override
+  String get monthlyExpensesJarsLabel => 'طلبات';
+
+  @override
+  String get monthlyExpensesNetPayableLabel => 'الصافي المستحق';
+
+  @override
+  String monthlyExpensesDeductionAmount(Object amount) {
+    return '− $amount';
+  }
+
+  @override
+  String monthlyExpensesDeductionsSummary(Object total, Object net) {
+    return 'الخصومات $total • الصافي المطلوب تسليمه $net';
+  }
+
+  @override
+  String monthlyExpensesOutstandingOf(Object outstanding, Object amount) {
+    return 'متبقٍ $outstanding من $amount';
+  }
+
+  @override
+  String get monthlyExpensesOffPayrollBadge => 'خارج كشف الرواتب';
+
+  @override
+  String get monthlyExpensesOffPayrollExplain =>
+      'لا يوجد هيكل رواتب لهذا الشهر. يظهر هذا الصف لأن على الموظف سلفة أو طلبات أو جزاءات.';
+
+  @override
+  String get monthlyExpensesPenaltiesTitle => 'الجزاءات';
+
+  @override
+  String get monthlyExpensesAdvancesTitle => 'السلف';
+
+  @override
+  String get monthlyExpensesOrdersTitle => 'طلبات الموظفين';
+
+  @override
+  String monthlyExpensesPenaltyDaysAmount(Object days) {
+    return '$days يوم';
+  }
+
+  @override
+  String monthlyExpensesPenaltyEquals(Object value) {
+    return '= $value';
+  }
+
+  @override
+  String get monthlyExpensesPenaltyAddAction => 'إضافة جزاء';
+
+  @override
+  String monthlyExpensesPenaltyTitle(Object name) {
+    return 'جزاء على $name';
+  }
+
+  @override
+  String get monthlyExpensesPenaltyUnitDays => 'أيام';
+
+  @override
+  String get monthlyExpensesPenaltyUnitHalfDays => 'أنصاف أيام';
+
+  @override
+  String get monthlyExpensesPenaltyUnitMoney => 'مبلغ';
+
+  @override
+  String get monthlyExpensesPenaltyDaysLabel => 'عدد الأيام';
+
+  @override
+  String get monthlyExpensesPenaltyHalfDaysLabel => 'عدد أنصاف الأيام';
+
+  @override
+  String get monthlyExpensesPenaltyAmountLabel => 'قيمة الجزاء';
+
+  @override
+  String get monthlyExpensesPenaltyQuantityInvalid => 'أدخل رقماً أكبر من صفر';
+
+  @override
+  String get monthlyExpensesPenaltyReasonLabel => 'السبب';
+
+  @override
+  String get monthlyExpensesPenaltyReasonRequired =>
+      'اذكر سبب توقيع هذا الجزاء';
+
+  @override
+  String get monthlyExpensesPenaltyDateLabel => 'تاريخ الجزاء';
+
+  @override
+  String get monthlyExpensesPenaltySubmit => 'حفظ الجزاء';
+
+  @override
+  String monthlyExpensesPenaltyDayRateHint(Object amount, Object days) {
+    return 'قيمة اليوم $amount — الراتب الشهري ÷ $days';
+  }
+
+  @override
+  String get monthlyExpensesPenaltyNoDayRate =>
+      'هذا الموظف بلا هيكل رواتب، لذلك لا قيمة لليوم هنا. أدخل الجزاء كمبلغ.';
+
+  @override
+  String get monthlyExpensesPenaltyRecorded => 'تم تسجيل الجزاء';
+
+  @override
+  String get monthlyExpensesPenaltyCancelAction => 'إلغاء الجزاء';
+
+  @override
+  String get monthlyExpensesPenaltyCancelTitle => 'إلغاء هذا الجزاء؟';
+
+  @override
+  String monthlyExpensesPenaltyCancelBody(Object amount) {
+    return 'سيُرفع جزاء $amount من الراتب. لا يمكن التراجع عن ذلك؛ سجّل جزاءً جديداً إذا كان ما زال مستحقاً.';
+  }
+
+  @override
+  String get monthlyExpensesPenaltyCancelHint => 'ما سبب الإلغاء؟';
+
+  @override
+  String get monthlyExpensesPenaltyCancelConfirm => 'إلغاء الجزاء';
+
+  @override
+  String get monthlyExpensesPenaltyCancelled => 'تم إلغاء الجزاء';
+
+  @override
+  String get monthlyExpensesPenaltySettledBadge => 'مُسوّى';
+
+  @override
+  String get monthlyExpensesSettleAdvancesTitle => 'سلف يتم تسويتها';
+
+  @override
+  String get monthlyExpensesSettleOrdersTitle => 'طلبات موظفين يتم تسويتها';
+
+  @override
+  String get monthlyExpensesSettleHint =>
+      'الأرصدة المحددة تُسوّى بهذه الدفعة، بالإضافة إلى النقدية.';
+
+  @override
+  String get monthlyExpensesCashToHandOver => 'النقدية المسلَّمة';
+
+  @override
+  String get monthlyExpensesTotalDischarged => 'إجمالي ما يتم سداده';
+
+  @override
+  String get monthlyExpensesPayAmountOrSettlement =>
+      'أدخل مبلغاً أو حدد رصيداً لتسويته';
+
+  @override
+  String get monthlyExpensesGapsInfoTitle => 'للعلم';
+
+  @override
   String get paymentMethodCredit => 'آجل (على الحساب)';
 
   @override

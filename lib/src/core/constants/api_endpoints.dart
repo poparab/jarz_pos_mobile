@@ -440,6 +440,13 @@ abstract final class ApiEndpoints {
   // reverses the very same journal entry the payment posted.
   static const cancelExpensePayment =
       '/api/method/jarz_pos.api.monthly_expenses.cancel_expense_payment';
+  // A `Jarz Employee Penalty` — days, half-days or money, all three stored as
+  // one amount plus its day equivalent. It posts NO journal entry: salary is
+  // expensed when it is paid, so paying less already books less expense.
+  static const addEmployeePenalty =
+      '/api/method/jarz_pos.api.monthly_expenses.add_employee_penalty';
+  static const cancelEmployeePenalty =
+      '/api/method/jarz_pos.api.monthly_expenses.cancel_employee_penalty';
 
   // ── Employee Advances ─────────────────────────────────────────────────
   // Cash advances a line manager requests for an employee and a JARZ Manager

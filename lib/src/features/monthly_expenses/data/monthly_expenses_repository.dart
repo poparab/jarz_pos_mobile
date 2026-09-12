@@ -91,6 +91,19 @@ class MonthlyExpensesRepository {
     });
   }
 
+  /// Pay a salary, and optionally clear what the employee owes in the same
+  /// action.
+  ///
+  /// [amount] keeps its meaning throughout: the CASH handed over. The
+  /// settlements are ADDITIONAL discharge — the server posts them as a second
+  /// journal entry against each advance's own account and each invoice's
+  /// receivable, inside the same transaction as the cash half. That is why they
+  /// travel here and not through a separate call: a cash payment that posts
+  /// while the settlement fails leaves the advance open and the employee paid
+  /// twice.
+  ///
+  /// [amount] may legitimately be 0 when only settlements are asked for — an
+  /// employee whose whole salary goes against an advance receives no cash.
   Future<void> paySalary({
     required String employee,
     required String month,
@@ -99,6 +112,8 @@ class MonthlyExpensesRepository {
     String? paymentDate,
     String? remarks,
     bool allowOverpay = false,
+    List<AdvanceSettlement> settleAdvances = const [],
+    List<OrderSettlement> settleOrders = const [],
   }) async {
     await _post(ApiEndpoints.paySalary, {
       'employee': employee,
@@ -110,6 +125,49 @@ class MonthlyExpensesRepository {
       if (remarks != null && remarks.trim().isNotEmpty)
         'remarks': remarks.trim(),
       'allow_overpay': allowOverpay ? 1 : 0,
+      // Omitted entirely when empty rather than sent as `[]`: every existing
+      // caller then produces byte-for-byte the request it produced before, so
+      // an ordinary salary payment cannot regress on this change.
+      if (settleAdvances.isNotEmpty)
+        'settle_advances': settleAdvances.map((s) => s.toJson()).toList(),
+      if (settleOrders.isNotEmpty)
+        'settle_orders': settleOrders.map((s) => s.toJson()).toList(),
+    });
+  }
+
+  /// Record a penalty against an employee for [month].
+  ///
+  /// Only ONE of `quantity` / `amount` is sent, whichever the manager actually
+  /// typed. The server owns the conversion and snapshots the day rate it used,
+  /// so sending both would put two sources of truth on one number and let a
+  /// stale client price a penalty.
+  Future<void> addEmployeePenalty({
+    required PenaltyDraft draft,
+    required String month,
+    bool allowOverpay = false,
+  }) async {
+    await _post(ApiEndpoints.addEmployeePenalty, {
+      'employee': draft.employee,
+      'month': month,
+      'unit': draft.unit,
+      if (draft.quantity != null) 'quantity': draft.quantity,
+      if (draft.amount != null) 'amount': draft.amount,
+      'reason': draft.reason,
+      if (draft.penaltyDate != null && draft.penaltyDate!.isNotEmpty)
+        'penalty_date': draft.penaltyDate,
+      'allow_overpay': allowOverpay ? 1 : 0,
+    });
+  }
+
+  /// Cancel a penalty (docstatus 2). The reason is mandatory server-side, and a
+  /// penalty already settled by a payment is refused.
+  Future<void> cancelEmployeePenalty({
+    required String name,
+    required String reason,
+  }) async {
+    await _post(ApiEndpoints.cancelEmployeePenalty, {
+      'name': name,
+      'reason': reason,
     });
   }
 

@@ -125,14 +125,91 @@ Map<String, dynamic> _payload() => {
             'department': 'Operations',
             'base': 6500,
             'variable': 500,
+            'gross_due': 7300,
+            'day_rate': 243.33,
             'due_amount': 7000,
             'paid_amount': 0,
             'remaining': 7000,
             'payment_status': 'Unpaid',
+            'penalty_total': 300,
+            'penalty_days': 1.233,
+            'penalties': [
+              {
+                'name': 'JPEN-00001',
+                'penalty_date': '2026-09-03',
+                'period_month': '2026-09',
+                'unit': 'Money',
+                'quantity': 0,
+                'amount': 300,
+                'equivalent_days': 1.233,
+                'day_rate': 243.33,
+                'reason': 'Broke two jars',
+                'settled': false,
+              }
+            ],
+            'advance_total': 500,
+            'advances': [
+              {
+                'name': 'HR-EAD-2026-00004',
+                'posting_date': '2026-09-04',
+                'amount': 500,
+                'outstanding': 500,
+                'purpose': 'Family emergency',
+                'status': 'Paid',
+                'advance_account': 'Debtors - J',
+              }
+            ],
+            'order_total': 184,
+            'orders': [
+              {
+                'invoice': 'ACC-SINV-2026-18146',
+                'posting_date': '2026-09-02',
+                'customer': 'CUST-0042',
+                'customer_name': 'Sara Ali (staff)',
+                'grand_total': 184,
+                'outstanding': 184,
+                'status': 'Unpaid',
+              }
+            ],
+            'deductions_total': 984,
+            'settled_amount': 0,
+            'net_payable': 6316,
+            'off_payroll': false,
             'has_salary_slip': false,
             'can_pay': true,
             'payments': [],
-          }
+          },
+          // Nobody's payroll, but the company's money all the same: no salary
+          // structure, an open advance, and therefore a row.
+          {
+            'employee': 'HR-EMP-00021',
+            'employee_name': 'Kareem Mamdouh',
+            'base': 0,
+            'variable': 0,
+            'gross_due': 0,
+            'day_rate': 0,
+            'due_amount': 0,
+            'paid_amount': 0,
+            'remaining': 0,
+            'payment_status': 'Not Due',
+            'advance_total': 5000,
+            'advances': [
+              {
+                'name': 'HR-EAD-2026-00002',
+                'posting_date': '2026-08-14',
+                'amount': 5000,
+                'outstanding': 5000,
+                'status': 'Paid',
+                'advance_account': 'Debtors - J',
+              }
+            ],
+            'deductions_total': 5000,
+            'net_payable': 0,
+            'off_payroll': true,
+            'has_salary_slip': false,
+            'can_pay': false,
+            'payments': [],
+          },
         ],
         'missing': [
           {
@@ -164,6 +241,18 @@ Map<String, dynamic> _payload() => {
       'gaps': [
         {'severity': 'warning', 'message': '1 employee has no salary structure'}
       ],
+      'deductions': {
+        'penalty_total': 300,
+        'penalty_days': 1.233,
+        'advance_total': 5500,
+        'order_total': 184,
+        'total': 5984,
+        'net_payable': 102016,
+        'advances_readable': true,
+        'employee_orders_present': true,
+        'penalty_units': ['Days', 'Half Days', 'Money'],
+        'days_per_month': 30,
+      },
       'can_manage': true,
     };
 
@@ -295,9 +384,9 @@ void main() {
     test('keeps the gaps out of the rows', () {
       final payroll = MonthlyExpensesPayload.fromJson(_payload()).payroll;
       expect(payroll.configured, isTrue);
-      expect(payroll.rows.length, 1);
-      expect(payroll.rows.single.dueAmount, 7000);
-      expect(payroll.rows.single.canPay, isTrue);
+      expect(payroll.rows.length, 2);
+      expect(payroll.rows.first.dueAmount, 7000);
+      expect(payroll.rows.first.canPay, isTrue);
       // The employee without a structure is NOT a row — a zero row would read
       // as "nothing owed" when the truth is "we do not know".
       expect(payroll.missing.single.displayName, 'Omar Nabil');
@@ -381,6 +470,191 @@ void main() {
       expect(gaps.length, 2);
       expect(gaps.first.isCritical, isTrue);
       expect(gaps.last.isCritical, isFalse);
+    });
+
+    test('INFO is told apart from a warning so the banner can stop being red',
+        () {
+      final gaps = MonthlyExpenseGap.listFrom([
+        {
+          'severity': 'INFO',
+          'message': 'No order has ever been rung up as a staff order'
+        },
+        {'severity': 'warning', 'message': 'Advances could not be read'},
+      ]);
+      expect(gaps.first.isInfo, isTrue);
+      expect(gaps.first.isCritical, isFalse);
+      expect(gaps.last.isInfo, isFalse);
+    });
+  });
+
+  group('deductions', () {
+    test('the top-level block carries every figure and its vocabulary', () {
+      final deductions = MonthlyExpensesPayload.fromJson(_payload()).deductions;
+      expect(deductions.penaltyTotal, 300);
+      expect(deductions.advanceTotal, 5500);
+      expect(deductions.orderTotal, 184);
+      expect(deductions.total, 5984);
+      expect(deductions.netPayable, 102016);
+      expect(deductions.advancesReadable, isTrue);
+      expect(deductions.employeeOrdersPresent, isTrue);
+      expect(deductions.penaltyUnits,
+          [PenaltyUnit.days, PenaltyUnit.halfDays, PenaltyUnit.money]);
+      expect(deductions.daysPerMonth, 30);
+      expect(deductions.hasAny, isTrue);
+    });
+
+    test('an absent block is zeros, and advances are assumed readable', () {
+      // A server build without the block was reading HRMS fine; defaulting to
+      // "unreadable" would warn about a problem that does not exist.
+      const empty = DeductionsSummary();
+      expect(empty.advancesReadable, isTrue);
+      expect(empty.hasAny, isFalse);
+      expect(empty.penaltyUnits, PenaltyUnit.all);
+      expect(empty.daysPerMonth, 30);
+      expect(MonthlyExpensesPayload.fromJson({}).deductions.total, 0);
+    });
+  });
+
+  group('SalaryRow deductions', () {
+    test('reads the penalties, advances and orders on a row', () {
+      final row = MonthlyExpensesPayload.fromJson(_payload()).payroll.rows.first;
+
+      expect(row.grossDue, 7300);
+      expect(row.dayRate, 243.33);
+      // due = gross − penalty; the two are only equal when nothing was deducted.
+      expect(row.dueAmount, 7000);
+      expect(row.penaltyTotal, 300);
+      expect(row.penalties.single.reason, 'Broke two jars');
+      expect(row.penalties.single.settled, isFalse);
+      expect(row.advances.single.name, 'HR-EAD-2026-00004');
+      expect(row.advances.single.advanceAccount, 'Debtors - J');
+      expect(row.orders.single.invoice, 'ACC-SINV-2026-18146');
+      expect(row.orders.single.displayCustomer, 'Sara Ali (staff)');
+      expect(row.deductionsTotal, 984);
+      expect(row.netPayable, 6316);
+      expect(row.hasDeductions, isTrue);
+      expect(row.hasOpenBalances, isTrue);
+      expect(row.offPayroll, isFalse);
+    });
+
+    test('an off-payroll row exists because of what is owed, not what is due',
+        () {
+      final row = MonthlyExpensesPayload.fromJson(_payload()).payroll.rows.last;
+
+      expect(row.offPayroll, isTrue);
+      expect(row.grossDue, 0);
+      expect(row.dayRate, 0);
+      expect(row.advanceTotal, 5000);
+      expect(row.canPay, isFalse);
+      // The whole point of the row: the advance is visible even though this
+      // person has no salary structure at all.
+      expect(row.hasDeductions, isTrue);
+    });
+
+    test('a row with nothing deducted stays the clean single line it was', () {
+      final row = SalaryRow.fromJson({
+        'employee': 'HR-EMP-00002',
+        'employee_name': 'Mona',
+        'base': 5000,
+        'gross_due': 5000,
+        'due_amount': 5000,
+        'remaining': 5000,
+        'payment_status': 'Unpaid',
+        'can_pay': true,
+      });
+      expect(row.hasDeductions, isFalse);
+      expect(row.hasOpenBalances, isFalse);
+      expect(row.netPayable, 5000);
+    });
+
+    test('the derived figures fall back to their own definition, not to zero',
+        () {
+      // A server that has not shipped these fields yet must still render a
+      // correct card: a zero `gross_due` would read as "earns nothing".
+      final row = SalaryRow.fromJson({
+        'employee': 'HR-EMP-00003',
+        'due_amount': 9000,
+        'paid_amount': 0,
+        'remaining': 9000,
+        'payment_status': 'Unpaid',
+      });
+      expect(row.grossDue, 9000);
+      expect(row.deductionsTotal, 0);
+      expect(row.netPayable, 9000);
+    });
+
+    test('net_payable never goes negative when it has to be derived', () {
+      final row = SalaryRow.fromJson({
+        'employee': 'HR-EMP-00004',
+        'due_amount': 1000,
+        'remaining': 1000,
+        'advance_total': 4000,
+        'payment_status': 'Unpaid',
+      });
+      // The employee owes more than the month pays; today's cash is zero, and
+      // the rest stays open rather than turning into a negative payment.
+      expect(row.netPayable, 0);
+    });
+  });
+
+  group('penalty conversion', () {
+    // The same two rules the DocType's `validate` applies, mirrored locally so
+    // the sheet can show the equivalence before anything is sent.
+    test('days and half-days price themselves off the day rate', () {
+      expect(
+        penaltyAmountFor(
+            unit: PenaltyUnit.days, quantity: 2, amount: 0, dayRate: 300),
+        600,
+      );
+      expect(
+        penaltyAmountFor(
+            unit: PenaltyUnit.halfDays, quantity: 3, amount: 0, dayRate: 300),
+        450,
+      );
+      expect(
+        penaltyDaysFor(
+            unit: PenaltyUnit.halfDays, quantity: 3, amount: 0, dayRate: 300),
+        1.5,
+      );
+    });
+
+    test('money converts back to days, unrounded', () {
+      expect(
+        penaltyDaysFor(
+            unit: PenaltyUnit.money, quantity: 0, amount: 600, dayRate: 400),
+        1.5,
+      );
+      expect(
+        penaltyAmountFor(
+            unit: PenaltyUnit.money, quantity: 0, amount: 600, dayRate: 400),
+        600,
+      );
+    });
+
+    test('a day rate of 0 yields 0 days rather than infinity', () {
+      // No salary structure: a day genuinely has no value for this employee,
+      // which is why the sheet refuses Days for them.
+      expect(
+        penaltyDaysFor(
+            unit: PenaltyUnit.money, quantity: 0, amount: 600, dayRate: 0),
+        0,
+      );
+      expect(
+        penaltyAmountFor(
+            unit: PenaltyUnit.days, quantity: 2, amount: 0, dayRate: 0),
+        0,
+      );
+    });
+  });
+
+  group('settlement payloads', () {
+    test('use the field names the endpoint declares', () {
+      expect(const AdvanceSettlement(name: 'HR-EAD-2026-00004', amount: 500)
+          .toJson(), {'name': 'HR-EAD-2026-00004', 'amount': 500.0});
+      expect(
+          const OrderSettlement(invoice: 'ACC-SINV-2026-18146', amount: 184)
+              .toJson(),
+          {'invoice': 'ACC-SINV-2026-18146', 'amount': 184.0});
     });
   });
 }

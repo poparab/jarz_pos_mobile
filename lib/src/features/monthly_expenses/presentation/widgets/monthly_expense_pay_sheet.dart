@@ -16,6 +16,12 @@ typedef MonthlyExpensePaySubmit = Future<MonthlyExpenseActionResult> Function({
   required String paymentDate,
   String? remarks,
   bool allowOverpay,
+  // Only a salary payment can carry these; a recurring item ignores them. They
+  // live on the shared typedef rather than in a second sheet because the cash
+  // half of the two payments is identical, and forking the sheet would fork the
+  // overpay handling, the account picker and the posting-date rules with it.
+  List<AdvanceSettlement> settleAdvances,
+  List<OrderSettlement> settleOrders,
 });
 
 /// Collects a payment for one item or one employee for the selected month.
@@ -39,6 +45,17 @@ class MonthlyExpensePaySheet extends StatefulWidget {
   /// the picker; the manager can still choose another account.
   final String? defaultPayingAccount;
 
+  /// What to prefill the amount with when it differs from [remaining] — for a
+  /// salary, the NET payable, because the advance the employee is holding is
+  /// not cash we hand over again. [remaining] still drives the hint, so the
+  /// month's obligation and today's cash stay two visibly different numbers.
+  final double? suggestedAmount;
+
+  /// Open balances this payment may discharge at the same time. Empty for a
+  /// recurring expense, which owes nobody anything.
+  final List<AdvanceEntry> advances;
+  final List<EmployeeOrderEntry> orders;
+
   final MonthlyExpensePaySubmit onSubmit;
 
   const MonthlyExpensePaySheet({
@@ -50,6 +67,9 @@ class MonthlyExpensePaySheet extends StatefulWidget {
     required this.paymentSources,
     required this.onSubmit,
     this.defaultPayingAccount,
+    this.suggestedAmount,
+    this.advances = const [],
+    this.orders = const [],
   });
 
   @override
@@ -69,16 +89,57 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
   MonthlyExpensePaymentSource? _source;
   bool _submitting = false;
 
+  /// Which open balances this payment clears, by document name. A Set rather
+  /// than a flag per entry so the two figures below can be recomputed from one
+  /// source on every tick.
+  final _selectedAdvances = <String>{};
+  final _selectedOrders = <String>{};
+
   @override
   void initState() {
     super.initState();
     // Two decimals, no grouping separator: this string is parsed back with
     // `double.tryParse`, so a localised "47,000.00" would parse as 47.
+    final prefill = widget.suggestedAmount ?? widget.remaining;
     _amountController = TextEditingController(
-      text: widget.remaining > 0 ? widget.remaining.toStringAsFixed(2) : '',
+      text: prefill > 0 ? prefill.toStringAsFixed(2) : '',
     );
     _source = _resolveInitialSource();
   }
+
+  bool get _hasSettlements =>
+      widget.advances.isNotEmpty || widget.orders.isNotEmpty;
+
+  double get _typedAmount => double.tryParse(_amountController.text.trim()) ?? 0;
+
+  /// Money discharged without cash moving: the advance already left the till
+  /// when it was paid out, and the staff order was already invoiced.
+  double get _settleTotal {
+    var total = 0.0;
+    for (final advance in widget.advances) {
+      if (_selectedAdvances.contains(advance.name)) {
+        total += advance.outstanding;
+      }
+    }
+    for (final order in widget.orders) {
+      if (_selectedOrders.contains(order.invoice)) {
+        total += order.outstanding;
+      }
+    }
+    return total;
+  }
+
+  List<AdvanceSettlement> get _advanceSettlements => [
+        for (final advance in widget.advances)
+          if (_selectedAdvances.contains(advance.name))
+            AdvanceSettlement(name: advance.name, amount: advance.outstanding),
+      ];
+
+  List<OrderSettlement> get _orderSettlements => [
+        for (final order in widget.orders)
+          if (_selectedOrders.contains(order.invoice))
+            OrderSettlement(invoice: order.invoice, amount: order.outstanding),
+      ];
 
   MonthlyExpensePaymentSource? _resolveInitialSource() {
     if (widget.paymentSources.isEmpty) return null;
@@ -156,14 +217,31 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
                   prefixText:
                       '${currencySymbol(context, currencyCode: widget.currency)} ',
                 ),
+                // Keeps the two figures in the settlement block honest while the
+                // amount is being typed — they are the point of that block.
+                onChanged: (_) => setState(() {}),
                 validator: (value) {
-                  final amount = double.tryParse((value ?? '').trim());
-                  if (amount == null || amount <= 0) {
+                  final text = (value ?? '').trim();
+                  final amount = text.isEmpty ? 0.0 : double.tryParse(text) ?? -1;
+                  if (amount < 0) {
                     return l10n.monthlyExpensesPayAmountInvalid;
+                  }
+                  // Zero cash is legitimate when the whole payment is a
+                  // settlement: an employee whose salary goes entirely against an
+                  // advance receives nothing in hand, and refusing that would
+                  // leave the advance open forever.
+                  if (amount == 0 && _settleTotal <= 0) {
+                    return _hasSettlements
+                        ? l10n.monthlyExpensesPayAmountOrSettlement
+                        : l10n.monthlyExpensesPayAmountInvalid;
                   }
                   return null;
                 },
               ),
+              if (_hasSettlements) ...[
+                const SizedBox(height: 16),
+                _settlementBlock(context),
+              ],
               const SizedBox(height: 16),
               DropdownButtonFormField<MonthlyExpensePaymentSource>(
                 key: ValueKey<String?>(_source?.id),
@@ -262,12 +340,150 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
     );
   }
 
+  /// The advances and staff orders this payment may clear, and the two figures
+  /// that answer the only question the manager has at the till: how much cash
+  /// leaves my hand, and how much of what they owe is gone afterwards.
+  ///
+  /// Those are deliberately two numbers, not one. They differ by exactly the
+  /// money the employee already has, and a single "total" would let a manager
+  /// hand over the settled amount in cash as well.
+  Widget _settlementBlock(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    String money(double value) =>
+        formatCurrency(context, value, currencyCode: widget.currency);
+
+    // A Material rather than a decorated Container: the checkboxes below are
+    // ListTiles, and a coloured DecoratedBox between a ListTile and its nearest
+    // Material asserts at runtime (it would hide the ink splash). Painting the
+    // background with the Material itself is the fix, not a workaround.
+    return Material(
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (widget.advances.isNotEmpty) ...[
+              Text(
+                l10n.monthlyExpensesSettleAdvancesTitle,
+                style: theme.textTheme.titleSmall,
+              ),
+              for (final advance in widget.advances)
+                CheckboxListTile(
+                  value: _selectedAdvances.contains(advance.name),
+                  onChanged: (checked) => setState(() {
+                    if (checked == true) {
+                      _selectedAdvances.add(advance.name);
+                    } else {
+                      _selectedAdvances.remove(advance.name);
+                    }
+                  }),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: Text(money(advance.outstanding)),
+                  subtitle: Text(
+                    [
+                      if (advance.postingDate != null)
+                        formatDate(context, advance.postingDate!),
+                      if (advance.purpose.isNotEmpty) advance.purpose,
+                      advance.name,
+                    ].join(' • '),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+            ],
+            if (widget.orders.isNotEmpty) ...[
+              Text(
+                l10n.monthlyExpensesSettleOrdersTitle,
+                style: theme.textTheme.titleSmall,
+              ),
+              for (final order in widget.orders)
+                CheckboxListTile(
+                  value: _selectedOrders.contains(order.invoice),
+                  onChanged: (checked) => setState(() {
+                    if (checked == true) {
+                      _selectedOrders.add(order.invoice);
+                    } else {
+                      _selectedOrders.remove(order.invoice);
+                    }
+                  }),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: Text(money(order.outstanding)),
+                  subtitle: Text(
+                    [
+                      if (order.postingDate != null)
+                        formatDate(context, order.postingDate!),
+                      order.invoice,
+                    ].join(' • '),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+            ],
+            Text(
+              l10n.monthlyExpensesSettleHint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const Divider(height: 20),
+            _totalLine(
+              context,
+              l10n.monthlyExpensesCashToHandOver,
+              money(_typedAmount),
+            ),
+            _totalLine(
+              context,
+              l10n.monthlyExpensesTotalDischarged,
+              money(_typedAmount + _settleTotal),
+              emphasise: true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _totalLine(
+    BuildContext context,
+    String label,
+    String value, {
+    bool emphasise = false,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: emphasise ? FontWeight.bold : FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _submit({bool allowOverpay = false}) async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final source = _source;
     if (source == null) return;
 
-    final amount = double.tryParse(_amountController.text.trim()) ?? 0;
+    final amount = _typedAmount;
     final remarks = _remarksController.text.trim();
 
     setState(() => _submitting = true);
@@ -279,6 +495,8 @@ class _MonthlyExpensePaySheetState extends State<MonthlyExpensePaySheet> {
           : formatPostingDateForApi(_paymentDate),
       remarks: remarks.isEmpty ? null : remarks,
       allowOverpay: allowOverpay,
+      settleAdvances: _advanceSettlements,
+      settleOrders: _orderSettlements,
     );
     if (!mounted) return;
     setState(() => _submitting = false);

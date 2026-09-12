@@ -11915,6 +11915,163 @@ class AppLocalizationsEn extends AppLocalizations {
   String get monthlyExpensesSalarySlipBadge => 'Salary slip';
 
   @override
+  String get monthlyExpensesGrossLabel => 'Gross';
+
+  @override
+  String get monthlyExpensesPenaltyLabel => 'Penalty';
+
+  @override
+  String get monthlyExpensesAdvanceLabel => 'Advance';
+
+  @override
+  String get monthlyExpensesJarsLabel => 'Jars';
+
+  @override
+  String get monthlyExpensesNetPayableLabel => 'Net to pay';
+
+  @override
+  String monthlyExpensesDeductionAmount(Object amount) {
+    return '− $amount';
+  }
+
+  @override
+  String monthlyExpensesDeductionsSummary(Object total, Object net) {
+    return 'Deductions $total • net to hand over $net';
+  }
+
+  @override
+  String monthlyExpensesOutstandingOf(Object outstanding, Object amount) {
+    return '$outstanding left of $amount';
+  }
+
+  @override
+  String get monthlyExpensesOffPayrollBadge => 'Off payroll';
+
+  @override
+  String get monthlyExpensesOffPayrollExplain =>
+      'No salary structure for this month. This row is here because the employee still owes an advance, a staff order or a penalty.';
+
+  @override
+  String get monthlyExpensesPenaltiesTitle => 'Penalties';
+
+  @override
+  String get monthlyExpensesAdvancesTitle => 'Advances';
+
+  @override
+  String get monthlyExpensesOrdersTitle => 'Staff orders';
+
+  @override
+  String monthlyExpensesPenaltyDaysAmount(Object days) {
+    return '$days days';
+  }
+
+  @override
+  String monthlyExpensesPenaltyEquals(Object value) {
+    return '= $value';
+  }
+
+  @override
+  String get monthlyExpensesPenaltyAddAction => 'Add penalty';
+
+  @override
+  String monthlyExpensesPenaltyTitle(Object name) {
+    return 'Penalty for $name';
+  }
+
+  @override
+  String get monthlyExpensesPenaltyUnitDays => 'Days';
+
+  @override
+  String get monthlyExpensesPenaltyUnitHalfDays => 'Half days';
+
+  @override
+  String get monthlyExpensesPenaltyUnitMoney => 'Money';
+
+  @override
+  String get monthlyExpensesPenaltyDaysLabel => 'Number of days';
+
+  @override
+  String get monthlyExpensesPenaltyHalfDaysLabel => 'Number of half days';
+
+  @override
+  String get monthlyExpensesPenaltyAmountLabel => 'Penalty amount';
+
+  @override
+  String get monthlyExpensesPenaltyQuantityInvalid =>
+      'Enter a number greater than zero';
+
+  @override
+  String get monthlyExpensesPenaltyReasonLabel => 'Reason';
+
+  @override
+  String get monthlyExpensesPenaltyReasonRequired =>
+      'Say why this penalty is being applied';
+
+  @override
+  String get monthlyExpensesPenaltyDateLabel => 'Date of the penalty';
+
+  @override
+  String get monthlyExpensesPenaltySubmit => 'Save penalty';
+
+  @override
+  String monthlyExpensesPenaltyDayRateHint(Object amount, Object days) {
+    return 'A day is worth $amount — monthly salary ÷ $days';
+  }
+
+  @override
+  String get monthlyExpensesPenaltyNoDayRate =>
+      'This employee has no salary structure, so a day has no value here. Enter the penalty as money.';
+
+  @override
+  String get monthlyExpensesPenaltyRecorded => 'Penalty recorded';
+
+  @override
+  String get monthlyExpensesPenaltyCancelAction => 'Cancel penalty';
+
+  @override
+  String get monthlyExpensesPenaltyCancelTitle => 'Cancel this penalty?';
+
+  @override
+  String monthlyExpensesPenaltyCancelBody(Object amount) {
+    return 'This removes the $amount penalty from the salary. It cannot be undone; enter a new penalty if it is still owed.';
+  }
+
+  @override
+  String get monthlyExpensesPenaltyCancelHint => 'Why is it being cancelled?';
+
+  @override
+  String get monthlyExpensesPenaltyCancelConfirm => 'Cancel penalty';
+
+  @override
+  String get monthlyExpensesPenaltyCancelled => 'Penalty cancelled';
+
+  @override
+  String get monthlyExpensesPenaltySettledBadge => 'Settled';
+
+  @override
+  String get monthlyExpensesSettleAdvancesTitle => 'Advances to clear';
+
+  @override
+  String get monthlyExpensesSettleOrdersTitle => 'Staff orders to clear';
+
+  @override
+  String get monthlyExpensesSettleHint =>
+      'Ticked balances are cleared by this payment, on top of the cash.';
+
+  @override
+  String get monthlyExpensesCashToHandOver => 'Cash to hand over';
+
+  @override
+  String get monthlyExpensesTotalDischarged => 'Total discharged';
+
+  @override
+  String get monthlyExpensesPayAmountOrSettlement =>
+      'Enter an amount, or tick a balance to clear';
+
+  @override
+  String get monthlyExpensesGapsInfoTitle => 'Good to know';
+
+  @override
   String get paymentMethodCredit => 'Credit (on account)';
 
   @override

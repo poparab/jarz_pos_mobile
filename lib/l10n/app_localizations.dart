@@ -19653,6 +19653,276 @@ abstract class AppLocalizations {
   /// **'Salary slip'**
   String get monthlyExpensesSalarySlipBadge;
 
+  /// No description provided for @monthlyExpensesGrossLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross'**
+  String get monthlyExpensesGrossLabel;
+
+  /// No description provided for @monthlyExpensesPenaltyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Penalty'**
+  String get monthlyExpensesPenaltyLabel;
+
+  /// No description provided for @monthlyExpensesAdvanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance'**
+  String get monthlyExpensesAdvanceLabel;
+
+  /// No description provided for @monthlyExpensesJarsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Jars'**
+  String get monthlyExpensesJarsLabel;
+
+  /// No description provided for @monthlyExpensesNetPayableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Net to pay'**
+  String get monthlyExpensesNetPayableLabel;
+
+  /// No description provided for @monthlyExpensesDeductionAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'− {amount}'**
+  String monthlyExpensesDeductionAmount(Object amount);
+
+  /// No description provided for @monthlyExpensesDeductionsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Deductions {total} • net to hand over {net}'**
+  String monthlyExpensesDeductionsSummary(Object total, Object net);
+
+  /// No description provided for @monthlyExpensesOutstandingOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{outstanding} left of {amount}'**
+  String monthlyExpensesOutstandingOf(Object outstanding, Object amount);
+
+  /// No description provided for @monthlyExpensesOffPayrollBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Off payroll'**
+  String get monthlyExpensesOffPayrollBadge;
+
+  /// No description provided for @monthlyExpensesOffPayrollExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'No salary structure for this month. This row is here because the employee still owes an advance, a staff order or a penalty.'**
+  String get monthlyExpensesOffPayrollExplain;
+
+  /// No description provided for @monthlyExpensesPenaltiesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Penalties'**
+  String get monthlyExpensesPenaltiesTitle;
+
+  /// No description provided for @monthlyExpensesAdvancesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advances'**
+  String get monthlyExpensesAdvancesTitle;
+
+  /// No description provided for @monthlyExpensesOrdersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff orders'**
+  String get monthlyExpensesOrdersTitle;
+
+  /// No description provided for @monthlyExpensesPenaltyDaysAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String monthlyExpensesPenaltyDaysAmount(Object days);
+
+  /// No description provided for @monthlyExpensesPenaltyEquals.
+  ///
+  /// In en, this message translates to:
+  /// **'= {value}'**
+  String monthlyExpensesPenaltyEquals(Object value);
+
+  /// No description provided for @monthlyExpensesPenaltyAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add penalty'**
+  String get monthlyExpensesPenaltyAddAction;
+
+  /// No description provided for @monthlyExpensesPenaltyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Penalty for {name}'**
+  String monthlyExpensesPenaltyTitle(Object name);
+
+  /// No description provided for @monthlyExpensesPenaltyUnitDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get monthlyExpensesPenaltyUnitDays;
+
+  /// No description provided for @monthlyExpensesPenaltyUnitHalfDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Half days'**
+  String get monthlyExpensesPenaltyUnitHalfDays;
+
+  /// No description provided for @monthlyExpensesPenaltyUnitMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get monthlyExpensesPenaltyUnitMoney;
+
+  /// No description provided for @monthlyExpensesPenaltyDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of days'**
+  String get monthlyExpensesPenaltyDaysLabel;
+
+  /// No description provided for @monthlyExpensesPenaltyHalfDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of half days'**
+  String get monthlyExpensesPenaltyHalfDaysLabel;
+
+  /// No description provided for @monthlyExpensesPenaltyAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Penalty amount'**
+  String get monthlyExpensesPenaltyAmountLabel;
+
+  /// No description provided for @monthlyExpensesPenaltyQuantityInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number greater than zero'**
+  String get monthlyExpensesPenaltyQuantityInvalid;
+
+  /// No description provided for @monthlyExpensesPenaltyReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get monthlyExpensesPenaltyReasonLabel;
+
+  /// No description provided for @monthlyExpensesPenaltyReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Say why this penalty is being applied'**
+  String get monthlyExpensesPenaltyReasonRequired;
+
+  /// No description provided for @monthlyExpensesPenaltyDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of the penalty'**
+  String get monthlyExpensesPenaltyDateLabel;
+
+  /// No description provided for @monthlyExpensesPenaltySubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Save penalty'**
+  String get monthlyExpensesPenaltySubmit;
+
+  /// No description provided for @monthlyExpensesPenaltyDayRateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A day is worth {amount} — monthly salary ÷ {days}'**
+  String monthlyExpensesPenaltyDayRateHint(Object amount, Object days);
+
+  /// No description provided for @monthlyExpensesPenaltyNoDayRate.
+  ///
+  /// In en, this message translates to:
+  /// **'This employee has no salary structure, so a day has no value here. Enter the penalty as money.'**
+  String get monthlyExpensesPenaltyNoDayRate;
+
+  /// No description provided for @monthlyExpensesPenaltyRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Penalty recorded'**
+  String get monthlyExpensesPenaltyRecorded;
+
+  /// No description provided for @monthlyExpensesPenaltyCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel penalty'**
+  String get monthlyExpensesPenaltyCancelAction;
+
+  /// No description provided for @monthlyExpensesPenaltyCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this penalty?'**
+  String get monthlyExpensesPenaltyCancelTitle;
+
+  /// No description provided for @monthlyExpensesPenaltyCancelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the {amount} penalty from the salary. It cannot be undone; enter a new penalty if it is still owed.'**
+  String monthlyExpensesPenaltyCancelBody(Object amount);
+
+  /// No description provided for @monthlyExpensesPenaltyCancelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is it being cancelled?'**
+  String get monthlyExpensesPenaltyCancelHint;
+
+  /// No description provided for @monthlyExpensesPenaltyCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel penalty'**
+  String get monthlyExpensesPenaltyCancelConfirm;
+
+  /// No description provided for @monthlyExpensesPenaltyCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Penalty cancelled'**
+  String get monthlyExpensesPenaltyCancelled;
+
+  /// No description provided for @monthlyExpensesPenaltySettledBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get monthlyExpensesPenaltySettledBadge;
+
+  /// No description provided for @monthlyExpensesSettleAdvancesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advances to clear'**
+  String get monthlyExpensesSettleAdvancesTitle;
+
+  /// No description provided for @monthlyExpensesSettleOrdersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff orders to clear'**
+  String get monthlyExpensesSettleOrdersTitle;
+
+  /// No description provided for @monthlyExpensesSettleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticked balances are cleared by this payment, on top of the cash.'**
+  String get monthlyExpensesSettleHint;
+
+  /// No description provided for @monthlyExpensesCashToHandOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash to hand over'**
+  String get monthlyExpensesCashToHandOver;
+
+  /// No description provided for @monthlyExpensesTotalDischarged.
+  ///
+  /// In en, this message translates to:
+  /// **'Total discharged'**
+  String get monthlyExpensesTotalDischarged;
+
+  /// No description provided for @monthlyExpensesPayAmountOrSettlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount, or tick a balance to clear'**
+  String get monthlyExpensesPayAmountOrSettlement;
+
+  /// No description provided for @monthlyExpensesGapsInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Good to know'**
+  String get monthlyExpensesGapsInfoTitle;
+
   /// No description provided for @paymentMethodCredit.
   ///
   /// In en, this message translates to:
