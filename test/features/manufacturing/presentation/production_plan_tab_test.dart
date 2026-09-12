@@ -236,16 +236,23 @@ void main() {
     );
 
     expect(find.text('CAKE-A name'), findsOneWidget);
+    // Closed, the row carries the two figures a quantity is decided from, the
+    // one-tap offer and the field. The status chip is the only "Critical" on
+    // screen now that the filter chip counts instead.
+    expect(find.text('2.2 d · 20 on hand'), findsOneWidget);
+    expect(find.text('Use 50'), findsOneWidget);
+    expect(find.text('Critical'), findsOneWidget);
+    expect(find.widgetWithText(FilterChip, 'Critical 1'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+
+    // Open, the rest of what the board knows.
+    await _expandRow(tester);
     expect(find.text('On hand'), findsOneWidget);
     expect(find.text('Sells / day'), findsOneWidget);
     expect(find.text('Cover'), findsOneWidget);
-    // Two matches: the status chip on the row and the "Critical" filter chip.
-    expect(find.text('Critical'), findsNWidgets(2));
     // "Make 5 batches · 50 Nos" — the arithmetic is already done.
     expect(find.textContaining('Make 5 batches'), findsOneWidget);
     expect(find.textContaining('to reach 10 days cover'), findsOneWidget);
-    // …and the quantity lives on the same row.
-    expect(find.byType(TextField), findsOneWidget);
   });
 
   testWidgets('the suggestion is offered, never pre-typed', (tester) async {
@@ -326,9 +333,14 @@ void main() {
       ),
     );
 
-    expect(find.text('Stock is negative — count this item'), findsOneWidget);
+    // The mark is on the closed row, because a figure computed as though the
+    // hole were zero must not read as an ordinary small number.
+    expect(find.byIcon(Icons.error_outline), findsWidgets);
     // cover clamps at zero rather than rendering a negative day count
-    expect(find.text('0 d'), findsOneWidget);
+    expect(find.textContaining('0 d ·'), findsOneWidget);
+
+    await _expandRow(tester);
+    expect(find.text('Stock is negative — count this item'), findsOneWidget);
   });
 
   testWidgets(
@@ -355,10 +367,13 @@ void main() {
         ),
       );
 
+      // The capped offer is on the closed row, in its own colour.
+      expect(find.text('Use 30'), findsOneWidget);
+
+      // What capped it, and which component, behind the caret.
+      await _expandRow(tester);
       expect(find.textContaining('Molten Jar Label'), findsOneWidget);
       expect(find.textContaining('capped at 3'), findsOneWidget);
-      // Three achievable runs of ten, not the twelve demand asked for.
-      expect(find.text('Use 30'), findsOneWidget);
     },
   );
 
@@ -387,6 +402,7 @@ void main() {
       ),
     );
 
+    await _expandRow(tester);
     expect(
       find.text('Cannot start — Missing material is short'),
       findsOneWidget,
@@ -432,6 +448,7 @@ void main() {
       ),
     );
 
+    await _expandRow(tester);
     expect(
       find.text(
         '40.5 Nos is in Stores - J — needs a stock transfer, not a purchase',
@@ -475,6 +492,9 @@ void main() {
       ),
     );
 
+    // Offered only when there is something to fill: the menu opens, and the
+    // entry is simply not in it.
+    await _openActions(tester);
     expect(find.text('Fill the day'), findsNothing);
   });
 
@@ -508,6 +528,7 @@ void main() {
       ),
     );
 
+    await _openActions(tester);
     await tester.tap(find.text('Fill the day'));
     await tester.pumpAndSettle();
 
@@ -542,11 +563,6 @@ void main() {
 
     expect(find.text('Save plan'), findsOneWidget);
     expect(find.text('Start batches'), findsOneWidget);
-    // The difference, said out loud rather than left to be discovered.
-    expect(
-      find.text('Save plan records the target. Start batches moves stock.'),
-      findsOneWidget,
-    );
 
     // Nothing planned yet: neither action has anything to act on.
     expect(_button(tester, 'Save plan').onPressed, isNull);
@@ -627,8 +643,19 @@ void main() {
 
     expect(_button(tester, 'Start batches').onPressed, isNull);
     // Quick produce posts the same stock, so it is gated with it — it was the
-    // one path with no gate at all.
-    expect(_button(tester, 'Quick produce').onPressed, isNull);
+    // one path with no gate at all. It lives in the overflow now; the gate
+    // moved with it.
+    await _openActions(tester);
+    expect(
+      tester
+          .widget<PopupMenuItem<int>>(
+            find.widgetWithText(PopupMenuItem<int>, 'Quick produce'),
+          )
+          .enabled,
+      isFalse,
+    );
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
     // Saving the target is still allowed: a plan is a statement of intent, not
     // a stock movement.
     expect(find.text('Consolidated pick list'), findsNothing);
@@ -724,6 +751,7 @@ void main() {
     );
 
     expect(find.text('CAKE-NOBOM name'), findsOneWidget);
+    await _expandRow(tester);
     expect(find.text('No cheesecake mix'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), '12');
@@ -845,7 +873,7 @@ void main() {
     await tester.enterText(_quantityField('CAKE-OK'), '15');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(FilterChip, 'Critical'));
+    await tester.tap(find.widgetWithText(FilterChip, 'Critical 1'));
     await tester.pumpAndSettle();
 
     expect(find.text('CAKE-OK name'), findsNothing);
@@ -855,6 +883,23 @@ void main() {
     expect(container.read(dailyPlanDraftProvider).quantities['CAKE-OK'], 15);
     expect(container.read(productionBasketProvider).lines, hasLength(1));
   });
+}
+
+/// Opens a row's detail panel.
+///
+/// The figures, the item code and the full offer moved behind a caret so a
+/// phone shows five products instead of two. Everything they assert is still
+/// there; it is one tap away.
+Future<void> _expandRow(WidgetTester tester, {int index = 0}) async {
+  await tester.tap(find.byIcon(Icons.expand_more).at(index));
+  await tester.pumpAndSettle();
+}
+
+/// Opens the action bar's overflow, where everything that is neither the
+/// target nor the run now lives.
+Future<void> _openActions(WidgetTester tester) async {
+  await tester.tap(find.byIcon(Icons.more_vert));
+  await tester.pumpAndSettle();
 }
 
 /// A button by its label, whatever flavour of button it is.

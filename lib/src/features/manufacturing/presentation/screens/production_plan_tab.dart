@@ -212,7 +212,9 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(4, 12, 4, 2),
                     child: Text(
-                      group.name.isEmpty ? l10n.productionOtherItems : group.name,
+                      group.name.isEmpty
+                          ? l10n.productionOtherItems
+                          : group.name,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -307,6 +309,11 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
           onClear: draft.isEmpty ? null : ref.read(planEntryProvider).clear,
           onStartBatches: () => _startBatches(context),
           onQuickProduce: () => _quickProduce(context),
+          // The same condition the banner it replaced used: offered only when
+          // the board actually has something worth filling.
+          onFillTheDay: (board.page?.summary.actionable ?? 0) <= 0
+              ? null
+              : () => fillTheDay(context, ref, board.rows),
         ),
       ],
     );
@@ -371,7 +378,9 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final plan = await ref.read(dailyPlanDraftProvider.notifier).save(
+      final plan = await ref
+          .read(dailyPlanDraftProvider.notifier)
+          .save(
             status: 'Planned',
             // Follows the date bar. Filing the intent on the server's today
             // while the stock entry goes to the chosen day would leave the
@@ -481,10 +490,9 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
     // exactly as the Today screen reports it.
     var planSaveFailed = false;
     try {
-      await ref.read(dailyPlanDraftProvider.notifier).save(
-            status: 'Planned',
-            planDate: _planDateText(postingDate),
-          );
+      await ref
+          .read(dailyPlanDraftProvider.notifier)
+          .save(status: 'Planned', planDate: _planDateText(postingDate));
     } catch (_) {
       planSaveFailed = true;
     }
@@ -539,9 +547,7 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          planSaveFailed
-              ? '$outcome\n${l10n.productionPlanNotSaved}'
-              : outcome,
+          planSaveFailed ? '$outcome\n${l10n.productionPlanNotSaved}' : outcome,
         ),
       ),
     );
@@ -699,6 +705,7 @@ class _PlanActions extends ConsumerWidget {
     required this.onClear,
     required this.onStartBatches,
     required this.onQuickProduce,
+    required this.onFillTheDay,
   });
 
   final BasketRollup? rollup;
@@ -711,6 +718,10 @@ class _PlanActions extends ConsumerWidget {
   final VoidCallback? onClear;
   final VoidCallback onStartBatches;
   final VoidCallback onQuickProduce;
+
+  /// Fills every urgent row's field at once. It lived on a banner of its own
+  /// above the list; it is an action, so it sits with the actions.
+  final VoidCallback? onFillTheDay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -735,7 +746,7 @@ class _PlanActions extends ConsumerWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+          padding: const EdgeInsets.fromLTRB(12, 8, 8, 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -752,63 +763,139 @@ class _PlanActions extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              // Wrap, not Row: the Arabic labels are longer and a fixed Row
-              // overflows a 360 dp screen.
-              Wrap(
-                spacing: 10,
-                runSpacing: 8,
+              Row(
                 children: [
                   FilledButton.tonalIcon(
                     onPressed: onSavePlan,
                     icon: const Icon(Icons.event_note_outlined, size: 18),
                     label: Text(l10n.dailyPlanSave),
                   ),
-                  FilledButton.icon(
-                    onPressed: startDisabled ? null : onStartBatches,
-                    icon: const Icon(Icons.play_arrow, size: 18),
-                    label: Text(l10n.productionStartBatches),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                l10n.productionPlanVsStart,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              // The secondary row: everything that is neither the target nor
-              // the run. Quick produce keeps the emphasis it had on the old
-              // Batch tab — available, never the obvious tap.
-              Wrap(
-                spacing: 4,
-                children: [
-                  TextButton(
-                    onPressed: onCheckMaterials,
-                    child: Text(l10n.dailyPlanCheckMaterials),
-                  ),
-                  TextButton(
-                    onPressed: startDisabled ? null : onQuickProduce,
-                    child: Text(l10n.productionQuickProduce),
-                  ),
-                  TextButton(
-                    onPressed: onClear,
-                    child: Text(l10n.productionClearBasket),
-                  ),
-                  if (onCancelPlan != null)
-                    TextButton(
-                      onPressed: onCancelPlan,
-                      style: TextButton.styleFrom(
-                        foregroundColor: theme.colorScheme.error,
-                      ),
-                      child: Text(l10n.productionPlanCancel),
+                  const SizedBox(width: 10),
+                  // Expanded, so the one action that moves stock is the widest
+                  // thing on the bar rather than one of five equal buttons.
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: startDisabled ? null : onStartBatches,
+                      icon: const Icon(Icons.play_arrow, size: 18),
+                      label: Text(l10n.productionStartBatches),
                     ),
+                  ),
+                  // Everything that is neither the target nor the run. They were
+                  // four more buttons on the bar, which made the two that matter
+                  // look like options among six.
+                  _PlanOverflow(
+                    startDisabled: startDisabled,
+                    onFillTheDay: onFillTheDay,
+                    onCheckMaterials: onCheckMaterials,
+                    onQuickProduce: onQuickProduce,
+                    onClear: onClear,
+                    onCancelPlan: onCancelPlan,
+                  ),
                 ],
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The secondary actions, behind one tap.
+///
+/// Ordered by how often the floor reaches for them, with the two that discard
+/// work last and marked.
+class _PlanOverflow extends StatelessWidget {
+  const _PlanOverflow({
+    required this.startDisabled,
+    required this.onFillTheDay,
+    required this.onCheckMaterials,
+    required this.onQuickProduce,
+    required this.onClear,
+    required this.onCancelPlan,
+  });
+
+  final bool startDisabled;
+  final VoidCallback? onFillTheDay;
+  final VoidCallback? onCheckMaterials;
+  final VoidCallback onQuickProduce;
+  final VoidCallback? onClear;
+  final VoidCallback? onCancelPlan;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+
+    return PopupMenuButton<int>(
+      tooltip: l10n.productionMoreActions,
+      icon: const Icon(Icons.more_vert),
+      itemBuilder: (context) => [
+        if (onFillTheDay != null)
+          PopupMenuItem(
+            value: 0,
+            onTap: onFillTheDay,
+            child: Row(
+              children: [
+                const Icon(Icons.playlist_add, size: 18),
+                const SizedBox(width: 10),
+                Text(l10n.productionFillTheDay),
+              ],
+            ),
+          ),
+        PopupMenuItem(
+          value: 1,
+          enabled: onCheckMaterials != null,
+          onTap: onCheckMaterials,
+          child: Row(
+            children: [
+              const Icon(Icons.inventory_2_outlined, size: 18),
+              const SizedBox(width: 10),
+              Text(l10n.dailyPlanCheckMaterials),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 2,
+          enabled: !startDisabled,
+          onTap: startDisabled ? null : onQuickProduce,
+          child: Row(
+            children: [
+              const Icon(Icons.bolt_outlined, size: 18),
+              const SizedBox(width: 10),
+              Text(l10n.productionQuickProduce),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 3,
+          enabled: onClear != null,
+          onTap: onClear,
+          child: Row(
+            children: [
+              const Icon(Icons.backspace_outlined, size: 18),
+              const SizedBox(width: 10),
+              Text(l10n.productionClearBasket),
+            ],
+          ),
+        ),
+        if (onCancelPlan != null)
+          PopupMenuItem(
+            value: 4,
+            onTap: onCancelPlan,
+            child: Row(
+              children: [
+                Icon(Icons.cancel_outlined, size: 18, color: scheme.error),
+                const SizedBox(width: 10),
+                Text(
+                  l10n.productionPlanCancel,
+                  style: TextStyle(color: scheme.error),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
@@ -828,10 +915,18 @@ class _PlanHeader extends ConsumerWidget {
     final filter = ref.watch(productionFilterProvider);
 
     final page = board.page;
-    final actionable = page?.summary.actionable ?? 0;
     // Only claimed when the board actually answered: a failed suggestions call
     // must not read as "velocity has never run".
     final neverRan = page != null && (page.velocityUpdatedOn ?? '').isEmpty;
+
+    // Counted off the WHOLE board, never the filtered view: a count that shrank
+    // as you filtered would be describing the filter rather than the day.
+    final counts = <String, int>{};
+    for (final row in board.rows) {
+      final status = row.suggestion?.status;
+      if (status == null) continue;
+      counts[status] = (counts[status] ?? 0) + 1;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -860,53 +955,18 @@ class _PlanHeader extends ConsumerWidget {
               ],
             ),
           ),
-        if (actionable > 0)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            color: scheme.surfaceContainerHighest,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        l10n.productionBelowCover(actionable),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (page?.season.name != null)
-                        Text(
-                          l10n.productionSeasonApplied(
-                            page!.season.name!,
-                            page.season.multiplier,
-                          ),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                FilledButton.tonalIcon(
-                  icon: const Icon(Icons.playlist_add, size: 18),
-                  label: Text(l10n.productionFillTheDay),
-                  onPressed: () => _fillTheDay(context, ref),
-                ),
-              ],
-            ),
-          ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
             children: [
               FilterChip(
-                label: Text(l10n.productionFilterAll),
+                label: Text(
+                  l10n.productionFilterCount(
+                    l10n.productionFilterAll,
+                    counts.values.fold(0, (a, b) => a + b),
+                  ),
+                ),
                 selected: filter.isAll,
                 onSelected: (_) =>
                     ref.read(productionFilterProvider.notifier).state =
@@ -916,58 +976,82 @@ class _PlanHeader extends ConsumerWidget {
                 (ProductionStatus.critical, l10n.productionStatusCritical),
                 (ProductionStatus.low, l10n.productionStatusLow),
                 (ProductionStatus.ok, l10n.productionStatusOk),
-                (ProductionStatus.overstocked, l10n.productionStatusOverstocked),
+                (
+                  ProductionStatus.overstocked,
+                  l10n.productionStatusOverstocked,
+                ),
                 (ProductionStatus.noVelocity, l10n.productionStatusNoVelocity),
               ])
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 8),
-                  child: FilterChip(
-                    label: Text(entry.$2),
-                    selected: filter.statuses.contains(entry.$1),
-                    onSelected: (_) =>
-                        ref.read(productionFilterProvider.notifier).state =
-                            filter.toggle(entry.$1),
+                // A status with nothing in it is not offered: an empty filter
+                // that yields an empty list reads as a broken board.
+                if ((counts[entry.$1] ?? 0) > 0)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(start: 8),
+                    child: FilterChip(
+                      // The count is what the removed banner used to say, on
+                      // the control that acts on it rather than above it.
+                      label: Text(
+                        l10n.productionFilterCount(entry.$2, counts[entry.$1]!),
+                      ),
+                      selected: filter.statuses.contains(entry.$1),
+                      onSelected: (_) =>
+                          ref.read(productionFilterProvider.notifier).state =
+                              filter.toggle(entry.$1),
+                    ),
                   ),
-                ),
             ],
           ),
         ),
+        if (page?.season.name != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 6),
+            child: Text(
+              l10n.productionSeasonApplied(
+                page!.season.name!,
+                page.season.multiplier,
+              ),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
         const Divider(height: 1),
       ],
     );
   }
+}
 
-  /// Fills every urgent row's field, and says what it could not.
-  ///
-  /// Fills the FIELDS, not a hidden queue: every number it writes is on screen
-  /// and correctable before either action is tapped.
-  void _fillTheDay(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context);
-    final result = ref.read(planEntryProvider).fillTheDay(board.rows);
+/// Fills every urgent row's field, and says what it could not.
+///
+/// Fills the FIELDS, not a hidden queue: every number it writes is on screen
+/// and correctable before either action is tapped. Top-level now that it is
+/// reached from the action bar rather than from a banner of its own.
+void fillTheDay(BuildContext context, WidgetRef ref, Iterable<PlanRow> rows) {
+  final l10n = context.l10n;
+  final messenger = ScaffoldMessenger.of(context);
+  final result = ref.read(planEntryProvider).fillTheDay(rows);
 
-    // Says what it skipped rather than quietly planning less than the board
-    // suggested — a silent cap reads as "covered everything" when it wasn't.
-    final message = StringBuffer(
-      result.filledNothing
-          ? l10n.productionFillTheDayNothing
-          : l10n.productionFillTheDayFilled(
-              result.itemsFilled,
-              result.jarsFilled,
-            ),
-    );
-    if (result.skippedNoMaterials > 0) {
-      message
-        ..write(' · ')
-        ..write(l10n.productionFillTheDaySkipped(result.skippedNoMaterials));
-    }
-
-    messenger
-      // One bar at a time: a row-by-row fill would otherwise queue six of them,
-      // each naming an item the operator filled twenty seconds ago.
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message.toString())));
+  // Says what it skipped rather than quietly planning less than the board
+  // suggested — a silent cap reads as "covered everything" when it wasn't.
+  final message = StringBuffer(
+    result.filledNothing
+        ? l10n.productionFillTheDayNothing
+        : l10n.productionFillTheDayFilled(
+            result.itemsFilled,
+            result.jarsFilled,
+          ),
+  );
+  if (result.skippedNoMaterials > 0) {
+    message
+      ..write(' · ')
+      ..write(l10n.productionFillTheDaySkipped(result.skippedNoMaterials));
   }
+
+  messenger
+    // One bar at a time: a row-by-row fill would otherwise queue six of them,
+    // each naming an item the operator filled twenty seconds ago.
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(message.toString())));
 }
 
 /// BOMs that cannot answer the batch question yet.

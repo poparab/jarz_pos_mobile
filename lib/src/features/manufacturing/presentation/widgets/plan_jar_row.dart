@@ -95,6 +95,11 @@ class _PlanJarRowState extends State<PlanJarRow> {
 
   static String _textFor(int quantity) => quantity > 0 ? '$quantity' : '';
 
+  /// The figures, the code and the full offer are one tap away rather than on
+  /// every row. Dozens of these stack up on a phone, and the two numbers a
+  /// quantity is actually decided from are cover and what is on hand.
+  bool _expanded = false;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -104,7 +109,7 @@ class _PlanJarRowState extends State<PlanJarRow> {
     final suggestion = row.suggestion;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -121,31 +126,45 @@ class _PlanJarRowState extends State<PlanJarRow> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    // Most items here are named by their code, so printing both
-                    // just renders the same string twice.
-                    if (row.itemCode != row.itemName)
-                      Text(
-                        row.itemCode,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
+                    if (suggestion != null) ...[
+                      const SizedBox(height: 2),
+                      // The offer sits beside the figures rather than under
+                      // them: on its own line it cost a whole row per product
+                      // for one chip. Expanded, so the figures ellipsize
+                      // instead of shoving the chip off a 360 dp Arabic screen.
+                      Row(
+                        children: [
+                          // Flexible, and the chip is NOT: a Row measures its
+                          // inflexible children first, so the figures get what
+                          // the chip does not need. Both flexible and they
+                          // split the column in half, which truncated "-18 on
+                          // hand" to "-18 on ..." beside a chip with room to
+                          // spare.
+                          Flexible(child: _StockLine(suggestion: suggestion)),
+                          if (!_expanded &&
+                              widget.quantity <= 0 &&
+                              suggestion.suggestedBatches > 0) ...[
+                            const SizedBox(width: 8),
+                            _OfferChip(
+                              row: row,
+                              suggestion: suggestion,
+                              onUse: widget.onUseSuggestion,
+                            ),
+                          ],
+                        ],
                       ),
-                    if (row.jarsPerBatch != null)
-                      Text(
-                        // The number the floor already knows by heart. Showing
-                        // it is how they spot a BOM that has drifted.
-                        l10n.dailyPlanPerBatch(row.jarsPerBatch!.round()),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      )
-                    else if (row.inTemplate)
-                      Text(
-                        l10n.dailyPlanNoMix,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
+                    ],
+                    // Kept on the closed row on purpose: it is the roll-up's
+                    // verdict, it is why Start batches will refuse, and only the
+                    // consolidated check can see it.
+                    if (widget.isShort) ...[
+                      const SizedBox(height: 4),
+                      _InlineWarning(
+                        icon: Icons.warning_amber_rounded,
+                        text: l10n.manufacturingInsufficientInventory,
+                        color: scheme.error,
                       ),
+                    ],
                   ],
                 ),
               ),
@@ -154,7 +173,10 @@ class _PlanJarRowState extends State<PlanJarRow> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   if (suggestion != null)
-                    ProductionStatusChip(status: suggestion.status),
+                    ProductionStatusChip(
+                      status: suggestion.status,
+                      compact: true,
+                    ),
                   const SizedBox(height: 6),
                   SizedBox(
                     width: 104,
@@ -197,60 +219,265 @@ class _PlanJarRowState extends State<PlanJarRow> {
                       ),
                 ],
               ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                iconSize: 20,
+                tooltip: l10n.productionRowDetails,
+                onPressed: () => setState(() => _expanded = !_expanded),
+                icon: Icon(
+                  _expanded ? Icons.expand_less : Icons.expand_more,
+                  color: scheme.outline,
+                ),
+              ),
             ],
           ),
-          if (suggestion != null) ...[
+
+          // Open, the offer becomes the whole panel: what caps it, and where
+          // the missing material is sitting. Closed, it is the chip above.
+          if (_expanded &&
+              suggestion != null &&
+              suggestion.suggestedBatches > 0) ...[
             const SizedBox(height: 10),
-            _Figures(suggestion: suggestion),
-            if (suggestion.stockIsNegative) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.error_outline, size: 15, color: scheme.error),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      // The suggestion below ignores the hole on purpose, so
-                      // the row has to say the stock figure cannot be trusted.
-                      l10n.productionNegativeStock,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: scheme.error,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            if (suggestion.suggestedBatches > 0) ...[
-              const SizedBox(height: 10),
-              _SuggestionOffer(
-                row: widget.row,
-                suggestion: suggestion,
-                onUse: widget.onUseSuggestion,
-              ),
-            ],
-          ],
-          if (widget.isShort) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, size: 15, color: scheme.error),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    l10n.manufacturingInsufficientInventory,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.error,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
+            _SuggestionOffer(
+              row: row,
+              suggestion: suggestion,
+              onUse: widget.onUseSuggestion,
             ),
+          ],
+
+          if (_expanded) ...[
+            const SizedBox(height: 10),
+            _RowDetails(row: row),
+            if (suggestion != null && suggestion.stockIsNegative) ...[
+              const SizedBox(height: 8),
+              _InlineWarning(
+                icon: Icons.error_outline,
+                // The suggestion ignores the hole on purpose, so the row has to
+                // say the stock figure cannot be trusted.
+                text: l10n.productionNegativeStock,
+                color: scheme.error,
+              ),
+            ],
           ],
         ],
       ),
+    );
+  }
+}
+
+/// "0 d · -18 on hand" — the two figures a quantity is decided from.
+///
+/// Everything else the board knows is real and still reachable behind the
+/// caret; it just does not earn a third of the screen on every row.
+class _StockLine extends StatelessWidget {
+  const _StockLine({required this.suggestion});
+
+  final ProductionSuggestion suggestion;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    final cover = suggestion.daysOfCover;
+    final negative = suggestion.stockIsNegative;
+    // A counting hole beats the cover verdict for colour: every figure on the
+    // row was computed as though the hole were zero, so the line is saying
+    // something less trustworthy than "critical".
+    final colour = negative
+        ? scheme.error
+        : switch (suggestion.status) {
+            ProductionStatus.critical => scheme.error,
+            ProductionStatus.low => scheme.tertiary,
+            _ => scheme.onSurfaceVariant,
+          };
+    final coverText = cover == null
+        ? l10n.productionCoverUnknown
+        : l10n.productionCoverDays(trimQty(cover));
+
+    return Row(
+      children: [
+        // One Text, not three: three could not ellipsize between themselves,
+        // and no caller looking for the line could match any one of them.
+        Flexible(
+          child: Text(
+            '$coverText · '
+            '${l10n.productionOnHandValue(trimQty(suggestion.onHand))}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: colour,
+              fontWeight: negative ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ),
+        // A negative Bin is a counting error, not stock owed, and every figure
+        // beside it was computed as though the hole were zero. The mark is what
+        // stops it reading as an ordinary small number.
+        if (negative) ...[
+          const SizedBox(width: 4),
+          Icon(Icons.error_outline, size: 14, color: scheme.error),
+        ],
+      ],
+    );
+  }
+}
+
+/// The one-tap offer, reduced to a chip for the closed row.
+///
+/// A blocked row says so rather than offering a number it cannot make; the
+/// reason, and where the material is, live in the panel behind the caret.
+class _OfferChip extends StatelessWidget {
+  const _OfferChip({
+    required this.row,
+    required this.suggestion,
+    required this.onUse,
+  });
+
+  final PlanRow row;
+  final ProductionSuggestion suggestion;
+  final VoidCallback onUse;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    if (suggestion.achievableBatches <= 0) {
+      // Shrink-wrapped and capped rather than an _InlineWarning: this sits as
+      // an inflexible child of a Row, so it is handed unbounded width and an
+      // Expanded inside it would fail to lay out at all.
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.block, size: 15, color: scheme.error),
+          const SizedBox(width: 6),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 132),
+            child: Text(
+              l10n.manufacturingInsufficientInventory,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: scheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final offer = row.suggestedJars;
+    if (offer <= 0) return const SizedBox.shrink();
+
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: ActionChip(
+        visualDensity: VisualDensity.compact,
+        label: Text(l10n.productionUseSuggestion(offer)),
+        // A capped offer keeps its own colour, so a smaller-than-suggested
+        // number never looks like the full one.
+        backgroundColor: suggestion.isCappedByMaterials
+            ? scheme.tertiaryContainer
+            : null,
+        labelStyle: theme.textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: suggestion.isCappedByMaterials
+              ? scheme.onTertiaryContainer
+              : null,
+        ),
+        onPressed: onUse,
+      ),
+    );
+  }
+}
+
+/// Everything the row knows that is not needed to pick a number.
+class _RowDetails extends StatelessWidget {
+  const _RowDetails({required this.row});
+
+  final PlanRow row;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final suggestion = row.suggestion;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 12,
+          runSpacing: 2,
+          children: [
+            // Most items here are named by their code, so printing both just
+            // renders the same string twice.
+            if (row.itemCode != row.itemName)
+              Text(
+                row.itemCode,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            if (row.jarsPerBatch != null)
+              Text(
+                // The number the floor already knows by heart. Showing it is
+                // how they spot a BOM that has drifted.
+                l10n.dailyPlanPerBatch(row.jarsPerBatch!.round()),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              )
+            else if (row.inTemplate)
+              Text(
+                l10n.dailyPlanNoMix,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+          ],
+        ),
+        if (suggestion != null) ...[
+          const SizedBox(height: 8),
+          _Figures(suggestion: suggestion),
+        ],
+      ],
+    );
+  }
+}
+
+class _InlineWarning extends StatelessWidget {
+  const _InlineWarning({
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 15, color: color),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

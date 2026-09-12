@@ -3334,6 +3334,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productionOnHand => 'On hand';
 
   @override
+  String productionOnHandValue(Object quantity) {
+    return '$quantity on hand';
+  }
+
+  @override
+  String get productionRowDetails => 'Details';
+
+  @override
+  String get productionMoreActions => 'More actions';
+
+  @override
+  String productionFilterCount(String label, int count) {
+    return '$label $count';
+  }
+
+  @override
   String get productionSellsPerDay => 'Sells / day';
 
   @override

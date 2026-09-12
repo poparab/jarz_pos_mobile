@@ -5584,6 +5584,30 @@ abstract class AppLocalizations {
   /// **'On hand'**
   String get productionOnHand;
 
+  /// No description provided for @productionOnHandValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{quantity} on hand'**
+  String productionOnHandValue(Object quantity);
+
+  /// No description provided for @productionRowDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get productionRowDetails;
+
+  /// No description provided for @productionMoreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'More actions'**
+  String get productionMoreActions;
+
+  /// No description provided for @productionFilterCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} {count}'**
+  String productionFilterCount(String label, int count);
+
   /// No description provided for @productionSellsPerDay.
   ///
   /// In en, this message translates to:

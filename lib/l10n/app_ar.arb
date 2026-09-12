@@ -1707,6 +1707,20 @@
   "productionStatusOverstocked": "زيادة",
   "productionStatusNoVelocity": "مفيش بيانات بيع",
   "productionOnHand": "المتاح",
+  "productionOnHandValue": "{quantity} في المخزن",
+  "productionRowDetails": "التفاصيل",
+  "productionMoreActions": "إجراءات أخرى",
+  "productionFilterCount": "{label} {count}",
+  "@productionFilterCount": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "productionSellsPerDay": "بيبيع / يوم",
   "productionCover": "التغطية",
   "productionCoverDays": "{days} يوم",

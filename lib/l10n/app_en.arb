@@ -1782,6 +1782,20 @@
   "productionStatusOverstocked": "Overstocked",
   "productionStatusNoVelocity": "No sales data",
   "productionOnHand": "On hand",
+  "productionOnHandValue": "{quantity} on hand",
+  "productionRowDetails": "Details",
+  "productionMoreActions": "More actions",
+  "productionFilterCount": "{label} {count}",
+  "@productionFilterCount": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "productionSellsPerDay": "Sells / day",
   "productionCover": "Cover",
   "productionCoverDays": "{days} d",

@@ -3321,6 +3321,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productionOnHand => 'المتاح';
 
   @override
+  String productionOnHandValue(Object quantity) {
+    return '$quantity في المخزن';
+  }
+
+  @override
+  String get productionRowDetails => 'التفاصيل';
+
+  @override
+  String get productionMoreActions => 'إجراءات أخرى';
+
+  @override
+  String productionFilterCount(String label, int count) {
+    return '$label $count';
+  }
+
+  @override
   String get productionSellsPerDay => 'بيبيع / يوم';
 
   @override
