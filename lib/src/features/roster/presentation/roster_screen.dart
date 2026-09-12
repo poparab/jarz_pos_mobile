@@ -10,6 +10,7 @@ import '../models/roster_models.dart';
 import '../state/roster_providers.dart';
 import 'roster_cell_style.dart';
 import 'roster_formats.dart';
+import 'roster_grid_metrics.dart';
 import 'roster_shift_palette.dart';
 import 'widgets/roster_bulk_bar.dart';
 import 'widgets/roster_day_sheet.dart';
@@ -240,7 +241,7 @@ class _RosterBody extends ConsumerWidget {
           ),
         ),
         Expanded(
-          child: _RosterGrid(
+          child: RosterGrid(
             month: month,
             palette: palette,
             coverIndex: coverIndex,
@@ -306,8 +307,27 @@ class _UncoveredBanner extends StatelessWidget {
 /// One outer vertical scroll wraps both halves so they cannot drift out of
 /// alignment — synchronising two separate vertical controllers is the usual way
 /// this kind of table ends up one row out.
-class _RosterGrid extends ConsumerWidget {
-  const _RosterGrid({
+/// Stable keys for the grid's three strips, so a test can measure where each
+/// cell actually landed. See `test/features/roster/roster_grid_alignment_test.dart`.
+Key rosterGridNameKey(String employee) =>
+    ValueKey<String>('roster-grid-name-$employee');
+
+Key rosterGridHeaderKey(String date) =>
+    ValueKey<String>('roster-grid-header-$date');
+
+Key rosterGridTotalsKey(String date) =>
+    ValueKey<String>('roster-grid-totals-$date');
+
+Key rosterGridCellKey(String employee, String date) =>
+    ValueKey<String>('roster-grid-cell-$employee-$date');
+
+/// The month grid: pinned names down the side, scrolling days across the top.
+///
+/// Public only so the alignment test can pump it on its own; the screen is the
+/// sole production caller. Every size comes from [RosterGridMetrics].
+class RosterGrid extends ConsumerWidget {
+  const RosterGrid({
+    super.key,
     required this.month,
     required this.palette,
     required this.coverIndex,
@@ -316,12 +336,6 @@ class _RosterGrid extends ConsumerWidget {
   final RosterMonth month;
   final RosterShiftPalette palette;
   final RosterCoverIndex coverIndex;
-
-  static const double _rowHeight = 62;
-  static const double _headerHeight = 42;
-  static const double _totalsHeight = 30;
-  static const double _cellWidth = 56;
-  static const double _nameWidth = 120;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -339,16 +353,16 @@ class _RosterGrid extends ConsumerWidget {
           Column(
             children: [
               _ChromeCell(
-                width: _nameWidth,
-                height: _headerHeight,
+                width: RosterGridMetrics.nameWidth,
+                height: RosterGridMetrics.headerHeight,
                 child: Text(
                   context.l10n.rosterEmployeeColumn,
                   style: theme.textTheme.labelSmall,
                 ),
               ),
               _ChromeCell(
-                width: _nameWidth,
-                height: _totalsHeight,
+                width: RosterGridMetrics.nameWidth,
+                height: RosterGridMetrics.totalsHeight,
                 child: Text(
                   branch == null
                       ? context.l10n.rosterOnDutyRow
@@ -362,9 +376,10 @@ class _RosterGrid extends ConsumerWidget {
               ),
               ...month.employees.map(
                 (employee) => _EmployeeNameCell(
+                  key: rosterGridNameKey(employee.employee),
                   employee: employee,
-                  width: _nameWidth,
-                  height: _rowHeight,
+                  width: RosterGridMetrics.nameWidth,
+                  height: RosterGridMetrics.rowHeight,
                 ),
               ),
             ],
@@ -379,9 +394,10 @@ class _RosterGrid extends ConsumerWidget {
                     children: dates
                         .map(
                           (date) => _DayHeaderCell(
+                            key: rosterGridHeaderKey(date),
                             date: date,
-                            width: _cellWidth,
-                            height: _headerHeight,
+                            width: RosterGridMetrics.cellWidth,
+                            height: RosterGridMetrics.headerHeight,
                           ),
                         )
                         .toList(),
@@ -390,12 +406,13 @@ class _RosterGrid extends ConsumerWidget {
                     children: dates
                         .map(
                           (date) => _DayTotalsCell(
+                            key: rosterGridTotalsKey(date),
                             date: date,
                             totals:
                                 totals[date] ??
                                 const RosterDayTotals(onDuty: 0, atRisk: 0),
-                            width: _cellWidth,
-                            height: _totalsHeight,
+                            width: RosterGridMetrics.cellWidth,
+                            height: RosterGridMetrics.totalsHeight,
                           ),
                         )
                         .toList(),
@@ -405,6 +422,7 @@ class _RosterGrid extends ConsumerWidget {
                       children: dates
                           .map(
                             (date) => _DayCell(
+                              key: rosterGridCellKey(employee.employee, date),
                               employee: employee,
                               date: date,
                               cell: employee.cellFor(date),
@@ -414,8 +432,8 @@ class _RosterGrid extends ConsumerWidget {
                                 employee.employee,
                                 date,
                               ),
-                              width: _cellWidth,
-                              height: _rowHeight,
+                              width: RosterGridMetrics.cellWidth,
+                              height: RosterGridMetrics.rowHeight,
                             ),
                           )
                           .toList(),
@@ -492,6 +510,7 @@ class _ChromeCell extends StatelessWidget {
 
 class _EmployeeNameCell extends StatelessWidget {
   const _EmployeeNameCell({
+    super.key,
     required this.employee,
     required this.width,
     required this.height,
@@ -559,6 +578,7 @@ class _EmployeeNameCell extends StatelessWidget {
 
 class _DayHeaderCell extends StatelessWidget {
   const _DayHeaderCell({
+    super.key,
     required this.date,
     required this.width,
     required this.height,
@@ -630,6 +650,7 @@ class _DayHeaderCell extends StatelessWidget {
 /// Headcount for one day, with the count of days nobody has dealt with.
 class _DayTotalsCell extends StatelessWidget {
   const _DayTotalsCell({
+    super.key,
     required this.date,
     required this.totals,
     required this.width,
@@ -698,6 +719,7 @@ class _DayTotalsCell extends StatelessWidget {
 /// the day is out of the ordinary (the markers).
 class _DayCell extends ConsumerWidget {
   const _DayCell({
+    super.key,
     required this.employee,
     required this.date,
     required this.cell,
@@ -743,162 +765,178 @@ class _DayCell extends ConsumerWidget {
     return Semantics(
       button: true,
       label: _semanticsLabel(context, style, markers, resolver),
-      child: InkWell(
-        onTap: () {
-          // Tapping inside an active selection on THIS row extends or shrinks
-          // the run instead of opening the single-cell sheet — that sheet's
-          // per-day flow is still the entry point (via long-press) and the
-          // right tool for a lone edit, so nothing here removes it.
-          if (selectionIsThisRow) {
-            ref.read(rosterSelectionProvider.notifier).state = selection!
-                .toggle(date);
-            return;
-          }
-          showRosterDaySheet(
-            context,
-            employee: employee,
-            date: date,
-            cell: data,
-            catalog: catalog,
-            palette: palette,
-            coveringFor: coveringFor,
-          );
-        },
-        onLongPress: () {
-          final current = ref.read(rosterSelectionProvider);
-          if (current != null && current.employee == employee.employee) {
-            ref.read(rosterSelectionProvider.notifier).state = current.toggle(
-              date,
+      // SizedBox sets the footprint; Padding draws the gap inside it. A
+      // Container with an outer margin here is the drift bug: it made every
+      // cell 58x64 against 56-wide headers and 62-tall names, and the grid slid
+      // a full column off its dates by day 29. See RosterGridMetrics.
+      //
+      // The InkWell sits OUTSIDE the padding so the tap target is still the
+      // whole slot, exactly as it was when the margin lived inside it.
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: InkWell(
+          onTap: () {
+            // Tapping inside an active selection on THIS row extends or shrinks
+            // the run instead of opening the single-cell sheet — that sheet's
+            // per-day flow is still the entry point (via long-press) and the
+            // right tool for a lone edit, so nothing here removes it.
+            if (selectionIsThisRow) {
+              ref.read(rosterSelectionProvider.notifier).state = selection!
+                  .toggle(date);
+              return;
+            }
+            showRosterDaySheet(
+              context,
+              employee: employee,
+              date: date,
+              cell: data,
+              catalog: catalog,
+              palette: palette,
+              coveringFor: coveringFor,
             );
-          } else {
-            ref.read(rosterSelectionProvider.notifier).state = RosterSelection(
-              employee: employee.employee,
-              employeeName: employee.employeeName,
-              dates: {date},
-            );
-          }
-        },
-        child: Container(
-          width: width,
-          height: height,
-          margin: const EdgeInsets.all(1),
-          decoration: BoxDecoration(
-            color: style.background,
-            borderRadius: BorderRadius.circular(6),
-            border: isSelected
-                ? Border.all(
-                    color: RosterStyleResolver.selectionColor,
-                    width: 2,
-                  )
-                : style.hasBorder
-                ? Border.all(
-                    color: style.borderColor,
-                    width: style.borderWidth,
-                  )
-                : null,
-          ),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Center(
-                  child: state == RosterCellState.working
-                      ? Padding(
-                          // Leaves the corners to the code, the branch and the
-                          // markers.
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          child: Text(
-                            // The hours, not the shift name: a manager scanning
-                            // a month cares whether a day is a 9 or a 12, and no
-                            // abbreviation of "Branch Cover Full Day" fits in a
-                            // phone-width cell without becoming a riddle. Which
-                            // shift it is now rides in the corner code instead.
-                            rosterNumber(context, data!.hours),
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: style.foreground,
-                              fontWeight: FontWeight.w800,
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
-                            ),
-                          ),
-                        )
-                      : Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (style.icon != null)
-                              Icon(
-                                style.icon,
-                                size: 16,
-                                color: style.foreground,
+          },
+          onLongPress: () {
+            final current = ref.read(rosterSelectionProvider);
+            if (current != null && current.employee == employee.employee) {
+              ref.read(rosterSelectionProvider.notifier).state = current.toggle(
+                date,
+              );
+            } else {
+              ref
+                  .read(rosterSelectionProvider.notifier)
+                  .state = RosterSelection(
+                employee: employee.employee,
+                employeeName: employee.employeeName,
+                dates: {date},
+              );
+            }
+          },
+          child: Padding(
+            padding: RosterGridMetrics.cellInset,
+            child: Container(
+              decoration: BoxDecoration(
+                color: style.background,
+                borderRadius: BorderRadius.circular(6),
+                border: isSelected
+                    ? Border.all(
+                        color: RosterStyleResolver.selectionColor,
+                        width: 2,
+                      )
+                    : style.hasBorder
+                    ? Border.all(
+                        color: style.borderColor,
+                        width: style.borderWidth,
+                      )
+                    : null,
+              ),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Center(
+                      child: state == RosterCellState.working
+                          ? Padding(
+                              // Leaves the corners to the code, the branch and the
+                              // markers.
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 2,
                               ),
-                            if (style.token.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 3,
+                              child: Text(
+                                // The hours, not the shift name: a manager scanning
+                                // a month cares whether a day is a 9 or a 12, and no
+                                // abbreviation of "Branch Cover Full Day" fits in a
+                                // phone-width cell without becoming a riddle. Which
+                                // shift it is now rides in the corner code instead.
+                                rosterNumber(context, data!.hours),
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: style.foreground,
+                                  fontWeight: FontWeight.w800,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
                                 ),
-                                child: FittedBox(
-                                  // Arabic writes إجازة where English writes
-                                  // OFF; scaling down beats clipping, and beats
-                                  // inventing an abbreviation Arabic does not
-                                  // have.
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    style.token,
-                                    maxLines: 1,
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: style.foreground,
-                                      fontWeight: FontWeight.w700,
-                                      height: 1.1,
+                              ),
+                            )
+                          : Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (style.icon != null)
+                                  Icon(
+                                    style.icon,
+                                    size: 16,
+                                    color: style.foreground,
+                                  ),
+                                if (style.token.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 3,
+                                    ),
+                                    child: FittedBox(
+                                      // Arabic writes إجازة where English writes
+                                      // OFF; scaling down beats clipping, and beats
+                                      // inventing an abbreviation Arabic does not
+                                      // have.
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        style.token,
+                                        maxLines: 1,
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              color: style.foreground,
+                                              fontWeight: FontWeight.w700,
+                                              height: 1.1,
+                                            ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                          ],
-                        ),
-                ),
-              ),
-              if (style.shiftCode != null)
-                PositionedDirectional(
-                  top: 2,
-                  start: 3,
-                  child: _CodeChip(
-                    code: style.shiftCode!,
-                    foreground: style.foreground,
-                  ),
-                ),
-              if (branch.isNotEmpty && state == RosterCellState.working)
-                PositionedDirectional(
-                  bottom: 2,
-                  start: 3,
-                  child: Text(
-                    branchToken(branch),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontSize: 9,
-                      height: 1,
-                      letterSpacing: 0.2,
-                      color: style.foreground,
+                              ],
+                            ),
                     ),
                   ),
-                ),
-              if (cornerMarkers.isNotEmpty)
-                PositionedDirectional(
-                  bottom: 2,
-                  end: 2,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final marker in cornerMarkers)
-                        _MarkerGlyph(style: resolver.markerStyle(marker)),
-                    ],
-                  ),
-                ),
-              if (isSelected)
-                const PositionedDirectional(
-                  top: 2,
-                  end: 2,
-                  child: _SelectionTick(),
-                ),
-            ],
+                  if (style.shiftCode != null)
+                    PositionedDirectional(
+                      top: 2,
+                      start: 3,
+                      child: _CodeChip(
+                        code: style.shiftCode!,
+                        foreground: style.foreground,
+                      ),
+                    ),
+                  if (branch.isNotEmpty && state == RosterCellState.working)
+                    PositionedDirectional(
+                      bottom: 2,
+                      start: 3,
+                      child: Text(
+                        branchToken(branch),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontSize: 9,
+                          height: 1,
+                          letterSpacing: 0.2,
+                          color: style.foreground,
+                        ),
+                      ),
+                    ),
+                  if (cornerMarkers.isNotEmpty)
+                    PositionedDirectional(
+                      bottom: 2,
+                      end: 2,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final marker in cornerMarkers)
+                            _MarkerGlyph(style: resolver.markerStyle(marker)),
+                        ],
+                      ),
+                    ),
+                  if (isSelected)
+                    const PositionedDirectional(
+                      top: 2,
+                      end: 2,
+                      child: _SelectionTick(),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -914,7 +952,9 @@ class _DayCell extends ConsumerWidget {
     final parsed = DateTime.tryParse(date);
     final parts = <String>[
       employee.employeeName,
-      parsed == null ? date : formatDate(context, parsed, pattern: 'EEEE, MMM d'),
+      parsed == null
+          ? date
+          : formatDate(context, parsed, pattern: 'EEEE, MMM d'),
       style.label,
       if (style.state == RosterCellState.working) ...[
         cell?.shiftType ?? '',
