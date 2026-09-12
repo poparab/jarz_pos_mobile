@@ -185,12 +185,22 @@ object OrderAlertNative {
         // and pinned as ongoing. Indistinguishable from "push stopped working",
         // which is exactly how it was reported.
         //
-        // So the alarm and the notification split the job. If the alarm is
-        // going to ring, the notification stays silent and stays put: the
-        // alarm is what demands attention, and it must not be swiped away
-        // while it rings. If the alarm is suppressed, the notification takes
-        // over announcing the order -- channel sound, heads-up, dismissible --
-        // because there is no longer anything for it to be quiet underneath.
+        // So the alarm and the notification have separate jobs, and mute only
+        // ever touches the alarm.
+        //
+        // The notification ALWAYS announces the order: channel sound and a
+        // heads-up, muted or not. A new order is news either way, and the only
+        // thing that should be able to silence it is the phone itself -- its
+        // ringer mode and Do Not Disturb, which Android applies to this
+        // notification for us. Mute is a control over the repeating alarm for
+        // orders nobody has accepted yet; it was never meant to also mean
+        // "stop telling me orders exist".
+        //
+        // What the alarm still decides is how INSISTENT the notification is.
+        // While it rings the notification is pinned and takes over the screen,
+        // because it must not be swiped away mid-alarm. Muted, there is no
+        // alarm to protect, so the notification is an ordinary dismissible one
+        // and does not interrupt whatever the phone is doing.
         val alarmWillRing = !isAlarmSuppressed(context, invoiceId)
 
         val extras = Bundle().apply {
@@ -227,7 +237,7 @@ object OrderAlertNative {
             .setOngoing(alarmWillRing)
             .setAutoCancel(!alarmWillRing)
             .setContentIntent(pendingIntent)
-            .setSilent(alarmWillRing)
+            .setSilent(false)
             .setShowWhen(true)
 
         // Taking over the screen is alarm behaviour. A muted order announces
