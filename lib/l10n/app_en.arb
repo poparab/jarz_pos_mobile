@@ -1997,6 +1997,117 @@
   "basesQtyPerDay": "{quantity} {uom}/day",
   "basesCoverSuggestion": "Make {batches} batches to reach {days} days cover",
   "basesNoConsumption": "Nothing has drawn on this base yet — cover cannot be worked out",
+  "basesInStoreValue": "{quantity} {uom} in store",
+  "basesGroupMixes": "Mixes",
+  "basesGroupMixesHint": "Made by the kilo — enter jars or weight",
+  "basesGroupBatches": "Cakes & biscuits",
+  "basesGroupBatchesHint": "Made in batches — counted in eggs",
+  "basesJarsToFill": "Jars to fill",
+  "basesPerJar": "{quantity} {uom} each",
+  "basesJarNeedShort": "Those jars need {needed} {uom} — {gap} more than the store holds",
+  "@basesJarNeedShort": {
+    "placeholders": {
+      "needed": {
+        "type": "String"
+      },
+      "uom": {
+        "type": "String"
+      },
+      "gap": {
+        "type": "String"
+      }
+    }
+  },
+  "basesJarNeedCovered": "Those jars need {needed} {uom} — the store already covers it",
+  "basesMakeLabel": "Make",
+  "basesUseQty": "Make {quantity} {uom}",
+  "basesCountedValue": "{count} {unit}",
+  "basesCountedPerBatch": "One batch = {count} {unit}",
+  "basesCountedAndBatches": "{count} {unit} · {batches} batches",
+  "@basesCountedAndBatches": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "batches": {
+        "type": "String"
+      }
+    }
+  },
+  "basesReduceToQty": "Make {quantity} {uom} instead",
+  "basesNothingToMake": "Nothing set to make yet",
+  "basesMakeMixes": "{count, plural, =1{Make 1 mix} other{Make {count} mixes}}",
+  "@basesMakeMixes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesStartBatches": "{count, plural, =1{Start 1 batch} other{Start {count} batches}}",
+  "@basesStartBatches": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesMakeBoth": "Make {mixes} · start {batches}",
+  "@basesMakeBoth": {
+    "placeholders": {
+      "mixes": {
+        "type": "int"
+      },
+      "batches": {
+        "type": "int"
+      }
+    }
+  },
+  "basesSelectedShort": "{count, plural, =1{1 pick is short of materials — untick it to make the rest} other{{count} picks are short of materials — untick them to make the rest}}",
+  "@basesSelectedShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesSelectedEmpty": "{count, plural, =1{1 pick has no amount yet} other{{count} picks have no amount yet}}",
+  "@basesSelectedEmpty": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesMixedNote": "Mixes are booked as made · batches go to Running to be finished",
+  "basesCatalogueStale": "The base list has moved on — pull to refresh and try again",
+  "basesReportMade": "{count, plural, =1{1 mix made} other{{count} mixes made}}",
+  "@basesReportMade": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesReportStarted": "{count, plural, =1{1 batch started — finish it on Running} other{{count} batches started — finish them on Running}}",
+  "@basesReportStarted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "basesReportFailed": "{count, plural, =1{1 failed} other{{count} failed}}",
+  "@basesReportFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sopTitle": "Work instructions",
   "sopViewSop": "View SOP",
   "sopNoSopForItem": "No work instructions for this item",

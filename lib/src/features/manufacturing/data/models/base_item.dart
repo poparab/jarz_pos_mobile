@@ -16,6 +16,14 @@ part 'base_item.g.dart';
 /// downstream: today's saved jar plan, or the ranked sales suggestions. `none`
 /// means neither was available and the rows carry no demand at all — which is
 /// a normal answer, not an error.
+/// A run of this base is a whole or half batch: something in the recipe is
+/// counted, not weighed, so the batch is a real physical unit.
+const String kBaseEntryBatch = 'batch';
+
+/// A run of this base is any quantity: every ingredient is weighed, so the
+/// mixer imposes no grid and asking for "1.5 batches" of it is meaningless.
+const String kBaseEntryQuantity = 'quantity';
+
 abstract final class BaseDemandSource {
   static const plan = 'plan';
   static const suggestions = 'suggestions';
@@ -106,6 +114,33 @@ class BaseItem with _$BaseItem {
     /// The run sizes the mixer actually supports, when the backend publishes
     /// them. Advisory only: an off-grid figure warns, it never blocks.
     @JsonKey(name: 'run_sizes') List<double>? runSizes,
+
+    /// How the floor actually measures a run of this base.
+    ///
+    /// `batch` — the recipe contains something countable (30 eggs), so a run
+    /// is a whole or half batch and the quantity follows from it.
+    /// `quantity` — every ingredient is weighed, so any amount is makeable and
+    /// batches are a fiction the screen should not impose.
+    ///
+    /// Defaults to `batch` so a server that predates this field behaves exactly
+    /// as it did: every base was a batch before the distinction existed.
+    @JsonKey(name: 'entry_mode') @Default(kBaseEntryBatch) String entryMode,
+
+    /// The countable ingredient one batch is measured by — eggs, for every
+    /// cake in this catalogue.
+    ///
+    /// Null for anything weighed rather than counted, which is what makes
+    /// [entryMode] `quantity`. The two always agree; [entryMode] is published
+    /// separately so the client never has to re-derive the rule.
+    @JsonKey(name: 'batch_unit') BaseBatchUnit? batchUnit,
+
+    /// The jars whose own recipe draws on this base, with what each one takes.
+    ///
+    /// Empty — never null — when nothing consumes it. Sorted smallest-per-jar
+    /// first by the server, which puts Medium before Large.
+    @JsonKey(name: 'jar_consumers')
+    @Default(<BaseJarConsumer>[])
+    List<BaseJarConsumer> jarConsumers,
     @JsonKey(name: 'has_sop') @Default(false) bool hasSop,
     @JsonKey(name: 'sop_total_duration_mins') double? sopTotalDurationMins,
     BaseDemand? demand,
@@ -153,6 +188,20 @@ class BaseItem with _$BaseItem {
   bool get isBlockedByMaterials =>
       canMakeNowBatches != null && canMakeNowBatches! <= 0;
 
+  /// Made to any weight the floor asks for, with no batch grid.
+  bool get isMadeByQuantity => entryMode == kBaseEntryQuantity;
+
+  /// The jar counter is only offered where it is the natural way to ask: on a
+  /// mix, "how many jars am I filling" IS the question. A cake is mixed by the
+  /// egg and the jar arithmetic belongs to the plan, not to the mixer.
+  bool get hasJarEntry => isMadeByQuantity && jarConsumers.isNotEmpty;
+
+  /// What one batch is counted in on the floor — "30 eggs".
+  ///
+  /// Null wherever [isMadeByQuantity] is true, and the two never disagree: the
+  /// server derives one from the other.
+  BaseBatchUnit? get countedBatchUnit => isMadeByQuantity ? null : batchUnit;
+
   /// The server worked out a cover verdict for this base.
   bool get hasCoverSignal => status != null;
 
@@ -165,6 +214,65 @@ class BaseItem with _$BaseItem {
   /// The freezer runs out inside the target window.
   bool get isBelowCover =>
       status == ProductionStatus.critical || status == ProductionStatus.low;
+}
+
+/// The countable ingredient that defines one batch.
+///
+/// Derived from the recipe rather than configured: a Fudge Cake BOM lists 30
+/// eggs and yields one batch, so "30 eggs" is what the floor is actually
+/// counting when it mixes one. That makes the batch chips speak the kitchen's
+/// language — 30 eggs, 45 eggs — instead of an abstract 1 and 1.5.
+@freezed
+class BaseBatchUnit with _$BaseBatchUnit {
+  const factory BaseBatchUnit({
+    @JsonKey(name: 'item_code') @Default('') String itemCode,
+    @JsonKey(name: 'item_name') @Default('') String itemName,
+    @Default('') String uom,
+
+    /// How many of it one batch takes.
+    @JsonKey(name: 'qty_per_batch') @Default(0.0) double qtyPerBatch,
+  }) = _BaseBatchUnit;
+
+  factory BaseBatchUnit.fromJson(Map<String, dynamic> json) =>
+      _$BaseBatchUnitFromJson(json);
+
+  const BaseBatchUnit._();
+
+  String get displayName => itemName.isEmpty ? itemCode : itemName;
+
+  /// A zero here would render every batch as "0 eggs" and make the chips
+  /// meaningless, so the card checks before showing them.
+  bool get isUsable => qtyPerBatch > 0 && displayName.isNotEmpty;
+
+  /// What [batches] of this base is counted as — 1.5 batches of Fudge Cake is
+  /// 45 eggs.
+  double countFor(double batches) => batches * qtyPerBatch;
+}
+
+/// One jar that eats this base, and how much of it each jar takes.
+///
+/// This is the whole point of the mix half of the screen: the floor knows it is
+/// filling 40 mediums and 20 larges, not that it needs 2.0 Kg.
+@freezed
+class BaseJarConsumer with _$BaseJarConsumer {
+  const factory BaseJarConsumer({
+    @JsonKey(name: 'item_code') @Default('') String itemCode,
+    @JsonKey(name: 'item_name') @Default('') String itemName,
+
+    /// In the BASE's stock UOM, per one jar.
+    @JsonKey(name: 'qty_per_jar') @Default(0.0) double qtyPerJar,
+  }) = _BaseJarConsumer;
+
+  factory BaseJarConsumer.fromJson(Map<String, dynamic> json) =>
+      _$BaseJarConsumerFromJson(json);
+
+  const BaseJarConsumer._();
+
+  String get displayName => itemName.isEmpty ? itemCode : itemName;
+
+  /// A zero rate cannot be divided by and cannot be multiplied into anything
+  /// useful, so such a row is left off the counter entirely.
+  bool get isUsable => qtyPerJar > 0 && itemCode.isNotEmpty;
 }
 
 /// What the jars downstream will draw off this base.

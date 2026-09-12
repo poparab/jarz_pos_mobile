@@ -3927,6 +3927,163 @@ class AppLocalizationsEn extends AppLocalizations {
       'Nothing has drawn on this base yet — cover cannot be worked out';
 
   @override
+  String basesInStoreValue(Object quantity, Object uom) {
+    return '$quantity $uom in store';
+  }
+
+  @override
+  String get basesGroupMixes => 'Mixes';
+
+  @override
+  String get basesGroupMixesHint => 'Made by the kilo — enter jars or weight';
+
+  @override
+  String get basesGroupBatches => 'Cakes & biscuits';
+
+  @override
+  String get basesGroupBatchesHint => 'Made in batches — counted in eggs';
+
+  @override
+  String get basesJarsToFill => 'Jars to fill';
+
+  @override
+  String basesPerJar(Object quantity, Object uom) {
+    return '$quantity $uom each';
+  }
+
+  @override
+  String basesJarNeedShort(String needed, String uom, String gap) {
+    return 'Those jars need $needed $uom — $gap more than the store holds';
+  }
+
+  @override
+  String basesJarNeedCovered(Object needed, Object uom) {
+    return 'Those jars need $needed $uom — the store already covers it';
+  }
+
+  @override
+  String get basesMakeLabel => 'Make';
+
+  @override
+  String basesUseQty(Object quantity, Object uom) {
+    return 'Make $quantity $uom';
+  }
+
+  @override
+  String basesCountedValue(Object count, Object unit) {
+    return '$count $unit';
+  }
+
+  @override
+  String basesCountedPerBatch(Object count, Object unit) {
+    return 'One batch = $count $unit';
+  }
+
+  @override
+  String basesCountedAndBatches(String count, String unit, String batches) {
+    return '$count $unit · $batches batches';
+  }
+
+  @override
+  String basesReduceToQty(Object quantity, Object uom) {
+    return 'Make $quantity $uom instead';
+  }
+
+  @override
+  String get basesNothingToMake => 'Nothing set to make yet';
+
+  @override
+  String basesMakeMixes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Make $count mixes',
+      one: 'Make 1 mix',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String basesStartBatches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Start $count batches',
+      one: 'Start 1 batch',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String basesMakeBoth(int mixes, int batches) {
+    return 'Make $mixes · start $batches';
+  }
+
+  @override
+  String basesSelectedShort(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count picks are short of materials — untick them to make the rest',
+      one: '1 pick is short of materials — untick it to make the rest',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String basesSelectedEmpty(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count picks have no amount yet',
+      one: '1 pick has no amount yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get basesMixedNote =>
+      'Mixes are booked as made · batches go to Running to be finished';
+
+  @override
+  String get basesCatalogueStale =>
+      'The base list has moved on — pull to refresh and try again';
+
+  @override
+  String basesReportMade(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mixes made',
+      one: '1 mix made',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String basesReportStarted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count batches started — finish them on Running',
+      one: '1 batch started — finish it on Running',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String basesReportFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count failed',
+      one: '1 failed',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sopTitle => 'Work instructions';
 
   @override

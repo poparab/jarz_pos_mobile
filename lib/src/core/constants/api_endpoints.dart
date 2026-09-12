@@ -317,6 +317,12 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.manufacturing.list_recent_work_orders';
   static const startProductionBatch =
       '/api/method/jarz_pos.api.manufacturing.start_production_batch';
+  // Starts SEVERAL batches under one basket-wide material check. Calling
+  // `start_production_batch` in a loop instead would skip that check, and a
+  // basket can pass line by line while collectively emptying a store -- with
+  // the earlier lines already committed by the time the last one finds out.
+  static const startProductionBatches =
+      '/api/method/jarz_pos.api.manufacturing.start_production_batches';
   static const finishProductionBatch =
       '/api/method/jarz_pos.api.manufacturing.finish_production_batch';
   static const listRunningWorkOrders =
@@ -345,8 +351,14 @@ abstract final class ApiEndpoints {
 
   // ── Sub-assemblies (bases) ────────────────────────────────────────────
   // Bases are never sold, so the sales-driven board computes zero for them.
-  // These two answer "what bases exist" and "what would N batches cost me"
-  // instead; starting one still goes through `start_production_batch`.
+  // These two answer "what bases exist" and "what would this run cost me"
+  // instead. A cake is started through `start_production_batches` and finished
+  // on the Running tab; a mix is booked outright through `produce_now`, because
+  // a five-minute stir has nothing to come back and finish.
+  //
+  // `preview_base_batch` accepts EITHER `batches` or `qty`. The mixes are
+  // weighed, not counted, so asking them for a batch count is the thing this
+  // screen exists to stop doing.
   static const getBaseItems =
       '/api/method/jarz_pos.api.subassembly.get_base_items';
   static const previewBaseBatch =

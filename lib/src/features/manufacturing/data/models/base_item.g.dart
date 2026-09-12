@@ -80,6 +80,15 @@ _$BaseItemImpl _$$BaseItemImplFromJson(Map<String, dynamic> json) =>
       runSizes: (json['run_sizes'] as List<dynamic>?)
           ?.map((e) => (e as num).toDouble())
           .toList(),
+      entryMode: json['entry_mode'] as String? ?? kBaseEntryBatch,
+      batchUnit: json['batch_unit'] == null
+          ? null
+          : BaseBatchUnit.fromJson(json['batch_unit'] as Map<String, dynamic>),
+      jarConsumers:
+          (json['jar_consumers'] as List<dynamic>?)
+              ?.map((e) => BaseJarConsumer.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <BaseJarConsumer>[],
       hasSop: json['has_sop'] as bool? ?? false,
       sopTotalDurationMins: (json['sop_total_duration_mins'] as num?)
           ?.toDouble(),
@@ -109,6 +118,9 @@ Map<String, dynamic> _$$BaseItemImplToJson(_$BaseItemImpl instance) =>
       'can_make_now_batches': instance.canMakeNowBatches,
       'limiting_component': instance.limitingComponent,
       'run_sizes': instance.runSizes,
+      'entry_mode': instance.entryMode,
+      'batch_unit': instance.batchUnit,
+      'jar_consumers': instance.jarConsumers,
       'has_sop': instance.hasSop,
       'sop_total_duration_mins': instance.sopTotalDurationMins,
       'demand': instance.demand,
@@ -120,6 +132,38 @@ Map<String, dynamic> _$$BaseItemImplToJson(_$BaseItemImpl instance) =>
       'suggested_qty': instance.suggestedQty,
       'suggested_batches': instance.suggestedBatches,
     };
+
+_$BaseBatchUnitImpl _$$BaseBatchUnitImplFromJson(Map<String, dynamic> json) =>
+    _$BaseBatchUnitImpl(
+      itemCode: json['item_code'] as String? ?? '',
+      itemName: json['item_name'] as String? ?? '',
+      uom: json['uom'] as String? ?? '',
+      qtyPerBatch: (json['qty_per_batch'] as num?)?.toDouble() ?? 0.0,
+    );
+
+Map<String, dynamic> _$$BaseBatchUnitImplToJson(_$BaseBatchUnitImpl instance) =>
+    <String, dynamic>{
+      'item_code': instance.itemCode,
+      'item_name': instance.itemName,
+      'uom': instance.uom,
+      'qty_per_batch': instance.qtyPerBatch,
+    };
+
+_$BaseJarConsumerImpl _$$BaseJarConsumerImplFromJson(
+  Map<String, dynamic> json,
+) => _$BaseJarConsumerImpl(
+  itemCode: json['item_code'] as String? ?? '',
+  itemName: json['item_name'] as String? ?? '',
+  qtyPerJar: (json['qty_per_jar'] as num?)?.toDouble() ?? 0.0,
+);
+
+Map<String, dynamic> _$$BaseJarConsumerImplToJson(
+  _$BaseJarConsumerImpl instance,
+) => <String, dynamic>{
+  'item_code': instance.itemCode,
+  'item_name': instance.itemName,
+  'qty_per_jar': instance.qtyPerJar,
+};
 
 _$BaseDemandImpl _$$BaseDemandImplFromJson(Map<String, dynamic> json) =>
     _$BaseDemandImpl(
