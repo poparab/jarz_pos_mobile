@@ -308,6 +308,23 @@ void main() {
       );
       expect(notifier.state.collectsAtBranch, isFalse);
     });
+
+    test('should skip the payment method only for an Employee order', () {
+      final notifier = _notifier();
+
+      expect(notifier.state.isEmployeeOrder, isTrue);
+      expect(notifier.state.skipsPaymentMethod, isTrue);
+
+      notifier.state = notifier.state.copyWith(
+        selectedCommercialPolicy: _samplePolicy,
+      );
+      expect(notifier.state.skipsPaymentMethod, isFalse);
+
+      notifier.state = notifier.state.copyWith(
+        clearSelectedCommercialPolicy: true,
+      );
+      expect(notifier.state.skipsPaymentMethod, isFalse);
+    });
   });
 
   group('checkout guard', () {

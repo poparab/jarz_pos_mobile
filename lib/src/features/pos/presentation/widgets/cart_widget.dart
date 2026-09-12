@@ -1865,9 +1865,10 @@ class CartWidget extends ConsumerWidget {
       }
     }
 
-    // Payment method selection for non-sales partner orders
+    // Payment method selection for non-sales partner orders. An Employee order
+    // sends none: see [PosState.skipsPaymentMethod].
     String? paymentMethod;
-    if (state.selectedSalesPartner == null) {
+    if (state.selectedSalesPartner == null && !state.skipsPaymentMethod) {
       if (!context.mounted) return;
       // Credit ("on account") is offered per order, and only for the customer
       // the order is actually on: the dialog resolves that customer's credit

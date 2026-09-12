@@ -294,6 +294,12 @@ class PosState {
   bool get collectsAtBranch =>
       isPickup || (selectedCommercialPolicy?.deliverAtBranch ?? false);
 
+  /// Checkout asks for no payment method: an Employee order takes no money at
+  /// the counter and stays unpaid on the staff customer until payroll settles
+  /// it. Offering the dialog invited InstaPay/Wallet, which queues a transfer
+  /// confirmation for money that will never arrive.
+  bool get skipsPaymentMethod => isEmployeeOrder;
+
   String? get selectedPriceListName {
     final name = selectedPriceList?['name']?.toString().trim() ?? '';
     return name.isEmpty ? null : name;
