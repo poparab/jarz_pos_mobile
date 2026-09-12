@@ -20698,6 +20698,648 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{hours}h — longer than the normal {standard}h day'**
   String rosterAboveNormalDay(String hours, String standard);
+
+  /// No description provided for @menuAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get menuAttendance;
+
+  /// No description provided for @attendanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get attendanceTitle;
+
+  /// No description provided for @attendanceTabMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get attendanceTabMonth;
+
+  /// No description provided for @attendanceTabDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get attendanceTabDay;
+
+  /// No description provided for @attendanceTabEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get attendanceTabEmployee;
+
+  /// No description provided for @attendanceTabSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get attendanceTabSummary;
+
+  /// No description provided for @attendanceAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have access to attendance'**
+  String get attendanceAccessDenied;
+
+  /// No description provided for @attendanceAccessDeniedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This screen is for branch and line managers. Ask an administrator to add the role to your account.'**
+  String get attendanceAccessDeniedHint;
+
+  /// No description provided for @attendanceLoadFailedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again. If it keeps failing, tell an administrator what time you saw this.'**
+  String get attendanceLoadFailedHint;
+
+  /// No description provided for @attendanceHrmsMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance data is not available on this site.'**
+  String get attendanceHrmsMissing;
+
+  /// No description provided for @attendanceScopeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No branch is assigned to your account'**
+  String get attendanceScopeEmpty;
+
+  /// No description provided for @attendanceScopeEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is limited to an empty branch list, so there is nothing to show. Ask an administrator to set your branches.'**
+  String get attendanceScopeEmptyHint;
+
+  /// No description provided for @attendanceNobodyRostered.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody is rostered in this period'**
+  String get attendanceNobodyRostered;
+
+  /// No description provided for @attendanceNobodyRosteredHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the month, the date range and the branch filter.'**
+  String get attendanceNobodyRosteredHint;
+
+  /// No description provided for @attendanceNoCheckins.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-ins recorded in this period'**
+  String get attendanceNoCheckins;
+
+  /// No description provided for @attendanceNoCheckinsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Days shown as absent mean no check-in was recorded, not that the shift was missed.'**
+  String get attendanceNoCheckinsHint;
+
+  /// No description provided for @attendanceNoBranchResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'No branch resolved'**
+  String get attendanceNoBranchResolved;
+
+  /// No description provided for @attendanceNoBranchResolvedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'These people could not be matched to a branch on this day.'**
+  String get attendanceNoBranchResolvedHint;
+
+  /// No description provided for @attendanceBranchNobodyRostered.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody rostered at this branch'**
+  String get attendanceBranchNobodyRostered;
+
+  /// No description provided for @attendanceEmployeeColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get attendanceEmployeeColumn;
+
+  /// No description provided for @attendanceAllBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'All branches'**
+  String get attendanceAllBranches;
+
+  /// No description provided for @attendancePreviousPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get attendancePreviousPeriod;
+
+  /// No description provided for @attendanceNextPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get attendanceNextPeriod;
+
+  /// No description provided for @attendanceToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get attendanceToday;
+
+  /// No description provided for @attendanceFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get attendanceFromDate;
+
+  /// No description provided for @attendanceToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get attendanceToDate;
+
+  /// No description provided for @attendanceThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get attendanceThisMonth;
+
+  /// No description provided for @attendanceWholeDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole day'**
+  String get attendanceWholeDay;
+
+  /// No description provided for @attendanceLegendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What the colours mean'**
+  String get attendanceLegendTitle;
+
+  /// No description provided for @attendanceScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get attendanceScheduled;
+
+  /// No description provided for @attendanceActual.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get attendanceActual;
+
+  /// No description provided for @attendanceLateBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Late by'**
+  String get attendanceLateBy;
+
+  /// No description provided for @attendanceEarlyBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Early by'**
+  String get attendanceEarlyBy;
+
+  /// No description provided for @attendanceMinutesUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get attendanceMinutesUnit;
+
+  /// No description provided for @attendanceMinutesLateShort.
+  ///
+  /// In en, this message translates to:
+  /// **'min late'**
+  String get attendanceMinutesLateShort;
+
+  /// No description provided for @attendanceHoursUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get attendanceHoursUnit;
+
+  /// No description provided for @attendanceWorkedHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked hours'**
+  String get attendanceWorkedHours;
+
+  /// No description provided for @attendanceCheckinCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins'**
+  String get attendanceCheckinCount;
+
+  /// No description provided for @attendanceGeoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get attendanceGeoLabel;
+
+  /// No description provided for @attendanceGeoInside.
+  ///
+  /// In en, this message translates to:
+  /// **'Inside the branch area'**
+  String get attendanceGeoInside;
+
+  /// No description provided for @attendanceGeoOutside.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the branch area'**
+  String get attendanceGeoOutside;
+
+  /// No description provided for @attendanceGeoUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'No location recorded'**
+  String get attendanceGeoUnknown;
+
+  /// No description provided for @attendanceOffshiftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift window'**
+  String get attendanceOffshiftLabel;
+
+  /// No description provided for @attendanceOffshiftValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the shift window'**
+  String get attendanceOffshiftValue;
+
+  /// No description provided for @attendanceShiftType.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift'**
+  String get attendanceShiftType;
+
+  /// No description provided for @attendanceBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get attendanceBranch;
+
+  /// No description provided for @attendanceCoverDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover'**
+  String get attendanceCoverDay;
+
+  /// No description provided for @attendanceCoverDayValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Covering for a colleague'**
+  String get attendanceCoverDayValue;
+
+  /// No description provided for @attendanceOffType.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave type'**
+  String get attendanceOffType;
+
+  /// No description provided for @attendanceCoveredBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Covered by'**
+  String get attendanceCoveredBy;
+
+  /// No description provided for @attendanceNobodyCovering.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody'**
+  String get attendanceNobodyCovering;
+
+  /// No description provided for @attendanceNotRosteredThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Not rostered'**
+  String get attendanceNotRosteredThisMonth;
+
+  /// No description provided for @attendancePickEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an employee'**
+  String get attendancePickEmployee;
+
+  /// No description provided for @attendanceNoEmployeesToPick.
+  ///
+  /// In en, this message translates to:
+  /// **'No employees to show'**
+  String get attendanceNoEmployeesToPick;
+
+  /// No description provided for @attendanceNoEmployeesToPickHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The list comes from the Month tab. Change the month or the branch filter there.'**
+  String get attendanceNoEmployeesToPickHint;
+
+  /// No description provided for @attendanceByBranchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'By branch'**
+  String get attendanceByBranchTitle;
+
+  /// No description provided for @attendanceByBranchEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No branch breakdown for this range.'**
+  String get attendanceByBranchEmpty;
+
+  /// No description provided for @attendanceTimelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Day by day'**
+  String get attendanceTimelineTitle;
+
+  /// No description provided for @attendanceTimelineEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No days in this range.'**
+  String get attendanceTimelineEmpty;
+
+  /// No description provided for @attendanceCheckinsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins'**
+  String get attendanceCheckinsTitle;
+
+  /// No description provided for @attendanceCheckinsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-ins in this range.'**
+  String get attendanceCheckinsEmpty;
+
+  /// No description provided for @attendanceGroupByBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get attendanceGroupByBranch;
+
+  /// No description provided for @attendanceGroupByEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get attendanceGroupByEmployee;
+
+  /// No description provided for @attendanceGroupByDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get attendanceGroupByDay;
+
+  /// No description provided for @attendanceColumnGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get attendanceColumnGroup;
+
+  /// No description provided for @attendanceTotalsRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get attendanceTotalsRow;
+
+  /// No description provided for @attendanceMetricRostered.
+  ///
+  /// In en, this message translates to:
+  /// **'Rostered'**
+  String get attendanceMetricRostered;
+
+  /// No description provided for @attendanceMetricPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Present'**
+  String get attendanceMetricPresent;
+
+  /// No description provided for @attendanceMetricLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get attendanceMetricLate;
+
+  /// No description provided for @attendanceMetricAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get attendanceMetricAbsent;
+
+  /// No description provided for @attendanceMetricPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get attendanceMetricPending;
+
+  /// No description provided for @attendanceMetricOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get attendanceMetricOff;
+
+  /// No description provided for @attendanceMetricWorkedHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get attendanceMetricWorkedHours;
+
+  /// No description provided for @attendanceMetricLateMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Late minutes'**
+  String get attendanceMetricLateMinutes;
+
+  /// No description provided for @attendanceMetricAvgLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg late'**
+  String get attendanceMetricAvgLate;
+
+  /// No description provided for @attendanceMetricAttendanceRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get attendanceMetricAttendanceRate;
+
+  /// No description provided for @attendanceMetricPunctualityRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Punctuality'**
+  String get attendanceMetricPunctualityRate;
+
+  /// No description provided for @attendanceMetricLateUnmatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside window'**
+  String get attendanceMetricLateUnmatched;
+
+  /// No description provided for @attendanceRateNoRoster.
+  ///
+  /// In en, this message translates to:
+  /// **'no roster'**
+  String get attendanceRateNoRoster;
+
+  /// No description provided for @attendanceRateNoRosterWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'No rostered days in this period, so there is no rate to compute.'**
+  String get attendanceRateNoRosterWhy;
+
+  /// No description provided for @attendanceStatusPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Present'**
+  String get attendanceStatusPresent;
+
+  /// No description provided for @attendanceStatusPresentWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in within the grace period after the shift start.'**
+  String get attendanceStatusPresentWhy;
+
+  /// No description provided for @attendanceStatusLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get attendanceStatusLate;
+
+  /// No description provided for @attendanceStatusLateWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in after the grace period had passed.'**
+  String get attendanceStatusLateWhy;
+
+  /// No description provided for @attendanceStatusLateUnmatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside window'**
+  String get attendanceStatusLateUnmatched;
+
+  /// No description provided for @attendanceStatusLateUnmatchedWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'A check-in exists but falls outside the shift window, so it could not be matched to a start time. Somebody has to look at the punch.'**
+  String get attendanceStatusLateUnmatchedWhy;
+
+  /// No description provided for @attendanceStatusAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get attendanceStatusAbsent;
+
+  /// No description provided for @attendanceStatusAbsentWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Rostered on a day that has already passed, with no check-in at all.'**
+  String get attendanceStatusAbsentWhy;
+
+  /// No description provided for @attendanceStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting'**
+  String get attendanceStatusPending;
+
+  /// No description provided for @attendanceStatusPendingWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Rostered today or later and has not checked in yet. Nothing has gone wrong.'**
+  String get attendanceStatusPendingWhy;
+
+  /// No description provided for @attendanceStatusOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Day off'**
+  String get attendanceStatusOff;
+
+  /// No description provided for @attendanceStatusOffWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'An approved day off. Not a problem.'**
+  String get attendanceStatusOffWhy;
+
+  /// No description provided for @attendanceStatusHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday'**
+  String get attendanceStatusHoliday;
+
+  /// No description provided for @attendanceStatusHolidayWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'A public holiday on the holiday list for this shift.'**
+  String get attendanceStatusHolidayWhy;
+
+  /// No description provided for @attendanceStatusNotRostered.
+  ///
+  /// In en, this message translates to:
+  /// **'Not rostered'**
+  String get attendanceStatusNotRostered;
+
+  /// No description provided for @attendanceStatusNotRosteredWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody was scheduled to work this day. This is not absence.'**
+  String get attendanceStatusNotRosteredWhy;
+
+  /// No description provided for @attendanceStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get attendanceStatusUnknown;
+
+  /// No description provided for @attendanceStatusUnknownWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'This version of the app does not recognise the status the server sent.'**
+  String get attendanceStatusUnknownWhy;
+
+  /// No description provided for @attendanceTokenPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'P'**
+  String get attendanceTokenPresent;
+
+  /// No description provided for @attendanceTokenLate.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get attendanceTokenLate;
+
+  /// No description provided for @attendanceTokenLateUnmatched.
+  ///
+  /// In en, this message translates to:
+  /// **'L!'**
+  String get attendanceTokenLateUnmatched;
+
+  /// No description provided for @attendanceTokenAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'A'**
+  String get attendanceTokenAbsent;
+
+  /// No description provided for @attendanceTokenPending.
+  ///
+  /// In en, this message translates to:
+  /// **'…'**
+  String get attendanceTokenPending;
+
+  /// No description provided for @attendanceTokenOff.
+  ///
+  /// In en, this message translates to:
+  /// **'O'**
+  String get attendanceTokenOff;
+
+  /// No description provided for @attendanceTokenHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'H'**
+  String get attendanceTokenHoliday;
+
+  /// No description provided for @attendanceTokenNotRostered.
+  ///
+  /// In en, this message translates to:
+  /// **'–'**
+  String get attendanceTokenNotRostered;
+
+  /// No description provided for @attendanceTokenUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'?'**
+  String get attendanceTokenUnknown;
 }
 
 class _AppLocalizationsDelegate

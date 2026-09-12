@@ -17,6 +17,7 @@ import '../features/printing/printer_selection_screen.dart'
     if (dart.library.html) '../features/printing/printer_selection_screen_web.dart';
 import '../features/manager/presentation/manager_dashboard_screen.dart';
 import '../features/roster/presentation/roster_screen.dart';
+import '../features/attendance/presentation/attendance_screen.dart';
 import '../features/shift_monitor/presentation/shift_monitor_screen.dart';
 import '../features/purchase/presentation/purchase_screen.dart';
 import '../features/purchase_request/presentation/purchase_requests_screen.dart';
@@ -384,6 +385,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.roster,
         name: 'roster',
         builder: (context, state) => const RosterScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.attendance,
+        name: 'attendance',
+        builder: (context, state) => const AttendanceScreen(),
       ),
       GoRoute(
         path: AppRoutes.purchase,

@@ -850,4 +850,18 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.couriers.get_unsettle_preview';
   static const unsettleCommit =
       '/api/method/jarz_pos.api.couriers.unsettle_courier_settlement';
+
+  // ── Attendance ────────────────────────────────────────────────────────
+  // Read-only. Attendance is DERIVED server-side from Employee Checkin +
+  // Shift Assignment + Day Off — the Attendance DocType is not produced on
+  // these sites — so there is no write endpoint to add later.
+  static const attendanceBootstrap =
+      '/api/method/jarz_pos.api.attendance.get_bootstrap';
+  static const attendanceMonth =
+      '/api/method/jarz_pos.api.attendance.get_month';
+  static const attendanceDay = '/api/method/jarz_pos.api.attendance.get_day';
+  static const attendanceEmployee =
+      '/api/method/jarz_pos.api.attendance.get_employee';
+  static const attendanceSummary =
+      '/api/method/jarz_pos.api.attendance.get_summary';
 }

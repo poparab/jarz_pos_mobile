@@ -12645,4 +12645,342 @@ class AppLocalizationsAr extends AppLocalizations {
   String rosterAboveNormalDay(String hours, String standard) {
     return '$hours ساعة — أطول من اليوم العادي $standard ساعة';
   }
+
+  @override
+  String get menuAttendance => 'الحضور والانصراف';
+
+  @override
+  String get attendanceTitle => 'الحضور والانصراف';
+
+  @override
+  String get attendanceTabMonth => 'الشهر';
+
+  @override
+  String get attendanceTabDay => 'اليوم';
+
+  @override
+  String get attendanceTabEmployee => 'الموظف';
+
+  @override
+  String get attendanceTabSummary => 'الملخص';
+
+  @override
+  String get attendanceAccessDenied => 'ليس لديك صلاحية الاطلاع على الحضور';
+
+  @override
+  String get attendanceAccessDeniedHint =>
+      'هذه الشاشة لمديري الفروع والمشرفين. اطلب من المسؤول إضافة الصلاحية إلى حسابك.';
+
+  @override
+  String get attendanceLoadFailedHint =>
+      'حاول مرة أخرى. إذا تكرر الخطأ، أبلغ المسؤول بالوقت الذي ظهرت فيه الرسالة.';
+
+  @override
+  String get attendanceHrmsMissing => 'بيانات الحضور غير متاحة على هذا الموقع.';
+
+  @override
+  String get attendanceScopeEmpty => 'لا يوجد فرع مرتبط بحسابك';
+
+  @override
+  String get attendanceScopeEmptyHint =>
+      'حسابك مقيّد بقائمة فروع فارغة، لذلك لا يوجد ما يُعرض. اطلب من المسؤول تحديد فروعك.';
+
+  @override
+  String get attendanceNobodyRostered => 'لا يوجد أحد على الجدول في هذه الفترة';
+
+  @override
+  String get attendanceNobodyRosteredHint =>
+      'راجع الشهر والفترة والفرع المختار.';
+
+  @override
+  String get attendanceNoCheckins => 'لا توجد أي تسجيلات حضور في هذه الفترة';
+
+  @override
+  String get attendanceNoCheckinsHint =>
+      'الأيام التي تظهر كغياب تعني أنه لم يُسجَّل حضور، وليس بالضرورة أن الموظف لم يحضر.';
+
+  @override
+  String get attendanceNoBranchResolved => 'فرع غير محدد';
+
+  @override
+  String get attendanceNoBranchResolvedHint =>
+      'لم يتمكن النظام من ربط هؤلاء بفرع في هذا اليوم.';
+
+  @override
+  String get attendanceBranchNobodyRostered =>
+      'لا يوجد أحد على الجدول في هذا الفرع';
+
+  @override
+  String get attendanceEmployeeColumn => 'الموظف';
+
+  @override
+  String get attendanceAllBranches => 'كل الفروع';
+
+  @override
+  String get attendancePreviousPeriod => 'السابق';
+
+  @override
+  String get attendanceNextPeriod => 'التالي';
+
+  @override
+  String get attendanceToday => 'اليوم';
+
+  @override
+  String get attendanceFromDate => 'من';
+
+  @override
+  String get attendanceToDate => 'إلى';
+
+  @override
+  String get attendanceThisMonth => 'هذا الشهر';
+
+  @override
+  String get attendanceWholeDay => 'اليوم كله';
+
+  @override
+  String get attendanceLegendTitle => 'دليل الألوان';
+
+  @override
+  String get attendanceScheduled => 'المجدول';
+
+  @override
+  String get attendanceActual => 'الفعلي';
+
+  @override
+  String get attendanceLateBy => 'مقدار التأخير';
+
+  @override
+  String get attendanceEarlyBy => 'مقدار الحضور المبكر';
+
+  @override
+  String get attendanceMinutesUnit => 'دقيقة';
+
+  @override
+  String get attendanceMinutesLateShort => 'دقيقة تأخير';
+
+  @override
+  String get attendanceHoursUnit => 'ساعة';
+
+  @override
+  String get attendanceWorkedHours => 'ساعات العمل';
+
+  @override
+  String get attendanceCheckinCount => 'عدد التسجيلات';
+
+  @override
+  String get attendanceGeoLabel => 'الموقع';
+
+  @override
+  String get attendanceGeoInside => 'داخل نطاق الفرع';
+
+  @override
+  String get attendanceGeoOutside => 'خارج نطاق الفرع';
+
+  @override
+  String get attendanceGeoUnknown => 'لم يُسجَّل موقع';
+
+  @override
+  String get attendanceOffshiftLabel => 'وقت الوردية';
+
+  @override
+  String get attendanceOffshiftValue => 'خارج وقت الوردية';
+
+  @override
+  String get attendanceShiftType => 'الوردية';
+
+  @override
+  String get attendanceBranch => 'الفرع';
+
+  @override
+  String get attendanceCoverDay => 'تغطية';
+
+  @override
+  String get attendanceCoverDayValue => 'بديل عن زميل';
+
+  @override
+  String get attendanceOffType => 'نوع الإجازة';
+
+  @override
+  String get attendanceCoveredBy => 'يغطيه';
+
+  @override
+  String get attendanceNobodyCovering => 'لا أحد';
+
+  @override
+  String get attendanceNotRosteredThisMonth => 'غير مجدول';
+
+  @override
+  String get attendancePickEmployee => 'اختر موظفًا';
+
+  @override
+  String get attendanceNoEmployeesToPick => 'لا يوجد موظفون للعرض';
+
+  @override
+  String get attendanceNoEmployeesToPickHint =>
+      'القائمة مأخوذة من تبويب الشهر. غيّر الشهر أو الفرع من هناك.';
+
+  @override
+  String get attendanceByBranchTitle => 'حسب الفرع';
+
+  @override
+  String get attendanceByBranchEmpty =>
+      'لا يوجد توزيع على الفروع في هذه الفترة.';
+
+  @override
+  String get attendanceTimelineTitle => 'يومًا بيوم';
+
+  @override
+  String get attendanceTimelineEmpty => 'لا توجد أيام في هذه الفترة.';
+
+  @override
+  String get attendanceCheckinsTitle => 'تسجيلات الحضور';
+
+  @override
+  String get attendanceCheckinsEmpty => 'لا توجد تسجيلات حضور في هذه الفترة.';
+
+  @override
+  String get attendanceGroupByBranch => 'الفرع';
+
+  @override
+  String get attendanceGroupByEmployee => 'الموظف';
+
+  @override
+  String get attendanceGroupByDay => 'اليوم';
+
+  @override
+  String get attendanceColumnGroup => 'المجموعة';
+
+  @override
+  String get attendanceTotalsRow => 'الإجمالي';
+
+  @override
+  String get attendanceMetricRostered => 'مجدول';
+
+  @override
+  String get attendanceMetricPresent => 'حاضر';
+
+  @override
+  String get attendanceMetricLate => 'متأخر';
+
+  @override
+  String get attendanceMetricAbsent => 'غائب';
+
+  @override
+  String get attendanceMetricPending => 'منتظر';
+
+  @override
+  String get attendanceMetricOff => 'إجازة';
+
+  @override
+  String get attendanceMetricWorkedHours => 'الساعات';
+
+  @override
+  String get attendanceMetricLateMinutes => 'دقائق التأخير';
+
+  @override
+  String get attendanceMetricAvgLate => 'متوسط التأخير';
+
+  @override
+  String get attendanceMetricAttendanceRate => 'نسبة الحضور';
+
+  @override
+  String get attendanceMetricPunctualityRate => 'نسبة الالتزام';
+
+  @override
+  String get attendanceMetricLateUnmatched => 'خارج الوردية';
+
+  @override
+  String get attendanceRateNoRoster => 'بدون جدول';
+
+  @override
+  String get attendanceRateNoRosterWhy =>
+      'لا توجد أيام مجدولة في هذه الفترة، لذلك لا يمكن حساب نسبة.';
+
+  @override
+  String get attendanceStatusPresent => 'حاضر';
+
+  @override
+  String get attendanceStatusPresentWhy =>
+      'سجّل حضوره خلال مهلة السماح بعد بداية الوردية.';
+
+  @override
+  String get attendanceStatusLate => 'متأخر';
+
+  @override
+  String get attendanceStatusLateWhy => 'سجّل حضوره بعد انتهاء مهلة السماح.';
+
+  @override
+  String get attendanceStatusLateUnmatched => 'خارج الوردية';
+
+  @override
+  String get attendanceStatusLateUnmatchedWhy =>
+      'يوجد تسجيل حضور لكنه خارج وقت الوردية، لذلك تعذّر مطابقته ببداية الوردية. يحتاج الأمر إلى مراجعة.';
+
+  @override
+  String get attendanceStatusAbsent => 'غائب';
+
+  @override
+  String get attendanceStatusAbsentWhy =>
+      'كان مجدولًا في يوم مضى ولم يُسجَّل له أي حضور.';
+
+  @override
+  String get attendanceStatusPending => 'لم يسجّل بعد';
+
+  @override
+  String get attendanceStatusPendingWhy =>
+      'مجدول اليوم أو لاحقًا ولم يسجّل حضوره بعد، ولا توجد مشكلة حتى الآن.';
+
+  @override
+  String get attendanceStatusOff => 'إجازة';
+
+  @override
+  String get attendanceStatusOffWhy => 'إجازة معتمدة، وليست مشكلة.';
+
+  @override
+  String get attendanceStatusHoliday => 'عطلة رسمية';
+
+  @override
+  String get attendanceStatusHolidayWhy =>
+      'عطلة رسمية ضمن قائمة عطلات الوردية.';
+
+  @override
+  String get attendanceStatusNotRostered => 'غير مجدول';
+
+  @override
+  String get attendanceStatusNotRosteredWhy =>
+      'لم يكن مجدولًا للعمل في هذا اليوم، وهذا يختلف عن الغياب.';
+
+  @override
+  String get attendanceStatusUnknown => 'غير معروف';
+
+  @override
+  String get attendanceStatusUnknownWhy =>
+      'هذه النسخة من التطبيق لا تتعرف على الحالة التي أرسلها الخادم.';
+
+  @override
+  String get attendanceTokenPresent => 'ح';
+
+  @override
+  String get attendanceTokenLate => 'ت';
+
+  @override
+  String get attendanceTokenLateUnmatched => 'خ';
+
+  @override
+  String get attendanceTokenAbsent => 'غ';
+
+  @override
+  String get attendanceTokenPending => '…';
+
+  @override
+  String get attendanceTokenOff => 'ج';
+
+  @override
+  String get attendanceTokenHoliday => 'ع';
+
+  @override
+  String get attendanceTokenNotRostered => '–';
+
+  @override
+  String get attendanceTokenUnknown => '؟';
 }

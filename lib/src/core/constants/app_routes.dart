@@ -17,6 +17,12 @@ abstract final class AppRoutes {
   /// Distinct from [shiftMonitor], which watches POS cash drawers: the two
   /// senses of "shift" in this app are unrelated.
   static const roster = '/roster';
+
+  /// Attendance — who actually turned up against [roster]'s plan. Read-only,
+  /// and deliberately a separate screen: the rota is edited in [roster], and a
+  /// screen that both plans and judges the same day invites editing the plan
+  /// to match what happened.
+  static const attendance = '/attendance';
   static const purchase = '/purchase';
 
   /// Team item requests. Open to all floor staff, unlike [purchase] which is

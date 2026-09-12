@@ -346,6 +346,14 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuShiftDistribution,
           onTap: () => navigate(AppRoutes.roster),
         ),
+      // Sits immediately after the rota it is read against, on the same gate:
+      // `api/attendance.py` accepts exactly the line-manager tier.
+      if (canActAsLineManager)
+        navTile(
+          icon: Icons.how_to_reg_outlined,
+          title: l10n.menuAttendance,
+          onTap: () => navigate(AppRoutes.attendance),
+        ),
       // Kept for the line-manager tier: the hub still holds one report they may
       // read (Materials & Consumables), and the hub itself drops every tile
       // their role would be refused on, so the entry is never a dead end.
@@ -400,6 +408,7 @@ class AppDrawer extends ConsumerWidget {
       AppRoutes.manager,
       AppRoutes.shiftMonitor,
       AppRoutes.roster,
+      AppRoutes.attendance,
       AppRoutes.reports,
       AppRoutes.reportsShipping,
       AppRoutes.reportsInventory,

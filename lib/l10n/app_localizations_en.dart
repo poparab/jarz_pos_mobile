@@ -12664,4 +12664,342 @@ class AppLocalizationsEn extends AppLocalizations {
   String rosterAboveNormalDay(String hours, String standard) {
     return '${hours}h — longer than the normal ${standard}h day';
   }
+
+  @override
+  String get menuAttendance => 'Attendance';
+
+  @override
+  String get attendanceTitle => 'Attendance';
+
+  @override
+  String get attendanceTabMonth => 'Month';
+
+  @override
+  String get attendanceTabDay => 'Day';
+
+  @override
+  String get attendanceTabEmployee => 'Employee';
+
+  @override
+  String get attendanceTabSummary => 'Summary';
+
+  @override
+  String get attendanceAccessDenied => 'You do not have access to attendance';
+
+  @override
+  String get attendanceAccessDeniedHint =>
+      'This screen is for branch and line managers. Ask an administrator to add the role to your account.';
+
+  @override
+  String get attendanceLoadFailedHint =>
+      'Try again. If it keeps failing, tell an administrator what time you saw this.';
+
+  @override
+  String get attendanceHrmsMissing =>
+      'Attendance data is not available on this site.';
+
+  @override
+  String get attendanceScopeEmpty => 'No branch is assigned to your account';
+
+  @override
+  String get attendanceScopeEmptyHint =>
+      'Your account is limited to an empty branch list, so there is nothing to show. Ask an administrator to set your branches.';
+
+  @override
+  String get attendanceNobodyRostered => 'Nobody is rostered in this period';
+
+  @override
+  String get attendanceNobodyRosteredHint =>
+      'Check the month, the date range and the branch filter.';
+
+  @override
+  String get attendanceNoCheckins => 'No check-ins recorded in this period';
+
+  @override
+  String get attendanceNoCheckinsHint =>
+      'Days shown as absent mean no check-in was recorded, not that the shift was missed.';
+
+  @override
+  String get attendanceNoBranchResolved => 'No branch resolved';
+
+  @override
+  String get attendanceNoBranchResolvedHint =>
+      'These people could not be matched to a branch on this day.';
+
+  @override
+  String get attendanceBranchNobodyRostered => 'Nobody rostered at this branch';
+
+  @override
+  String get attendanceEmployeeColumn => 'Employee';
+
+  @override
+  String get attendanceAllBranches => 'All branches';
+
+  @override
+  String get attendancePreviousPeriod => 'Previous';
+
+  @override
+  String get attendanceNextPeriod => 'Next';
+
+  @override
+  String get attendanceToday => 'Today';
+
+  @override
+  String get attendanceFromDate => 'From';
+
+  @override
+  String get attendanceToDate => 'To';
+
+  @override
+  String get attendanceThisMonth => 'This month';
+
+  @override
+  String get attendanceWholeDay => 'Whole day';
+
+  @override
+  String get attendanceLegendTitle => 'What the colours mean';
+
+  @override
+  String get attendanceScheduled => 'Scheduled';
+
+  @override
+  String get attendanceActual => 'Actual';
+
+  @override
+  String get attendanceLateBy => 'Late by';
+
+  @override
+  String get attendanceEarlyBy => 'Early by';
+
+  @override
+  String get attendanceMinutesUnit => 'min';
+
+  @override
+  String get attendanceMinutesLateShort => 'min late';
+
+  @override
+  String get attendanceHoursUnit => 'h';
+
+  @override
+  String get attendanceWorkedHours => 'Worked hours';
+
+  @override
+  String get attendanceCheckinCount => 'Check-ins';
+
+  @override
+  String get attendanceGeoLabel => 'Location';
+
+  @override
+  String get attendanceGeoInside => 'Inside the branch area';
+
+  @override
+  String get attendanceGeoOutside => 'Outside the branch area';
+
+  @override
+  String get attendanceGeoUnknown => 'No location recorded';
+
+  @override
+  String get attendanceOffshiftLabel => 'Shift window';
+
+  @override
+  String get attendanceOffshiftValue => 'Outside the shift window';
+
+  @override
+  String get attendanceShiftType => 'Shift';
+
+  @override
+  String get attendanceBranch => 'Branch';
+
+  @override
+  String get attendanceCoverDay => 'Cover';
+
+  @override
+  String get attendanceCoverDayValue => 'Covering for a colleague';
+
+  @override
+  String get attendanceOffType => 'Leave type';
+
+  @override
+  String get attendanceCoveredBy => 'Covered by';
+
+  @override
+  String get attendanceNobodyCovering => 'Nobody';
+
+  @override
+  String get attendanceNotRosteredThisMonth => 'Not rostered';
+
+  @override
+  String get attendancePickEmployee => 'Choose an employee';
+
+  @override
+  String get attendanceNoEmployeesToPick => 'No employees to show';
+
+  @override
+  String get attendanceNoEmployeesToPickHint =>
+      'The list comes from the Month tab. Change the month or the branch filter there.';
+
+  @override
+  String get attendanceByBranchTitle => 'By branch';
+
+  @override
+  String get attendanceByBranchEmpty => 'No branch breakdown for this range.';
+
+  @override
+  String get attendanceTimelineTitle => 'Day by day';
+
+  @override
+  String get attendanceTimelineEmpty => 'No days in this range.';
+
+  @override
+  String get attendanceCheckinsTitle => 'Check-ins';
+
+  @override
+  String get attendanceCheckinsEmpty => 'No check-ins in this range.';
+
+  @override
+  String get attendanceGroupByBranch => 'Branch';
+
+  @override
+  String get attendanceGroupByEmployee => 'Employee';
+
+  @override
+  String get attendanceGroupByDay => 'Day';
+
+  @override
+  String get attendanceColumnGroup => 'Group';
+
+  @override
+  String get attendanceTotalsRow => 'Total';
+
+  @override
+  String get attendanceMetricRostered => 'Rostered';
+
+  @override
+  String get attendanceMetricPresent => 'Present';
+
+  @override
+  String get attendanceMetricLate => 'Late';
+
+  @override
+  String get attendanceMetricAbsent => 'Absent';
+
+  @override
+  String get attendanceMetricPending => 'Pending';
+
+  @override
+  String get attendanceMetricOff => 'Off';
+
+  @override
+  String get attendanceMetricWorkedHours => 'Hours';
+
+  @override
+  String get attendanceMetricLateMinutes => 'Late minutes';
+
+  @override
+  String get attendanceMetricAvgLate => 'Avg late';
+
+  @override
+  String get attendanceMetricAttendanceRate => 'Attendance';
+
+  @override
+  String get attendanceMetricPunctualityRate => 'Punctuality';
+
+  @override
+  String get attendanceMetricLateUnmatched => 'Outside window';
+
+  @override
+  String get attendanceRateNoRoster => 'no roster';
+
+  @override
+  String get attendanceRateNoRosterWhy =>
+      'No rostered days in this period, so there is no rate to compute.';
+
+  @override
+  String get attendanceStatusPresent => 'Present';
+
+  @override
+  String get attendanceStatusPresentWhy =>
+      'Checked in within the grace period after the shift start.';
+
+  @override
+  String get attendanceStatusLate => 'Late';
+
+  @override
+  String get attendanceStatusLateWhy =>
+      'Checked in after the grace period had passed.';
+
+  @override
+  String get attendanceStatusLateUnmatched => 'Outside window';
+
+  @override
+  String get attendanceStatusLateUnmatchedWhy =>
+      'A check-in exists but falls outside the shift window, so it could not be matched to a start time. Somebody has to look at the punch.';
+
+  @override
+  String get attendanceStatusAbsent => 'Absent';
+
+  @override
+  String get attendanceStatusAbsentWhy =>
+      'Rostered on a day that has already passed, with no check-in at all.';
+
+  @override
+  String get attendanceStatusPending => 'Awaiting';
+
+  @override
+  String get attendanceStatusPendingWhy =>
+      'Rostered today or later and has not checked in yet. Nothing has gone wrong.';
+
+  @override
+  String get attendanceStatusOff => 'Day off';
+
+  @override
+  String get attendanceStatusOffWhy => 'An approved day off. Not a problem.';
+
+  @override
+  String get attendanceStatusHoliday => 'Holiday';
+
+  @override
+  String get attendanceStatusHolidayWhy =>
+      'A public holiday on the holiday list for this shift.';
+
+  @override
+  String get attendanceStatusNotRostered => 'Not rostered';
+
+  @override
+  String get attendanceStatusNotRosteredWhy =>
+      'Nobody was scheduled to work this day. This is not absence.';
+
+  @override
+  String get attendanceStatusUnknown => 'Unknown';
+
+  @override
+  String get attendanceStatusUnknownWhy =>
+      'This version of the app does not recognise the status the server sent.';
+
+  @override
+  String get attendanceTokenPresent => 'P';
+
+  @override
+  String get attendanceTokenLate => 'L';
+
+  @override
+  String get attendanceTokenLateUnmatched => 'L!';
+
+  @override
+  String get attendanceTokenAbsent => 'A';
+
+  @override
+  String get attendanceTokenPending => '…';
+
+  @override
+  String get attendanceTokenOff => 'O';
+
+  @override
+  String get attendanceTokenHoliday => 'H';
+
+  @override
+  String get attendanceTokenNotRostered => '–';
+
+  @override
+  String get attendanceTokenUnknown => '?';
 }
