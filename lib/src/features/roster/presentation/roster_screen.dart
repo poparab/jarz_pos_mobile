@@ -918,6 +918,11 @@ class _DayCell extends ConsumerWidget {
                       // than colliding.
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        // Bottom-aligned, not centred: with a marker present
+                        // the row is 13px tall, and centring lifted the 9px
+                        // token ~2px, so plain and overtime days side by side
+                        // showed their tokens at different heights.
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           if (showBranch)
                             Flexible(

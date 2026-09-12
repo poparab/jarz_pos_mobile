@@ -146,10 +146,14 @@ void main() {
         expect(token, findsOneWidget, reason: 'the branch token is drawn');
         final tokenRect = tester.getRect(token);
 
+        final isRtl = locale.languageCode == 'ar';
         for (var i = 0; i < 3; i++) {
           final markerRect = tester.getRect(markers.at(i));
+          // deflate: the token's scaled edge lands EXACTLY on the first
+          // marker's, and Rect.overlaps is strict. A rounding change of
+          // 1e-12 must not read as a collision.
           expect(
-            tokenRect.overlaps(markerRect),
+            tokenRect.deflate(0.01).overlaps(markerRect),
             isFalse,
             reason:
                 'marker $i $markerRect overlaps the branch token $tokenRect',
@@ -160,6 +164,26 @@ void main() {
             isTrue,
             reason: 'marker $i $markerRect escapes the cell $cellRect',
           );
+          // Which corner is which. "No overlap" alone would still pass with
+          // the token and the markers swapped — exactly the RTL mistake.
+          expect(
+            isRtl
+                ? tokenRect.center.dx > markerRect.center.dx
+                : tokenRect.center.dx < markerRect.center.dx,
+            isTrue,
+            reason:
+                '${isRtl ? "RTL" : "LTR"}: the token must sit at the start '
+                'corner and marker $i at the end corner',
+          );
+          // One baseline. Token and markers share the bottom edge, as they
+          // did when each was positioned at bottom: 2 on its own.
+          expect(
+            (tokenRect.bottom - markerRect.bottom).abs(),
+            lessThanOrEqualTo(0.5),
+            reason:
+                'token bottom ${tokenRect.bottom} vs marker $i bottom '
+                '${markerRect.bottom}',
+          );
         }
         expect(
           cellRect.inflate(0.5).contains(tokenRect.topLeft) &&
@@ -169,6 +193,33 @@ void main() {
         );
       });
     }
+
+    testWidgets('a token sits at the same height whether or not the day has '
+        'markers', (tester) async {
+      // The token is bottom-aligned at the cell's bottom inset. On a day with
+      // markers the shared row is as tall as a marker (13px) — centring its
+      // children lifted the 9px token about 2px, so a plain day and an
+      // overtime day side by side showed their tokens at different heights.
+      await _pump(tester);
+
+      double gapBelowToken(String date) {
+        final cell = tester.getRect(_cell(_employee, date));
+        final token = tester.getRect(
+          _in(_cell(_employee, date), find.text('NC')),
+        );
+        return cell.bottom - token.bottom;
+      }
+
+      expect(_markers(_cell(_employee, _plainDay)), findsNothing);
+      expect(_markers(_cell(_employee, _crowdedDay)), findsNWidgets(3));
+      expect(
+        (gapBelowToken(_crowdedDay) - gapBelowToken(_plainDay)).abs(),
+        lessThanOrEqualTo(0.5),
+        reason:
+            'plain day gap ${gapBelowToken(_plainDay)} vs marker day gap '
+            '${gapBelowToken(_crowdedDay)}',
+      );
+    });
 
     testWidgets('the branch token yields to the markers without vanishing', (
       tester,
