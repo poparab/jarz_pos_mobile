@@ -504,7 +504,11 @@ class _InlineSettleAllButtonState extends ConsumerState<_InlineSettleAllButton> 
         ],
       ),
     );
-    if (confirmed != true) return;
+    // This button lives in the courier row, and the row is disposed whenever the
+    // balances reload (a websocket refresh can land while the confirm dialog is
+    // open). setState on a disposed State is the same release-mode null-check
+    // crash as JARZ-FLUTTER-CLIENT-J, and it dropped the settlement unsent.
+    if (confirmed != true || !mounted) return;
     setState(()=>_loading=true);
     try {
       final res = await ref.read(courierRepositoryProvider).settleAllForParty(
@@ -607,9 +611,15 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
 
     setState(() => _loading = true);
+    // Read once, before any await: if the sheet is closed mid-loop, `ref` is
+    // disposed and every later ref.read throws, which the per-invoice catch
+    // counted as a failure - leaving the rest of the invoices silently unsettled.
+    final courierService = ref.read(courierServiceProvider);
+    final kanbanNotifier = ref.read(kanbanProvider.notifier);
+    final balancesNotifier = ref.read(courierBalancesProvider.notifier);
     try {
       final messenger = ScaffoldMessenger.of(context);
       int success = 0;
@@ -619,7 +629,7 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
           // Per-invoice preview & settlement (kanban aligned)
           String partyType = b.partyType.isNotEmpty ? b.partyType : 'Supplier';
           String party = b.party.isNotEmpty ? b.party : b.courier;
-          final preview = await ref.read(courierServiceProvider).getSettlementPreview(
+          final preview = await courierService.getSettlementPreview(
             invoice: d.invoice,
             partyType: partyType,
             party: party,
@@ -629,7 +639,7 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
           Map<String, dynamic>? res;
           if (net > 0) {
             // store collects from courier (courier had customer cash)
-            res = await ref.read(kanbanProvider.notifier).settleCourierCollectedPayment(
+            res = await kanbanNotifier.settleCourierCollectedPayment(
               invoiceId: d.invoice,
               posProfile: posProfile,
               partyType: partyType,
@@ -637,7 +647,7 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
             );
           } else if (net < 0) {
             // store pays courier (shipping greater or order prepaid)
-            res = await ref.read(kanbanProvider.notifier).settleSingleInvoicePaid(
+            res = await kanbanNotifier.settleSingleInvoicePaid(
               invoiceId: d.invoice,
               posProfile: posProfile,
               partyType: partyType,
@@ -656,9 +666,10 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
           failed++;
         }
       }
-      if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(context.l10n.courierSettleAllComplete(success, failed))));
-      try { await ref.read(courierBalancesProvider.notifier).load(); } catch (_) {}
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.courierSettleAllComplete(success, failed))));
+      }
+      try { await balancesNotifier.load(); } catch (_) {}
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));

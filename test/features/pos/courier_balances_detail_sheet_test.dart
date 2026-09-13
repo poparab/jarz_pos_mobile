@@ -28,7 +28,7 @@ import 'package:jarz_pos/src/features/pos/state/pos_notifier.dart';
 import '../../helpers/mock_services.dart';
 
 class _FakePosNotifier extends StateNotifier<PosState> implements PosNotifier {
-  _FakePosNotifier() : super(PosState());
+  _FakePosNotifier([PosState? state]) : super(state ?? PosState());
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -42,6 +42,7 @@ class _ReloadingCourierRepository extends CourierRepository {
   final List<CourierBalance> _balances;
   final Completer<void> _hold = Completer<void>();
   int calls = 0;
+  int settleAllCalls = 0;
 
   void release() {
     if (!_hold.isCompleted) _hold.complete();
@@ -53,6 +54,55 @@ class _ReloadingCourierRepository extends CourierRepository {
     if (calls > 1) await _hold.future;
     return _balances;
   }
+
+  @override
+  Future<Map<String, dynamic>> settleAllForParty({
+    required String posProfile,
+    String? partyType,
+    String? party,
+    String? legacyCourier,
+  }) async {
+    settleAllCalls++;
+    return {'journal_entry': 'ACC-JV-TEST'};
+  }
+}
+
+Future<ProviderContainer> _pumpDialog(
+  WidgetTester tester,
+  _ReloadingCourierRepository repo, {
+  PosState? posState,
+}) async {
+  tester.view.physicalSize = const Size(800, 1280);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  addTearDown(repo.release);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        courierRepositoryProvider.overrideWithValue(repo),
+        posNotifierProvider.overrideWith((ref) => _FakePosNotifier(posState)),
+        webSocketServiceProvider.overrideWithValue(MockWebSocketService()),
+      ],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        theme: ThemeData(useMaterial3: true, fontFamily: 'Inter'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const Scaffold(body: CourierBalancesDialog()),
+      ),
+    ),
+  );
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 100));
+  expect(find.text('Ahmed Hassan'), findsOneWidget);
+  return ProviderScope.containerOf(tester.element(find.byType(CourierBalancesDialog)));
 }
 
 List<CourierBalance> _fixture() => [
@@ -88,38 +138,8 @@ void main() {
   setUpAll(_loadAppFonts);
 
   testWidgets('per-invoice Settle survives a balances reload under the open sheet', (tester) async {
-    tester.view.physicalSize = const Size(800, 1280);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
     final repo = _ReloadingCourierRepository(_fixture());
-    addTearDown(repo.release);
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          courierRepositoryProvider.overrideWithValue(repo),
-          posNotifierProvider.overrideWith((ref) => _FakePosNotifier()),
-          webSocketServiceProvider.overrideWithValue(MockWebSocketService()),
-        ],
-        child: MaterialApp(
-          locale: const Locale('en'),
-          theme: ThemeData(useMaterial3: true, fontFamily: 'Inter'),
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: CourierBalancesDialog()),
-        ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('Ahmed Hassan'), findsOneWidget);
+    final container = await _pumpDialog(tester, repo);
 
     // Open the details sheet from the courier tile.
     await tester.tap(find.text('Ahmed Hassan'));
@@ -128,7 +148,6 @@ void main() {
 
     // A reload starts (as after a settlement or a websocket refresh): the dialog
     // body shows its spinner and the tile that opened the sheet is disposed.
-    final container = ProviderScope.containerOf(tester.element(find.byType(CourierBalancesDialog)));
     unawaited(container.read(courierBalancesProvider.notifier).load());
     await tester.pump();
     expect(container.read(courierBalancesProvider).loading, isTrue);
@@ -141,6 +160,34 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
     expect(find.text('Choose a POS profile:'), findsOneWidget);
+
+    repo.release();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('row Settle confirmed after the row was disposed does not crash', (tester) async {
+    final repo = _ReloadingCourierRepository(_fixture());
+    final container = await _pumpDialog(
+      tester,
+      repo,
+      posState: PosState(selectedProfile: const {'name': 'Dokki'}),
+    );
+
+    // The row's own Settle opens its confirm dialog.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Settle'));
+    await tester.pumpAndSettle();
+    expect(find.text('Collect 125.00'), findsOneWidget);
+
+    // A websocket refresh lands while the dialog is open and disposes the row.
+    unawaited(container.read(courierBalancesProvider.notifier).load());
+    await tester.pump();
+    expect(find.text('Ahmed Hassan'), findsNothing);
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Confirm'));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    // The row it belonged to is gone, so nothing is posted blind.
+    expect(repo.settleAllCalls, 0);
 
     repo.release();
     await tester.pumpAndSettle();
