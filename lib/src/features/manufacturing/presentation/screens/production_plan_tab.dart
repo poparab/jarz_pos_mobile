@@ -56,30 +56,6 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
   /// Deliberately not poured into the fields — see [PlanEntryController.hydrate].
   DailyPlan? _savedPlan;
 
-  /// `{item code: raw text}` for every field holding something that is not a
-  /// whole jar count. Their queue lines keep the last valid number, so neither
-  /// action may run until each is fixed — otherwise a red "1.360" would still
-  /// post 1. Kept here rather than on the row, which a scroll or a filter
-  /// disposes and rebuilds from the queue's number.
-  final Map<String, String> _invalidText = <String, String>{};
-
-  void _setInvalidText(String itemCode, String? text) {
-    if (!mounted || _invalidText[itemCode] == text) return;
-    setState(() {
-      if (text == null) {
-        _invalidText.remove(itemCode);
-      } else {
-        _invalidText[itemCode] = text;
-      }
-    });
-  }
-
-  /// Empties the day, including any field still holding an invalid entry.
-  void _clearDay() {
-    setState(_invalidText.clear);
-    ref.read(planEntryProvider).clear();
-  }
-
   @override
   void initState() {
     super.initState();
@@ -136,6 +112,7 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
     final draft = ref.watch(dailyPlanDraftProvider);
     final basket = ref.watch(productionBasketProvider);
     final entry = ref.read(planEntryProvider);
+    final invalidEntries = ref.watch(planInvalidEntriesProvider);
 
     // A queue restored from Hive can hold a line for an item this tab no longer
     // lists — a base typed in as jars before bases left the tab. It would be
@@ -266,9 +243,9 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
                           onQuantityChanged: (qty) =>
                               entry.setQuantity(row, qty),
                           onUseSuggestion: () => entry.fillSuggestion(row),
-                          invalidText: _invalidText[row.itemCode],
+                          invalidText: invalidEntries[row.itemCode],
                           onInvalidTextChanged: (text) =>
-                              _setInvalidText(row.itemCode, text),
+                              entry.setInvalidEntry(row.itemCode, text),
                           onUsePlanned: planned.containsKey(row.itemCode)
                               ? () => entry.setQuantity(
                                   row,
@@ -332,8 +309,8 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
           rollupLoading: rollupAsync.isLoading,
           rollupFailed: rollupAsync.hasError,
           materialSelectionsValid: materialSelectionsValid,
-          hasInvalidEntry: _invalidText.isNotEmpty,
-          onSavePlan: draft.isEmpty || _invalidText.isNotEmpty
+          hasInvalidEntry: invalidEntries.isNotEmpty,
+          onSavePlan: draft.isEmpty || invalidEntries.isNotEmpty
               ? null
               : () => _savePlan(context),
           onCheckMaterials: draft.isEmpty
@@ -346,7 +323,9 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
           onCancelPlan: (draft.savedPlanName ?? '').isEmpty
               ? null
               : () => _cancelPlan(context),
-          onClear: draft.isEmpty && _invalidText.isEmpty ? null : _clearDay,
+          onClear: draft.isEmpty && invalidEntries.isEmpty && basket.isEmpty
+              ? null
+              : entry.clear,
           onStartBatches: () => _startBatches(context),
           onQuickProduce: () => _quickProduce(context),
           // The same condition the banner it replaced used: offered only when
@@ -468,8 +447,10 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
 
     try {
       await ref.read(dailyPlanDraftProvider.notifier).cancel(reason);
-      // The day is called off, so no field is left holding a half-typed entry.
-      if (mounted) setState(_invalidText.clear);
+      // The day is called off, so every store goes, not only the fields: the
+      // draft alone was cleared, and Start batches then posted the cancelled
+      // queue behind a screen of empty fields.
+      ref.read(planEntryProvider).clear();
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.productionPlanCancelled)),
       );

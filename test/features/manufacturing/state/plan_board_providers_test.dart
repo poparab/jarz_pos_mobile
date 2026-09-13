@@ -494,6 +494,41 @@ void main() {
     expect(settled.isEmpty, isTrue);
   });
 
+  test('a red entry outlives the screen, and leaves with the day', () async {
+    // Root-scoped: switching to the Bases tab disposes the Plan tab, and an
+    // entry held there came back as a plain "1" with Start enabled.
+    final container = _container(
+      page: ProductionSuggestionsPage(
+        items: [
+          _suggestion(itemCode: 'CAKE-A'),
+          _suggestion(itemCode: 'CAKE-B'),
+        ],
+      ),
+      template: DailyPlanTemplate(
+        items: [_templateItem('CAKE-A'), _templateItem('CAKE-B')],
+      ),
+    );
+    await _settle(container);
+
+    final entry = container.read(planEntryProvider);
+    entry.setInvalidEntry('CAKE-A', '1.360');
+    entry.setInvalidEntry('CAKE-B', '2.5');
+    expect(container.read(planInvalidEntriesProvider), {
+      'CAKE-A': '1.360',
+      'CAKE-B': '2.5',
+    });
+
+    entry.forgetStarted(['CAKE-B']);
+    expect(container.read(planInvalidEntriesProvider), {'CAKE-A': '1.360'});
+
+    entry.setInvalidEntry('CAKE-A', null);
+    expect(container.read(planInvalidEntriesProvider), isEmpty);
+
+    entry.setInvalidEntry('CAKE-A', '1.');
+    entry.clear();
+    expect(container.read(planInvalidEntriesProvider), isEmpty);
+  });
+
   test('a started line leaves both stores', () async {
     // The jars are on the floor now. A number left in the field invites the
     // same run to be started twice; what was planned survives on the saved

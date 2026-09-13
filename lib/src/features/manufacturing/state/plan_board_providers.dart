@@ -275,6 +275,20 @@ class PlanFillResult {
   bool get filledNothing => itemsFilled == 0;
 }
 
+/// `{item code: raw text}` for every jar field holding something that is not a
+/// whole jar count.
+///
+/// While an item is here its queue line keeps the last valid number (a stray
+/// "." must not drop the line and the material choices on it), so nothing may
+/// be submitted until the field is fixed — otherwise a red "1.360" still posts
+/// 1. Root-scoped on purpose, beside the draft and the queue it qualifies: the
+/// row is disposed by a scroll or a filter and the whole tab by switching to
+/// Bases, and either one used to rebuild the field as a plain, valid-looking
+/// "1" with Start batches enabled.
+final planInvalidEntriesProvider = StateProvider<Map<String, String>>(
+  (ref) => const <String, String>{},
+);
+
 /// The ONE write path for a jar quantity.
 ///
 /// The number in a row's field has to be three things at once: the day's target
@@ -350,10 +364,27 @@ class PlanEntryController {
     );
   }
 
-  /// Empties the day — both stores, so nothing survives in one of them.
+  /// Records what a field holds when it is not a whole jar count, or clears
+  /// that record with null.
+  void setInvalidEntry(String itemCode, String? text) {
+    final notifier = _ref.read(planInvalidEntriesProvider.notifier);
+    final current = notifier.state;
+    if (current[itemCode] == text) return;
+    final next = Map<String, String>.from(current);
+    if (text == null) {
+      next.remove(itemCode);
+    } else {
+      next[itemCode] = text;
+    }
+    notifier.state = next;
+  }
+
+  /// Empties the day — every store, so nothing survives in one of them.
   void clear() {
     _ref.read(productionBasketProvider.notifier).clear();
     _ref.read(dailyPlanDraftProvider.notifier).clear();
+    _ref.read(planInvalidEntriesProvider.notifier).state =
+        const <String, String>{};
   }
 
   /// Drops what has just been started. The jars are on the floor now, and a
@@ -363,6 +394,9 @@ class PlanEntryController {
     final codes = itemCodes.toList(growable: false);
     _ref.read(productionBasketProvider.notifier).removeItems(codes);
     _ref.read(dailyPlanDraftProvider.notifier).forget(codes);
+    for (final code in codes) {
+      setInvalidEntry(code, null);
+    }
   }
 
   /// Drops every queued quantity for an item that is not a row on [board].

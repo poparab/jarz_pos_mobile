@@ -377,11 +377,17 @@ class _MakeBar extends ConsumerWidget {
     // login, and "today" is the one thing an un-dated Make takes from it: a
     // tablet whose clock or timezone sits off the server's near midnight would
     // otherwise carry the wrong day for the rest of the session.
+    // Under the overlay: the button stays live during this call otherwise, and a
+    // second tap stacks a second Make behind the first.
+    final overlay = ref.read(loadingOverlayProvider.notifier);
+    overlay.show(l10n.productionSubmitting);
     ProductionPolicy policy;
     try {
       policy = await ref.refresh(productionPolicyProvider.future);
     } catch (_) {
       policy = ref.read(productionPolicyOrFallbackProvider);
+    } finally {
+      overlay.hide();
     }
     if (!context.mounted) return;
     final date = chosen ?? policy.today();
