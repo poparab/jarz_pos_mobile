@@ -105,6 +105,7 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
         if (mounted) ref.read(planEntryProvider).reconcile(board);
       });
     }
+    final fieldsShowQueue = _fieldsShowQueue();
     final groups = ref.watch(visiblePlanBoardProvider);
     final readiness = ref.watch(bomReadinessProvider).valueOrNull;
 
@@ -292,7 +293,9 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
           rollupFailed: rollupAsync.hasError,
           materialSelectionsValid: materialSelectionsValid,
           hasInvalidEntry: invalidEntries.isNotEmpty,
-          onSavePlan: draft.isEmpty || invalidEntries.isNotEmpty
+          fieldsOutOfStep: !fieldsShowQueue,
+          onSavePlan:
+              draft.isEmpty || invalidEntries.isNotEmpty || !fieldsShowQueue
               ? null
               : () => _savePlan(context),
           onCheckMaterials: draft.isEmpty
@@ -318,6 +321,24 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
         ),
       ],
     );
+  }
+
+  /// Whether every typed jar and every queued line is on a row this tab shows.
+  ///
+  /// False for the frame before [PlanEntryController.reconcile] settles a
+  /// disagreement, and for as long as the jar list is EMPTY while something is
+  /// typed or queued. An empty list prunes nothing (it is a misconfigured
+  /// template far more often than a day with no jars), so the queue is kept —
+  /// but then no field shows it, and posting it would be exactly the invisible
+  /// submission this tab exists to prevent. Save, Start batches and Quick
+  /// produce all wait on it.
+  bool _fieldsShowQueue() {
+    final board = ref.read(planBoardProvider);
+    if (board.isEmpty) {
+      return ref.read(dailyPlanDraftProvider).isEmpty &&
+          ref.read(productionBasketProvider).positiveLines.isEmpty;
+    }
+    return ref.read(planEntryProvider).isReconciled(board);
   }
 
   static Map<String, String> _selectionsFor(
@@ -376,6 +397,7 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
       '${date.day.toString().padLeft(2, '0')}';
 
   Future<void> _savePlan(BuildContext context) async {
+    if (!_fieldsShowQueue()) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     try {
@@ -445,6 +467,8 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
   /// fails on line three must not roll back the two batches already physically
   /// on the bench.
   Future<void> _startBatches(BuildContext context) async {
+    // The button is already disabled; this closes the race with a rebuild.
+    if (!_fieldsShowQueue()) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final basket = ref.read(productionBasketProvider);
@@ -503,8 +527,14 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
     }
     final started = <BatchLine, String>{};
     final issues = <String>[];
+    // Captured before the first await: it lives in the root scope, while `ref`
+    // throws once this tab is disposed mid-loop (a session expiry redirecting
+    // to login). Read through `ref` after a start had returned, that throw
+    // skipped the forget, and the line already on the floor stayed queued.
+    final planEntry = ref.read(planEntryProvider);
 
     for (final line in lines) {
+      final String workOrder;
       try {
         final result = await service.startProductionBatch(
           itemCode: line.itemCode,
@@ -513,21 +543,23 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
           scheduledAt: scheduledAt,
           materialSelections: line.materialSelections,
         );
-        started[line] = result.workOrder;
-        // Out of the form, and out of storage, the moment it is on the floor.
-        // Waiting for the loop to finish left every started line queued in
-        // Hive until then, so an app killed on line three restored lines one
-        // and two into their fields, ready to be started again. Only started
-        // lines leave: a failure stays visible and retryable, and what was
-        // PLANNED survives on the saved plan document.
-        ref.read(planEntryProvider).forgetStarted([line.itemCode]);
+        workOrder = result.workOrder;
       } catch (error) {
         if (!context.mounted) break;
         issues.add(
           '${line.itemCode}: '
           '${context.userErrorMessage(error, fallback: l10n.commonError)}',
         );
+        continue;
       }
+      started[line] = workOrder;
+      // Out of the form, and out of storage, the moment it is on the floor.
+      // Waiting for the loop to finish left every started line queued in Hive
+      // until then, so an app killed on line three restored lines one and two
+      // into their fields, ready to be started again. Only started lines
+      // leave: a failure stays visible and retryable, and what was PLANNED
+      // survives on the saved plan document.
+      planEntry.forgetStarted([line.itemCode]);
     }
     ref.read(loadingOverlayProvider.notifier).hide();
 
@@ -563,6 +595,7 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
   /// this was the one path with none, which made it the way around the ceiling
   /// rather than a convenience.
   Future<void> _quickProduce(BuildContext context) async {
+    if (!_fieldsShowQueue()) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final basket = ref.read(productionBasketProvider);
@@ -597,6 +630,8 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
     }
 
     ref.read(loadingOverlayProvider.notifier).show(l10n.productionSubmitting);
+    // Captured before the await, for the reason `_startBatches` gives.
+    final planEntry = ref.read(planEntryProvider);
     Map<String, dynamic> result;
     try {
       result = await ref
@@ -614,7 +649,6 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
       );
       return;
     }
-    ref.read(loadingOverlayProvider.notifier).hide();
 
     final entries = (result['results'] as List?) ?? const [];
     final succeeded = <String>{};
@@ -637,7 +671,10 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
       }
     }
 
-    ref.read(planEntryProvider).forgetStarted(succeeded);
+    // Before anything else touches `ref`, so the posted lines leave the queue
+    // even when this tab is already gone.
+    planEntry.forgetStarted(succeeded);
+    ref.read(loadingOverlayProvider.notifier).hide();
     ref.invalidate(productionSuggestionsProvider);
 
     if (!context.mounted) return;
@@ -705,6 +742,7 @@ class _PlanActions extends ConsumerWidget {
     required this.rollupFailed,
     required this.materialSelectionsValid,
     this.hasInvalidEntry = false,
+    this.fieldsOutOfStep = false,
     required this.onSavePlan,
     required this.onCheckMaterials,
     required this.onCancelPlan,
@@ -723,6 +761,10 @@ class _PlanActions extends ConsumerWidget {
   /// for it, but starting the rest of the day around a red field reads as
   /// though that row were included.
   final bool hasInvalidEntry;
+
+  /// Something typed or queued is not on a row this tab shows — see
+  /// `_fieldsShowQueue`. Nothing may be started or saved from it.
+  final bool fieldsOutOfStep;
   final VoidCallback? onSavePlan;
   final VoidCallback? onCheckMaterials;
   final VoidCallback? onCancelPlan;
@@ -748,6 +790,7 @@ class _PlanActions extends ConsumerWidget {
         rollupLoading ||
         rollupFailed ||
         hasInvalidEntry ||
+        fieldsOutOfStep ||
         !materialSelectionsValid;
 
     // No elevation of its own: the mixer bar directly above already lifts the

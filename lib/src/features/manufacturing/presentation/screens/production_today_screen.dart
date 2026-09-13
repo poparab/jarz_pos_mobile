@@ -146,6 +146,19 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
 
     final anythingTyped = today.hasBases || !draft.isEmpty;
 
+    // Every typed jar has to be on a row this screen shows. Make builds its jar
+    // lines from the draft, not from the rows, so a template that is still
+    // loading, failed, or came back empty mid-session (or no longer lists an
+    // item) would post jars nobody can see. The numbers are kept; only the
+    // actions wait.
+    final listedJars = {
+      for (final item in template?.items ?? const <DailyPlanItem>[])
+        item.itemCode,
+    };
+    final jarsShown = draft.quantities.entries.every(
+      (q) => q.value <= 0 || listedJars.contains(q.key),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.productionTodayTitle),
@@ -272,10 +285,11 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
           _TodayActions(
             // Recording production is a role the board's read access does not
             // imply, exactly as on the Batch tab.
-            onMake: canExecute && anythingTyped && !today.submitting
+            onMake:
+                canExecute && anythingTyped && jarsShown && !today.submitting
                 ? _make
                 : null,
-            onSaveForLater: !draft.isEmpty && !today.submitting
+            onSaveForLater: !draft.isEmpty && jarsShown && !today.submitting
                 ? _saveForLater
                 : null,
           ),

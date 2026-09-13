@@ -981,6 +981,51 @@ void main() {
     expect(_button(tester, 'Start batches').onPressed, isNull);
   });
 
+  testWidgets('an empty jar list keeps the queue but starts none of it', (
+    tester,
+  ) async {
+    // Restored X=60 over a template that answered with no items: nothing is
+    // pruned, so no field shows X — and Start batches posted it anyway.
+    await _pump(
+      tester,
+      page: const ProductionSuggestionsPage(
+        items: [],
+        summary: ProductionSummary(),
+        velocityUpdatedOn: '2026-08-01 00:00:00',
+      ),
+      template: const DailyPlanTemplate(
+        planDate: '2026-08-02',
+        mix: DailyPlanMix(itemCode: 'BASE-MIX', batchQty: 12, uom: 'Kg'),
+        items: [],
+      ),
+      restored: const ProductionBasket(
+        lines: [
+          BatchLine(
+            itemCode: 'CAKE-X',
+            itemName: 'CAKE-X name',
+            bomName: 'BOM-CAKE-X',
+            stockUom: 'Nos',
+            bomQtyYield: 10,
+            batches: 6,
+          ),
+        ],
+      ),
+    );
+
+    final container = _container(tester);
+    await container.read(productionBasketProvider.notifier).restore();
+    await tester.pumpAndSettle();
+
+    expect(
+      container.read(productionBasketProvider).positiveLines,
+      hasLength(1),
+    );
+    expect(_button(tester, 'Start batches').onPressed, isNull);
+    expect(_button(tester, 'Save plan').onPressed, isNull);
+    // The roll-up settles the queue on a timer that no frame advances.
+    await tester.pump(const Duration(milliseconds: 500));
+  });
+
   testWidgets('an unqueueable row still takes a plan quantity', (tester) async {
     // A flavour with no BOM is still part of the day's target. It just has
     // nothing for Start batches to submit.

@@ -429,6 +429,32 @@ void main() {
     expect(repo.stored!.lines.map((l) => l.itemCode), ['JAR-OTHER']);
   });
 
+  testWidgets('a jar with no row on screen cannot be made or saved', (
+    tester,
+  ) async {
+    // Make builds its jar lines from the draft, not from the rows. A template
+    // that comes back empty mid-session leaves the typed jar on no row.
+    final empty = DailyPlanTemplate(
+      planDate: _template.planDate,
+      mix: _template.mix,
+      items: const [],
+    );
+    await _pump(tester, template: empty);
+
+    ProviderScope.containerOf(tester.element(find.byType(ProductionTodayScreen)))
+        .read(dailyPlanDraftProvider.notifier)
+        .setQuantity('JAR-LOTUS', 10);
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<FilledButton>(_makeButton()).onPressed, isNull);
+    expect(
+      ProviderScope.containerOf(
+        tester.element(find.byType(ProductionTodayScreen)),
+      ).read(dailyPlanDraftProvider).quantities,
+      {'JAR-LOTUS': 10},
+    );
+  });
+
   testWidgets('a failed bases stage never sends the jars', (tester) async {
     final dio = await _pump(
       tester,

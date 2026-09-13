@@ -22,11 +22,13 @@ final productionBasketProvider =
 class ProductionBasketNotifier extends Notifier<ProductionBasket> {
   Timer? _persistTimer;
 
-  /// The saved basket has been read into memory (or the day was cleared, which
-  /// makes memory the whole truth). Until then storage can hold lines memory
-  /// has never seen, and a removal written from memory alone would leave them
-  /// there to come back after a restart.
-  bool _restored = false;
+  /// The one read of the saved basket into memory, shared by every caller (or
+  /// a completed no-op once the day was cleared, which makes memory the whole
+  /// truth). Until it completes storage can hold lines memory has never seen,
+  /// and a removal written from memory alone would leave them there to come
+  /// back after a restart. A Future rather than a flag, so two overlapping
+  /// calls merge once instead of each merging what it read.
+  Future<void>? _restoring;
 
   ProductionBasketRepository get _repo =>
       ref.read(productionBasketRepositoryProvider);
@@ -54,10 +56,20 @@ class ProductionBasketNotifier extends Notifier<ProductionBasket> {
   /// Once per app process: after the first read, storage only ever trails
   /// memory, and a second read would bring back a line removed inside the
   /// 400 ms before it was persisted.
-  Future<void> restore() async {
-    if (_restored) return;
+  ///
+  /// A failed read is not remembered, so the next call tries again.
+  Future<void> restore() {
+    return _restoring ??= _readSaved().catchError((
+      Object error,
+      StackTrace stack,
+    ) {
+      _restoring = null;
+      Error.throwWithStackTrace(error, stack);
+    });
+  }
+
+  Future<void> _readSaved() async {
     final saved = await _repo.load();
-    _restored = true;
     if (saved == null || saved.lines.isEmpty) return;
     if (state.lines.isEmpty) {
       state = saved;
@@ -156,10 +168,10 @@ class ProductionBasketNotifier extends Notifier<ProductionBasket> {
     final drop = itemCodes.toSet();
     if (drop.isEmpty) return;
     removeItems(drop);
-    if (!_restored) {
-      await restore();
-      removeItems(drop);
-    }
+    // Waits on the read already in flight rather than starting a second one,
+    // then removes again from whatever it merged.
+    await restore();
+    removeItems(drop);
     _persistTimer?.cancel();
     await _repo.save(state);
   }
@@ -197,7 +209,7 @@ class ProductionBasketNotifier extends Notifier<ProductionBasket> {
   }
 
   void clear() {
-    _restored = true;
+    _restoring ??= Future<void>.value();
     _update(state.copyWith(lines: const []));
     unawaited(_repo.clear());
   }

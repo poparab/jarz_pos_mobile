@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,9 +13,19 @@ import 'package:jarz_pos/src/features/manufacturing/state/production_basket_noti
 class _FakeBasketRepository implements ProductionBasketRepository {
   ProductionBasket? stored;
   int saveCount = 0;
+  int loadCount = 0;
+
+  /// When set, a load waits on it — or fails with [loadError].
+  Completer<void>? loadGate;
+  Object? loadError;
 
   @override
-  Future<ProductionBasket?> load() async => stored;
+  Future<ProductionBasket?> load() async {
+    loadCount++;
+    if (loadGate != null) await loadGate!.future;
+    if (loadError != null) throw loadError!;
+    return stored;
+  }
 
   @override
   Future<void> save(ProductionBasket basket) async {
@@ -546,6 +558,50 @@ void main() {
       );
       await notifier().restore();
       expect(basket().lines, isEmpty);
+    });
+
+    test('overlapping restores share one read', () async {
+      // Two callers each merging what they read could put back a line removed
+      // between the two reads.
+      const gone = BatchLine(
+        itemCode: 'GONE',
+        itemName: 'Gone',
+        bomName: 'BOM-GONE',
+        bomQtyYield: 10,
+        batches: 1,
+      );
+      repo.stored = const ProductionBasket(lines: [gone]);
+      repo.loadGate = Completer<void>();
+
+      final first = notifier().restore();
+      final removal = notifier().removeItemsNow(['GONE']);
+      final second = notifier().restore();
+      repo.loadGate!.complete();
+      await Future.wait([first, removal, second]);
+
+      expect(repo.loadCount, 1);
+      expect(basket().lines, isEmpty);
+      expect(repo.stored!.lines, isEmpty);
+    });
+
+    test('a failed read is tried again', () async {
+      repo.loadError = StateError('box would not open');
+      await expectLater(notifier().restore(), throwsStateError);
+
+      repo.loadError = null;
+      repo.stored = const ProductionBasket(
+        lines: [
+          BatchLine(
+            itemCode: 'BACK',
+            itemName: 'Back',
+            bomName: 'BOM-BACK',
+            bomQtyYield: 10,
+            batches: 1,
+          ),
+        ],
+      );
+      await notifier().restore();
+      expect(basket().lines.map((l) => l.itemCode), ['BACK']);
     });
 
     test('an empty stored basket is a no-op', () async {
