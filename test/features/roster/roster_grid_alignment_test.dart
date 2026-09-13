@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -106,8 +107,9 @@ RosterMonth _buildMonth() {
 Future<void> _pumpGrid(
   WidgetTester tester,
   RosterMonth month,
-  Locale locale,
-) async {
+  Locale locale, {
+  double textScale = 1.0,
+}) async {
   // Phone-sized: the grid is far bigger than the screen, which is how it is
   // really used. Offscreen cells are still laid out (neither scroll view here
   // is lazy), and skipOffstage: false below finds them.
@@ -126,6 +128,12 @@ Future<void> _pumpGrid(
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.supportedLocales,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
         home: Scaffold(
           body: RosterGrid(
             month: month,
@@ -295,4 +303,97 @@ void main() {
       );
     });
   }
+
+  // Large system text. Android's font-size setting reaches 2x, and the grid's
+  // cells have FIXED heights — they must, or the strips drift apart (see
+  // RosterGridMetrics). So content that does not fit has to shrink inside its
+  // cell rather than spill out of it. At 1.5x and 2x the pinned name cells and
+  // the date headers used to overflow by 3-37px, painting over the row below.
+  group('large system text', () {
+    for (final locale in const [Locale('en'), Locale('ar')]) {
+      final dir = locale.languageCode == 'ar' ? 'RTL' : 'LTR';
+
+      testWidgets(
+        '$dir @ 1.0x: nothing is scaled down at the normal text size',
+        (tester) async {
+          // The fit-to-cell shrink must be invisible when content fits. A
+          // FittedBox(scaleDown) scales by exactly 1 when its child is no larger
+          // than the box, so that is what is checked for every name, header and
+          // totals cell in the month.
+          await _pumpGrid(tester, month, locale);
+
+          final keys = <Key>[
+            for (final e in month.employees) rosterGridNameKey(e.employee),
+            for (final d in month.dates) rosterGridHeaderKey(d),
+            for (final d in month.dates) rosterGridTotalsKey(d),
+          ];
+          var checked = 0;
+          for (final key in keys) {
+            final boxes = tester.renderObjectList<RenderFittedBox>(
+              find.descendant(
+                of: find.byKey(key, skipOffstage: false),
+                matching: find.byType(FittedBox, skipOffstage: false),
+              ),
+            );
+            for (final box in boxes) {
+              final child = box.child!;
+              expect(
+                child.size.width <= box.size.width + 0.01 &&
+                    child.size.height <= box.size.height + 0.01,
+                isTrue,
+                reason:
+                    '$key: content ${child.size} is scaled into ${box.size}',
+              );
+              checked++;
+            }
+          }
+          // One per name, header and totals cell — the check actually ran.
+          expect(checked, keys.length);
+        },
+      );
+    }
+
+    for (final scale in const [1.5, 2.0]) {
+      for (final locale in const [Locale('en'), Locale('ar')]) {
+        final dir = locale.languageCode == 'ar' ? 'RTL' : 'LTR';
+
+        testWidgets(
+          '$dir @ ${scale}x: nothing in the grid overflows its cell',
+          (tester) async {
+            await _pumpGrid(tester, month, locale, textScale: scale);
+            // A RenderFlex overflow is reported through FlutterError; the test
+            // framework fails the test on it even without this line, which is
+            // here to make the intent explicit.
+            expect(tester.takeException(), isNull);
+          },
+        );
+
+        testWidgets('$dir @ ${scale}x: the grid keeps its geometry and stays '
+            'aligned', (tester) async {
+          await _pumpGrid(tester, month, locale, textScale: scale);
+
+          final employee = _employeeId(_employeeCount - 1);
+          final date = _date(31);
+          expect(
+            _rect(tester, rosterGridCellKey(employee, date)).size,
+            RosterGridMetrics.slot,
+          );
+          expect(
+            _rect(tester, rosterGridHeaderKey(date)).size,
+            RosterGridMetrics.headerSlot,
+          );
+          expect(
+            _rect(tester, rosterGridNameKey(employee)).size,
+            RosterGridMetrics.nameSlot,
+          );
+          _expectAligned(
+            cell: _rect(tester, rosterGridCellKey(employee, date)),
+            name: _rect(tester, rosterGridNameKey(employee)),
+            header: _rect(tester, rosterGridHeaderKey(date)),
+            where: '$employee / $date @ ${scale}x',
+          );
+        });
+      }
+    }
+  });
 }

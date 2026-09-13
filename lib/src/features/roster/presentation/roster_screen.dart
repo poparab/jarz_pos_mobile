@@ -479,6 +479,58 @@ class RosterGrid extends ConsumerWidget {
   }
 }
 
+/// Makes a fixed-size grid cell's content fit INSIDE the cell at any system
+/// text size.
+///
+/// The grid's cells cannot grow to fit their content: the pinned names, the
+/// headers and the day cells are laid out as separate strips that line up only
+/// because they share fixed sizes (see [RosterGridMetrics]). So at large text
+/// sizes the content has to give way instead. Before this, at Android's 1.5x
+/// and 2x font settings the name cells overflowed by up to 37px, the date
+/// headers by up to 17px and the on-duty totals by up to 30px, painting over
+/// the neighbouring cells.
+///
+/// Content is scaled down uniformly, and only when it does not fit, so at a
+/// normal text size nothing changes and at a large one the text stays as large
+/// as the cell allows. That is deliberately not a cap on the text scale (which
+/// would shrink text for someone who needs it even where it fits) and not
+/// taller rows (which would change the grid for everybody).
+///
+/// [wrapAtCellWidth]: when true the content is laid out at the cell's real
+/// width, so a two-line name still wraps and ellipsises THERE and only its
+/// height is scaled. Pass false for a single row that overflows sideways (the
+/// totals cell): pinning the width would leave it nowhere to go, so it is laid
+/// out at its natural width and scaled to fit.
+class _FitInCell extends StatelessWidget {
+  const _FitInCell({
+    required this.child,
+    this.alignment = AlignmentDirectional.centerStart,
+    this.wrapAtCellWidth = true,
+  });
+
+  final Widget child;
+  final AlignmentGeometry alignment;
+  final bool wrapAtCellWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!wrapAtCellWidth) {
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: alignment,
+        child: child,
+      );
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) => FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: alignment,
+        child: SizedBox(width: constraints.maxWidth, child: child),
+      ),
+    );
+  }
+}
+
 /// A header / totals / name cell: the screen's neutral chrome.
 class _ChromeCell extends StatelessWidget {
   const _ChromeCell({
@@ -503,7 +555,7 @@ class _ChromeCell extends StatelessWidget {
         color: theme.colorScheme.surfaceContainerHigh,
         border: Border(bottom: BorderSide(color: theme.dividerColor)),
       ),
-      child: child,
+      child: _FitInCell(child: child),
     );
   }
 }
@@ -530,47 +582,49 @@ class _EmployeeNameCell extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: theme.dividerColor)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            employee.employeeName,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              height: 1.15,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Row(
-            children: [
-              // The overtime baseline, shown because it is what every cell in
-              // this row is compared against — and now the cells say so, with
-              // the overtime marker on any day that goes past it.
-              Expanded(
-                child: Text(
-                  context.l10n.rosterStandardDay(
-                    rosterNumber(context, employee.standardHours),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
+      child: _FitInCell(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              employee.employeeName,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                height: 1.15,
               ),
-              if (employee.isCourier)
-                Icon(
-                  Icons.two_wheeler,
-                  size: 12,
-                  color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                // The overtime baseline, shown because it is what every cell in
+                // this row is compared against — and now the cells say so, with
+                // the overtime marker on any day that goes past it.
+                Expanded(
+                  child: Text(
+                    context.l10n.rosterStandardDay(
+                      rosterNumber(context, employee.standardHours),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
                 ),
-            ],
-          ),
-        ],
+                if (employee.isCourier)
+                  Icon(
+                    Icons.two_wheeler,
+                    size: 12,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -605,43 +659,46 @@ class _DayHeaderCell extends StatelessWidget {
             : theme.colorScheme.surfaceContainerHigh,
         border: Border(bottom: BorderSide(color: theme.dividerColor)),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            // Locale digits, like every other number on the screen. The month
-            // title was already Arabic-Indic in Arabic while the day numbers
-            // and the hours stayed Western — three numeral systems at once.
-            parsed == null ? date : rosterNumber(context, parsed.day),
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              fontFeatures: const [FontFeature.tabularFigures()],
+      child: _FitInCell(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              // Locale digits, like every other number on the screen. The month
+              // title was already Arabic-Indic in Arabic while the day numbers
+              // and the hours stayed Western — three numeral systems at once.
+              parsed == null ? date : rosterNumber(context, parsed.day),
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
-          ),
-          if (parsed != null)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (isWeekend)
-                  const Padding(
-                    padding: EdgeInsetsDirectional.only(end: 2),
-                    child: Icon(
-                      Icons.weekend_outlined,
-                      size: 9,
-                      color: RosterColors.markerInk,
+            if (parsed != null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (isWeekend)
+                    const Padding(
+                      padding: EdgeInsetsDirectional.only(end: 2),
+                      child: Icon(
+                        Icons.weekend_outlined,
+                        size: 9,
+                        color: RosterColors.markerInk,
+                      ),
+                    ),
+                  Flexible(
+                    child: Text(
+                      formatDate(context, parsed, pattern: 'E'),
+                      maxLines: 1,
+                      overflow: TextOverflow.clip,
+                      style: theme.textTheme.labelSmall?.copyWith(fontSize: 9),
                     ),
                   ),
-                Flexible(
-                  child: Text(
-                    formatDate(context, parsed, pattern: 'E'),
-                    maxLines: 1,
-                    overflow: TextOverflow.clip,
-                    style: theme.textTheme.labelSmall?.copyWith(fontSize: 9),
-                  ),
-                ),
-              ],
-            ),
-        ],
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -678,33 +735,37 @@ class _DayTotalsCell extends StatelessWidget {
             : theme.colorScheme.surfaceContainerHigh,
         border: Border(bottom: BorderSide(color: theme.dividerColor)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            rosterNumber(context, totals.onDuty),
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-          if (totals.atRisk > 0) ...[
-            const SizedBox(width: 3),
-            const Icon(
-              Icons.warning_amber_rounded,
-              size: 11,
-              color: RosterColors.riskLine,
-            ),
+      child: _FitInCell(
+        alignment: Alignment.center,
+        wrapAtCellWidth: false,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             Text(
-              rosterNumber(context, totals.atRisk),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: RosterColors.riskInk,
+              rosterNumber(context, totals.onDuty),
+              style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
+            if (totals.atRisk > 0) ...[
+              const SizedBox(width: 3),
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 11,
+                color: RosterColors.riskLine,
+              ),
+              Text(
+                rosterNumber(context, totals.atRisk),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: RosterColors.riskInk,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
