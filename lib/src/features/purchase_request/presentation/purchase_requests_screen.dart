@@ -24,6 +24,9 @@ class _PurchaseRequestsScreenState
     extends ConsumerState<PurchaseRequestsScreen> {
   final _scrollController = ScrollController();
 
+  /// Requests with an Accept call in flight, so a double tap sends one.
+  final _accepting = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -87,11 +90,13 @@ class _PurchaseRequestsScreenState
   }
 
   Future<void> _accept(ItemRequest request) async {
+    if (!_accepting.add(request.name)) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final ok = await ref
         .read(purchaseRequestNotifierProvider.notifier)
         .acknowledgeRequest(request.name);
+    _accepting.remove(request.name);
     if (!mounted) return;
     if (ok) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.requestsAccepted)));

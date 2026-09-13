@@ -57,6 +57,11 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   String _idempotencyKey = _newIdempotencyKey();
 
   final List<Map<String, dynamic>> cart = [];
+
+  /// Bumped on every reorder. Part of each rate box's key: a refill that puts
+  /// the same item back at the same position would otherwise keep the old box,
+  /// which reads its value only once — showing one rate while another is sent.
+  int _cartGeneration = 0;
   StateSetter? _sheetSetState;
   late final TextEditingController _itemSearchController;
   late final TextEditingController _shippingController;
@@ -631,7 +636,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
               // the field element by index, so deleting a row left the next
               // row's rate box showing the deleted row's number — silently
               // mis-pricing the line.
-              key: ValueKey('rate-${line['item_code']}-$i'),
+              key: ValueKey('rate-$_cartGeneration-${line['item_code']}-$i'),
               initialValue: rate.toStringAsFixed(2),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               onChanged: (v) { final r = double.tryParse(v) ?? rate; setState(() => line['rate'] = r); onChanged(); },
@@ -852,24 +857,48 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     }
     setState(() {
       cart.clear();
+      _cartGeneration++;
       if (supplierName.isNotEmpty) supplier = supplierName;
       for (final line in lines) {
         final code = line['item_code'].toString();
         final detail = details[code];
         final stockUom =
             (detail?['stock_uom'] ?? line['uom'] ?? '').toString();
-        final uom = (line['uom'] ?? stockUom).toString();
+        var uom = (line['uom'] ?? stockUom).toString();
+        var rate = _num(line['rate']).abs();
         final uoms = ((detail?['uoms'] as List?) ?? const [])
             .whereType<Map>()
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
-        // DropdownButton asserts when its value is missing from the options.
+        final prices = ((detail?['prices'] as List?) ?? const [])
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
         if (!uoms.any((u) => u['uom'] == uom)) {
-          uoms.add({'uom': uom, 'conversion_factor': 1});
+          if (detail != null && stockUom.isNotEmpty) {
+            // The old UOM was removed from the Item. Offering it anyway would
+            // book stock 1:1 with no error, so fall back to the stock UOM.
+            uom = stockUom;
+            final stockPrice = prices.firstWhere(
+              (p) => p['uom'] == stockUom,
+              orElse: () => const {},
+            );
+            if (_num(stockPrice['rate']) > 0) rate = _num(stockPrice['rate']);
+            if (!uoms.any((u) => u['uom'] == uom)) {
+              uoms.add({'uom': uom, 'conversion_factor': 1});
+            }
+          } else {
+            // Lookup failed: keep the line's own UOM as its only option —
+            // DropdownButton asserts when its value is missing.
+            uoms.add({'uom': uom, 'conversion_factor': 1});
+          }
         }
         // abs(): a return invoice stores negative quantities and rates.
         final qty = _num(line['qty']).abs();
-        final template = (line['item_tax_template'] ?? '').toString();
+        var template = (line['item_tax_template'] ?? '').toString();
+        // A template no longer offered would show as "No VAT" yet still be
+        // sent, and the server would reject the purchase with no visible cause.
+        if (!itemTaxTemplates.any((t) => t['name'] == template)) template = '';
         cart.add({
           'item_code': code,
           'item_name':
@@ -877,13 +906,10 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
           'uom': uom,
           'qty': qty,
           'qtyCtrl': TextEditingController(text: qty.toStringAsFixed(2)),
-          'rate': _num(line['rate']).abs(),
+          'rate': rate,
           'stock_uom': stockUom,
           'uoms': uoms,
-          'prices': ((detail?['prices'] as List?) ?? const [])
-              .whereType<Map>()
-              .map((e) => Map<String, dynamic>.from(e))
-              .toList(),
+          'prices': prices,
           // "The same as before" includes the VAT that line carried.
           'item_tax_template': template.isEmpty ? null : template,
         });
@@ -1546,7 +1572,8 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                     // See the note on the sheet's rate field: an unkeyed
                     // TextFormField in a list reuses state by index and shows a
                     // deleted row's value on the row that takes its place.
-                    key: ValueKey('rate-panel-${line['item_code']}-$i'),
+                    key: ValueKey(
+                        'rate-panel-$_cartGeneration-${line['item_code']}-$i'),
                     initialValue: rate.toStringAsFixed(2),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     onChanged: (v) {
