@@ -308,8 +308,15 @@ class PlanEntryController {
   final Ref _ref;
 
   /// Sets [row] to [jars]. Zero clears the row from both stores.
+  ///
+  /// A real number replaces any red entry on the row. "Fill the day", "Use 60"
+  /// and "Use planned" write here while the row may be off-screen, where its
+  /// own field cannot clear the entry, and a red "1.36" would stay over a 60
+  /// both stores hold. Zero leaves it: that is what the row's own invalid path
+  /// writes, right after reporting the text.
   void setQuantity(PlanRow row, int jars) {
     final qty = jars < 0 ? 0 : jars;
+    if (qty > 0) setInvalidEntry(row.itemCode, null);
     _ref.read(dailyPlanDraftProvider.notifier).setQuantity(row.itemCode, qty);
     if (!row.canQueue) return;
     _ref

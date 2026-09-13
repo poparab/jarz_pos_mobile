@@ -645,6 +645,35 @@ void main() {
     expect(container.read(planInvalidEntriesProvider), isEmpty);
   });
 
+  test('a number written from outside replaces a red entry', () async {
+    // "Fill the day", "Use 60" and "Use planned" write the quantity while the
+    // row may be scrolled away, so the row's own didUpdateWidget never runs.
+    // The red "1.36" would then stay on the field over a 60 the draft and the
+    // queue both hold — and the Today screen would book.
+    final container = _container(
+      page: ProductionSuggestionsPage(items: [_suggestion(itemCode: 'CAKE-A')]),
+      template: DailyPlanTemplate(items: [_templateItem('CAKE-A')]),
+    );
+    await _settle(container);
+
+    final row = container.read(planBoardProvider).rows.first;
+    final entry = container.read(planEntryProvider);
+
+    // The row's own invalid path: the red text, then a 0. The 0 must not
+    // clear the text it was reported for.
+    entry.setInvalidEntry('CAKE-A', '1.36');
+    entry.setQuantity(row, 0);
+    expect(container.read(planInvalidEntriesProvider), {'CAKE-A': '1.36'});
+
+    entry.setQuantity(row, 60);
+    expect(container.read(planInvalidEntriesProvider), isEmpty);
+    expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 60});
+
+    entry.setInvalidEntry('CAKE-A', '5.');
+    expect(entry.fillSuggestion(row), 50);
+    expect(container.read(planInvalidEntriesProvider), isEmpty);
+  });
+
   test('a started line leaves both stores', () async {
     // The jars are on the floor now. A number left in the field invites the
     // same run to be started twice; what was planned survives on the saved
