@@ -1198,7 +1198,9 @@ class CartWidget extends ConsumerWidget {
   ) {
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
-    final priceLists = state.availablePriceLists;
+    // A free-list order (Standard, Free Shipping Waiver) may not pick a list
+    // reserved for another purpose, so those are not offered at all.
+    final priceLists = state.selectablePriceLists;
     final selectedPriceList = state.selectedPriceList;
     final selectedPriceListName = state.selectedPriceListName;
     final zeroShippingDefault =
@@ -1254,47 +1256,53 @@ class CartWidget extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              key: ValueKey(selectedPriceListName ?? 'default-price-list'),
-              initialValue:
-                  priceLists.any(
-                    (priceList) =>
-                        priceList['name']?.toString() == selectedPriceListName,
-                  )
-                  ? selectedPriceListName
-                  : null,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: l10n.posCartPriceListLabel,
-                helperText: l10n.posCartPriceListHint,
-                border: const OutlineInputBorder(),
-              ),
-              items: priceLists
-                  .map(
-                    (priceList) => DropdownMenuItem<String>(
-                      value: priceList['name']?.toString(),
-                      child: Text(
-                        priceList['display_label']?.toString() ??
-                            priceList['name']?.toString() ??
-                            '',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged:
-                  priceLists.isEmpty || state.isLoading || state.isB2bOrder
-                  ? null
-                  : (value) {
-                      ref
-                          .read(posNotifierProvider.notifier)
-                          .setSelectedPriceList(value);
-                    },
-            ),
+            // The purpose comes first because it decides which price lists
+            // the order may use; the server refuses a contradicting pair.
             if (state.availableCommercialPolicies.isNotEmpty) ...[
-              const SizedBox(height: 12),
               _buildOrderPurposeControls(context, ref, state),
+              const SizedBox(height: 12),
             ],
+            if (state.isB2bOrder || state.isPriceListLockedByPurpose)
+              _buildLockedPriceListField(context, state)
+            else
+              DropdownButtonFormField<String>(
+                key: ValueKey(
+                  'price-list-${selectedPriceListName ?? 'default'}',
+                ),
+                initialValue:
+                    priceLists.any(
+                      (priceList) =>
+                          priceList['name']?.toString() ==
+                          selectedPriceListName,
+                    )
+                    ? selectedPriceListName
+                    : null,
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText: l10n.posCartPriceListLabel,
+                  helperText: l10n.posCartPriceListHint,
+                  helperMaxLines: 2,
+                  border: const OutlineInputBorder(),
+                ),
+                items: priceLists
+                    .map(
+                      (priceList) => DropdownMenuItem<String>(
+                        value: priceList['name']?.toString(),
+                        child: Text(
+                          _priceListLabel(priceList),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: priceLists.isEmpty || state.isLoading
+                    ? null
+                    : (value) {
+                        ref
+                            .read(posNotifierProvider.notifier)
+                            .setSelectedPriceList(value);
+                      },
+              ),
             const SizedBox(height: 12),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
@@ -1317,6 +1325,48 @@ class CartWidget extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  String _priceListLabel(Map<String, dynamic>? priceList) {
+    final label = priceList?['display_label']?.toString().trim() ?? '';
+    if (label.isNotEmpty) return label;
+    return priceList?['name']?.toString().trim() ?? '';
+  }
+
+  /// The price list shown read-only because the order purpose decides it
+  /// (Employee, Sample, B2B Supply) or the B2B launch flow owns it.
+  Widget _buildLockedPriceListField(BuildContext context, PosState state) {
+    final l10n = context.l10n;
+    final selectedName = state.selectedPriceListName;
+    final awaitingCustomer =
+        !state.isB2bOrder &&
+        state.isB2bSupplyPurpose &&
+        (state.selectedCustomer?['name']?.toString().trim().isEmpty ?? true);
+    Map<String, dynamic>? option = state.selectedPriceList;
+    for (final candidate in state.availablePriceLists) {
+      if (candidate['name']?.toString().trim() == selectedName) {
+        option = candidate;
+        break;
+      }
+    }
+    // Until B2B Supply knows its customer there is no list to show; the one
+    // still loaded is only a placeholder that checkout will not send.
+    final label = awaitingCustomer ? '' : _priceListLabel(option);
+    return InputDecorator(
+      key: const ValueKey('locked-price-list'),
+      isEmpty: label.isEmpty,
+      decoration: InputDecoration(
+        labelText: l10n.posCartPriceListLabel,
+        helperText: awaitingCustomer
+            ? l10n.posCartPriceListAfterCustomer
+            : l10n.posCartPriceListSetByPurpose,
+        helperMaxLines: 2,
+        border: const OutlineInputBorder(),
+        enabled: false,
+        suffixIcon: const Icon(Icons.lock_outline),
+      ),
+      child: Text(label, overflow: TextOverflow.ellipsis),
     );
   }
 
@@ -1875,8 +1925,9 @@ class CartWidget extends ConsumerWidget {
       // profile itself. A B2B order also shows the row when the shop is NOT
       // approved, carrying the reason — a rep who expected credit has to know
       // why it is missing. B2C hides it instead of greying it on every sale.
-      final creditCustomer =
-          (state.selectedCustomer?['name'] ?? '').toString().trim();
+      final creditCustomer = (state.selectedCustomer?['name'] ?? '')
+          .toString()
+          .trim();
       paymentMethod = await PaymentMethodDialog.show(
         context,
         customer: creditCustomer,
@@ -1921,8 +1972,9 @@ class CartWidget extends ConsumerWidget {
     if (updatedState.error == null) {
       // A credit order moves the shop's balance and its remaining headroom, so
       // the cached profile is stale the instant the invoice is submitted.
-      final creditCustomerId =
-          (state.selectedCustomer?['name'] ?? '').toString().trim();
+      final creditCustomerId = (state.selectedCustomer?['name'] ?? '')
+          .toString()
+          .trim();
       if (paymentMethod == PaymentModes.credit && creditCustomerId.isNotEmpty) {
         ref.invalidate(customerCreditProfileProvider(creditCustomerId));
       }

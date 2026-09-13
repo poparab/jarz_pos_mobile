@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'package:jarz_pos/src/core/constants/business_constants.dart';
 import 'package:jarz_pos/src/core/network/user_service.dart';
 import 'package:jarz_pos/src/features/pos/data/models/draft_cart.dart';
 import 'package:jarz_pos/src/features/pos/data/models/pos_models.dart';
@@ -255,6 +256,181 @@ void main() {
       expect(notifier.state.policyReason, 'Disposable sample visit');
     },
   );
+
+  group('CartWidget manager pricing card', () {
+    const managerRoles = UserRoles(
+      user: 'manager@example.invalid',
+      roles: [RoleNames.jarzManager],
+    );
+    const samplePolicy = CommercialPolicy(
+      name: 'Sample (Courier)',
+      policyName: 'Sample (Courier)',
+      orderPurpose: 'Sample - Courier',
+      priceList: 'Sample',
+    );
+    const b2bSupplyPolicy = CommercialPolicy(
+      name: 'B2B Supply',
+      policyName: 'B2B Supply',
+      orderPurpose: 'B2B Supply',
+    );
+    const freeShippingPolicy = CommercialPolicy(
+      name: 'Free Shipping Waiver',
+      policyName: 'Free Shipping Waiver',
+      orderPurpose: 'Free Shipping Waiver',
+    );
+    const policies = [samplePolicy, b2bSupplyPolicy, freeShippingPolicy];
+
+    Map<String, dynamic> option(String name, [List<String>? reservedFor]) => {
+      'name': name,
+      'display_label': '$name [pl]',
+      'is_default': name == 'Standard Selling',
+      'zero_shipping_default': false,
+      if (reservedFor != null) reservedForPurposesKey: reservedFor,
+    };
+
+    List<Map<String, dynamic>> lists({required bool withServerFlag}) => [
+      option('Standard Selling', withServerFlag ? [] : null),
+      option('Selling Bundle of 3', withServerFlag ? [] : null),
+      option('B2B Selling', withServerFlag ? ['B2B Supply'] : null),
+      option('Sample', withServerFlag ? ['Sample - Courier'] : null),
+      option('Employee', withServerFlag ? ['Employee'] : null),
+    ];
+
+    PosState pricingState({
+      required List<Map<String, dynamic>> priceLists,
+      List<CommercialPolicy> availablePolicies = policies,
+      CommercialPolicy? policy,
+      String selected = 'Standard Selling',
+    }) => PosState(
+      selectedProfile: const {'name': 'Main'},
+      availablePriceLists: priceLists,
+      selectedPriceList: priceLists.firstWhere((o) => o['name'] == selected),
+      availableCommercialPolicies: availablePolicies,
+      selectedCommercialPolicy: policy,
+      isPickup: true,
+    );
+
+    Future<Set<String>> openPriceListMenu(WidgetTester tester) async {
+      final dropdown = find.byWidgetPredicate(
+        (widget) =>
+            widget.key is ValueKey<String> &&
+            (widget.key! as ValueKey<String>).value.startsWith('price-list-'),
+      );
+      expect(dropdown, findsOneWidget);
+      await tester.tap(dropdown);
+      await tester.pumpAndSettle();
+      return tester
+          .widgetList<Text>(find.byType(Text))
+          .map((text) => text.data ?? '')
+          .where((label) => label.endsWith(' [pl]'))
+          .toSet();
+    }
+
+    testWidgets('shows a locked purpose list read-only, below the purpose', (
+      tester,
+    ) async {
+      final notifier = await _pumpCartWidget(
+        tester,
+        pricingState(
+          priceLists: lists(withServerFlag: true),
+          policy: samplePolicy,
+          selected: 'Sample',
+        ),
+        roles: managerRoles,
+      );
+
+      final locked = find.byKey(const ValueKey('locked-price-list'));
+      expect(locked, findsOneWidget);
+      expect(
+        find.descendant(of: locked, matching: find.text('Sample [pl]')),
+        findsOneWidget,
+      );
+      expect(find.text('Set by the order purpose.'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Order purpose')).dy,
+        lessThan(tester.getTopLeft(locked).dy),
+      );
+
+      // Nothing to open: the field is not a dropdown.
+      await tester.tap(locked);
+      await tester.pumpAndSettle();
+      expect(find.text('Standard Selling [pl]'), findsNothing);
+      expect(notifier.state.selectedPriceListName, 'Sample');
+    });
+
+    testWidgets('tells B2B Supply the list follows the customer', (
+      tester,
+    ) async {
+      await _pumpCartWidget(
+        tester,
+        pricingState(
+          priceLists: lists(withServerFlag: true),
+          policy: b2bSupplyPolicy,
+        ),
+        roles: managerRoles,
+      );
+
+      expect(find.byKey(const ValueKey('locked-price-list')), findsOneWidget);
+      expect(
+        find.text(
+          "Chosen from the customer's price list once you select the customer.",
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Standard Selling [pl]'), findsNothing);
+    });
+
+    testWidgets('hides lists the backend reserves from a Standard order', (
+      tester,
+    ) async {
+      await _pumpCartWidget(
+        tester,
+        pricingState(priceLists: lists(withServerFlag: true)),
+        roles: managerRoles,
+      );
+
+      expect(await openPriceListMenu(tester), {
+        'Standard Selling [pl]',
+        'Selling Bundle of 3 [pl]',
+      });
+    });
+
+    testWidgets(
+      'hides fallback-reserved lists on an older backend for Free Shipping',
+      (tester) async {
+        await _pumpCartWidget(
+          tester,
+          pricingState(
+            priceLists: lists(withServerFlag: false),
+            policy: freeShippingPolicy,
+          ),
+          roles: managerRoles,
+        );
+
+        // Sample is a policy list, B2B Selling the B2B base; Employee is not
+        // fixed by any loaded policy, so the fallback leaves it offered.
+        expect(await openPriceListMenu(tester), {
+          'Standard Selling [pl]',
+          'Selling Bundle of 3 [pl]',
+          'Employee [pl]',
+        });
+      },
+    );
+
+    testWidgets('keeps every list when no policies are loaded', (tester) async {
+      await _pumpCartWidget(
+        tester,
+        pricingState(
+          priceLists: lists(withServerFlag: false),
+          availablePolicies: const [],
+        ),
+        roles: managerRoles,
+      );
+
+      expect(find.text('Order purpose'), findsNothing);
+      expect(await openPriceListMenu(tester), hasLength(5));
+    });
+  });
 
   group('CartWidget amendment checkout', () {
     testWidgets(

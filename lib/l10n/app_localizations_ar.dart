@@ -2222,7 +2222,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get posCartPriceListHint =>
-      'استخدم القائمة الافتراضية للفرع أو اختر قائمة B2B.';
+      'استخدم القائمة الافتراضية للفرع أو اختر قائمة تانية متاحة للطلب ده.';
+
+  @override
+  String get posCartPriceListSetByPurpose => 'بتتحدد حسب غرض الطلب.';
+
+  @override
+  String get posCartPriceListAfterCustomer =>
+      'هتتحدد من قائمة أسعار العميل بعد ما تختاره.';
+
+  @override
+  String get posPurposePriceListUpdated =>
+      'الأسعار اتحدّثت عشان تناسب غرض الطلب. راجع السلة وبعدين أكّد الطلب تاني.';
+
+  @override
+  String get posPurposePriceListUnavailable =>
+      'مقدرناش نطبّق قائمة الأسعار الخاصة بغرض الطلب ده. اختار العميل أو غيّر غرض الطلب.';
 
   @override
   String get posCartPriceListDefaultChip => 'افتراضي';

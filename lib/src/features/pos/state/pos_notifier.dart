@@ -305,6 +305,79 @@ class PosState {
     return name.isEmpty ? null : name;
   }
 
+  // ── Order purpose ↔ price list rule ────────────────────────────────
+  // The server refuses an invoice whose price list contradicts its purpose, so
+  // the cart card, the notifier and checkout all read the rule from here.
+
+  static const b2bSupplyOrderPurpose = 'B2B Supply';
+
+  /// Reserved for B2B Supply when an older backend does not say which lists
+  /// are reserved.
+  static const b2bBasePriceList = 'B2B Selling';
+
+  /// The list a fixed-price-list purpose (Employee, Sample) must use, or null.
+  String? get purposeFixedPriceListName =>
+      fixedPriceListFor(selectedCommercialPolicy);
+
+  static String? fixedPriceListFor(CommercialPolicy? policy) {
+    final name = policy?.priceList?.trim() ?? '';
+    return name.isEmpty ? null : name;
+  }
+
+  /// B2B Supply takes the customer-resolved list rather than a fixed one.
+  bool get isB2bSupplyPurpose => isB2bSupplyPolicy(selectedCommercialPolicy);
+
+  static bool isB2bSupplyPolicy(CommercialPolicy? policy) =>
+      (policy?.orderPurpose.trim().toLowerCase() ?? '') ==
+      b2bSupplyOrderPurpose.toLowerCase();
+
+  /// True when the order purpose decides the price list, so the operator may
+  /// not pick one: a policy with a fixed list, or B2B Supply.
+  bool get isPriceListLockedByPurpose =>
+      isPriceListLockedFor(selectedCommercialPolicy);
+
+  static bool isPriceListLockedFor(CommercialPolicy? policy) =>
+      fixedPriceListFor(policy) != null || isB2bSupplyPolicy(policy);
+
+  /// True when [name] is reserved for some order purpose and therefore may not
+  /// be used by a Standard or other free-list order.
+  bool isPriceListReserved(String? name) => isPriceListReservedIn(
+    name,
+    priceLists: availablePriceLists,
+    policies: availableCommercialPolicies,
+  );
+
+  /// Pure form of [isPriceListReserved]. The backend's
+  /// `reserved_for_purposes` wins when the option carries it; an older
+  /// backend omits it, and then a list is reserved when a loaded policy fixes
+  /// it or it is the B2B base list. With no policies loaded nothing is
+  /// reserved by that fallback, which keeps an old backend's card unchanged.
+  static bool isPriceListReservedIn(
+    String? name, {
+    required List<Map<String, dynamic>> priceLists,
+    required List<CommercialPolicy> policies,
+  }) {
+    final normalized = name?.trim() ?? '';
+    if (normalized.isEmpty) return false;
+    for (final option in priceLists) {
+      if ((option['name']?.toString().trim() ?? '') != normalized) continue;
+      if (option.containsKey(reservedForPurposesKey)) {
+        return parseReservedForPurposes(
+          option[reservedForPurposesKey],
+        ).isNotEmpty;
+      }
+      break;
+    }
+    if (policies.isEmpty) return false;
+    if (normalized == b2bBasePriceList) return true;
+    return policies.any((policy) => fixedPriceListFor(policy) == normalized);
+  }
+
+  /// The price lists a free-list purpose may offer in the dropdown.
+  List<Map<String, dynamic>> get selectablePriceLists => availablePriceLists
+      .where((option) => !isPriceListReserved(option['name']?.toString()))
+      .toList(growable: false);
+
   double get cartTotal {
     return cartItems.fold(0.0, (total, item) {
       final price = ((item['rate'] ?? 0) as num).toDouble();
@@ -405,6 +478,21 @@ class PosNotifier extends StateNotifier<PosState> {
   /// Error sentinel for an Employee order with no staff member; the presenter
   /// in `user_error_message.dart` localizes it.
   static const staffEmployeeRequiredError = 'staff_employee_required';
+
+  /// Error sentinel: checkout switched the price list to the one the order
+  /// purpose requires and repriced the cart, so the operator must review it
+  /// and check out again. Localized in `user_error_message.dart`.
+  static const purposePriceListUpdatedError = 'purpose_price_list_updated';
+
+  /// Error sentinel: the price list the order purpose requires cannot be
+  /// applied (not offered on this profile, or B2B Supply with no customer /
+  /// no resolved list). Checkout refuses rather than send a mismatched pair.
+  static const purposePriceListUnavailableError =
+      'purpose_price_list_unavailable';
+
+  // Last customer-resolved B2B Supply list, keyed by customer|profile|purpose.
+  String? _b2bSupplyResolutionKey;
+  String? _b2bSupplyResolvedPriceList;
 
   // ── Draft auto-save debounce ──────────────────────────────────────────
   static const _kAutoSaveDebounce = Duration(milliseconds: 400);
@@ -549,7 +637,7 @@ class PosNotifier extends StateNotifier<PosState> {
       _autoSaveTimer?.cancel();
       _persistCurrentCart();
     }
-    final defaultPriceList = _defaultPriceListSelection();
+    final defaultPriceList = _defaultFreePriceListSelection();
     state = state.copyWith(
       cartItems: const [],
       clearSelectedCustomer: true,
@@ -658,14 +746,40 @@ class PosNotifier extends StateNotifier<PosState> {
               )
           ? savedStaffEmployee
           : null;
+      // A draft saved before the purpose locked its price list (or under an
+      // older policy config) can pair a purpose with the wrong list. The
+      // purpose wins; the catalog refresh below reprices at the corrected list.
+      // B2B drafts are re-derived from the server pricing context instead, and
+      // an amendment with no purpose keeps its source invoice's list.
+      final savedPolicy = target.selectedCommercialPolicy;
+      final livePolicy = savedPolicy == null
+          ? null
+          : state.availableCommercialPolicies.firstWhere(
+              (policy) => policy.name == savedPolicy.name,
+              orElse: () => savedPolicy,
+            );
+      final keepSavedPriceList =
+          target.isB2bOrder ||
+          (target.amendmentSourceInvoiceId != null && savedPolicy == null);
+      final restoredPriceList = keepSavedPriceList
+          ? target.selectedPriceList
+          : _purposeConsistentPriceList(
+              policy: livePolicy,
+              priceLists: state.availablePriceLists,
+              policies: state.availableCommercialPolicies,
+              current: target.selectedPriceList,
+            );
+      final restoredPriceListChanged =
+          (restoredPriceList?['name']?.toString().trim() ?? '') !=
+          (target.selectedPriceList?['name']?.toString().trim() ?? '');
       state = state.copyWith(
         cartItems: List<Map<String, dynamic>>.from(target.cartItems),
         selectedCustomer: target.customer,
         clearSelectedCustomer: target.customer == null,
         selectedSalesPartner: target.salesPartner,
         clearSelectedSalesPartner: target.salesPartner == null,
-        selectedPriceList: target.selectedPriceList,
-        clearSelectedPriceList: target.selectedPriceList == null,
+        selectedPriceList: restoredPriceList,
+        clearSelectedPriceList: restoredPriceList == null,
         selectedCommercialPolicy: target.selectedCommercialPolicy,
         clearSelectedCommercialPolicy: target.selectedCommercialPolicy == null,
         isB2bOrder: target.isB2bOrder,
@@ -682,13 +796,15 @@ class PosNotifier extends StateNotifier<PosState> {
             : (target.staffEmployeeName ?? restoredStaffEmployee),
         clearSelectedStaffEmployee: restoredStaffEmployee == null,
         customerHasNoTierPriceList: false,
-        zeroShippingOverride: target.zeroShippingOverride,
+        zeroShippingOverride: restoredPriceListChanged
+            ? _zeroShippingDefaultForPriceList(restoredPriceList)
+            : target.zeroShippingOverride,
         isPickup: target.isPickup,
         // Delivery slot is intentionally cleared on load; must be re-picked at checkout.
         clearSelectedDeliverySlot: true,
         clearDeliverySlots: true,
         currentDraftId: id,
-        draftDirty: false,
+        draftDirty: restoredPriceListChanged,
         // Restore amendment context if this draft was saved mid-amendment.
         isAmendmentDraft: target.amendmentSourceInvoiceId != null,
         amendmentSourceInvoiceId: target.amendmentSourceInvoiceId,
@@ -707,8 +823,20 @@ class PosNotifier extends StateNotifier<PosState> {
           contextToken: switchContextToken,
         );
         if (applied) markB2bSetupComplete();
-      } else if (state.selectedProfile != null) {
-        await refreshCatalog(showLoading: false);
+      } else {
+        if (restoredPriceListChanged) _autoSaveDebounced();
+        if (state.selectedProfile != null) {
+          await refreshCatalog(showLoading: false);
+        }
+        // A retail B2B Supply draft takes its customer's resolved list, which
+        // only the server knows; re-resolve rather than trust the saved one.
+        if (switchContextToken == _orderContextToken &&
+            !state.isB2bOrder &&
+            state.isB2bSupplyPurpose &&
+            (state.selectedCustomer?['name']?.toString().trim().isNotEmpty ??
+                false)) {
+          await _applyEffectivePriceListForPolicy();
+        }
       }
     } catch (e) {
       if (kDebugMode) {
@@ -740,7 +868,7 @@ class PosNotifier extends StateNotifier<PosState> {
         clearCurrentDraftId: wasActive,
       );
       if (wasActive) {
-        final defaultPriceList = _defaultPriceListSelection();
+        final defaultPriceList = _defaultFreePriceListSelection();
         state = state.copyWith(
           cartItems: const [],
           clearSelectedCustomer: true,
@@ -890,7 +1018,7 @@ class PosNotifier extends StateNotifier<PosState> {
     );
 
     try {
-      final catalogData = await _loadCatalogData(
+      var catalogData = await _loadCatalogData(
         profileName,
         requestedPriceList: isB2bCatalog ? null : state.selectedPriceList,
         b2bCustomer: b2bCustomer,
@@ -899,6 +1027,40 @@ class PosNotifier extends StateNotifier<PosState> {
       if (contextToken != _orderContextToken ||
           catalogRequestToken != _catalogRequestToken) {
         return;
+      }
+      // The purpose wins over a stale list (restored draft, refreshed policy
+      // config): reload once at the list the purpose requires. An amendment
+      // with no purpose chosen keeps the source invoice's list untouched.
+      var priceListReconciled = false;
+      if (!isB2bCatalog &&
+          !state.isB2bOrder &&
+          !(state.isAmendmentDraft && state.selectedCommercialPolicy == null)) {
+        final loadedPolicies = _commercialPoliciesFromCatalog(catalogData);
+        final loadedLists = List<Map<String, dynamic>>.from(
+          catalogData['price_lists'] as List,
+        );
+        final loadedSelection = _clonePriceListOption(
+          catalogData['selected_price_list'] as Map<String, dynamic>?,
+        );
+        final consistent = _purposeConsistentPriceList(
+          policy: _reconcileSelectedPolicy(loadedPolicies),
+          priceLists: loadedLists,
+          policies: loadedPolicies,
+          current: loadedSelection,
+        );
+        final consistentName = consistent?['name']?.toString().trim() ?? '';
+        final loadedName = loadedSelection?['name']?.toString().trim() ?? '';
+        if (consistentName.isNotEmpty && consistentName != loadedName) {
+          catalogData = await _loadCatalogData(
+            profileName,
+            requestedPriceList: consistent,
+          );
+          if (contextToken != _orderContextToken ||
+              catalogRequestToken != _catalogRequestToken) {
+            return;
+          }
+          priceListReconciled = true;
+        }
       }
       final items = List<Map<String, dynamic>>.from(
         catalogData['items'] as List,
@@ -952,12 +1114,14 @@ class PosNotifier extends StateNotifier<PosState> {
         customerHasNoTierPriceList: isB2bCatalog
             ? false
             : state.customerHasNoTierPriceList,
-        zeroShippingOverride: isB2bCatalog
+        zeroShippingOverride: isB2bCatalog || priceListReconciled
             ? _zeroShippingDefaultForPriceList(selectedPriceList)
             : state.zeroShippingOverride,
         cartItems: repricedCart,
+        draftDirty: priceListReconciled ? true : null,
         isLoading: false,
       );
+      if (priceListReconciled) _autoSaveDebounced();
     } catch (e) {
       if (contextToken == _orderContextToken &&
           catalogRequestToken == _catalogRequestToken) {
@@ -1672,12 +1836,30 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(selectedDeliverySlot: slot);
   }
 
+  /// The operator's price-list pick from the manager pricing card.
+  ///
+  /// Refused while the order purpose decides the list
+  /// ([PosState.isPriceListLockedByPurpose]), and refused for a list reserved
+  /// for another purpose: either would send a purpose/price-list pair the
+  /// server rejects. The purpose flow applies its list through
+  /// [_applySelectedPriceList], which this guard does not weaken.
   Future<void> setSelectedPriceList(String? name) async {
+    if (!state.isB2bOrder) {
+      if (state.isPriceListLockedByPurpose) return;
+      if (state.isPriceListReserved(name)) return;
+    }
+    await _applySelectedPriceList(name);
+  }
+
+  /// Applies [name] (null = the POS default free list) and reprices the
+  /// catalog. Internal: callers are the purpose resolution and checkout
+  /// reconciliation, which pick the list the purpose requires.
+  Future<void> _applySelectedPriceList(String? name) async {
     final normalizedName = name?.trim() ?? '';
     final selection = normalizedName.isEmpty
-        ? _defaultPriceListSelection()
+        ? _defaultFreePriceListSelection()
         : (_matchingPriceListSelection(normalizedName) ??
-              _defaultPriceListSelection());
+              _defaultFreePriceListSelection());
     final currentName = state.selectedPriceListName ?? '';
     final nextName = selection?['name']?.toString().trim() ?? '';
 
@@ -1968,26 +2150,42 @@ class PosNotifier extends StateNotifier<PosState> {
       if (state.customerHasNoTierPriceList) {
         state = state.copyWith(customerHasNoTierPriceList: false);
       }
-      await setSelectedPriceList(null);
+      await _applySelectedPriceList(null);
       return;
     }
 
-    final policyPriceList = policy.priceList?.trim() ?? '';
+    final policyPriceList = PosState.fixedPriceListFor(policy);
 
     // Fixed-price-list policy (Employee/Sample): apply it directly.
-    if (policyPriceList.isNotEmpty) {
+    if (policyPriceList != null) {
       if (state.customerHasNoTierPriceList) {
         state = state.copyWith(customerHasNoTierPriceList: false);
       }
-      await setSelectedPriceList(policyPriceList);
+      await _applySelectedPriceList(policyPriceList);
       return;
     }
 
-    // Customer-group-driven policy (e.g. B2B Supply): resolve per customer.
+    // A free-list purpose other than B2B Supply (e.g. Free Shipping Waiver) is
+    // a retail order: it prices like Standard, never on a customer tier list
+    // the server reserves for B2B Supply.
+    if (!PosState.isB2bSupplyPolicy(policy)) {
+      if (state.customerHasNoTierPriceList) {
+        state = state.copyWith(customerHasNoTierPriceList: false);
+      }
+      await _applySelectedPriceList(null);
+      return;
+    }
+
+    // B2B Supply: resolve per customer.
     final customer = state.selectedCustomer;
     final customerName = customer?['name']?.toString().trim() ?? '';
     if (customerName.isEmpty) {
       // No customer yet — defer; selectCustomer will re-trigger resolution.
+      // Do not keep pricing the cart on another purpose's list (e.g. arriving
+      // from Employee) while waiting; checkout refuses until it resolves.
+      if (state.isPriceListReserved(state.selectedPriceListName)) {
+        await _applySelectedPriceList(null);
+      }
       return;
     }
 
@@ -2008,19 +2206,111 @@ class PosNotifier extends StateNotifier<PosState> {
     // The active policy is no longer customer-group-driven (changed mid-flight).
     final currentPolicy = state.selectedCommercialPolicy;
     if (currentPolicy == null ||
-        (currentPolicy.priceList?.trim().isNotEmpty ?? false)) {
+        !PosState.isB2bSupplyPolicy(currentPolicy) ||
+        PosState.fixedPriceListFor(currentPolicy) != null) {
       return;
     }
 
     final resolvedList = resolved?.trim() ?? '';
+    // Remember what the server resolved for this customer so checkout can
+    // confirm the list it sends is that one without another round trip.
+    _b2bSupplyResolutionKey = _b2bSupplyKey(
+      customerName,
+      posProfileName,
+      policy.orderPurpose,
+    );
+    _b2bSupplyResolvedPriceList = resolvedList;
     if (resolvedList.isNotEmpty) {
       state = state.copyWith(customerHasNoTierPriceList: false);
-      await setSelectedPriceList(resolvedList);
+      await _applySelectedPriceList(resolvedList);
     } else {
       // No tier configured: keep the POS default and flag for the UI hint.
+      // Checkout refuses this state instead of sending a retail list.
       state = state.copyWith(customerHasNoTierPriceList: true);
-      await setSelectedPriceList(null);
+      await _applySelectedPriceList(null);
     }
+  }
+
+  String _b2bSupplyKey(String customer, String profile, String purpose) =>
+      '${customer.trim()}|${profile.trim()}|${purpose.trim().toLowerCase()}';
+
+  /// The customer-resolved B2B Supply list for the current customer, profile
+  /// and purpose, or null when it has not been resolved for them. An empty
+  /// string means the server resolved no list at all.
+  String? _cachedB2bSupplyPriceList() {
+    final customer = state.selectedCustomer?['name']?.toString().trim() ?? '';
+    final profile = state.selectedProfile?['name']?.toString() ?? '';
+    final purpose = state.selectedCommercialPolicy?.orderPurpose ?? '';
+    if (customer.isEmpty || _b2bSupplyResolutionKey == null) return null;
+    if (_b2bSupplyResolutionKey != _b2bSupplyKey(customer, profile, purpose)) {
+      return null;
+    }
+    return _b2bSupplyResolvedPriceList;
+  }
+
+  /// Makes sure the price list checkout is about to send is the one the order
+  /// purpose requires (see [PosState.isPriceListLockedByPurpose]). Returns null
+  /// when it is, or an error sentinel after which checkout must stop.
+  ///
+  /// A mismatch that can be fixed is fixed here — the list is switched and the
+  /// catalog and cart are repriced — but the order is still NOT submitted:
+  /// the operator confirmed a total at the old prices, so they review the
+  /// repriced cart and tap checkout again. The B2B launch flow is excluded; its
+  /// list is server-owned and already validated by the pricing context.
+  Future<String?> _ensurePurposePriceListForCheckout() async {
+    if (state.isB2bOrder) return null;
+    final policy = state.selectedCommercialPolicy;
+    final before = state.selectedPriceListName;
+
+    final fixed = PosState.fixedPriceListFor(policy);
+    if (fixed != null) {
+      if (before == fixed) return null;
+      // No price lists loaded at all (older backend / catalog not loaded): the
+      // client sends no list and the server applies the purpose's own.
+      if (before == null && state.availablePriceLists.isEmpty) return null;
+      if (_matchingPriceListSelection(fixed) == null) {
+        return purposePriceListUnavailableError;
+      }
+      await _applySelectedPriceList(fixed);
+      return state.selectedPriceListName == fixed
+          ? purposePriceListUpdatedError
+          : purposePriceListUnavailableError;
+    }
+
+    if (PosState.isB2bSupplyPolicy(policy)) {
+      final customer = state.selectedCustomer?['name']?.toString().trim() ?? '';
+      if (customer.isEmpty) return purposePriceListUnavailableError;
+      var expected = _cachedB2bSupplyPriceList();
+      if (expected == null) {
+        await _applyEffectivePriceListForPolicy();
+        expected = _cachedB2bSupplyPriceList();
+      }
+      if (expected == null || expected.isEmpty) {
+        return purposePriceListUnavailableError;
+      }
+      if (state.selectedPriceListName != expected) {
+        if (_matchingPriceListSelection(expected) == null) {
+          return purposePriceListUnavailableError;
+        }
+        await _applySelectedPriceList(expected);
+        if (state.selectedPriceListName != expected) {
+          return purposePriceListUnavailableError;
+        }
+      }
+      return before == state.selectedPriceListName
+          ? null
+          : purposePriceListUpdatedError;
+    }
+
+    // Standard or another free-list purpose: no reserved list.
+    if (!state.isPriceListReserved(before)) return null;
+    // An amendment with no purpose chosen keeps the source invoice's list; the
+    // server owns that pairing, so it is not rewritten to retail here.
+    if (policy == null && state.isAmendmentDraft) return null;
+    await _applySelectedPriceList(null);
+    return state.isPriceListReserved(state.selectedPriceListName)
+        ? purposePriceListUnavailableError
+        : purposePriceListUpdatedError;
   }
 
   void setPolicyReason(String? reason) {
@@ -2099,6 +2389,12 @@ class PosNotifier extends StateNotifier<PosState> {
   void clearCart() {
     // Simply clear the cart - shipping is handled separately, not as cart items
     _priceListResolutionToken++;
+    // Clearing drops a retail purpose back to Standard, so a list that purpose
+    // had locked in (Employee, Sample, a B2B tier) must go with it.
+    final leavesPurposeList =
+        !state.isB2bOrder &&
+        (state.isPriceListLockedByPurpose ||
+            state.isPriceListReserved(state.selectedPriceListName));
     state = state.copyWith(
       cartItems: [],
       clearSelectedCommercialPolicy: !state.isB2bOrder,
@@ -2107,6 +2403,9 @@ class PosNotifier extends StateNotifier<PosState> {
       draftDirty: true,
     );
     _autoSaveDebounced();
+    if (leavesPurposeList) {
+      unawaited(_applySelectedPriceList(null));
+    }
   }
 
   Future<void> _prefetchDeliverySlots() async {
@@ -2242,6 +2541,60 @@ class PosNotifier extends StateNotifier<PosState> {
     }
 
     return _clonePriceListOption(available.first);
+  }
+
+  /// The POS default for a Standard / free-list order: the default option when
+  /// it is not reserved for a purpose, else the first unreserved one. Falls
+  /// back to [_defaultPriceListSelection] only when every list is reserved.
+  Map<String, dynamic>? _defaultFreePriceListSelection([
+    List<Map<String, dynamic>>? options,
+    List<CommercialPolicy>? policies,
+  ]) {
+    final available = options ?? state.availablePriceLists;
+    final loadedPolicies = policies ?? state.availableCommercialPolicies;
+    final free = available
+        .where(
+          (option) => !PosState.isPriceListReservedIn(
+            option['name']?.toString(),
+            priceLists: available,
+            policies: loadedPolicies,
+          ),
+        )
+        .toList();
+    if (free.isEmpty) return _defaultPriceListSelection(available);
+    return _defaultPriceListSelection(free);
+  }
+
+  /// The selection that satisfies the order purpose, given what is loaded.
+  ///
+  ///  - fixed-list purpose → that list when offered, else [current] (checkout
+  ///    refuses the mismatch rather than inventing a list);
+  ///  - B2B Supply → [current]; the customer-resolved list is applied by
+  ///    [_applyEffectivePriceListForPolicy] and enforced at checkout;
+  ///  - Standard / other free purposes → [current] unless it is reserved, in
+  ///    which case the POS default free list.
+  Map<String, dynamic>? _purposeConsistentPriceList({
+    required CommercialPolicy? policy,
+    required List<Map<String, dynamic>> priceLists,
+    required List<CommercialPolicy> policies,
+    required Map<String, dynamic>? current,
+  }) {
+    final fixed = PosState.fixedPriceListFor(policy);
+    if (fixed != null) {
+      return _matchingPriceListSelection(fixed, priceLists) ?? current;
+    }
+    if (PosState.isB2bSupplyPolicy(policy)) return current;
+    final currentName = current?['name']?.toString().trim() ?? '';
+    if (currentName.isNotEmpty &&
+        !PosState.isPriceListReservedIn(
+          currentName,
+          priceLists: priceLists,
+          policies: policies,
+        )) {
+      return current;
+    }
+    if (currentName.isEmpty && priceLists.isEmpty) return current;
+    return _defaultFreePriceListSelection(priceLists, policies) ?? current;
   }
 
   bool _zeroShippingDefaultForPriceList(Map<String, dynamic>? priceList) {
@@ -2522,9 +2875,11 @@ class PosNotifier extends StateNotifier<PosState> {
       initialResults[3] as List,
     );
 
+    // No request (profile load / reset) means a Standard order, so the default
+    // never lands on a list reserved for an order purpose.
     final selectedPriceList =
         _matchingPriceListSelection(requestedPriceListName, priceLists) ??
-        _defaultPriceListSelection(priceLists);
+        _defaultFreePriceListSelection(priceLists, commercialPolicies);
     final selectedPriceListName =
         selectedPriceList?['name']?.toString().trim() ?? '';
 
@@ -3631,6 +3986,18 @@ class PosNotifier extends StateNotifier<PosState> {
       }
     }
 
+    // The server refuses a purpose/price-list pair that contradicts itself
+    // (Employee at retail prices, Standard at Sample prices). Never send one.
+    final purposePriceListError = await _ensurePurposePriceListForCheckout();
+    if (purposePriceListError != null) {
+      state = state.copyWith(
+        error: purposePriceListError,
+        clearError: false,
+        isLoading: false,
+      );
+      return;
+    }
+
     if (kDebugMode) {
       debugPrint('🛒 STARTING CHECKOUT PROCESS (no auto-print):');
       debugPrint('   Cart Items Count: ${state.cartItems.length}');
@@ -3745,7 +4112,7 @@ class PosNotifier extends StateNotifier<PosState> {
 
       // Reset invoice context (cart, customer, delivery slot, sales partner) for a fresh start.
       _orderContextToken++;
-      final defaultPriceList = _defaultPriceListSelection();
+      final defaultPriceList = _defaultFreePriceListSelection();
       state = state.copyWith(
         cartItems: [],
         clearSelectedCustomer: true,
@@ -3820,7 +4187,7 @@ class PosNotifier extends StateNotifier<PosState> {
   void startNewInvoice() {
     _orderContextToken++;
     _priceListResolutionToken++;
-    final defaultPriceList = _defaultPriceListSelection();
+    final defaultPriceList = _defaultFreePriceListSelection();
     state = state.copyWith(
       cartItems: [],
       clearSelectedCustomer: true,

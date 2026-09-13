@@ -3745,8 +3745,32 @@ abstract class AppLocalizations {
   /// No description provided for @posCartPriceListHint.
   ///
   /// In en, this message translates to:
-  /// **'Use the profile default or switch to a B2B list.'**
+  /// **'Use the profile default or switch to another list open to this order.'**
   String get posCartPriceListHint;
+
+  /// No description provided for @posCartPriceListSetByPurpose.
+  ///
+  /// In en, this message translates to:
+  /// **'Set by the order purpose.'**
+  String get posCartPriceListSetByPurpose;
+
+  /// No description provided for @posCartPriceListAfterCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Chosen from the customer\'\'s price list once you select the customer.'**
+  String get posCartPriceListAfterCustomer;
+
+  /// No description provided for @posPurposePriceListUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices were updated to match the order purpose. Review the cart, then check out again.'**
+  String get posPurposePriceListUpdated;
+
+  /// No description provided for @posPurposePriceListUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The price list for this order purpose could not be applied. Select the customer or change the order purpose.'**
+  String get posPurposePriceListUnavailable;
 
   /// No description provided for @posCartPriceListDefaultChip.
   ///

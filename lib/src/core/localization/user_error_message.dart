@@ -43,6 +43,8 @@ String userErrorMessageFor(
     l10n.appUpdateRequiredBody,
     l10n.userErrorDraftLimit,
     l10n.posStaffMemberRequired,
+    l10n.posPurposePriceListUpdated,
+    l10n.posPurposePriceListUnavailable,
     l10n.userErrorReopenOrder,
     l10n.userErrorShippingAddress,
     l10n.userErrorInsufficientStock,
@@ -320,6 +322,14 @@ String? _businessMessage(AppLocalizations l10n, String? candidate) {
   // `PosNotifier.staffEmployeeRequiredError`: an Employee order with nobody
   // chosen to deduct it from.
   if (text == 'staff_employee_required') return l10n.posStaffMemberRequired;
+  // `PosNotifier.purposePriceListUpdatedError` / `...UnavailableError`: the
+  // price list did not match the order purpose, so checkout stopped.
+  if (text == 'purpose_price_list_updated') {
+    return l10n.posPurposePriceListUpdated;
+  }
+  if (text == 'purpose_price_list_unavailable') {
+    return l10n.posPurposePriceListUnavailable;
+  }
   if (text.contains('amendment draft') ||
       text.startsWith('cannot submit amendment:'))
     return l10n.userErrorReopenOrder;

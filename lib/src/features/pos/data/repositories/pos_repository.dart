@@ -10,6 +10,19 @@ import '../../../../core/utils/territory_label.dart';
 import '../../domain/models/delivery_slot.dart';
 import '../models/pos_models.dart';
 
+/// Price-list option key naming the order purposes a list is reserved for.
+const reservedForPurposesKey = 'reserved_for_purposes';
+
+/// Lenient parse of `reserved_for_purposes`: anything but a list (null, a
+/// string, a map) means "reserved for nobody"; blank entries are dropped.
+List<String> parseReservedForPurposes(Object? raw) {
+  if (raw is! List) return const [];
+  return raw
+      .map((entry) => entry?.toString().trim() ?? '')
+      .where((entry) => entry.isNotEmpty)
+      .toList(growable: false);
+}
+
 class B2bPricingContext {
   B2bPricingContext({
     required this.profile,
@@ -489,6 +502,14 @@ class PosRepository {
                 'zero_shipping_default': _asBool(
                   priceList['zero_shipping_default'],
                 ),
+                // Order purposes this list belongs to (`[]` = a free retail
+                // list). Only carried when the backend sends the key, so the
+                // client can tell an older backend (key absent) from one that
+                // says "reserved for nobody" and fall back accordingly.
+                if (priceList.containsKey(reservedForPurposesKey))
+                  reservedForPurposesKey: parseReservedForPurposes(
+                    priceList[reservedForPurposesKey],
+                  ),
               };
             })
             .where((item) => (item['name'] as String).isNotEmpty)

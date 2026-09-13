@@ -2230,7 +2230,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get posCartPriceListHint =>
-      'Use the profile default or switch to a B2B list.';
+      'Use the profile default or switch to another list open to this order.';
+
+  @override
+  String get posCartPriceListSetByPurpose => 'Set by the order purpose.';
+
+  @override
+  String get posCartPriceListAfterCustomer =>
+      'Chosen from the customer\'s price list once you select the customer.';
+
+  @override
+  String get posPurposePriceListUpdated =>
+      'Prices were updated to match the order purpose. Review the cart, then check out again.';
+
+  @override
+  String get posPurposePriceListUnavailable =>
+      'The price list for this order purpose could not be applied. Select the customer or change the order purpose.';
 
   @override
   String get posCartPriceListDefaultChip => 'Default';
