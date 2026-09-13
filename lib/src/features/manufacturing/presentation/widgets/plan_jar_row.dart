@@ -46,12 +46,15 @@ class PlanJarRow extends StatefulWidget {
 
   /// What the field holds when that is not a whole jar count, or null.
   ///
-  /// Owned by the TAB, not this row: rows in a list are disposed when they
-  /// scroll away or a filter hides them, and a red "1.360" that lived only
-  /// here came back as a plain, valid-looking "1" — the last number the queue
-  /// kept — with Start batches enabled again. While this is set the queue
-  /// keeps the last valid number (so a stray "." does not drop the line and
-  /// the material choices on it) and the tab refuses to submit.
+  /// Kept outside this row, which a scroll, a filter or a tab switch disposes,
+  /// so the red entry is still on screen when the row comes back.
+  ///
+  /// An entry here queues NOTHING. Keeping the last valid number behind a red
+  /// field was tried and reviewed out: that number is invisible to every other
+  /// reader of the queue — the Today screen, a restart restoring the basket
+  /// from Hive — and each of them posted it. The price is that a stray "."
+  /// drops the row's line, and with it any alternative material chosen on it;
+  /// the material panel shows that plainly and it is one tap to re-pick.
   final String? invalidText;
 
   /// Reports a new [invalidText], or null once the field is a whole number.
@@ -91,44 +94,36 @@ class _PlanJarRowState extends State<PlanJarRow> {
   @override
   void didUpdateWidget(covariant PlanJarRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Only when the MODEL moved and disagrees with what is on screen: rewriting
-    // the field on every rebuild would fight the keyboard and move the caret to
-    // the end mid-word. This is how the field catches up with "Use 60" and with
-    // "Fill the day", which write the model and nothing else. Keyed on the model
-    // changing, because an invalid "12." parses as nothing while the model still
-    // holds 12 — comparing the two alone would snap the field back to "12" and
-    // swallow the point again.
-    if (widget.quantity != oldWidget.quantity) {
-      if (_invalid || oldWidget.invalidText != null) {
-        // A number written from outside ("Use 60", Clear) replaces whatever
-        // was wrong. Compared as TEXT, not parsed: "12." parses as nothing, so
-        // a Clear taking 12 to 0 would otherwise read as already shown and
-        // leave the red field — and its 12 — behind. Clear drops the entry in
-        // the same frame, so the OLD widget is what still remembers it.
-        final text = _textFor(widget.quantity);
-        if (_controller.text != text) _write(text);
-        if (_invalid) {
-          final report = widget.onInvalidTextChanged;
-          // After the frame: this runs inside the parent's build.
-          WidgetsBinding.instance.addPostFrameCallback(
-            (_) => report?.call(null),
-          );
-        }
-        return;
+
+    if (_invalid) {
+      // The field holds an entry that is not a jar count, and it queues
+      // nothing — the model is 0 BECAUSE of it, so that 0 must not wipe what
+      // was typed. Only a real number written from outside ("Use 60", Fill
+      // the day) replaces the entry.
+      if (widget.quantity > 0 && widget.quantity != oldWidget.quantity) {
+        _write(_textFor(widget.quantity));
+        final report = widget.onInvalidTextChanged;
+        // After the frame: this runs inside the parent's build.
+        WidgetsBinding.instance.addPostFrameCallback((_) => report?.call(null));
       }
-      final shown = int.tryParse(_controller.text) ?? 0;
-      if (shown != widget.quantity) _write(_textFor(widget.quantity));
       return;
     }
-    // The tab dropped the invalid entry without touching the quantity (Clear
-    // on a row that never held a valid number). Only while the field still
-    // shows that entry — once somebody has typed over it there is nothing to
-    // undo.
+
+    // The entry was dropped from outside (Clear, Cancel plan) while the field
+    // still shows it. Once somebody has typed over it there is nothing to undo.
     if (oldWidget.invalidText != null &&
-        widget.invalidText == null &&
         _controller.text == oldWidget.invalidText) {
       _write(_textFor(widget.quantity));
+      return;
     }
+
+    // Only when the model moved and disagrees with what is on screen: rewriting
+    // the field on every rebuild would fight the keyboard and move the caret to
+    // the end mid-word. This is how the field catches up with "Use 60" and with
+    // "Fill the day", which write the model and nothing else.
+    if (widget.quantity == oldWidget.quantity) return;
+    final shown = int.tryParse(_controller.text) ?? 0;
+    if (shown != widget.quantity) _write(_textFor(widget.quantity));
   }
 
   void _write(String text) {
@@ -161,6 +156,7 @@ class _PlanJarRowState extends State<PlanJarRow> {
     final trimmed = text.trim();
     if (trimmed.isNotEmpty && !_wholeNumber.hasMatch(trimmed)) {
       widget.onInvalidTextChanged?.call(text);
+      widget.onQuantityChanged(0);
       return;
     }
     if (_invalid) widget.onInvalidTextChanged?.call(null);

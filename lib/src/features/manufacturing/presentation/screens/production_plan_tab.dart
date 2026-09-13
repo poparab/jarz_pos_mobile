@@ -747,7 +747,9 @@ class _PlanActions extends ConsumerWidget {
   final bool rollupFailed;
   final bool materialSelectionsValid;
 
-  /// A jar field holds something that is not a whole number.
+  /// A jar field holds something that is not a whole number. Nothing is queued
+  /// for it, but starting the rest of the day around a red field reads as
+  /// though that row were included.
   final bool hasInvalidEntry;
   final VoidCallback? onSavePlan;
   final VoidCallback? onCheckMaterials;

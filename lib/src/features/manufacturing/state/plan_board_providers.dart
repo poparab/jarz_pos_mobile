@@ -278,13 +278,11 @@ class PlanFillResult {
 /// `{item code: raw text}` for every jar field holding something that is not a
 /// whole jar count.
 ///
-/// While an item is here its queue line keeps the last valid number (a stray
-/// "." must not drop the line and the material choices on it), so nothing may
-/// be submitted until the field is fixed — otherwise a red "1.360" still posts
-/// 1. Root-scoped on purpose, beside the draft and the queue it qualifies: the
-/// row is disposed by a scroll or a filter and the whole tab by switching to
-/// Bases, and either one used to rebuild the field as a plain, valid-looking
-/// "1" with Start batches enabled.
+/// Display state only: an item here has NO queued quantity (the field reports
+/// 0), so nothing can post a number the screen is not showing. It exists so
+/// the red entry is still in the field after a scroll, a filter or a switch to
+/// the Bases tab disposes the row, and so the action bar can hold Start
+/// batches until every red field is fixed or cleared.
 final planInvalidEntriesProvider = StateProvider<Map<String, String>>(
   (ref) => const <String, String>{},
 );

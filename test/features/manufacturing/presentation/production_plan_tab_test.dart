@@ -16,6 +16,7 @@ import 'package:jarz_pos/src/features/manufacturing/data/repositories/production
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_plan_tab.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/widgets/plan_jar_row.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/daily_plan_providers.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/plan_board_providers.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/production_basket_notifier.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/production_providers.dart';
 
@@ -348,11 +349,11 @@ void main() {
     expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 34});
   });
 
-  testWidgets('a stray point keeps the queued line and holds both actions', (
+  testWidgets('a stray point queues nothing and holds both actions', (
     tester,
   ) async {
-    // Dropping the line on "12." would also drop every material choice made
-    // on it, and typing the point back out would re-add a bare line.
+    // Nothing behind a red field: a kept last-valid number was posted by
+    // every reader of the queue that could not see the field.
     await _pump(
       tester,
       page: ProductionSuggestionsPage(
@@ -367,9 +368,10 @@ void main() {
     await tester.pumpAndSettle();
 
     final container = _container(tester);
-    // Not snapped back to "12": that would swallow the point all over again.
+    // Not snapped back to "12", nor wiped by the 0 it reported.
     expect(_shown(tester, 'CAKE-A'), '12.');
-    expect(container.read(productionBasketProvider).lines.single.units, 12);
+    expect(container.read(productionBasketProvider).lines, isEmpty);
+    expect(container.read(dailyPlanDraftProvider).quantities, isEmpty);
     expect(_button(tester, 'Start batches').onPressed, isNull);
     expect(
       tester
@@ -411,6 +413,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final container = _container(tester);
+    expect(container.read(productionBasketProvider).lines, isEmpty);
     container.read(productionFilterProvider.notifier).state =
         const ProductionFilter().toggle(ProductionStatus.ok);
     await tester.pumpAndSettle();
@@ -453,11 +456,8 @@ void main() {
       findsNothing,
     );
 
-    // Deleting the point from a field that is no longer there cannot bring
-    // the cleared 12 back.
-    await tester.enterText(_quantityField('CAKE-A'), '');
-    await tester.pumpAndSettle();
-    expect(container.read(productionBasketProvider).lines, isEmpty);
+    expect(_button(tester, 'Start batches').onPressed, isNull);
+    expect(container.read(planInvalidEntriesProvider), isEmpty);
   });
 
   testWidgets('flags negative stock so somebody counts the item', (
