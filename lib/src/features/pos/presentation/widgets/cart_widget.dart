@@ -1472,6 +1472,8 @@ class CartWidget extends ConsumerWidget {
         if (state.isEmployeeOrder) ...[
           const SizedBox(height: 12),
           const StaffMemberControl(),
+          const SizedBox(height: 8),
+          const EmployeePaymentControl(),
         ],
         if (selected != null) ...[
           const SizedBox(height: 12),
@@ -1979,12 +1981,34 @@ class CartWidget extends ConsumerWidget {
       if (paymentMethod == PaymentModes.credit && creditCustomerId.isNotEmpty) {
         ref.invalidate(customerCreditProfileProvider(creditCustomerId));
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.posCheckoutSuccess),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // Read from the notifier captured before the await: checkout has
+      // already reset the order, so the state no longer says it was cash.
+      switch (posNotifier.lastEmployeeCashOutcome) {
+        case EmployeeCashOutcome.savedOnCredit:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              key: const ValueKey('employee-cash-not-supported'),
+              content: Text(l10n.posEmployeeCashNotSupported),
+              backgroundColor: Colors.orange.shade800,
+              duration: const Duration(seconds: 10),
+              showCloseIcon: true,
+            ),
+          );
+        case EmployeeCashOutcome.paid:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.posCheckoutEmployeeCashPaid),
+              backgroundColor: Colors.green,
+            ),
+          );
+        case EmployeeCashOutcome.none:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.posCheckoutSuccess),
+              backgroundColor: Colors.green,
+            ),
+          );
+      }
     } else {
       // `PosNotifier.checkout` stores `e.toString()`, so a server refusal
       // arrives here as "Exception: <message>". `userErrorMessage` treats the

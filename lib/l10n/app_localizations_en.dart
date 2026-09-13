@@ -13098,6 +13098,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get posStaffMemberLoadFailed => 'Could not load staff members';
 
   @override
+  String get posEmployeePaymentCashHint =>
+      'The staff member pays now; the money goes into the branch cash.';
+
+  @override
+  String get posCheckoutEmployeeCashPaid => 'Order placed and paid in cash.';
+
+  @override
+  String get posEmployeeCashNotSupported =>
+      'Saved ON CREDIT, not cash: the server does not support cash for staff orders yet. It will be deducted from the salary of the staff member.';
+
+  @override
   String get managerStaffCustomersSyncAction =>
       'Create missing staff customers';
 

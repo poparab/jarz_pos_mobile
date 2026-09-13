@@ -37,6 +37,12 @@ class PosState {
   /// whenever the customer or the purpose changes by any other path.
   final String? selectedStaffEmployee;
   final String? selectedStaffEmployeeName;
+
+  /// How an Employee-purpose order is paid: [employeePaymentCredit] (unpaid
+  /// on the staff customer, deducted from salary — the default) or
+  /// [employeePaymentCash] (paid at the counter into the branch till). Always
+  /// credit outside an Employee order; see [PosState.copyWith].
+  final String employeePayment;
   // True when a customer-group-driven policy (e.g. B2B Supply) is active and the
   // selected customer has NO tier price list configured on the backend. Lets the
   // UI hint "this customer has no B2B price tier set". Always false otherwise.
@@ -107,6 +113,7 @@ class PosState {
     this.policyReason,
     this.selectedStaffEmployee,
     this.selectedStaffEmployeeName,
+    this.employeePayment = employeePaymentCredit,
     this.customerHasNoTierPriceList = false,
     this.cartItems = const [],
     this.selectedCustomer,
@@ -152,6 +159,7 @@ class PosState {
     String? selectedStaffEmployee,
     String? selectedStaffEmployeeName,
     bool clearSelectedStaffEmployee = false,
+    String? employeePayment,
     bool? customerHasNoTierPriceList,
     List<Map<String, dynamic>>? cartItems,
     Map<String, dynamic>? selectedCustomer,
@@ -194,6 +202,17 @@ class PosState {
         clearSelectedStaffEmployee ||
         clearSelectedCustomer ||
         clearSelectedCommercialPolicy;
+    // A cash choice belongs to the Employee order it was made on. Whatever path
+    // leaves that purpose (cleared, replaced, a B2B order) falls back to credit,
+    // so a stale "cash" can never ride into the next order and short the till.
+    final nextPolicy = clearSelectedCommercialPolicy
+        ? null
+        : (selectedCommercialPolicy ?? this.selectedCommercialPolicy);
+    final nextIsB2bOrder = isB2bOrder ?? this.isB2bOrder;
+    final nextEmployeePayment =
+        isEmployeeOrderFor(policy: nextPolicy, isB2bOrder: nextIsB2bOrder)
+        ? normalizeEmployeePayment(employeePayment ?? this.employeePayment)
+        : employeePaymentCredit;
     return PosState(
       profiles: profiles ?? this.profiles,
       selectedProfile: selectedProfile ?? this.selectedProfile,
@@ -222,6 +241,7 @@ class PosState {
       selectedStaffEmployeeName: dropStaffEmployee
           ? null
           : (selectedStaffEmployeeName ?? this.selectedStaffEmployeeName),
+      employeePayment: nextEmployeePayment,
       customerHasNoTierPriceList:
           customerHasNoTierPriceList ?? this.customerHasNoTierPriceList,
       cartItems: cartItems ?? this.cartItems,
@@ -275,11 +295,36 @@ class PosState {
 
   static const employeeOrderPurpose = 'Employee';
 
-  /// True when the selected commercial policy is the Employee (staff) purpose.
-  bool get isEmployeeOrder =>
+  /// Wire values of `employee_payment` on the invoice request and response.
+  static const employeePaymentCredit = 'credit';
+  static const employeePaymentCash = 'cash';
+
+  /// Anything but an explicit `cash` is credit: the safe reading, since credit
+  /// takes no money at the counter.
+  static String normalizeEmployeePayment(String? value) =>
+      value?.trim().toLowerCase() == employeePaymentCash
+      ? employeePaymentCash
+      : employeePaymentCredit;
+
+  static bool isEmployeeOrderFor({
+    required CommercialPolicy? policy,
+    required bool isB2bOrder,
+  }) =>
       !isB2bOrder &&
-      (selectedCommercialPolicy?.orderPurpose.trim().toLowerCase() ?? '') ==
+      (policy?.orderPurpose.trim().toLowerCase() ?? '') ==
           employeeOrderPurpose.toLowerCase();
+
+  /// True when the selected commercial policy is the Employee (staff) purpose.
+  bool get isEmployeeOrder => isEmployeeOrderFor(
+    policy: selectedCommercialPolicy,
+    isB2bOrder: isB2bOrder,
+  );
+
+  /// The staff member pays this Employee order now, at the counter. Guarded by
+  /// [isEmployeeOrder] as well, so a state built without copyWith cannot
+  /// claim cash for any other kind of order.
+  bool get employeePaysCash =>
+      isEmployeeOrder && employeePayment == employeePaymentCash;
 
   bool get hasStaffEmployee =>
       selectedStaffEmployee?.trim().isNotEmpty ?? false;
@@ -294,10 +339,10 @@ class PosState {
   bool get collectsAtBranch =>
       isPickup || (selectedCommercialPolicy?.deliverAtBranch ?? false);
 
-  /// Checkout asks for no payment method: an Employee order takes no money at
-  /// the counter and stays unpaid on the staff customer until payroll settles
-  /// it. Offering the dialog invited InstaPay/Wallet, which queues a transfer
-  /// confirmation for money that will never arrive.
+  /// Checkout asks for no payment method: an Employee order is either left
+  /// unpaid on the staff customer until payroll settles it, or paid in cash
+  /// through [employeePayment]. Offering the dialog invited InstaPay/Wallet,
+  /// which queues a transfer confirmation for money that will never arrive.
   bool get skipsPaymentMethod => isEmployeeOrder;
 
   String? get selectedPriceListName {
@@ -490,6 +535,14 @@ class PosNotifier extends StateNotifier<PosState> {
   static const purposePriceListUnavailableError =
       'purpose_price_list_unavailable';
 
+  EmployeeCashOutcome _lastEmployeeCashOutcome = EmployeeCashOutcome.none;
+
+  /// What became of a cash Employee order on the last successful [checkout].
+  /// Read by the checkout UI right after the call, because checkout resets the
+  /// order state before it returns. [EmployeeCashOutcome.none] for every other
+  /// order and after a failed checkout.
+  EmployeeCashOutcome get lastEmployeeCashOutcome => _lastEmployeeCashOutcome;
+
   // Last customer-resolved B2B Supply list, keyed by customer|profile|purpose.
   String? _b2bSupplyResolutionKey;
   String? _b2bSupplyResolvedPriceList;
@@ -599,6 +652,10 @@ class PosNotifier extends StateNotifier<PosState> {
       policyReason: state.policyReason,
       staffEmployee: state.selectedStaffEmployee,
       staffEmployeeName: state.selectedStaffEmployeeName,
+      // Only an Employee order has a payment choice; others save the default.
+      employeePayment: state.isEmployeeOrder
+          ? state.employeePayment
+          : PosState.employeePaymentCredit,
       zeroShippingOverride: state.zeroShippingOverride,
       isPickup: state.isPickup,
       createdAt: now,
@@ -746,6 +803,16 @@ class PosNotifier extends StateNotifier<PosState> {
               )
           ? savedStaffEmployee
           : null;
+      // The cash/credit choice is restored on the same terms as the staff
+      // member: a retail Employee draft only. A draft from before the choice
+      // existed reads as credit, which is what it was checked out as then.
+      final restoredEmployeePayment =
+          PosState.isEmployeeOrderFor(
+            policy: target.selectedCommercialPolicy,
+            isB2bOrder: target.isB2bOrder,
+          )
+          ? PosState.normalizeEmployeePayment(target.employeePayment)
+          : PosState.employeePaymentCredit;
       // A draft saved before the purpose locked its price list (or under an
       // older policy config) can pair a purpose with the wrong list. The
       // purpose wins; the catalog refresh below reprices at the corrected list.
@@ -795,6 +862,7 @@ class PosNotifier extends StateNotifier<PosState> {
             ? null
             : (target.staffEmployeeName ?? restoredStaffEmployee),
         clearSelectedStaffEmployee: restoredStaffEmployee == null,
+        employeePayment: restoredEmployeePayment,
         customerHasNoTierPriceList: false,
         zeroShippingOverride: restoredPriceListChanged
             ? _zeroShippingDefaultForPriceList(restoredPriceList)
@@ -1786,6 +1854,22 @@ class PosNotifier extends StateNotifier<PosState> {
     return true;
   }
 
+  /// Chooses how an Employee order is paid: [PosState.employeePaymentCredit]
+  /// (deducted from salary later) or [PosState.employeePaymentCash] (paid now
+  /// into the branch till). Ignored for any other order and for any other
+  /// value, so nothing but an explicit operator choice can turn on cash.
+  void setEmployeePayment(String value) {
+    if (!state.isEmployeeOrder) return;
+    final normalized = value.trim().toLowerCase();
+    if (normalized != PosState.employeePaymentCredit &&
+        normalized != PosState.employeePaymentCash) {
+      return;
+    }
+    if (state.employeePayment == normalized) return;
+    state = state.copyWith(employeePayment: normalized, draftDirty: true);
+    _autoSaveDebounced();
+  }
+
   /// Starts a B2B order without losing the operator's current cart. Any dirty
   /// cart is persisted first, then the B2B customer becomes a clean order
   /// context. The selected shipping Address lives inside [customer] and is
@@ -1910,6 +1994,7 @@ class PosNotifier extends StateNotifier<PosState> {
       state = state.copyWith(
         clearSelectedCommercialPolicy: true,
         clearPolicyReason: true,
+        employeePayment: PosState.employeePaymentCredit,
         customerHasNoTierPriceList: false,
         zeroShippingOverride: _zeroShippingDefaultForPriceList(
           state.selectedPriceList,
@@ -2399,6 +2484,7 @@ class PosNotifier extends StateNotifier<PosState> {
       cartItems: [],
       clearSelectedCommercialPolicy: !state.isB2bOrder,
       clearPolicyReason: !state.isB2bOrder,
+      employeePayment: PosState.employeePaymentCredit,
       customerHasNoTierPriceList: false,
       draftDirty: true,
     );
@@ -3848,6 +3934,7 @@ class PosNotifier extends StateNotifier<PosState> {
     String? paymentMethod,
     bool posProfileOverride = false,
   }) async {
+    _lastEmployeeCashOutcome = EmployeeCashOutcome.none;
     if (state.cartItems.isEmpty) {
       state = state.copyWith(error: 'Cart is empty', clearError: false);
       return;
@@ -4030,6 +4117,18 @@ class PosNotifier extends StateNotifier<PosState> {
     // the grid and take the next real slot before we send anything.
     await _refreshStaleDeliverySlot();
 
+    // Sent only for an Employee order: the backend reads it to either leave the
+    // invoice unpaid on the staff customer or settle it into the branch till.
+    // An amendment cart never loads the source invoice's choice, so its
+    // default credit means "unchanged", not "credit": it is omitted and the
+    // server keeps the source's own choice. Sending it would silently turn an
+    // amended cash order into credit. Only an explicit cash is sent.
+    final requestedEmployeePayment = !state.isEmployeeOrder
+        ? null
+        : state.isAmendmentDraft
+        ? (state.employeePaysCash ? PosState.employeePaymentCash : null)
+        : state.employeePayment;
+
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final effectivePosProfile =
@@ -4060,6 +4159,7 @@ class PosNotifier extends StateNotifier<PosState> {
               orderPurpose: state.selectedCommercialPolicy?.orderPurpose,
               commercialPolicy: state.selectedCommercialPolicy?.name,
               policyReason: state.policyReason,
+              employeePayment: requestedEmployeePayment,
             )
           : await _repository.createInvoice(
               posProfile: effectivePosProfile,
@@ -4082,6 +4182,7 @@ class PosNotifier extends StateNotifier<PosState> {
               orderPurpose: state.selectedCommercialPolicy?.orderPurpose,
               commercialPolicy: state.selectedCommercialPolicy?.name,
               policyReason: state.policyReason,
+              employeePayment: requestedEmployeePayment,
               // Pass every applied code; the server re-validates authoritatively.
               promoCodes: state.appliedPromoCodes,
             );
@@ -4095,6 +4196,20 @@ class PosNotifier extends StateNotifier<PosState> {
       }
 
       // No modal overlay; rely on inline progress UI
+
+      // A server that predates the cash option ignores `employee_payment` and
+      // books the order on credit. The operator may already hold the money, so
+      // that must be said out loud rather than shown as a plain success.
+      if (requestedEmployeePayment == PosState.employeePaymentCash) {
+        final appliedEmployeePayment = invoice['employee_payment']
+            ?.toString()
+            .trim()
+            .toLowerCase();
+        _lastEmployeeCashOutcome =
+            appliedEmployeePayment == PosState.employeePaymentCash
+            ? EmployeeCashOutcome.paid
+            : EmployeeCashOutcome.savedOnCredit;
+      }
 
       // Delete the draft that was just checked out.
       final completedDraftId = state.currentDraftId;
@@ -4126,6 +4241,8 @@ class PosNotifier extends StateNotifier<PosState> {
         b2bSetupComplete: false,
         clearBoundB2bOrderPurpose: true,
         clearPolicyReason: true,
+        // Never let a cash choice outlive the order it was made on.
+        employeePayment: PosState.employeePaymentCredit,
         zeroShippingOverride: _zeroShippingDefaultForPriceList(
           defaultPriceList,
         ),
@@ -4203,6 +4320,7 @@ class PosNotifier extends StateNotifier<PosState> {
       b2bSetupComplete: false,
       clearBoundB2bOrderPurpose: true,
       clearPolicyReason: true,
+      employeePayment: PosState.employeePaymentCredit,
       customerHasNoTierPriceList: false,
       zeroShippingOverride: _zeroShippingDefaultForPriceList(defaultPriceList),
       isAmendmentDraft: false,
@@ -4253,6 +4371,19 @@ class PosNotifier extends StateNotifier<PosState> {
   /// profile, or on any network/server error.
   Future<String?> getTerritoryPosProfile(String customerName) =>
       _repository.getTerritoryPosProfile(customerName);
+}
+
+/// How a cash Employee order ended, as reported by [PosNotifier.checkout].
+enum EmployeeCashOutcome {
+  /// Not a cash Employee order, or checkout did not succeed.
+  none,
+
+  /// The server confirmed it settled the order in cash.
+  paid,
+
+  /// Cash was requested but the server did not confirm it (a backend without
+  /// the cash option): the order stands unpaid on the staff customer.
+  savedOnCredit,
 }
 
 final posNotifierProvider = StateNotifierProvider<PosNotifier, PosState>((ref) {

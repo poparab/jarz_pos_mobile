@@ -13078,6 +13078,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get posStaffMemberLoadFailed => 'تعذّر تحميل قائمة الموظفين';
 
   @override
+  String get posEmployeePaymentCashHint =>
+      'الموظف هيدفع دلوقتي والفلوس هتدخل خزنة الفرع.';
+
+  @override
+  String get posCheckoutEmployeeCashPaid => 'تم إرسال الطلب ودفعه نقدي.';
+
+  @override
+  String get posEmployeeCashNotSupported =>
+      'الطلب اتسجل آجل مش نقدي: السيستم لسه مش بيدعم الدفع النقدي لطلبات الموظفين. هيتخصم من مرتب الموظف.';
+
+  @override
   String get managerStaffCustomersSyncAction =>
       'إنشاء حسابات العملاء الناقصة للموظفين';
 

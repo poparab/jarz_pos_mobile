@@ -142,6 +142,7 @@ class _FakePosRepository extends PosRepository {
     String? orderPurpose,
     String? commercialPolicy,
     String? policyReason,
+    String? employeePayment,
     List<String> promoCodes = const [],
   }) async {
     invoices.add({

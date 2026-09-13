@@ -98,15 +98,81 @@ class StaffMemberControl extends ConsumerWidget {
               ),
             ),
           ],
-          const SizedBox(height: 6),
-          Text(
-            l10n.posStaffMemberHint,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
         ],
       ),
+    );
+  }
+}
+
+/// "On credit" / "Cash" for an Employee order, shown directly under
+/// [StaffMemberControl]. Credit (the default) leaves the order unpaid on the
+/// staff customer for payroll to deduct; cash settles it into the branch till
+/// at checkout. The hint underneath says which of the two will happen.
+class EmployeePaymentControl extends ConsumerWidget {
+  const EmployeePaymentControl({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final state = ref.watch(posNotifierProvider);
+    final paysCash = state.employeePaysCash;
+
+    return Column(
+      key: const ValueKey('employee-payment-control'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<String>(
+            key: const ValueKey('employee-payment-toggle'),
+            segments: [
+              ButtonSegment<String>(
+                value: PosState.employeePaymentCredit,
+                label: Text(
+                  l10n.paymentMethodCredit,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                icon: const Icon(Icons.badge_outlined),
+              ),
+              ButtonSegment<String>(
+                value: PosState.employeePaymentCash,
+                label: Text(
+                  l10n.paymentMethodCash,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                icon: const Icon(Icons.payments_outlined),
+              ),
+            ],
+            selected: <String>{
+              paysCash
+                  ? PosState.employeePaymentCash
+                  : PosState.employeePaymentCredit,
+            },
+            onSelectionChanged: state.isLoading
+                ? null
+                : (selection) {
+                    if (selection.isEmpty) return;
+                    ref
+                        .read(posNotifierProvider.notifier)
+                        .setEmployeePayment(selection.first);
+                  },
+            showSelectedIcon: false,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          paysCash ? l10n.posEmployeePaymentCashHint : l10n.posStaffMemberHint,
+          key: ValueKey(
+            paysCash
+                ? 'employee-payment-cash-hint'
+                : 'employee-payment-credit-hint',
+          ),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          ),
+        ),
+      ],
     );
   }
 }

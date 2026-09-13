@@ -88,6 +88,7 @@ class _FakePosRepository extends PosRepository {
     String? orderPurpose,
     String? commercialPolicy,
     String? policyReason,
+    String? employeePayment,
     List<String> promoCodes = const [],
   }) async {
     createInvoiceCalls += 1;
@@ -117,6 +118,7 @@ class _FakePosRepository extends PosRepository {
     String? orderPurpose,
     String? commercialPolicy,
     String? policyReason,
+    String? employeePayment,
   }) async {
     submitInvoiceAmendmentCalls += 1;
     lastAmendmentSourceInvoiceId = sourceInvoiceId;

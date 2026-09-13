@@ -21497,6 +21497,24 @@ abstract class AppLocalizations {
   /// **'Could not load staff members'**
   String get posStaffMemberLoadFailed;
 
+  /// No description provided for @posEmployeePaymentCashHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The staff member pays now; the money goes into the branch cash.'**
+  String get posEmployeePaymentCashHint;
+
+  /// No description provided for @posCheckoutEmployeeCashPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Order placed and paid in cash.'**
+  String get posCheckoutEmployeeCashPaid;
+
+  /// No description provided for @posEmployeeCashNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved ON CREDIT, not cash: the server does not support cash for staff orders yet. It will be deducted from the salary of the staff member.'**
+  String get posEmployeeCashNotSupported;
+
   /// No description provided for @managerStaffCustomersSyncAction.
   ///
   /// In en, this message translates to:

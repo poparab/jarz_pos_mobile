@@ -62,12 +62,51 @@ class _PosNotifierStub extends PosNotifier {
   }
 }
 
+/// Stands in for a finished checkout: resets the order like the real notifier
+/// and reports [outcome] for the cash Employee order that was submitted.
+class _CheckoutOutcomeStub extends _PosNotifierStub {
+  _CheckoutOutcomeStub(super.initialState, {required this.outcome});
+
+  final EmployeeCashOutcome outcome;
+  int checkoutCalls = 0;
+  EmployeeCashOutcome _outcome = EmployeeCashOutcome.none;
+
+  @override
+  EmployeeCashOutcome get lastEmployeeCashOutcome => _outcome;
+
+  @override
+  Future<String?> getTerritoryPosProfile(String customerName) async => null;
+
+  @override
+  List<Map<String, dynamic>> getCartItemsExceedingStock() => const [];
+
+  @override
+  Future<void> checkout({
+    String? paymentType,
+    String? overridePosProfileName,
+    String? paymentMethod,
+    bool posProfileOverride = false,
+  }) async {
+    checkoutCalls += 1;
+    _outcome = outcome;
+    state = state.copyWith(
+      cartItems: const [],
+      clearSelectedCustomer: true,
+      clearSelectedCommercialPolicy: true,
+      clearError: true,
+      isLoading: false,
+    );
+  }
+}
+
 Future<_PosNotifierStub> _pumpCartWidget(
   WidgetTester tester,
   PosState state, {
   UserRoles? roles,
+  _PosNotifierStub? stub,
+  bool settle = true,
 }) async {
-  final notifier = _PosNotifierStub(state);
+  final notifier = stub ?? _PosNotifierStub(state);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -89,7 +128,11 @@ Future<_PosNotifierStub> _pumpCartWidget(
     ),
   );
 
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+  }
   return notifier;
 }
 
@@ -429,6 +472,203 @@ void main() {
 
       expect(find.text('Order purpose'), findsNothing);
       expect(await openPriceListMenu(tester), hasLength(5));
+    });
+  });
+
+  group('CartWidget Employee order payment', () {
+    const managerRoles = UserRoles(
+      user: 'manager@example.invalid',
+      roles: [RoleNames.jarzManager],
+    );
+    const employeePolicy = CommercialPolicy(
+      name: 'POL-EMPLOYEE',
+      policyName: 'Employee Order',
+      orderPurpose: 'Employee',
+      waivesShippingIncome: true,
+      noCourier: true,
+      deliverAtBranch: true,
+    );
+
+    PosState employeeState({
+      String employeePayment = PosState.employeePaymentCredit,
+      bool isLoading = false,
+    }) => PosState(
+      selectedProfile: const {'name': 'Heliopolis POS'},
+      availableCommercialPolicies: const [employeePolicy],
+      selectedCommercialPolicy: employeePolicy,
+      selectedCustomer: const {
+        'name': 'CUST-STAFF-0001',
+        'customer_name': 'Mona Adel',
+      },
+      selectedStaffEmployee: 'HR-EMP-00007',
+      selectedStaffEmployeeName: 'Mona Adel',
+      employeePayment: employeePayment,
+      isLoading: isLoading,
+      cartItems: const [
+        {
+          'item_code': 'JAR-L',
+          'item_name': 'Large jar',
+          'quantity': 1,
+          'rate': 150,
+          'type': 'item',
+        },
+      ],
+    );
+
+    const creditHint =
+        'This order is deducted from the salary of the chosen staff member.';
+    const cashHint =
+        'The staff member pays now; the money goes into the branch cash.';
+
+    testWidgets('renders On credit / Cash under the staff member, credit '
+        'first and selected', (tester) async {
+      await _pumpCartWidget(tester, employeeState(), roles: managerRoles);
+
+      final staff = find.byKey(const ValueKey('staff-member-control'));
+      final toggle = find.byKey(const ValueKey('employee-payment-toggle'));
+      expect(staff, findsOneWidget);
+      expect(toggle, findsOneWidget);
+      expect(
+        tester.getTopLeft(staff).dy,
+        lessThan(tester.getTopLeft(toggle).dy),
+      );
+
+      final credit = find.descendant(
+        of: toggle,
+        matching: find.text('Credit (on account)'),
+      );
+      final cash = find.descendant(of: toggle, matching: find.text('Cash'));
+      expect(credit, findsOneWidget);
+      expect(cash, findsOneWidget);
+      expect(
+        tester.getTopLeft(credit).dx,
+        lessThan(tester.getTopLeft(cash).dx),
+      );
+
+      final button = tester.widget<SegmentedButton<String>>(toggle);
+      expect(button.selected, {PosState.employeePaymentCredit});
+      expect(find.text(creditHint), findsOneWidget);
+      expect(find.text(cashHint), findsNothing);
+    });
+
+    testWidgets('switches to cash and swaps the salary hint', (tester) async {
+      final notifier = await _pumpCartWidget(
+        tester,
+        employeeState(),
+        roles: managerRoles,
+      );
+
+      final cash = find.descendant(
+        of: find.byKey(const ValueKey('employee-payment-toggle')),
+        matching: find.text('Cash'),
+      );
+      await tester.ensureVisible(cash);
+      await tester.tap(cash);
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.employeePaysCash, isTrue);
+      expect(find.text(cashHint), findsOneWidget);
+      expect(find.text(creditHint), findsNothing);
+    });
+
+    testWidgets('is disabled while loading', (tester) async {
+      await _pumpCartWidget(
+        tester,
+        employeeState(isLoading: true),
+        roles: managerRoles,
+        settle: false,
+      );
+
+      final button = tester.widget<SegmentedButton<String>>(
+        find.byKey(const ValueKey('employee-payment-toggle')),
+      );
+      expect(button.onSelectionChanged, isNull);
+    });
+
+    testWidgets('is absent for a Standard order', (tester) async {
+      await _pumpCartWidget(
+        tester,
+        PosState(
+          selectedProfile: const {'name': 'Heliopolis POS'},
+          availableCommercialPolicies: const [employeePolicy],
+          isPickup: true,
+        ),
+        roles: managerRoles,
+      );
+
+      expect(
+        find.byKey(const ValueKey('employee-payment-toggle')),
+        findsNothing,
+      );
+    });
+
+    Future<void> tapCheckout(WidgetTester tester) async {
+      // The cart is a lazily built scroll view; make it tall enough that the
+      // checkout button is laid out at all.
+      tester.view.physicalSize = const Size(1200, 4000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpAndSettle();
+      final checkout = find.text('Checkout');
+      await tester.ensureVisible(checkout);
+      await tester.tap(checkout);
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('warns when a cash order was saved on credit', (tester) async {
+      final state = employeeState(
+        employeePayment: PosState.employeePaymentCash,
+      );
+      final stub = _CheckoutOutcomeStub(
+        state,
+        outcome: EmployeeCashOutcome.savedOnCredit,
+      );
+      await _pumpCartWidget(tester, state, roles: managerRoles, stub: stub);
+
+      await tapCheckout(tester);
+
+      expect(stub.checkoutCalls, 1);
+      expect(
+        find.byKey(const ValueKey('employee-cash-not-supported')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Saved ON CREDIT, not cash'), findsOneWidget);
+      expect(find.text('Order placed successfully!'), findsNothing);
+    });
+
+    testWidgets('confirms a cash order the server settled', (tester) async {
+      final state = employeeState(
+        employeePayment: PosState.employeePaymentCash,
+      );
+      final stub = _CheckoutOutcomeStub(
+        state,
+        outcome: EmployeeCashOutcome.paid,
+      );
+      await _pumpCartWidget(tester, state, roles: managerRoles, stub: stub);
+
+      await tapCheckout(tester);
+
+      expect(stub.checkoutCalls, 1);
+      expect(find.text('Order placed and paid in cash.'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('employee-cash-not-supported')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('keeps the plain success for a credit order', (tester) async {
+      final state = employeeState();
+      final stub = _CheckoutOutcomeStub(
+        state,
+        outcome: EmployeeCashOutcome.none,
+      );
+      await _pumpCartWidget(tester, state, roles: managerRoles, stub: stub);
+
+      await tapCheckout(tester);
+
+      expect(stub.checkoutCalls, 1);
+      expect(find.text('Order placed successfully!'), findsOneWidget);
     });
   });
 

@@ -710,6 +710,202 @@ void main() {
     });
 
     // ---------------------------------------------------------------
+    // Employee order payment (cash or on credit)
+    // ---------------------------------------------------------------
+    group('Employee payment', () {
+      const createPath = '/api/method/jarz_pos.api.invoices.create_pos_invoice';
+      const amendPath =
+          '/api/method/jarz_pos.api.manager.submit_invoice_amendment';
+      const items = [
+        {'item_code': 'JAR-L', 'quantity': 1, 'rate': 150.0},
+      ];
+      const staffCustomer = {'name': 'CUST-STAFF-0001'};
+
+      test('sends employee_payment with an Employee policy', () async {
+        mockDio.setResponse(
+          createPath,
+          createSuccessResponse(data: {'name': 'INV-STAFF-CASH'}),
+        );
+
+        await repository.createInvoice(
+          posProfile: 'Heliopolis POS',
+          items: items,
+          customer: staffCustomer,
+          orderPurpose: 'Employee',
+          commercialPolicy: 'POL-EMPLOYEE',
+          employeePayment: 'cash',
+        );
+
+        final request = mockDio.requestLog.last['data'];
+        expect(request['employee_payment'], 'cash');
+        expect(request['commercial_policy'], 'POL-EMPLOYEE');
+        // A cash staff order is not a payment-method order.
+        expect(request.containsKey('payment_method'), isFalse);
+      });
+
+      test('sends credit as its own field too', () async {
+        mockDio.setResponse(
+          createPath,
+          createSuccessResponse(data: {'name': 'INV-STAFF-CREDIT'}),
+        );
+
+        await repository.createInvoice(
+          posProfile: 'Heliopolis POS',
+          items: items,
+          customer: staffCustomer,
+          orderPurpose: 'Employee',
+          commercialPolicy: 'POL-EMPLOYEE',
+          employeePayment: 'credit',
+        );
+
+        final request = mockDio.requestLog.last['data'];
+        expect(request['employee_payment'], 'credit');
+        expect(request.containsKey('payment_method'), isFalse);
+      });
+
+      test('omits employee_payment without a commercial policy', () async {
+        mockDio.setResponse(
+          createPath,
+          createSuccessResponse(data: {'name': 'INV-STANDARD'}),
+        );
+
+        await repository.createInvoice(
+          posProfile: 'Heliopolis POS',
+          items: items,
+          customer: staffCustomer,
+          employeePayment: 'cash',
+        );
+
+        final request = mockDio.requestLog.last['data'];
+        expect(request.containsKey('employee_payment'), isFalse);
+        expect(request.containsKey('payment_method'), isFalse);
+      });
+
+      test('omits employee_payment when none is given', () async {
+        mockDio.setResponse(
+          createPath,
+          createSuccessResponse(data: {'name': 'INV-SAMPLE'}),
+        );
+
+        await repository.createInvoice(
+          posProfile: 'Heliopolis POS',
+          items: items,
+          orderPurpose: 'Sample - Courier',
+          commercialPolicy: 'POL-SAMPLE',
+        );
+
+        expect(
+          mockDio.requestLog.last['data'].containsKey('employee_payment'),
+          isFalse,
+        );
+      });
+
+      test('drops a value that is neither credit nor cash', () async {
+        mockDio.setResponse(
+          createPath,
+          createSuccessResponse(data: {'name': 'INV-STAFF-ODD'}),
+        );
+
+        await repository.createInvoice(
+          posProfile: 'Heliopolis POS',
+          items: items,
+          orderPurpose: 'Employee',
+          commercialPolicy: 'POL-EMPLOYEE',
+          employeePayment: 'Instapay',
+        );
+
+        final request = mockDio.requestLog.last['data'];
+        expect(request.containsKey('employee_payment'), isFalse);
+        expect(request.containsKey('payment_method'), isFalse);
+      });
+
+      test('keeps a real payment method separate from it', () async {
+        mockDio.setResponse(
+          createPath,
+          createSuccessResponse(data: {'name': 'INV-MIXED'}),
+        );
+
+        await repository.createInvoice(
+          posProfile: 'Heliopolis POS',
+          items: items,
+          orderPurpose: 'Employee',
+          commercialPolicy: 'POL-EMPLOYEE',
+          employeePayment: 'cash',
+          paymentMethod: 'Instapay',
+        );
+
+        final request = mockDio.requestLog.last['data'];
+        expect(request['employee_payment'], 'cash');
+        expect(request['payment_method'], 'Instapay');
+      });
+
+      test('sends employee_payment on an amendment with a policy', () async {
+        mockDio.setResponse(
+          amendPath,
+          createSuccessResponse(data: {'replacement_invoice_id': 'INV-AMD'}),
+        );
+
+        await repository.submitInvoiceAmendment(
+          sourceInvoiceId: 'INV-STAFF-001',
+          posProfile: 'Heliopolis POS',
+          items: items,
+          customer: staffCustomer,
+          orderPurpose: 'Employee',
+          commercialPolicy: 'POL-EMPLOYEE',
+          employeePayment: 'cash',
+        );
+
+        final request = mockDio.requestLog.last;
+        expect(request['path'], amendPath);
+        expect(request['data']['employee_payment'], 'cash');
+        expect(request['data']['invoice_id'], 'INV-STAFF-001');
+        expect(request['data'].containsKey('payment_method'), isFalse);
+      });
+
+      test('omits a default credit on an amendment so the server keeps the '
+          'source choice', () async {
+        mockDio.setResponse(
+          amendPath,
+          createSuccessResponse(data: {'replacement_invoice_id': 'INV-AMD'}),
+        );
+
+        await repository.submitInvoiceAmendment(
+          sourceInvoiceId: 'INV-STAFF-001',
+          posProfile: 'Heliopolis POS',
+          items: items,
+          customer: staffCustomer,
+          orderPurpose: 'Employee',
+          commercialPolicy: 'POL-EMPLOYEE',
+          employeePayment: 'credit',
+        );
+
+        final request = mockDio.requestLog.last['data'];
+        expect(request['commercial_policy'], 'POL-EMPLOYEE');
+        expect(request.containsKey('employee_payment'), isFalse);
+        expect(request.containsKey('payment_method'), isFalse);
+      });
+
+      test('omits employee_payment on an amendment without a policy', () async {
+        mockDio.setResponse(
+          amendPath,
+          createSuccessResponse(data: {'replacement_invoice_id': 'INV-AMD'}),
+        );
+
+        await repository.submitInvoiceAmendment(
+          sourceInvoiceId: 'INV-001',
+          posProfile: 'Heliopolis POS',
+          items: items,
+          employeePayment: 'cash',
+        );
+
+        expect(
+          mockDio.requestLog.last['data'].containsKey('employee_payment'),
+          isFalse,
+        );
+      });
+    });
+
+    // ---------------------------------------------------------------
     // POS Profile Name
     // ---------------------------------------------------------------
     group('POS Profile', () {

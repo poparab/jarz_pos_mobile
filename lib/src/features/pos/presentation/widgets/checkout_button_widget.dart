@@ -152,13 +152,27 @@ class CheckoutButtonWidget extends ConsumerWidget {
       }
 
       // Proceed with the already selected profile; no popup, no dimming
-      await ref.read(posNotifierProvider.notifier).checkout();
+      final notifier = ref.read(posNotifierProvider.notifier);
+      await notifier.checkout();
       if (!context.mounted) return;
       final completedState = ref.read(posNotifierProvider);
       // checkout() reports failures through provider state and returns normally.
       // A successful checkout clears the cart only after the invoice response
       // has been received, so require both signals before showing success.
       if (completedState.error == null && completedState.cartItems.isEmpty) {
+        // A cash staff order the server booked on credit is not a plain success.
+        if (notifier.lastEmployeeCashOutcome ==
+            EmployeeCashOutcome.savedOnCredit) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.posEmployeeCashNotSupported),
+              backgroundColor: Colors.orange.shade800,
+              duration: const Duration(seconds: 10),
+              showCloseIcon: true,
+            ),
+          );
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(context.l10n.checkoutOrderSuccess),

@@ -17,6 +17,15 @@ class _FakePosRepository extends PosRepository {
   int createInvoiceCalls = 0;
   String? lastOrderPurpose;
   Map<String, dynamic>? lastCustomer;
+  String? lastEmployeePayment;
+  String? lastPaymentMethod;
+  int submitInvoiceAmendmentCalls = 0;
+  String? lastAmendmentEmployeePayment;
+
+  /// What the server echoes back. Null mimics a backend without the cash
+  /// option: `employee_payment` is simply absent from the response.
+  String? Function(String? requested) echoEmployeePayment = (requested) =>
+      requested;
 
   @override
   Future<List<Map<String, dynamic>>> getItems(
@@ -76,12 +85,53 @@ class _FakePosRepository extends PosRepository {
     String? orderPurpose,
     String? commercialPolicy,
     String? policyReason,
+    String? employeePayment,
     List<String> promoCodes = const [],
   }) async {
     createInvoiceCalls += 1;
     lastOrderPurpose = orderPurpose;
     lastCustomer = customer;
-    return {'invoice_name': 'INV-STAFF-001'};
+    lastEmployeePayment = employeePayment;
+    lastPaymentMethod = paymentMethod;
+    final echoed = echoEmployeePayment(employeePayment);
+    return {
+      'invoice_name': 'INV-STAFF-001',
+      if (echoed != null) 'employee_payment': echoed,
+    };
+  }
+
+  @override
+  Future<Map<String, dynamic>> submitInvoiceAmendment({
+    required String sourceInvoiceId,
+    required String posProfile,
+    required List<Map<String, dynamic>> items,
+    Map<String, dynamic>? customer,
+    String? requiredDeliveryDatetime,
+    String? deliveryEndDatetime,
+    String? salesPartner,
+    String? paymentType,
+    bool isPickup = false,
+    String? paymentMethod,
+    String? priceList,
+    bool zeroShippingOverride = false,
+    String? idempotencyKey,
+    bool posProfileOverride = false,
+    double? expectedSourceGrandTotal,
+    int? expectedSourceItemCount,
+    double? customDeliveryIncome,
+    String? orderPurpose,
+    String? commercialPolicy,
+    String? policyReason,
+    String? employeePayment,
+  }) async {
+    submitInvoiceAmendmentCalls += 1;
+    lastAmendmentEmployeePayment = employeePayment;
+    lastPaymentMethod = paymentMethod;
+    final echoed = echoEmployeePayment(employeePayment);
+    return {
+      'replacement_invoice_id': 'INV-STAFF-001-1',
+      if (echoed != null) 'employee_payment': echoed,
+    };
   }
 }
 
@@ -387,10 +437,331 @@ void main() {
     });
   });
 
+  group('employee payment (cash or on credit)', () {
+    test('should default to credit', () {
+      final notifier = _notifier();
+
+      expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+      expect(notifier.state.employeePaysCash, isFalse);
+      expect(PosState().employeePayment, PosState.employeePaymentCredit);
+    });
+
+    test('should switch to cash and back on an Employee order', () {
+      final notifier = _notifier();
+      _pickMona(notifier);
+
+      notifier.setEmployeePayment(PosState.employeePaymentCash);
+      expect(notifier.state.employeePaysCash, isTrue);
+      expect(notifier.state.draftDirty, isTrue);
+
+      notifier.setEmployeePayment(PosState.employeePaymentCredit);
+      expect(notifier.state.employeePaysCash, isFalse);
+    });
+
+    test('should ignore the setter on a non-Employee order', () {
+      final notifier = _notifier();
+      notifier.state = notifier.state.copyWith(
+        selectedCommercialPolicy: _samplePolicy,
+      );
+
+      notifier.setEmployeePayment(PosState.employeePaymentCash);
+
+      expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+      expect(notifier.state.employeePaysCash, isFalse);
+
+      notifier.state = notifier.state.copyWith(
+        clearSelectedCommercialPolicy: true,
+      );
+      notifier.setEmployeePayment(PosState.employeePaymentCash);
+      expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+    });
+
+    test('should ignore a value that is neither credit nor cash', () {
+      final notifier = _notifier();
+
+      notifier.setEmployeePayment('Instapay');
+      expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+
+      notifier.setEmployeePayment(PosState.employeePaymentCash);
+      notifier.setEmployeePayment('');
+      expect(notifier.state.employeePayment, PosState.employeePaymentCash);
+    });
+
+    test('should not claim cash for a state that is not an Employee order', () {
+      final state = PosState(
+        selectedCommercialPolicy: _samplePolicy,
+        employeePayment: PosState.employeePaymentCash,
+      );
+
+      expect(state.employeePaysCash, isFalse);
+    });
+
+    group('should fall back to credit', () {
+      PosNotifier cashNotifier({_FakePosRepository? repository}) {
+        final notifier = _notifier(repository: repository);
+        _pickMona(notifier);
+        notifier.setEmployeePayment(PosState.employeePaymentCash);
+        expect(notifier.state.employeePaysCash, isTrue);
+        return notifier;
+      }
+
+      test('when the purpose returns to Standard', () async {
+        final notifier = cashNotifier();
+
+        await notifier.setCommercialPolicy(null);
+
+        expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+      });
+
+      test('when the purpose moves to another policy', () async {
+        final notifier = cashNotifier();
+
+        await notifier.setCommercialPolicy(_samplePolicy);
+
+        expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+
+        // Coming back to Employee does not resurrect the old cash choice.
+        await notifier.setCommercialPolicy(_employeePolicy);
+        expect(notifier.state.employeePaysCash, isFalse);
+      });
+
+      test('when the policy is cleared through copyWith', () {
+        final notifier = cashNotifier();
+
+        notifier.state = notifier.state.copyWith(
+          clearSelectedCommercialPolicy: true,
+        );
+
+        expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+      });
+
+      test('when the order becomes a B2B order', () {
+        final notifier = cashNotifier();
+
+        notifier.state = notifier.state.copyWith(isB2bOrder: true);
+
+        expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+      });
+
+      test('when the cart is cleared', () {
+        final notifier = cashNotifier();
+
+        notifier.clearCart();
+
+        expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+      });
+
+      test('when a new invoice starts', () {
+        final notifier = cashNotifier();
+
+        notifier.startNewInvoice();
+
+        expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+      });
+
+      test('when a new draft starts', () {
+        final notifier = cashNotifier();
+
+        notifier.newDraft();
+
+        expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+      });
+
+      test('after a successful checkout', () async {
+        final notifier = cashNotifier();
+
+        await notifier.checkout(overridePosProfileName: 'Heliopolis POS');
+
+        expect(notifier.state.error, isNull);
+        expect(notifier.state.cartItems, isEmpty);
+        expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+      });
+    });
+
+    test('should keep cash when the staff member is changed', () {
+      final notifier = _notifier();
+      _pickMona(notifier);
+      notifier.setEmployeePayment(PosState.employeePaymentCash);
+
+      _pickMona(notifier);
+
+      expect(notifier.state.employeePaysCash, isTrue);
+    });
+  });
+
+  group('employee payment at checkout', () {
+    test('should send credit by default and no payment method', () async {
+      final repository = _FakePosRepository();
+      final notifier = _notifier(repository: repository);
+      _pickMona(notifier);
+
+      await notifier.checkout(overridePosProfileName: 'Heliopolis POS');
+
+      expect(repository.lastEmployeePayment, PosState.employeePaymentCredit);
+      expect(repository.lastPaymentMethod, isNull);
+      expect(notifier.lastEmployeeCashOutcome, EmployeeCashOutcome.none);
+    });
+
+    test('should send cash and report it paid when the server echoes '
+        'it', () async {
+      final repository = _FakePosRepository();
+      final notifier = _notifier(repository: repository);
+      _pickMona(notifier);
+      notifier.setEmployeePayment(PosState.employeePaymentCash);
+
+      await notifier.checkout(overridePosProfileName: 'Heliopolis POS');
+
+      expect(repository.lastEmployeePayment, PosState.employeePaymentCash);
+      expect(repository.lastPaymentMethod, isNull);
+      expect(notifier.state.error, isNull);
+      expect(notifier.lastEmployeeCashOutcome, EmployeeCashOutcome.paid);
+    });
+
+    test('should flag a cash order an older server saved on credit', () async {
+      final repository = _FakePosRepository()
+        ..echoEmployeePayment = (_) => null;
+      final notifier = _notifier(repository: repository);
+      _pickMona(notifier);
+      notifier.setEmployeePayment(PosState.employeePaymentCash);
+
+      await notifier.checkout(overridePosProfileName: 'Heliopolis POS');
+
+      expect(repository.createInvoiceCalls, 1);
+      expect(notifier.state.error, isNull);
+      expect(
+        notifier.lastEmployeeCashOutcome,
+        EmployeeCashOutcome.savedOnCredit,
+      );
+    });
+
+    test('should flag a cash order the server applied as credit', () async {
+      final repository = _FakePosRepository()
+        ..echoEmployeePayment = (_) => PosState.employeePaymentCredit;
+      final notifier = _notifier(repository: repository);
+      _pickMona(notifier);
+      notifier.setEmployeePayment(PosState.employeePaymentCash);
+
+      await notifier.checkout(overridePosProfileName: 'Heliopolis POS');
+
+      expect(
+        notifier.lastEmployeeCashOutcome,
+        EmployeeCashOutcome.savedOnCredit,
+      );
+    });
+
+    group('on an amendment', () {
+      PosNotifier amendmentNotifier(_FakePosRepository repository) {
+        final notifier = _notifier(repository: repository);
+        _pickMona(notifier);
+        notifier.state = notifier.state.copyWith(
+          isAmendmentDraft: true,
+          amendmentSourceInvoiceId: 'INV-STAFF-001',
+        );
+        return notifier;
+      }
+
+      test('should omit a default credit so the server keeps the source '
+          'choice', () async {
+        final repository = _FakePosRepository();
+        final notifier = amendmentNotifier(repository);
+
+        await notifier.checkout(overridePosProfileName: 'Heliopolis POS');
+
+        expect(repository.submitInvoiceAmendmentCalls, 1);
+        expect(repository.createInvoiceCalls, 0);
+        expect(repository.lastAmendmentEmployeePayment, isNull);
+        expect(repository.lastPaymentMethod, isNull);
+        expect(notifier.state.error, isNull);
+        expect(notifier.lastEmployeeCashOutcome, EmployeeCashOutcome.none);
+      });
+
+      test('should send an explicit cash choice', () async {
+        final repository = _FakePosRepository();
+        final notifier = amendmentNotifier(repository);
+        notifier.setEmployeePayment(PosState.employeePaymentCash);
+
+        await notifier.checkout(overridePosProfileName: 'Heliopolis POS');
+
+        expect(repository.submitInvoiceAmendmentCalls, 1);
+        expect(repository.lastAmendmentEmployeePayment, 'cash');
+        expect(repository.lastPaymentMethod, isNull);
+        expect(notifier.lastEmployeeCashOutcome, EmployeeCashOutcome.paid);
+      });
+
+      test(
+        'should warn when an older server ignores the cash choice',
+        () async {
+          final repository = _FakePosRepository()
+            ..echoEmployeePayment = (_) => null;
+          final notifier = amendmentNotifier(repository);
+          notifier.setEmployeePayment(PosState.employeePaymentCash);
+
+          await notifier.checkout(overridePosProfileName: 'Heliopolis POS');
+
+          expect(
+            notifier.lastEmployeeCashOutcome,
+            EmployeeCashOutcome.savedOnCredit,
+          );
+        },
+      );
+    });
+
+    test('should not send employee_payment for a non-Employee order', () async {
+      final repository = _FakePosRepository();
+      final notifier = _notifier(repository: repository);
+      notifier.state = notifier.state.copyWith(
+        selectedCommercialPolicy: _samplePolicy,
+      );
+
+      await notifier.checkout(overridePosProfileName: 'Heliopolis POS');
+
+      expect(repository.createInvoiceCalls, 1);
+      expect(repository.lastEmployeePayment, isNull);
+      expect(notifier.lastEmployeeCashOutcome, EmployeeCashOutcome.none);
+    });
+
+    test(
+      'should reset the outcome when the next checkout is refused',
+      () async {
+        final repository = _FakePosRepository()
+          ..echoEmployeePayment = (_) => null;
+        final notifier = _notifier(repository: repository);
+        _pickMona(notifier);
+        notifier.setEmployeePayment(PosState.employeePaymentCash);
+        await notifier.checkout(overridePosProfileName: 'Heliopolis POS');
+        expect(
+          notifier.lastEmployeeCashOutcome,
+          EmployeeCashOutcome.savedOnCredit,
+        );
+
+        await notifier.checkout(overridePosProfileName: 'Heliopolis POS');
+
+        expect(notifier.state.error, 'Cart is empty');
+        expect(notifier.lastEmployeeCashOutcome, EmployeeCashOutcome.none);
+      },
+    );
+
+    test('should localize the credit warning and cash strings', () {
+      final en = AppLocalizationsEn();
+      final ar = AppLocalizationsAr();
+
+      for (final l10n in [en, ar]) {
+        expect(l10n.posEmployeeCashNotSupported, isNotEmpty);
+        expect(l10n.posEmployeePaymentCashHint, isNotEmpty);
+        expect(l10n.posCheckoutEmployeeCashPaid, isNotEmpty);
+      }
+      expect(
+        ar.posEmployeeCashNotSupported,
+        isNot(en.posEmployeeCashNotSupported),
+      );
+    });
+  });
+
   group('draft round-trip', () {
     DraftCart staffDraft({
       CommercialPolicy? policy = _employeePolicy,
       String? staffEmployee = 'HR-EMP-00007',
+      String employeePayment = 'credit',
     }) => DraftCart(
       id: 'draft-staff',
       label: 'Mona Adel · 1 item',
@@ -399,6 +770,7 @@ void main() {
       selectedCommercialPolicy: policy,
       staffEmployee: staffEmployee,
       staffEmployeeName: 'Mona Adel',
+      employeePayment: employeePayment,
       isPickup: false,
       createdAt: DateTime(2026, 9, 13),
       updatedAt: DateTime(2026, 9, 13),
@@ -422,7 +794,117 @@ void main() {
 
       expect(restored.staffEmployee, isNull);
       expect(restored.staffEmployeeName, isNull);
+      expect(restored.employeePayment, 'credit');
     });
+
+    test('should keep the cash choice through toMap/fromMap', () {
+      final map = staffDraft(employeePayment: 'cash').toMap();
+      expect(map['employee_payment'], 'cash');
+
+      expect(DraftCart.fromMap(map).employeePayment, 'cash');
+    });
+
+    test('should read an unknown saved payment as credit', () {
+      final map = staffDraft().toMap()..['employee_payment'] = 'Instapay';
+
+      expect(DraftCart.fromMap(map).employeePayment, 'credit');
+    });
+
+    test('should persist the cash choice with an Employee cart', () async {
+      final drafts = _MemoryDraftCartRepository();
+      final notifier = _notifier(drafts: drafts);
+      _pickMona(notifier);
+      notifier.setEmployeePayment(PosState.employeePaymentCash);
+
+      await notifier.testInvokePersistCurrentCart();
+
+      expect(drafts.drafts.single.employeePayment, 'cash');
+    });
+
+    test('should save credit for a non-Employee cart', () async {
+      final drafts = _MemoryDraftCartRepository();
+      final notifier = _notifier(drafts: drafts);
+      notifier.state = PosState(
+        selectedProfile: const {'name': 'Heliopolis POS'},
+        selectedCommercialPolicy: _samplePolicy,
+        employeePayment: PosState.employeePaymentCash,
+        cartItems: const [_cartLine],
+      );
+
+      await notifier.testInvokePersistCurrentCart();
+
+      expect(drafts.drafts.single.employeePayment, 'credit');
+    });
+
+    test(
+      'should restore the cash choice when switching to its draft',
+      () async {
+        final drafts = _MemoryDraftCartRepository([
+          staffDraft(employeePayment: 'cash'),
+        ]);
+        final notifier = _notifier(
+          drafts: drafts,
+          initial: PosState(
+            availableCommercialPolicies: const [_employeePolicy, _samplePolicy],
+          ),
+        );
+
+        await notifier.switchDraft('draft-staff');
+
+        expect(notifier.state.employeePaysCash, isTrue);
+      },
+    );
+
+    test('should restore a legacy Employee draft as credit', () async {
+      final legacy = staffDraft().toMap()..remove('employee_payment');
+      final drafts = _MemoryDraftCartRepository([DraftCart.fromMap(legacy)]);
+      final notifier = _notifier(
+        drafts: drafts,
+        initial: PosState(
+          availableCommercialPolicies: const [_employeePolicy, _samplePolicy],
+        ),
+      );
+
+      await notifier.switchDraft('draft-staff');
+
+      expect(notifier.state.isEmployeeOrder, isTrue);
+      expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+    });
+
+    test('should ignore a saved cash choice on a non-Employee draft', () async {
+      final drafts = _MemoryDraftCartRepository([
+        staffDraft(policy: _samplePolicy, employeePayment: 'cash'),
+      ]);
+      final notifier = _notifier(drafts: drafts, initial: PosState());
+
+      await notifier.switchDraft('draft-staff');
+
+      expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+    });
+
+    test(
+      'should not carry a cash choice into a switched non-Employee draft',
+      () async {
+        final drafts = _MemoryDraftCartRepository([
+          DraftCart(
+            id: 'draft-plain',
+            label: 'Walk-in',
+            cartItems: const [_cartLine],
+            isPickup: true,
+            createdAt: DateTime(2026, 9, 13),
+            updatedAt: DateTime(2026, 9, 13),
+          ),
+        ]);
+        final notifier = _notifier(drafts: drafts);
+        _pickMona(notifier);
+        notifier.setEmployeePayment(PosState.employeePaymentCash);
+
+        await notifier.switchDraft('draft-plain');
+
+        expect(notifier.state.selectedCommercialPolicy, isNull);
+        expect(notifier.state.employeePayment, PosState.employeePaymentCredit);
+      },
+    );
 
     test('should persist the chosen staff member with the cart', () async {
       final drafts = _MemoryDraftCartRepository();

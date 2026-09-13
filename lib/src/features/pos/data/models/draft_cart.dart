@@ -21,6 +21,10 @@ class DraftCart {
   /// staff picker. Absent on drafts saved before the picker existed.
   final String? staffEmployee;
   final String? staffEmployeeName;
+
+  /// `credit` or `cash` for an Employee-purpose order. Drafts saved before
+  /// the choice existed read as `credit`, which is how they were paid then.
+  final String employeePayment;
   final bool zeroShippingOverride;
   final bool isPickup;
   final DateTime createdAt;
@@ -48,6 +52,7 @@ class DraftCart {
     this.policyReason,
     this.staffEmployee,
     this.staffEmployeeName,
+    this.employeePayment = 'credit',
     this.zeroShippingOverride = false,
     required this.isPickup,
     required this.createdAt,
@@ -77,6 +82,7 @@ class DraftCart {
     String? staffEmployee,
     String? staffEmployeeName,
     bool clearStaffEmployee = false,
+    String? employeePayment,
     bool? zeroShippingOverride,
     bool? isPickup,
     DateTime? updatedAt,
@@ -114,6 +120,7 @@ class DraftCart {
       staffEmployeeName: clearStaffEmployee
           ? null
           : (staffEmployeeName ?? this.staffEmployeeName),
+      employeePayment: employeePayment ?? this.employeePayment,
       zeroShippingOverride: zeroShippingOverride ?? this.zeroShippingOverride,
       isPickup: isPickup ?? this.isPickup,
       createdAt: createdAt,
@@ -152,6 +159,7 @@ class DraftCart {
       'policy_reason': policyReason,
       'staff_employee': staffEmployee,
       'staff_employee_name': staffEmployeeName,
+      'employee_payment': employeePayment,
       'zero_shipping_override': zeroShippingOverride,
       'is_pickup': isPickup,
       'created_at': createdAt.toIso8601String(),
@@ -215,6 +223,10 @@ class DraftCart {
       policyReason: map['policy_reason']?.toString(),
       staffEmployee: optionalString(map['staff_employee']),
       staffEmployeeName: optionalString(map['staff_employee_name']),
+      employeePayment:
+          optionalString(map['employee_payment'])?.toLowerCase() == 'cash'
+          ? 'cash'
+          : 'credit',
       zeroShippingOverride: (map['zero_shipping_override'] as bool?) ?? false,
       isPickup: (map['is_pickup'] as bool?) ?? false,
       createdAt: parseDate(map['created_at'], now),

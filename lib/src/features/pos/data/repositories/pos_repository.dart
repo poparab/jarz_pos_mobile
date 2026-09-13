@@ -1008,6 +1008,7 @@ class PosRepository {
     String? orderPurpose,
     String? commercialPolicy,
     String? policyReason,
+    String? employeePayment, // 'credit' | 'cash' — Employee orders only
     List<String> promoCodes = const [],
   }) async {
     try {
@@ -1028,6 +1029,7 @@ class PosRepository {
         orderPurpose: orderPurpose,
         commercialPolicy: commercialPolicy,
         policyReason: policyReason,
+        employeePayment: employeePayment,
         promoCodes: promoCodes,
       );
 
@@ -1085,8 +1087,14 @@ class PosRepository {
     String? orderPurpose,
     String? commercialPolicy,
     String? policyReason,
+    // Only an explicit 'cash' is sent. Anything else is omitted so the server
+    // derives the choice from the source invoice, which the amendment cart
+    // never loaded: a default 'credit' here would un-pay an amended cash order.
+    String? employeePayment,
   }) async {
     try {
+      final amendmentEmployeePayment =
+          employeePayment?.trim().toLowerCase() == 'cash' ? 'cash' : null;
       final requestData = _buildInvoiceRequestData(
         posProfile: posProfile,
         items: items,
@@ -1104,6 +1112,7 @@ class PosRepository {
         orderPurpose: orderPurpose,
         commercialPolicy: commercialPolicy,
         policyReason: policyReason,
+        employeePayment: amendmentEmployeePayment,
       );
       requestData['invoice_id'] = sourceInvoiceId;
       // Propagate free-shipping suppression so the backend doesn't re-add
@@ -1214,6 +1223,7 @@ class PosRepository {
     String? orderPurpose,
     String? commercialPolicy,
     String? policyReason,
+    String? employeePayment,
     List<String> promoCodes = const [],
   }) {
     final cartItems = _buildCartRequestItems(items);
@@ -1319,6 +1329,17 @@ class PosRepository {
       final normalizedPolicyReason = _normalizedOptionalString(policyReason);
       if (normalizedPolicyReason != null) {
         requestData['policy_reason'] = normalizedPolicyReason;
+      }
+      // How an Employee order is paid. Its own field, never `payment_method`:
+      // the server settles `cash` into the branch till and leaves `credit`
+      // unpaid on the staff customer. Meaningless without a policy, so it
+      // travels only inside this block.
+      final normalizedEmployeePayment = _normalizedOptionalString(
+        employeePayment,
+      )?.toLowerCase();
+      if (normalizedEmployeePayment == 'credit' ||
+          normalizedEmployeePayment == 'cash') {
+        requestData['employee_payment'] = normalizedEmployeePayment;
       }
     }
     // Promo codes. The server re-computes the discount authoritatively; the
