@@ -409,9 +409,24 @@ bool _looksLikeValidation(String value) {
   ]);
 }
 
-bool _isSafeUserText(String value) {
+/// The server's own sentence for [error] when it is too long for
+/// [userErrorMessageFor] but otherwise passes the same safety filter — no
+/// traceback, SQL, exception class or URL.
+///
+/// For issue lists that exist to explain a refusal in detail (a material
+/// shortage names the item, store, numbers and dates, and runs well past the
+/// 240-character presenter limit). Returns null when the text is unsafe, so a
+/// raw server failure never reaches the operator through this door.
+String? detailedServerMessage(Object? error) {
+  if (error == null || error is Error) return null;
+  final candidate = _firstCandidate(error);
+  if (candidate == null) return null;
+  return _isSafeUserText(candidate, maxLength: 1200) ? candidate : null;
+}
+
+bool _isSafeUserText(String value, {int maxLength = 240}) {
   final text = value.trim();
-  if (text.isEmpty || text.length > 240) return false;
+  if (text.isEmpty || text.length > maxLength) return false;
   final lower = text.toLowerCase();
   if (_hasAny(lower, const [
     '<html',

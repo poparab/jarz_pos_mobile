@@ -382,4 +382,41 @@ void main() {
       );
     });
   });
+
+  group('detailedServerMessage', () {
+    final longRefusal =
+        'Manufacturing pre-check failed for Chocolate Hazelnut Large on BOM '
+        'BOM-Chocolate Hazelnut Large-002: Chocolate Hazelnut Jar Label 330 in '
+        'Warehouse Raw Material - J is short by 21.000 Nos (required 32.000, '
+        'available 11.000); that is the stock on 2026-09-01 18:00, the date of '
+        'this batch (461 Nos is there now). Enough stock from 2026-09-03 02:15 '
+        '(Purchase Invoice ACC-PINV-1): date the batch after that';
+
+    test('keeps a long, safe refusal the presenter would replace', () {
+      expect(longRefusal.length, greaterThan(240));
+      expect(
+        userErrorMessageFor(
+          en,
+          Exception(longRefusal),
+          fallback: en.commonError,
+        ),
+        en.commonError,
+      );
+      expect(detailedServerMessage(Exception(longRefusal)), longRefusal);
+    });
+
+    test('still refuses technical text', () {
+      expect(
+        detailedServerMessage(
+          Exception("OperationalError: (1205, 'Lock wait timeout exceeded')"),
+        ),
+        isNull,
+      );
+      expect(
+        detailedServerMessage(Exception('Traceback (most recent call last):')),
+        isNull,
+      );
+      expect(detailedServerMessage(StateError('boom')), isNull);
+    });
+  });
 }

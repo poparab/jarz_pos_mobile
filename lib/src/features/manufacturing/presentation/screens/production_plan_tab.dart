@@ -713,8 +713,9 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
   /// refusal is exactly that long — it names the item, the store, the numbers
   /// and, for a backdated batch, when the stock actually arrived. That is the
   /// answer the operator needs, so it is shown when the presenter could only
-  /// offer a generic line. A specific localized message (offline, forbidden…)
-  /// still wins.
+  /// offer a generic line — and only if it passes the presenter's own safety
+  /// filter, so a traceback or database error still reads as "Error". A
+  /// specific localized message (offline, forbidden…) still wins.
   String _lineError(BuildContext context, Object error) {
     final l10n = context.l10n;
     final presented = context.userErrorMessage(
@@ -725,8 +726,8 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
         presented == l10n.commonError ||
         presented == l10n.userErrorUnexpected ||
         presented == l10n.userErrorValidationFallback;
-    if (!generic || error is! Exception) return presented;
-    return extractFrappeErrorMessage(error, fallback: presented);
+    if (!generic) return presented;
+    return detailedServerMessage(error) ?? presented;
   }
 
   Future<void> _showIssues(BuildContext context, List<String> issues) {
