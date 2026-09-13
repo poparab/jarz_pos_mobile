@@ -12,6 +12,9 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../purchase/data/purchase_service.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
+
+import '../domain/missing_uom_conversion.dart';
 import '../domain/reorder_line.dart';
 import '../domain/request_allocation.dart';
 import 'widgets/line_rate_field.dart';
@@ -1725,13 +1728,38 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       _sheetSetState?.call(() {});
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
+      // The shared presenter hides this English refusal in the Arabic UI, so
+      // name the refused line from localized pieces instead.
+      final missing = parseMissingUomConversion(e);
+      if (missing != null) {
+        messenger.showSnackBar(SnackBar(
+            content: Text(_missingConversionMessage(l10n, missing))));
+      } else {
+        messenger.showSnackBar(
+            SnackBar(content: Text(context.userErrorMessage(e))));
+      }
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
         _sheetSetState?.call(() {});
       }
     }
+  }
+
+  /// `Purchase failed: name (code) · UOM: uom` for a line whose unit the
+  /// Item cannot convert to its stock unit.
+  String _missingConversionMessage(
+      AppLocalizations l10n, MissingUomConversion missing) {
+    final line = cart.cast<Map<String, dynamic>?>().firstWhere(
+          (l) => (l?['item_code'] ?? '').toString() == missing.itemCode,
+          orElse: () => null,
+        );
+    final name = (line?['item_name'] ?? '').toString().trim();
+    final label = name.isEmpty || name == missing.itemCode
+        ? missing.itemCode
+        : l10n.commonNameWithCode(name, missing.itemCode);
+    return l10n.purchaseSubmitFailed(
+        '$label · ${l10n.commonUomValue(missing.uom)}');
   }
 
   /// The posting moment as the two date buttons show it. `billDate` keeps
