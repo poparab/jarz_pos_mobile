@@ -672,6 +672,48 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('a partly failed run keeps its moment for the retry', (
+      tester,
+    ) async {
+      // The cake that failed stays ticked. Retried with the bar reset, it
+      // would post today at the current time instead of yesterday 16:00.
+      _tallWindow(tester);
+      await _pump(
+        tester,
+        BaseItemsPage(items: [_mix(), _cake()]),
+        preview: _preview(itemQty: 2.0),
+        produceNow: produced,
+        startBatches: {
+          'results': [
+            {
+              'ok': false,
+              'error': 'Short of eggs',
+              'line': {'item_code': 'Fudge Cake'},
+            },
+          ],
+        },
+        policy: policy,
+      );
+
+      final yesterday = DateTime(2026, 9, 12, 16, 0);
+      container(tester).read(baseProductionDateProvider.notifier).state =
+          yesterday;
+      await tester.pumpAndSettle();
+
+      await _open(tester, 'Blueberry mix');
+      await _open(tester, 'Fudge Cake');
+      await tester.tap(find.widgetWithText(FilledButton, 'Make 1 · start 1'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirm'));
+      await tester.pumpAndSettle();
+
+      expect(container(tester).read(baseProductionDateProvider), yesterday);
+      ScaffoldMessenger.of(
+        tester.element(find.byType(BaseProductionTab)),
+      ).clearSnackBars();
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('a time chosen on today is still confirmed', (tester) async {
       // 07:30 left on the bar at 15:00 would otherwise post the afternoon's
       // batch before the morning's deliveries, without a word.

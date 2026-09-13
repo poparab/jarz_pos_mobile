@@ -25,7 +25,8 @@ class PlanJarRow extends StatefulWidget {
     required this.quantity,
     required this.onQuantityChanged,
     required this.onUseSuggestion,
-    this.onValidityChanged,
+    this.invalidText,
+    this.onInvalidTextChanged,
     this.plannedToday,
     this.onUsePlanned,
     this.isShort = false,
@@ -43,11 +44,18 @@ class PlanJarRow extends StatefulWidget {
   /// Fills the field with the board's suggestion. One tap, visible result.
   final VoidCallback onUseSuggestion;
 
-  /// Reports whether the field currently holds something that is not a whole
-  /// jar count. While it does, the queue keeps the last valid number — so a
-  /// stray "." does not drop the line and every material choice made on it —
-  /// and the tab refuses to submit until the field is fixed.
-  final ValueChanged<bool>? onValidityChanged;
+  /// What the field holds when that is not a whole jar count, or null.
+  ///
+  /// Owned by the TAB, not this row: rows in a list are disposed when they
+  /// scroll away or a filter hides them, and a red "1.360" that lived only
+  /// here came back as a plain, valid-looking "1" — the last number the queue
+  /// kept — with Start batches enabled again. While this is set the queue
+  /// keeps the last valid number (so a stray "." does not drop the line and
+  /// the material choices on it) and the tab refuses to submit.
+  final String? invalidText;
+
+  /// Reports a new [invalidText], or null once the field is a whole number.
+  final ValueChanged<String?>? onInvalidTextChanged;
 
   /// What the plan already filed for this day says about this flavour, when it
   /// says anything.
@@ -75,7 +83,9 @@ class _PlanJarRowState extends State<PlanJarRow> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: _textFor(widget.quantity));
+    _controller = TextEditingController(
+      text: widget.invalidText ?? _textFor(widget.quantity),
+    );
   }
 
   @override
@@ -88,15 +98,40 @@ class _PlanJarRowState extends State<PlanJarRow> {
     // changing, because an invalid "12." parses as nothing while the model still
     // holds 12 — comparing the two alone would snap the field back to "12" and
     // swallow the point again.
-    if (widget.quantity == oldWidget.quantity) return;
-    final shown = int.tryParse(_controller.text) ?? 0;
-    if (shown == widget.quantity) return;
-    final text = _textFor(widget.quantity);
-    // A number written from outside ("Use 60") replaces whatever was wrong.
-    if (_invalid) {
-      _invalid = false;
-      widget.onValidityChanged?.call(false);
+    if (widget.quantity != oldWidget.quantity) {
+      if (_invalid || oldWidget.invalidText != null) {
+        // A number written from outside ("Use 60", Clear) replaces whatever
+        // was wrong. Compared as TEXT, not parsed: "12." parses as nothing, so
+        // a Clear taking 12 to 0 would otherwise read as already shown and
+        // leave the red field — and its 12 — behind. Clear drops the entry in
+        // the same frame, so the OLD widget is what still remembers it.
+        final text = _textFor(widget.quantity);
+        if (_controller.text != text) _write(text);
+        if (_invalid) {
+          final report = widget.onInvalidTextChanged;
+          // After the frame: this runs inside the parent's build.
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => report?.call(null),
+          );
+        }
+        return;
+      }
+      final shown = int.tryParse(_controller.text) ?? 0;
+      if (shown != widget.quantity) _write(_textFor(widget.quantity));
+      return;
     }
+    // The tab dropped the invalid entry without touching the quantity (Clear
+    // on a row that never held a valid number). Only while the field still
+    // shows that entry — once somebody has typed over it there is nothing to
+    // undo.
+    if (oldWidget.invalidText != null &&
+        widget.invalidText == null &&
+        _controller.text == oldWidget.invalidText) {
+      _write(_textFor(widget.quantity));
+    }
+  }
+
+  void _write(String text) {
     _controller.value = TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
@@ -105,9 +140,6 @@ class _PlanJarRowState extends State<PlanJarRow> {
 
   @override
   void dispose() {
-    // A row leaving the tree (a filter, a refresh) must not hold the submit
-    // shut for a field nobody can see any more.
-    if (_invalid) widget.onValidityChanged?.call(false);
     _controller.dispose();
     super.dispose();
   }
@@ -121,18 +153,17 @@ class _PlanJarRowState extends State<PlanJarRow> {
   /// typed as "1.360" and read as 1360 jars. Refusing the keystroke would do
   /// the same thing one digit later; showing the field as wrong is the only
   /// version that tells anybody.
-  bool _invalid = false;
+  bool get _invalid => widget.invalidText != null;
 
   static final _wholeNumber = RegExp(r'^[0-9]+$');
 
   void _onChanged(String text) {
     final trimmed = text.trim();
-    final invalid = trimmed.isNotEmpty && !_wholeNumber.hasMatch(trimmed);
-    if (invalid != _invalid) {
-      setState(() => _invalid = invalid);
-      widget.onValidityChanged?.call(invalid);
+    if (trimmed.isNotEmpty && !_wholeNumber.hasMatch(trimmed)) {
+      widget.onInvalidTextChanged?.call(text);
+      return;
     }
-    if (invalid) return;
+    if (_invalid) widget.onInvalidTextChanged?.call(null);
     widget.onQuantityChanged(int.tryParse(trimmed) ?? 0);
   }
 

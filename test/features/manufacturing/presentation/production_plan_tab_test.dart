@@ -330,9 +330,10 @@ void main() {
 
     final container = _container(tester);
     expect(_shown(tester, 'CAKE-A'), '1.360');
+    // On the row, and on the action bar in case the row is scrolled away.
     expect(
       find.text('Whole jars only. Mixes and cakes go on the Bases tab.'),
-      findsOneWidget,
+      findsNWidgets(2),
     );
     // A red field queues nothing.
     expect(container.read(dailyPlanDraftProvider).quantities, isEmpty);
@@ -389,6 +390,74 @@ void main() {
       find.text('Whole jars only. Mixes and cakes go on the Bases tab.'),
       findsNothing,
     );
+  });
+
+  testWidgets('a red entry survives its row leaving the screen', (
+    tester,
+  ) async {
+    // Rows are disposed when they scroll away or a filter hides them. Held
+    // only by the row, "1.360" came back as a plain "1" with Start enabled.
+    await _pump(
+      tester,
+      page: ProductionSuggestionsPage(
+        items: [_item(itemCode: 'CAKE-A', suggestedBatches: 5)],
+        velocityUpdatedOn: '2026-08-01 00:00:00',
+      ),
+    );
+
+    await tester.enterText(_quantityField('CAKE-A'), '1');
+    await tester.pumpAndSettle();
+    await tester.enterText(_quantityField('CAKE-A'), '1.360');
+    await tester.pumpAndSettle();
+
+    final container = _container(tester);
+    container.read(productionFilterProvider.notifier).state =
+        const ProductionFilter().toggle(ProductionStatus.ok);
+    await tester.pumpAndSettle();
+    expect(_row('CAKE-A'), findsNothing);
+    expect(_button(tester, 'Start batches').onPressed, isNull);
+
+    container.read(productionFilterProvider.notifier).state =
+        const ProductionFilter();
+    await tester.pumpAndSettle();
+    expect(_shown(tester, 'CAKE-A'), '1.360');
+    expect(_button(tester, 'Start batches').onPressed, isNull);
+  });
+
+  testWidgets('Clear empties a red field and lets the day start again', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      page: ProductionSuggestionsPage(
+        items: [_item(itemCode: 'CAKE-A', suggestedBatches: 5)],
+        velocityUpdatedOn: '2026-08-01 00:00:00',
+      ),
+    );
+
+    await tester.enterText(_quantityField('CAKE-A'), '12');
+    await tester.pumpAndSettle();
+    await tester.enterText(_quantityField('CAKE-A'), '12.');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.backspace_outlined));
+    await tester.pumpAndSettle();
+
+    final container = _container(tester);
+    expect(_shown(tester, 'CAKE-A'), '');
+    expect(container.read(productionBasketProvider).lines, isEmpty);
+    expect(
+      find.text('Whole jars only. Mixes and cakes go on the Bases tab.'),
+      findsNothing,
+    );
+
+    // Deleting the point from a field that is no longer there cannot bring
+    // the cleared 12 back.
+    await tester.enterText(_quantityField('CAKE-A'), '');
+    await tester.pumpAndSettle();
+    expect(container.read(productionBasketProvider).lines, isEmpty);
   });
 
   testWidgets('flags negative stock so somebody counts the item', (

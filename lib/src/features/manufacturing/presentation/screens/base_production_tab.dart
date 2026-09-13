@@ -7,6 +7,7 @@ import '../../../../core/ui/loading_overlay.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../data/models/base_item.dart';
+import '../../data/models/production_policy.dart';
 import '../../data/models/production_suggestion.dart' show ProductionStatus;
 import '../../state/base_production_providers.dart';
 import '../../state/production_providers.dart';
@@ -372,7 +373,17 @@ class _MakeBar extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
 
     final chosen = ref.read(baseProductionDateProvider);
-    final policy = ref.read(productionPolicyOrFallbackProvider);
+    // Re-read right before posting. The policy is otherwise fetched once per
+    // login, and "today" is the one thing an un-dated Make takes from it: a
+    // tablet whose clock or timezone sits off the server's near midnight would
+    // otherwise carry the wrong day for the rest of the session.
+    ProductionPolicy policy;
+    try {
+      policy = await ref.refresh(productionPolicyProvider.future);
+    } catch (_) {
+      policy = ref.read(productionPolicyOrFallbackProvider);
+    }
+    if (!context.mounted) return;
     final date = chosen ?? policy.today();
 
     // Refused here with the reason, rather than by the server per line.
@@ -415,10 +426,17 @@ class _MakeBar extends ConsumerWidget {
 
     // Stock has physically moved for every line that succeeded, so every figure
     // the list was showing is now wrong.
-    if (!report.postedNothing) {
-      // The moment belonged to the run just recorded. Left on the bar it would
-      // date the next Make too — later today, or tomorrow morning.
+    // The moment belonged to the run just recorded. Left on the bar it would
+    // date the next Make too — later today, or tomorrow morning. Only once the
+    // WHOLE run is in, though: a line that failed stays ticked to be retried,
+    // and a retry of yesterday's cake must still be yesterday's.
+    if (report.okCount > 0 &&
+        report.failures.isEmpty &&
+        report.mixError == null &&
+        report.cakeError == null) {
       ref.read(baseProductionDateProvider.notifier).state = null;
+    }
+    if (!report.postedNothing) {
       ref.read(baseItemsProvider.notifier).refresh();
       if (report.hasRunningWork) {
         await ref.read(runningBatchesProvider.notifier).refresh();

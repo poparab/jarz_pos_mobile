@@ -56,20 +56,28 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
   /// Deliberately not poured into the fields — see [PlanEntryController.hydrate].
   DailyPlan? _savedPlan;
 
-  /// Rows whose field holds something that is not a whole jar count. Their
-  /// queue lines keep the last valid number, so neither action may run until
-  /// the field is fixed — otherwise a red "1.360" would still post 1.
-  final Set<String> _invalidRows = <String>{};
+  /// `{item code: raw text}` for every field holding something that is not a
+  /// whole jar count. Their queue lines keep the last valid number, so neither
+  /// action may run until each is fixed — otherwise a red "1.360" would still
+  /// post 1. Kept here rather than on the row, which a scroll or a filter
+  /// disposes and rebuilds from the queue's number.
+  final Map<String, String> _invalidText = <String, String>{};
 
-  void _setRowValidity(String itemCode, bool invalid) {
-    final changed = invalid
-        ? _invalidRows.add(itemCode)
-        : _invalidRows.remove(itemCode);
-    if (!changed) return;
-    // Reported from a row's dispose as well, which can land mid-build.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() {});
+  void _setInvalidText(String itemCode, String? text) {
+    if (!mounted || _invalidText[itemCode] == text) return;
+    setState(() {
+      if (text == null) {
+        _invalidText.remove(itemCode);
+      } else {
+        _invalidText[itemCode] = text;
+      }
     });
+  }
+
+  /// Empties the day, including any field still holding an invalid entry.
+  void _clearDay() {
+    setState(_invalidText.clear);
+    ref.read(planEntryProvider).clear();
   }
 
   @override
@@ -258,8 +266,9 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
                           onQuantityChanged: (qty) =>
                               entry.setQuantity(row, qty),
                           onUseSuggestion: () => entry.fillSuggestion(row),
-                          onValidityChanged: (invalid) =>
-                              _setRowValidity(row.itemCode, invalid),
+                          invalidText: _invalidText[row.itemCode],
+                          onInvalidTextChanged: (text) =>
+                              _setInvalidText(row.itemCode, text),
                           onUsePlanned: planned.containsKey(row.itemCode)
                               ? () => entry.setQuantity(
                                   row,
@@ -323,8 +332,8 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
           rollupLoading: rollupAsync.isLoading,
           rollupFailed: rollupAsync.hasError,
           materialSelectionsValid: materialSelectionsValid,
-          hasInvalidEntry: _invalidRows.isNotEmpty,
-          onSavePlan: draft.isEmpty || _invalidRows.isNotEmpty
+          hasInvalidEntry: _invalidText.isNotEmpty,
+          onSavePlan: draft.isEmpty || _invalidText.isNotEmpty
               ? null
               : () => _savePlan(context),
           onCheckMaterials: draft.isEmpty
@@ -337,7 +346,7 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
           onCancelPlan: (draft.savedPlanName ?? '').isEmpty
               ? null
               : () => _cancelPlan(context),
-          onClear: draft.isEmpty ? null : ref.read(planEntryProvider).clear,
+          onClear: draft.isEmpty && _invalidText.isEmpty ? null : _clearDay,
           onStartBatches: () => _startBatches(context),
           onQuickProduce: () => _quickProduce(context),
           // The same condition the banner it replaced used: offered only when
@@ -459,6 +468,8 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
 
     try {
       await ref.read(dailyPlanDraftProvider.notifier).cancel(reason);
+      // The day is called off, so no field is left holding a half-typed entry.
+      if (mounted) setState(_invalidText.clear);
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.productionPlanCancelled)),
       );
@@ -798,7 +809,12 @@ class _PlanActions extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                nothingToSubmit
+                hasInvalidEntry
+                    // Said on the bar too: the red field may be scrolled away
+                    // or filtered out, and a disabled Start with no reason
+                    // reads as a broken board.
+                    ? l10n.productionPlanWholeJarsOnly
+                    : nothingToSubmit
                     ? l10n.productionPlanNothingQueued
                     : l10n.productionBatchTotals(
                         trimQty(basket.totalBatches),
