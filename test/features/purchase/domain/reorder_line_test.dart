@@ -213,6 +213,43 @@ void main() {
     });
   });
 
+  group('linesWithUnresolvedTaxTemplate', () {
+    test('a refill that kept its VAT while the list was down is refused', () {
+      final refill = reorderLineFrom(boxLine(template: 'VAT 14% - JZ'),
+          detail: detail(), itemTaxTemplates: null);
+      final cart = [
+        {'item_code': 'RM-CUPS', 'item_tax_template': refill.itemTaxTemplate},
+      ];
+      expect(
+          linesWithUnresolvedTaxTemplate(cart, const [])
+              .map((l) => l['item_code']),
+          ['RM-CUPS'],
+          reason: 'the screen shows no VAT but the server would charge it');
+      expect(linesWithUnresolvedTaxTemplate(cart, const [vat14]), isEmpty,
+          reason: 'once the list arrives the line is priced correctly');
+    });
+
+    test('a template the loaded list does not offer is refused', () {
+      final cart = <Map<String, dynamic>>[
+        {'item_code': 'A', 'item_tax_template': 'VAT 10% - OLD'},
+        {'item_code': 'B', 'item_tax_template': 'VAT 14% - JZ'},
+      ];
+      expect(
+          linesWithUnresolvedTaxTemplate(cart, const [vat14])
+              .map((l) => l['item_code']),
+          ['A']);
+    });
+
+    test('No VAT lines always resolve, even with no list', () {
+      final cart = <Map<String, dynamic>>[
+        {'item_code': 'A', 'item_tax_template': null},
+        {'item_code': 'B', 'item_tax_template': ''},
+        {'item_code': 'C'},
+      ];
+      expect(linesWithUnresolvedTaxTemplate(cart, const []), isEmpty);
+    });
+  });
+
   group('RetryingLoad', () {
     test('a call made before the first load finishes shares it', () async {
       var calls = 0;

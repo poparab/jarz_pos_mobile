@@ -170,3 +170,22 @@ double _round(double value) => (value * 1e6).roundToDouble() / 1e6;
 /// supplier's bill and with no error. Submit refuses while this is non-empty.
 List<Map<String, dynamic>> linesWithoutQty(List<Map<String, dynamic>> cart) =>
     cart.where((line) => !(_num(line['qty']) > 0)).toList();
+
+/// Cart lines whose VAT template is set but absent from [itemTaxTemplates].
+///
+/// The screen prices VAT from that list, so such a line shows no VAT and a
+/// lower total — yet submit still sends the template and the server charges
+/// it. The buyer would pay a total they never saw. It happens when the list
+/// failed to load (a refilled line keeps its own VAT) or no longer offers the
+/// template. Submit refuses while this is non-empty. A missing or empty
+/// template is "No VAT" and always resolves.
+List<Map<String, dynamic>> linesWithUnresolvedTaxTemplate(
+  List<Map<String, dynamic>> cart,
+  List<Map<String, dynamic>> itemTaxTemplates,
+) {
+  final known = itemTaxTemplates.map((t) => t['name']?.toString()).toSet();
+  return cart.where((line) {
+    final template = (line['item_tax_template'] ?? '').toString();
+    return template.isNotEmpty && !known.contains(template);
+  }).toList();
+}

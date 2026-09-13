@@ -166,7 +166,9 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   Future<void> _loadItemTaxTemplates() async {
     final templates = await _itemTaxTemplateLoad.ensure();
     // A failure is the same as above: without these the per-line picker simply
-    // stays hidden and the item's own default still applies server-side.
+    // stays hidden and the item's own default still applies server-side. A
+    // line already carrying a template is the exception — submit retries this
+    // load and refuses the line if its VAT still cannot be priced.
     if (!mounted || templates == null) return;
     setState(() => itemTaxTemplates = templates);
   }
@@ -674,14 +676,46 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   /// that the submit path forwards as such, rather than letting the server
   /// silently re-apply the item's default.
   Widget _buildLineTaxRow(Map<String, dynamic> line, {required VoidCallback onChanged}) {
-    if (itemTaxTemplates.isEmpty) return const SizedBox.shrink();
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final selected = line['item_tax_template'] as String?;
-    // A template the item carries but which this company's list does not offer
-    // would otherwise make DropdownButton assert on an unmatched value.
     final known =
         selected != null && itemTaxTemplates.any((t) => t['name'] == selected);
+
+    // A template the list cannot price — it failed to load, or no longer
+    // offers it. Hiding the row (or showing "No VAT", which DropdownButton
+    // would need to avoid asserting on an unmatched value) told the buyer the
+    // line was untaxed while submit still sent the VAT. Show the raw name so
+    // the VAT is visible, and let the buyer drop it; submit refuses the line
+    // until it resolves.
+    if (selected != null && selected.isNotEmpty && !known) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Row(children: [
+          Icon(Icons.receipt_long_outlined, size: 14, color: theme.colorScheme.error),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              selected,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.error),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 16),
+            tooltip: l10n.purchaseNoVat,
+            visualDensity: VisualDensity.compact,
+            onPressed: () {
+              setState(() => line['item_tax_template'] = null);
+              onChanged();
+            },
+          ),
+        ]),
+      );
+    }
+
+    if (itemTaxTemplates.isEmpty) return const SizedBox.shrink();
     final value = known ? selected : null;
     final taxAmount = _num(line['qty']) * _num(line['rate']) * _taxRateFor(value) / 100.0;
 
@@ -1610,6 +1644,52 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       messenger.showSnackBar(SnackBar(
           content: Text('$names: ${l10n.manufacturingQuantityMustBePositive}')));
       return;
+    }
+
+    // A line whose VAT template is not in the loaded list shows no VAT and a
+    // lower total, but the template is still sent and the server charges it.
+    // Try the list once more first — usually it simply failed to load. The
+    // flag is held across the wait so a second tap cannot start another
+    // submit meanwhile; no invoice call has been made, so the idempotency key
+    // is untouched either way.
+    if (linesWithUnresolvedTaxTemplate(cart, itemTaxTemplates).isNotEmpty) {
+      setState(() => _submitting = true);
+      _sheetSetState?.call(() {});
+      try {
+        await _loadItemTaxTemplates();
+      } finally {
+        if (mounted) {
+          setState(() => _submitting = false);
+          _sheetSetState?.call(() {});
+        }
+      }
+      if (!mounted) return;
+      final unresolved = linesWithUnresolvedTaxTemplate(cart, itemTaxTemplates);
+      if (unresolved.isNotEmpty) {
+        final names = unresolved
+            .map((l) => l10n.commonNameWithCode(
+                (l['item_name'] ?? l['item_code']).toString(),
+                (l['item_code'] ?? '').toString()))
+            .join(', ');
+        messenger.showSnackBar(SnackBar(
+          content:
+              Text('$names: ${l10n.manufacturingLoadFailed(l10n.purchaseTaxesLabel)}'),
+          // Retrying only helps while the list itself is missing; a template
+          // the loaded list does not offer has to be changed on the line.
+          action: _itemTaxTemplateLoad.isLoaded
+              ? null
+              : SnackBarAction(
+                  label: l10n.commonRetry,
+                  // The same preconditions the submit button checks: the
+                  // cart may have changed while the SnackBar was showing.
+                  onPressed: () {
+                    if (!mounted || cart.isEmpty || supplier == null) return;
+                    _submit();
+                  },
+                ),
+        ));
+        return;
+      }
     }
 
     final paymentOption = await _choosePaymentOption();
