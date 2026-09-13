@@ -1251,6 +1251,16 @@ void main() {
       expect(await checkoutWith(staleDefault), nextSlot.datetime);
     });
 
+    test('the default slot tapped by the operator is kept after it starts', () async {
+      final tappedDefault = slotAt(
+        const Duration(minutes: -3),
+        const Duration(minutes: 90),
+        isDefault: true,
+      ).asOperatorChoice();
+
+      expect(await checkoutWith(tappedDefault), tappedDefault.datetime);
+    });
+
     test('a slot that has ended is replaced even when it was chosen', () async {
       final ended = slotAt(const Duration(minutes: -100), const Duration(minutes: 90));
 

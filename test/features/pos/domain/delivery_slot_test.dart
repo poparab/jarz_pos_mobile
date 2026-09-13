@@ -87,6 +87,14 @@ void main() {
         expect(DeliverySlot.pickDefault([running, next]), same(next));
       });
 
+      test('asOperatorChoice clears isDefault and keeps the slot identity', () {
+        final chosen = slot('22:00:00', isDefault: true, isCurrent: true).asOperatorChoice();
+
+        expect(chosen.isDefault, isFalse);
+        expect(chosen.isCurrent, isTrue);
+        expect(chosen, equals(slot('22:00:00')));
+      });
+
       test('never pre-selects a running slot on its own', () {
         expect(DeliverySlot.pickDefault([slot('22:00:00', isCurrent: true)]), isNull);
         expect(DeliverySlot.pickDefault(const []), isNull);

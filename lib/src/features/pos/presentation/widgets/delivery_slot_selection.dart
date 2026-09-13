@@ -301,10 +301,11 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
             )
           : null,
       onTap: () {
+        final chosen = slot.asOperatorChoice();
         setState(() {
-          _selectedSlot = slot;
+          _selectedSlot = chosen;
         });
-        widget.onSlotChanged(slot);
+        widget.onSlotChanged(chosen);
         Navigator.of(context).pop();
       },
     );

@@ -4133,21 +4133,24 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       }
 
       // Find current slot based on invoice data
+      // The order's own slot, only when it is still on offer. It used to fall
+      // back to slots.first, which is now the slot running right now: the dialog
+      // then claimed that as the order's slot and refused to save it as "no
+      // change" - exactly the slot a late order is most likely moved to.
       DeliverySlot? currentSlot;
       if (widget.invoice.deliveryDate != null && widget.invoice.deliveryTimeFrom != null) {
-        try {
-          final currentDateTime = '${widget.invoice.deliveryDate}T${widget.invoice.deliveryTimeFrom}';
-          currentSlot = slots.firstWhere(
-            (slot) => slot.datetime == currentDateTime,
-            orElse: () => slots.first,
-          );
-        } catch (e) {
-          currentSlot = slots.first;
+        final currentDateTime = '${widget.invoice.deliveryDate}T${widget.invoice.deliveryTimeFrom}';
+        for (final slot in slots) {
+          if (slot.datetime == currentDateTime) {
+            currentSlot = slot;
+            break;
+          }
         }
       }
 
       // Show dialog to select new delivery slot (same pattern as manager dashboard)
-      DeliverySlot? selectedSlot = currentSlot ?? slots.first;
+      DeliverySlot? selectedSlot =
+          currentSlot ?? DeliverySlot.pickDefault(slots) ?? slots.first;
       
       final picked = await showDialog<DeliverySlot>(
         context: context,

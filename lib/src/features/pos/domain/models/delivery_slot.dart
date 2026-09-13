@@ -53,6 +53,23 @@ class DeliverySlot {
     };
   }
 
+  /// This slot as an explicit operator pick.
+  ///
+  /// On a *selected* slot, [isDefault] means "pre-selected by the app": checkout
+  /// moves such a slot to the next one once it has started, while a deliberate
+  /// pick survives until the slot ends. Tapping the default slot in the picker is
+  /// deliberate, so the copy the picker stores clears the flag.
+  DeliverySlot asOperatorChoice() => DeliverySlot(
+    date: date,
+    time: time,
+    datetime: datetime,
+    endDatetime: endDatetime,
+    label: label,
+    dayLabel: dayLabel,
+    timeLabel: timeLabel,
+    isCurrent: isCurrent,
+  );
+
   /// The slot to pre-select: the one the backend marks default, otherwise the
   /// first slot that has not started. Never the running slot - picking that is
   /// always a deliberate choice.
