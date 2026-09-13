@@ -27,7 +27,14 @@ class _RecordingKanbanNotifier extends StateNotifier<KanbanState>
     this.confirmReply = const {'success': true},
     this.confirmGate,
     this.receiptStatus = 'Unconfirmed',
+    this.payError,
   }) : super(KanbanState());
+
+  /// When set, payInvoice throws it (e.g. the server's shift gate).
+  final Object? payError;
+
+  /// How many times the board was reloaded.
+  int loads = 0;
 
   final Object? confirmError;
   final Map<String, dynamic> confirmReply;
@@ -71,11 +78,14 @@ class _RecordingKanbanNotifier extends StateNotifier<KanbanState>
     String? posProfile,
   }) async {
     calls.add('pay:$paymentMode');
+    if (payError != null) throw payError!;
     return {'success': true, 'payment_entry': 'ACC-PAY-0001'};
   }
 
   @override
-  Future<void> loadInvoices({bool immediate = false}) async {}
+  Future<void> loadInvoices({bool immediate = false}) async {
+    loads++;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -385,4 +395,67 @@ void main() {
     expect(kanban.calls, isEmpty);
     expect(tester.takeException(), isNull);
   });
+
+  // Review follow-ups (pre-release review of 378a95a, round 2).
+
+  testWidgets(
+    'a second Continue activation before the dialog is drawn confirms once',
+    (tester) async {
+      final kanban = _RecordingKanbanNotifier();
+      await _openInstapayProof(tester, kanban: kanban, canConfirm: true);
+
+      // A pointer double tap is absorbed by the Navigator for the frame after
+      // a push, but a second activation that skips hit testing (a keyboard or
+      // accessibility "tap") still reaches the handler the button was last
+      // built with. Capture that handler and fire it twice, the second time
+      // after the first flow's receipt re-read has finished and its dialog
+      // has been pushed but not drawn.
+      final button = find.ancestor(
+        of: find.text(en.transferProofContinue),
+        matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+      );
+      final onPressed = tester.widget<ButtonStyleButton>(button).onPressed!;
+      onPressed();
+      await tester.idle();
+      onPressed();
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.transferProofConfirmTitle), findsOneWidget);
+
+      await tester.tap(find.text(en.transferProofConfirmYes));
+      await tester.pumpAndSettle();
+
+      expect(kanban.calls, ['confirm:PR-0042', 'pay:InstaPay']);
+      expect(find.text(en.transferProofConfirmTitle), findsNothing);
+      expect(find.text(en.transferProofTitle), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'a pay refused after the confirm refreshes the board so Pay pays directly',
+    (tester) async {
+      // Confirm stamped the receipt; pay_invoice then refused (no open shift).
+      // The receipt is now Confirmed on the server, so the stale card must be
+      // reloaded: on the old snapshot, Pay reopens the sheet and a new
+      // screenshot is refused because the receipt is no longer editable.
+      final kanban = _RecordingKanbanNotifier(
+        payError: Exception(
+          'No open shift on branch Maadi, so paying an invoice is not allowed. '
+          'Start a shift on this branch first.',
+        ),
+      );
+      await _openInstapayProof(tester, kanban: kanban, canConfirm: true);
+
+      await tester.tap(find.text(en.transferProofContinue));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.transferProofConfirmYes));
+      await tester.pumpAndSettle();
+
+      expect(kanban.calls, ['confirm:PR-0042', 'pay:InstaPay']);
+      expect(kanban.loads, 1);
+      expect(find.text(en.userErrorShiftRequired), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

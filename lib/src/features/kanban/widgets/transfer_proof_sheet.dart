@@ -356,29 +356,45 @@ class _TransferProofSheetState extends ConsumerState<TransferProofSheet> {
 
     final l10n = context.l10n;
     final amountText = formatCurrency(context, _amount);
-    final arrived = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.transferProofConfirmTitle),
-        content: Text(l10n.transferProofConfirmBody(amountText)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.transferProofConfirmNo),
-          ),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            icon: const Icon(Icons.verified_outlined, size: 18),
-            label: Text(l10n.transferProofConfirmYes),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[600],
-              foregroundColor: Colors.white,
+    // Busy while the question is up, so a second Continue cannot start a
+    // second flow. The Navigator absorbs a pointer double tap for one frame
+    // after the push, but a keyboard or accessibility activation still reached
+    // [_submit]: it opened a second dialog and confirmed twice, and the first
+    // flow's `navigator.pop(outcome)` then closed that second `bool` dialog
+    // instead of the sheet. No label, so no progress bar behind the dialog.
+    setState(() {
+      _busy = true;
+      _busyLabel = null;
+      _error = null;
+    });
+    bool? arrived;
+    try {
+      arrived = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.transferProofConfirmTitle),
+          content: Text(l10n.transferProofConfirmBody(amountText)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(l10n.transferProofConfirmNo),
             ),
-          ),
-        ],
-      ),
-    );
+            ElevatedButton.icon(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              icon: const Icon(Icons.verified_outlined, size: 18),
+              label: Text(l10n.transferProofConfirmYes),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green[600],
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
     if (!mounted) return;
     if (arrived != true) {
       navigator.pop(TransferProofOutcome.awaitingConfirmation);
@@ -596,13 +612,13 @@ class _TransferProofSheetState extends ConsumerState<TransferProofSheet> {
                     ),
                 ],
               ),
-              if (_busy) ...[
+              // Only a request shows progress; the busy hold while the confirm
+              // question is open has no label and draws nothing here.
+              if (_busy && _busyLabel != null) ...[
                 const SizedBox(height: 12),
                 const LinearProgressIndicator(),
-                if (_busyLabel != null) ...[
-                  const SizedBox(height: 6),
-                  Text(_busyLabel!, style: theme.textTheme.bodySmall),
-                ],
+                const SizedBox(height: 6),
+                Text(_busyLabel!, style: theme.textTheme.bodySmall),
               ],
               if (_error != null) ...[
                 const SizedBox(height: 12),

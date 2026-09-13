@@ -1900,6 +1900,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.invoicePaymentFailed)),
         );
+        _refreshBoardQuietly(notifier);
       }
     } catch (e) {
       // The server's reason, not a bare "Payment failed": the notifier now
@@ -1912,6 +1913,13 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           duration: const Duration(seconds: 6),
         ),
       );
+      // `payInvoice` reloads the board only on success. After the proof sheet
+      // confirmed the receipt, a refusal here (no open shift, say) leaves the
+      // receipt Confirmed and the invoice unpaid; on the stale card Pay
+      // reopened the sheet, and a new screenshot was refused because a
+      // Confirmed receipt is no longer editable. Reloaded, Pay goes straight
+      // to `pay_invoice`.
+      _refreshBoardQuietly(notifier);
     }
   }
 
