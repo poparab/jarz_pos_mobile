@@ -8,6 +8,8 @@ import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/utils/responsive_utils.dart';
+import '../../../core/utils/pasted_text.dart';
+import '../../../core/widgets/paste_icon_button.dart';
 
 /// The Kanban board's filter bar.
 ///
@@ -147,17 +149,29 @@ class _KanbanFiltersWidgetState extends State<KanbanFiltersWidget> {
                     textInputAction: TextInputAction.search,
                     onChanged: _onSearchChanged,
                     onSubmitted: (_) => _submitSearch(),
+                    inputFormatters: const [SearchQueryInputFormatter()],
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: l10n.kanbanFilterSearchHint,
                       prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _currentFilters.searchTerm.isNotEmpty
-                          ? IconButton(
+                      suffixIcon: SuffixIconRow(
+                        children: [
+                          PasteIconButton(
+                            controller: _searchController,
+                            inputFormatters: const [
+                              SearchQueryInputFormatter(),
+                            ],
+                            onChanged: _onSearchChanged,
+                          ),
+                          if (_currentFilters.searchTerm.isNotEmpty)
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
                               tooltip: l10n.commonClear,
                               icon: const Icon(Icons.clear),
                               onPressed: _clearSearch,
-                            )
-                          : null,
+                            ),
+                        ],
+                      ),
                       border: const OutlineInputBorder(),
                     ),
                   ),

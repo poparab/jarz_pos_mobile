@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/widgets/paste_icon_button.dart';
 import '../../data/models/staff_customer_models.dart';
 import '../../data/repositories/staff_customer_repository.dart';
 import '../../state/pos_notifier.dart';
@@ -318,6 +319,11 @@ class _StaffMemberPickerSheetState
             decoration: InputDecoration(
               hintText: l10n.posStaffMemberSearchHint,
               prefixIcon: const Icon(Icons.search),
+              suffixIcon: PasteIconButton(
+                controller: _searchController,
+                enabled: _ensuringEmployee == null,
+                onChanged: _onSearchChanged,
+              ),
               border: const OutlineInputBorder(),
               isDense: true,
             ),

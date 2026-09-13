@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/timing_config.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/utils/pasted_text.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/widgets/customer_shipping_address_dialog.dart';
+import '../../../../core/widgets/paste_icon_button.dart';
 import '../../../../core/widgets/paste_or_clear_button.dart';
 import '../../../../core/widgets/customer_shipping_address_flow.dart';
 import '../../../../core/repositories/customer_address_repository.dart';
@@ -64,6 +67,15 @@ class CustomerSearchWidget extends ConsumerStatefulWidget {
   ConsumerState<CustomerSearchWidget> createState() =>
       _CustomerSearchWidgetState();
 }
+
+/// Shared by the tablet dropdown field and the phone search page.
+const List<TextInputFormatter> _searchFormatters = [
+  SearchQueryInputFormatter(),
+];
+
+/// Quick Add phone fields: pasted `+20 100-123 4567` or Arabic digits become
+/// plain digits instead of being saved with invisible marks.
+const List<TextInputFormatter> _phoneFormatters = [PhoneInputFormatter()];
 
 class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
   final TextEditingController _controller = TextEditingController();
@@ -618,6 +630,10 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
                   focusNode: focusNode,
                   onEditingComplete: onEditingComplete,
                   onChanged: _onSearchChanged,
+                  // A phone copied from WhatsApp arrives wrapped in bidi marks
+                  // and often in Arabic digits; unnormalised it fails the phone
+                  // test above and is searched as a *name*, matching nothing.
+                  inputFormatters: _searchFormatters,
                   keyboardType: isPhoneSearch
                       ? TextInputType.phone
                       : TextInputType.text,
@@ -635,8 +651,17 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
                       horizontal: 16,
                       vertical: 12,
                     ),
-                    suffixIcon: _currentQuery.isNotEmpty
-                        ? IconButton(
+                    suffixIcon: SuffixIconRow(
+                      children: [
+                        PasteIconButton(
+                          controller: controller,
+                          inputFormatters: _searchFormatters,
+                          onChanged: _onSearchChanged,
+                        ),
+                        if (_currentQuery.isNotEmpty)
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: context.l10n.commonClear,
                             icon: const Icon(Icons.clear),
                             onPressed: () {
                               controller.clear();
@@ -644,8 +669,9 @@ class _CustomerSearchWidgetState extends ConsumerState<CustomerSearchWidget> {
                                 _currentQuery = '';
                               });
                             },
-                          )
-                        : null,
+                          ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -846,44 +872,69 @@ class _QuickAddCustomerWidgetState
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   child: Column(
                     children: [
-                      // First row - Customer Name and Mobile Number
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _nameController,
-                              decoration: InputDecoration(
-                                labelText: context.l10n.customerNameLabel,
-                                border: const OutlineInputBorder(),
-                                prefixIcon: const Icon(Icons.person),
+                      // First row - Customer Name and Mobile Number. Stacked
+                      // on a narrow dialog: side by side, each half is ~120 px
+                      // and the prefix + paste icons left no room for text.
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final nameField = TextFormField(
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                              labelText: context.l10n.customerNameLabel,
+                              border: const OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.person),
+                              suffixIcon: PasteIconButton(
+                                controller: _nameController,
+                                enabled: !_isLoading,
                               ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return context.l10n.customerNameRequired;
-                                }
-                                return null;
-                              },
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _mobileController,
-                              keyboardType: TextInputType.phone,
-                              decoration: InputDecoration(
-                                labelText: context.l10n.mobileNumberLabel,
-                                border: const OutlineInputBorder(),
-                                prefixIcon: const Icon(Icons.phone),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return context.l10n.customerNameRequired;
+                              }
+                              return null;
+                            },
+                          );
+                          final mobileField = TextFormField(
+                            controller: _mobileController,
+                            keyboardType: TextInputType.phone,
+                            inputFormatters: _phoneFormatters,
+                            decoration: InputDecoration(
+                              labelText: context.l10n.mobileNumberLabel,
+                              border: const OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.phone),
+                              suffixIcon: PasteIconButton(
+                                controller: _mobileController,
+                                replace: true,
+                                inputFormatters: _phoneFormatters,
+                                enabled: !_isLoading,
                               ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return context.l10n.mobileNumberRequired;
-                                }
-                                return null;
-                              },
                             ),
-                          ),
-                        ],
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return context.l10n.mobileNumberRequired;
+                              }
+                              return null;
+                            },
+                          );
+                          if (constraints.maxWidth < 480) {
+                            return Column(
+                              children: [
+                                nameField,
+                                const SizedBox(height: 16),
+                                mobileField,
+                              ],
+                            );
+                          }
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: nameField),
+                              const SizedBox(width: 16),
+                              Expanded(child: mobileField),
+                            ],
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -891,11 +942,18 @@ class _QuickAddCustomerWidgetState
                       TextFormField(
                         controller: _secondaryMobileController,
                         keyboardType: TextInputType.phone,
+                        inputFormatters: _phoneFormatters,
                         decoration: InputDecoration(
                           labelText: context.l10n.secondaryPhoneLabel,
                           border: const OutlineInputBorder(),
                           prefixIcon: const Icon(Icons.phone_android),
                           hintText: context.l10n.secondaryPhoneHint,
+                          suffixIcon: PasteIconButton(
+                            controller: _secondaryMobileController,
+                            replace: true,
+                            inputFormatters: _phoneFormatters,
+                            enabled: !_isLoading,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -1427,6 +1485,7 @@ class _CustomerSearchPageState extends ConsumerState<_CustomerSearchPage> {
           controller: _controller,
           autofocus: true,
           onChanged: _onChanged,
+          inputFormatters: _searchFormatters,
           textInputAction: TextInputAction.search,
           keyboardType: _isPhoneSearch
               ? TextInputType.phone
@@ -1437,9 +1496,22 @@ class _CustomerSearchPageState extends ConsumerState<_CustomerSearchPage> {
             hintText: _isPhoneSearch
                 ? l10n.customerSearchByPhone
                 : l10n.customerSearchHint,
-            suffixIcon: _rawText.isEmpty
-                ? null
-                : IconButton(icon: const Icon(Icons.clear), onPressed: _clear),
+            suffixIcon: SuffixIconRow(
+              children: [
+                PasteIconButton(
+                  controller: _controller,
+                  inputFormatters: _searchFormatters,
+                  onChanged: _onChanged,
+                ),
+                if (_rawText.isNotEmpty)
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    tooltip: l10n.commonClear,
+                    icon: const Icon(Icons.clear),
+                    onPressed: _clear,
+                  ),
+              ],
+            ),
           ),
         ),
       ),

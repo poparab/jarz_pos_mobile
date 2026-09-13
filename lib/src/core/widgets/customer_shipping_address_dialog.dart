@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../features/geo/presentation/widgets/location_link_field.dart';
 import '../constants/app_routes.dart';
 import '../localization/localization_extensions.dart';
+import 'paste_icon_button.dart';
 import 'paste_or_clear_button.dart';
 import '../repositories/customer_address_repository.dart';
+import '../utils/pasted_text.dart';
 import '../utils/territory_label.dart';
 
 /// Dialog for selecting, adding, editing, and deleting customer shipping
@@ -608,6 +610,10 @@ class _CustomerShippingAddressDialogState
                       labelText: l10n.customerShippingAddressBranchNameLabel,
                       prefixIcon: const Icon(Icons.store_outlined),
                       border: const OutlineInputBorder(),
+                      suffixIcon: PasteIconButton(
+                        controller: _branchNameController,
+                        enabled: !_isBusy,
+                      ),
                     ),
                     textCapitalization: TextCapitalization.words,
                   ),
@@ -649,6 +655,15 @@ class _CustomerShippingAddressDialogState
                     labelText: l10n.invoicePhoneNumber,
                     prefixIcon: const Icon(Icons.phone),
                     border: const OutlineInputBorder(),
+                    // Replaces rather than inserts, and strips the bidi marks
+                    // and separators a WhatsApp copy carries. Deliberately no
+                    // input formatter: a stored value may hold two numbers.
+                    suffixIcon: PasteIconButton(
+                      controller: _phoneController,
+                      replace: true,
+                      transform: PastedText.normalizePhone,
+                      enabled: !_isBusy,
+                    ),
                   ),
                   keyboardType: TextInputType.phone,
                 ),
@@ -848,6 +863,10 @@ class _CustomerShippingAddressDialogState
                 labelText: l10n.customerShippingAddressBranchNameLabel,
                 border: const OutlineInputBorder(),
                 isDense: true,
+                suffixIcon: PasteIconButton(
+                  controller: es.branchNameController,
+                  enabled: !_isBusy,
+                ),
               ),
               textCapitalization: TextCapitalization.words,
             ),
@@ -859,6 +878,10 @@ class _CustomerShippingAddressDialogState
               labelText: l10n.customerShippingAddressLine1Label,
               border: const OutlineInputBorder(),
               isDense: true,
+              suffixIcon: PasteIconButton(
+                controller: es.line1Controller,
+                enabled: !_isBusy,
+              ),
             ),
             textCapitalization: TextCapitalization.words,
           ),
@@ -869,6 +892,10 @@ class _CustomerShippingAddressDialogState
               labelText: l10n.customerShippingAddressLine2Label,
               border: const OutlineInputBorder(),
               isDense: true,
+              suffixIcon: PasteIconButton(
+                controller: es.line2Controller,
+                enabled: !_isBusy,
+              ),
             ),
             textCapitalization: TextCapitalization.words,
           ),
@@ -886,6 +913,12 @@ class _CustomerShippingAddressDialogState
               labelText: l10n.invoicePhoneNumber,
               border: const OutlineInputBorder(),
               isDense: true,
+              suffixIcon: PasteIconButton(
+                controller: es.phoneController,
+                replace: true,
+                transform: PastedText.normalizePhone,
+                enabled: !_isBusy,
+              ),
             ),
             keyboardType: TextInputType.phone,
           ),

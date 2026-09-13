@@ -9,6 +9,7 @@ import '../../../../core/network/user_service.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/repositories/customer_address_repository.dart';
 import '../../../../core/widgets/customer_shipping_address_flow.dart';
+import '../../../../core/widgets/paste_icon_button.dart';
 import '../../state/pos_notifier.dart';
 import '../dialogs/payment_method_dialog.dart';
 import '../dialogs/territory_profile_mismatch_dialog.dart';
@@ -2513,6 +2514,11 @@ class _PromoCodeSectionState extends ConsumerState<_PromoCodeSection> {
                   hintText: context.l10n.posCartPromoCodeHint,
                   isDense: true,
                   border: OutlineInputBorder(),
+                  suffixIcon: PasteIconButton(
+                    controller: _controller,
+                    replace: true,
+                    transform: (s) => s.replaceAll(' ', '').toUpperCase(),
+                  ),
                 ),
               ),
             ),

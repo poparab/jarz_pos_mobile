@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../localization/localization_extensions.dart';
+import '../utils/pasted_text.dart';
+import 'paste_icon_button.dart' show readClipboardText;
 
 /// In-field paste/clear affordance for text inputs staff fill by pasting.
 ///
@@ -40,13 +41,28 @@ class PasteOrClearButton extends StatelessWidget {
   static const pasteKey = ValueKey('paste_or_clear_paste');
   static const clearKey = ValueKey('paste_or_clear_clear');
 
-  Future<void> _paste() async {
+  Future<void> _paste(BuildContext context) async {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final pasteLabel = MaterialLocalizations.of(context).pasteButtonLabel;
     // iOS 16+ raises its own "Allow Paste?" prompt here. That is one extra tap
     // on a system sheet, still far cheaper than the long-press dance it
     // replaces — and it only appears while the field is empty.
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-    final text = data?.text ?? '';
-    if (text.trim().isEmpty) return;
+    //
+    // On the web build the read can be refused outright (permission denied,
+    // or a browser without `clipboard.readText`). That used to throw inside
+    // onPressed, so the button simply looked dead; now staff get told to use
+    // the keyboard shortcut instead.
+    final result = await readClipboardText();
+    if (result.failed) {
+      messenger
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text('$pasteLabel: Ctrl+V')));
+      return;
+    }
+    // Invisible bidi marks from WhatsApp/Contacts are dropped; line breaks are
+    // kept because every host of this button is a multi-line address field.
+    final text = PastedText.sanitize(result.text ?? '', multiline: true);
+    if (text.isEmpty) return;
     controller.value = TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
@@ -77,7 +93,9 @@ class PasteOrClearButton extends StatelessWidget {
           tooltip: hasText
               ? (clearTooltip ?? context.l10n.commonClear)
               : context.l10n.commonPaste,
-          onPressed: enabled ? (hasText ? _clear : _paste) : null,
+          onPressed: enabled
+              ? (hasText ? _clear : () => _paste(context))
+              : null,
         );
       },
     );

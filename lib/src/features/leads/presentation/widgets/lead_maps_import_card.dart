@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/utils/pasted_text.dart';
+import '../../../../core/widgets/paste_icon_button.dart' show readClipboardText;
 import '../../../geo/domain/maps_link_input.dart';
 import '../../../geo/presentation/widgets/location_preview_map.dart';
 import '../../data/models/lead_maps_preview.dart';
@@ -148,9 +149,19 @@ class _LeadMapsImportCardState extends ConsumerState<LeadMapsImportCard> {
   }
 
   Future<void> _paste() async {
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-    final text = data?.text ?? '';
-    if (!mounted || text.trim().isEmpty) return;
+    final pasteLabel = MaterialLocalizations.of(context).pasteButtonLabel;
+    // Never throws: a refused web clipboard read used to escape onPressed and
+    // leave the button looking dead.
+    final result = await readClipboardText();
+    if (!mounted) return;
+    if (result.failed) {
+      ScaffoldMessenger.maybeOf(context)
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text('$pasteLabel: Ctrl+V')));
+      return;
+    }
+    final text = PastedText.sanitize(result.text ?? '');
+    if (text.isEmpty) return;
     _controller.value = TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),

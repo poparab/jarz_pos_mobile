@@ -8,6 +8,8 @@ import '../../data/device_contact_picker.dart';
 import '../../data/models/lead.dart';
 import '../leads_theme.dart';
 import 'lead_actions.dart';
+import '../../../../core/utils/pasted_text.dart';
+import '../../../../core/widgets/paste_icon_button.dart';
 
 /// The people at a lead: owner, manager, shift manager, barista, whoever the
 /// rep actually met.
@@ -464,9 +466,11 @@ class _LeadContactEditorSheetState extends State<LeadContactEditorSheet> {
                   _phone,
                   l10n.leadContactsPhone,
                   keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]')),
-                  ],
+                  // Was an allow-list of `[0-9+ ]`, which silently deleted every
+                  // Arabic-Indic digit, so a number pasted from an Arabic phone
+                  // came out empty. Convert instead; spaces still survive.
+                  inputFormatters: const [PhoneInputFormatter(keepSpaces: true)],
+                  pasteReplaces: true,
                 ),
                 _field(_email, l10n.leadContactsEmail,
                     keyboardType: TextInputType.emailAddress),
@@ -534,6 +538,7 @@ class _LeadContactEditorSheetState extends State<LeadContactEditorSheet> {
     TextInputType? keyboardType,
     TextCapitalization textCapitalization = TextCapitalization.none,
     List<TextInputFormatter>? inputFormatters,
+    bool pasteReplaces = false,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -548,6 +553,12 @@ class _LeadContactEditorSheetState extends State<LeadContactEditorSheet> {
           hintText: hint,
           isDense: true,
           border: const OutlineInputBorder(),
+          suffixIcon: PasteIconButton(
+            controller: controller,
+            replace: pasteReplaces,
+            multiline: maxLines > 1,
+            inputFormatters: inputFormatters ?? const [],
+          ),
         ),
       ),
     );

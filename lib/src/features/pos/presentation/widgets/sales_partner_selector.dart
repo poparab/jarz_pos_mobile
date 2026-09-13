@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/widgets/paste_icon_button.dart';
 import '../../data/repositories/pos_repository.dart';
 import '../../state/pos_notifier.dart';
 
@@ -18,9 +19,23 @@ class _SalesPartnerSelectorDialogState extends ConsumerState<SalesPartnerSelecto
   bool _loading = true;
   String _search = '';
 
+  /// Owned here (the field had none) so the paste button can write into it.
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
+    _loadPartners();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _search = value.trim();
     _loadPartners();
   }
 
@@ -50,11 +65,16 @@ class _SalesPartnerSelectorDialogState extends ConsumerState<SalesPartnerSelecto
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: context.l10n.salesPartnerSearchHint),
-              onChanged: (v) {
-                _search = v.trim();
-                _loadPartners();
-              },
+              controller: _searchController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                hintText: context.l10n.salesPartnerSearchHint,
+                suffixIcon: PasteIconButton(
+                  controller: _searchController,
+                  onChanged: _onSearchChanged,
+                ),
+              ),
+              onChanged: _onSearchChanged,
             ),
             const SizedBox(height: 12),
             if (_loading)
