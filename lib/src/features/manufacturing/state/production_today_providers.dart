@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/frappe_error_message.dart';
 import '../data/manufacturing_service.dart';
 import '../data/models/base_item.dart';
 import '../data/models/basket_rollup.dart';
@@ -223,7 +224,9 @@ class ProductionTodayNotifier extends Notifier<ProductionTodayDraft> {
 
     try {
       if (baseLines.isNotEmpty) {
-        report = report.copyWith(attempted: report.attempted + baseLines.length);
+        report = report.copyWith(
+          attempted: report.attempted + baseLines.length,
+        );
         try {
           final response = await service.produceNow(
             baseLines,
@@ -307,8 +310,7 @@ class ProductionTodayNotifier extends Notifier<ProductionTodayDraft> {
   BaseLineResolution _resolveBaseLines(String scheduledAt) {
     final page = ref.read(baseItemsProvider).valueOrNull;
     final byCode = <String, BaseItem>{
-      for (final item in page?.items ?? const <BaseItem>[])
-        item.itemCode: item,
+      for (final item in page?.items ?? const <BaseItem>[]) item.itemCode: item,
     };
 
     final lines = <Map<String, dynamic>>[];
@@ -412,7 +414,12 @@ List<ProduceLineOutcome> parseProduceResults(Map<String, dynamic> response) {
       ProduceLineOutcome(
         itemCode: itemCode,
         ok: ok,
-        error: ok ? null : '${row['error'] ?? ''}'.trim(),
+        // A per-line error is ERPNext's own exception text, which formats stock
+        // refusals as HTML for Desk; rendered verbatim the operator read the
+        // `<strong>` and `<a href>` tags.
+        error: ok
+            ? null
+            : extractFrappeErrorMessage(row['error'] ?? '', fallback: ''),
       ),
     );
   }

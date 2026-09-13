@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/user_error_message.dart';
+import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/ui/loading_overlay.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/widgets/posting_date_confirmation_dialog.dart';
@@ -546,10 +547,7 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
         workOrder = result.workOrder;
       } catch (error) {
         if (!context.mounted) break;
-        issues.add(
-          '${line.itemCode}: '
-          '${context.userErrorMessage(error, fallback: l10n.commonError)}',
-        );
+        issues.add('${line.itemCode}: ${_lineError(context, error)}');
         continue;
       }
       started[line] = workOrder;
@@ -666,7 +664,11 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
           (row['work_order'] ?? '').toString().isNotEmpty) {
         succeeded.add(itemCode);
       } else {
-        final error = '${row['error'] ?? l10n.commonError}';
+        // ERPNext's stock refusals arrive as Desk HTML; see `_lineError`.
+        final error = extractFrappeErrorMessage(
+          row['error'] ?? '',
+          fallback: l10n.commonError,
+        );
         issues.add(itemCode.isEmpty ? error : '$itemCode: $error');
       }
     }
@@ -701,6 +703,30 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
       ref.read(productionPolicyOrFallbackProvider),
       date,
     );
+  }
+
+  /// Why one line refused to start, as the server said it.
+  ///
+  /// The service has already reduced the response to plain text (HTML tags
+  /// stripped). `userErrorMessage` is the wrong presenter here: it replaces any
+  /// sentence over 240 characters with a generic "Error", and a material
+  /// refusal is exactly that long — it names the item, the store, the numbers
+  /// and, for a backdated batch, when the stock actually arrived. That is the
+  /// answer the operator needs, so it is shown when the presenter could only
+  /// offer a generic line. A specific localized message (offline, forbidden…)
+  /// still wins.
+  String _lineError(BuildContext context, Object error) {
+    final l10n = context.l10n;
+    final presented = context.userErrorMessage(
+      error,
+      fallback: l10n.commonError,
+    );
+    final generic =
+        presented == l10n.commonError ||
+        presented == l10n.userErrorUnexpected ||
+        presented == l10n.userErrorValidationFallback;
+    if (!generic || error is! Exception) return presented;
+    return extractFrappeErrorMessage(error, fallback: presented);
   }
 
   Future<void> _showIssues(BuildContext context, List<String> issues) {
