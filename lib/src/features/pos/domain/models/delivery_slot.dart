@@ -9,6 +9,10 @@ class DeliverySlot {
   final String timeLabel;
   final bool isDefault;
 
+  /// The slot has already started but not ended. The backend offers it so staff
+  /// can still book the window that is running now; it is never the default.
+  final bool isCurrent;
+
   const DeliverySlot({
     required this.date,
     required this.time,
@@ -18,6 +22,7 @@ class DeliverySlot {
     required this.dayLabel,
     required this.timeLabel,
     this.isDefault = false,
+    this.isCurrent = false,
   });
 
   factory DeliverySlot.fromJson(Map<String, dynamic> json) {
@@ -30,6 +35,7 @@ class DeliverySlot {
       dayLabel: json['day_label'] as String,
       timeLabel: json['time_label'] as String,
       isDefault: json['is_default'] as bool? ?? false,
+      isCurrent: json['is_current'] as bool? ?? false,
     );
   }
 
@@ -43,7 +49,21 @@ class DeliverySlot {
       'day_label': dayLabel,
       'time_label': timeLabel,
       'is_default': isDefault,
+      'is_current': isCurrent,
     };
+  }
+
+  /// The slot to pre-select: the one the backend marks default, otherwise the
+  /// first slot that has not started. Never the running slot - picking that is
+  /// always a deliberate choice.
+  static DeliverySlot? pickDefault(List<DeliverySlot> slots) {
+    for (final slot in slots) {
+      if (slot.isDefault) return slot;
+    }
+    for (final slot in slots) {
+      if (!slot.isCurrent) return slot;
+    }
+    return null;
   }
 
   @override

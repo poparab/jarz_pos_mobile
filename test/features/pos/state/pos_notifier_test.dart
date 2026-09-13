@@ -24,6 +24,8 @@ class _FakePosRepository extends PosRepository {
   int submitInvoiceAmendmentCalls = 0;
   /// custom_delivery_income sent with each createInvoice call, in order.
   final List<double?> createInvoiceDeliveryIncomes = [];
+  /// required_delivery_datetime sent with each createInvoice call, in order.
+  final List<String?> createInvoiceDeliveryStarts = [];
   // Delay injected into getBundles to simulate async gap in tests.
   Duration? getBundlesDelay;
 
@@ -93,6 +95,7 @@ class _FakePosRepository extends PosRepository {
   }) async {
     createInvoiceCalls += 1;
     createInvoiceDeliveryIncomes.add(customDeliveryIncome);
+    createInvoiceDeliveryStarts.add(requiredDeliveryDatetime);
     return {'invoice_name': 'INV-NEW-001'};
   }
 
@@ -1170,6 +1173,91 @@ void main() {
   // ──────────────────────────────────────────────────────────────────────────
   // PosNotifier – customer & delivery
   // ──────────────────────────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────────────────
+  // Checkout – the slot that is running now
+  // ──────────────────────────────────────────────────────────────────────────
+  group('PosNotifier checkout keeps a deliberately chosen running slot', () {
+    late _FakePosRepository repository;
+    late PosNotifier notifier;
+
+    DeliverySlot slotAt(
+      Duration fromNow,
+      Duration length, {
+      bool isDefault = false,
+      bool isCurrent = false,
+    }) {
+      final start = DateTime.now().add(fromNow);
+      final end = start.add(length);
+      return DeliverySlot(
+        date: start.toIso8601String().substring(0, 10),
+        time: start.toIso8601String().substring(11, 19),
+        datetime: start.toIso8601String(),
+        endDatetime: end.toIso8601String(),
+        label: start.toIso8601String(),
+        dayLabel: 'Today',
+        timeLabel: start.toIso8601String(),
+        isDefault: isDefault,
+        isCurrent: isCurrent,
+      );
+    }
+
+    final nextSlot = slotAt(
+      const Duration(minutes: 80),
+      const Duration(minutes: 90),
+      isDefault: true,
+    );
+
+    Future<String?> checkoutWith(DeliverySlot selected) async {
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Main POS'},
+        isPickup: false,
+        selectedCustomer: const {'name': 'CUST-1', 'delivery_income': 0},
+        cartItems: const [
+          {'item_code': 'ITEM-1', 'item_name': 'Item', 'quantity': 1, 'rate': 10.0, 'type': 'item'},
+        ],
+        selectedDeliverySlot: selected,
+      );
+      await notifier.checkout();
+      expect(repository.createInvoiceCalls, 1, reason: notifier.state.error);
+      return repository.createInvoiceDeliveryStarts.single;
+    }
+
+    setUp(() {
+      repository = _FakePosRepository()
+        ..slotsResult = [
+          slotAt(const Duration(minutes: -10), const Duration(minutes: 90), isCurrent: true),
+          nextSlot,
+        ];
+      notifier = PosNotifier(repository, _FakeDraftCartRepository());
+    });
+
+    test('the running slot picked from the list is sent unchanged', () async {
+      final running = slotAt(
+        const Duration(minutes: -10),
+        const Duration(minutes: 90),
+        isCurrent: true,
+      );
+
+      expect(await checkoutWith(running), running.datetime);
+    });
+
+    test('an auto-selected default that has since started moves to the next slot', () async {
+      final staleDefault = slotAt(
+        const Duration(minutes: -10),
+        const Duration(minutes: 90),
+        isDefault: true,
+      );
+
+      expect(await checkoutWith(staleDefault), nextSlot.datetime);
+    });
+
+    test('a slot that has ended is replaced even when it was chosen', () async {
+      final ended = slotAt(const Duration(minutes: -100), const Duration(minutes: 90));
+
+      expect(await checkoutWith(ended), nextSlot.datetime);
+    });
+  });
+
   group('PosNotifier customer & delivery', () {
     late PosNotifier notifier;
 

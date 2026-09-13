@@ -51,14 +51,13 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
       _slots = cached;
       // Auto-select default if needed
       if (_selectedSlot == null) {
-        final defaultSlot = cached.firstWhere(
-          (slot) => slot.isDefault,
-          orElse: () => cached.first,
-        );
-        _selectedSlot = defaultSlot;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          widget.onSlotChanged(_selectedSlot);
-        });
+        final defaultSlot = DeliverySlot.pickDefault(cached);
+        if (defaultSlot != null) {
+          _selectedSlot = defaultSlot;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            widget.onSlotChanged(_selectedSlot);
+          });
+        }
       }
     } else {
       _loadDeliverySlots();
@@ -106,11 +105,8 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
         _isLoading = false;
 
         // Auto-select the default slot if none is selected
-        if (_selectedSlot == null && slots.isNotEmpty) {
-          final defaultSlot = slots.firstWhere(
-            (slot) => slot.isDefault,
-            orElse: () => slots.first,
-          );
+        final defaultSlot = DeliverySlot.pickDefault(slots);
+        if (_selectedSlot == null && defaultSlot != null) {
           _selectedSlot = defaultSlot;
           widget.onSlotChanged(_selectedSlot);
         }
@@ -123,7 +119,25 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
     }
   }
 
-  void _showSlotSelectionDialog() {
+  /// The cached list was fetched when the cart opened. Once the clock has moved
+  /// past a slot's start or end, its "next" and "in progress" markers are wrong,
+  /// so the list is re-read before it is shown.
+  bool _slotsAreStale() {
+    final now = DateTime.now();
+    return _slots.any((slot) {
+      final start = DateTime.tryParse(slot.datetime);
+      final end = DateTime.tryParse(slot.endDatetime);
+      if (start == null || end == null) return false;
+      if (!end.isAfter(now)) return true;
+      return !start.isAfter(now) && !slot.isCurrent;
+    });
+  }
+
+  Future<void> _showSlotSelectionDialog() async {
+    if (_slotsAreStale()) {
+      await _loadDeliverySlots();
+      if (!mounted || _slots.isEmpty) return;
+    }
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -253,6 +267,22 @@ class _DeliverySlotSelectionState extends ConsumerState<DeliverySlotSelection> {
       ),
       trailing: isSelected
           ? Icon(Icons.check_circle, color: Theme.of(context).primaryColor)
+          : slot.isCurrent
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.orange[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                l10n.statusInProgress,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.orange[800],
+                ),
+              ),
+            )
           : slot.isDefault
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

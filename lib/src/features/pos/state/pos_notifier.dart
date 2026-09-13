@@ -2506,10 +2506,7 @@ class PosNotifier extends StateNotifier<PosState> {
       if (slots.isNotEmpty) {
         // Choose default slot if none selected
         DeliverySlot? selected = state.selectedDeliverySlot;
-        selected ??= slots.firstWhere(
-          (s) => s.isDefault,
-          orElse: () => slots.first,
-        );
+        selected ??= DeliverySlot.pickDefault(slots);
         state = state.copyWith(
           deliverySlots: slots,
           selectedDeliverySlot: selected,
@@ -2524,31 +2521,36 @@ class PosNotifier extends StateNotifier<PosState> {
     }
   }
 
-  /// Replace a selected delivery slot whose start has already passed.
+  /// Replace a selected delivery slot that is no longer a valid choice.
   ///
   /// [_prefetchDeliverySlots] picks a default when the cart is opened and never
   /// revisits it, so an order finished an hour later still carries the slot that
-  /// was next back then. Re-fetching here keeps the operator's own choice when
-  /// it is still on the grid, and otherwise moves them to the next slot the
+  /// was next back then. Re-fetching here moves them to the next slot the
   /// profile actually offers rather than letting the backend improvise one.
+  ///
+  /// A slot that is running right now survives when it was a deliberate pick -
+  /// the "in progress" slot chosen from the list, or the window an amended order
+  /// already had. Only an auto-selected default that has since started, or any
+  /// slot that has ended, is replaced.
   Future<void> _refreshStaleDeliverySlot() async {
     if (state.isPickup) return;
     final selected = state.selectedDeliverySlot;
     if (selected == null) return;
 
+    final now = DateTime.now();
     final start = DateTime.tryParse(selected.datetime);
-    if (start == null || start.isAfter(DateTime.now())) return;
+    if (start == null || start.isAfter(now)) return;
+    final end = DateTime.tryParse(selected.endDatetime);
+    final stillRunning = end != null && end.isAfter(now);
+    if (stillRunning && !selected.isDefault) return;
 
     final profileName = state.selectedProfile?['name']?.toString();
     if (profileName == null || profileName.isEmpty) return;
 
     try {
       final slots = await _repository.getDeliverySlots(profileName);
-      if (slots.isEmpty) return;
-      final replacement = slots.firstWhere(
-        (s) => s.isDefault,
-        orElse: () => slots.first,
-      );
+      final replacement = DeliverySlot.pickDefault(slots);
+      if (replacement == null) return;
       state = state.copyWith(
         deliverySlots: slots,
         selectedDeliverySlot: replacement,

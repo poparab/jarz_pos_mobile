@@ -43,6 +43,56 @@ void main() {
       expect(slot.isDefault, isFalse);
     });
 
+    test('fromJson reads is_current and defaults it to false', () {
+      final base = {
+        'date': '2026-09-12',
+        'time': '22:00:00',
+        'datetime': '2026-09-12T22:00:00',
+        'end_datetime': '2026-09-12T23:30:00',
+        'label': 'Today, 10:00 PM - 11:30 PM',
+        'day_label': 'Today',
+        'time_label': '10:00 PM - 11:30 PM',
+      };
+
+      expect(DeliverySlot.fromJson({...base, 'is_current': true}).isCurrent, isTrue);
+      expect(DeliverySlot.fromJson(base).isCurrent, isFalse);
+      expect(DeliverySlot.fromJson({...base, 'is_current': true}).toJson()['is_current'], isTrue);
+    });
+
+    group('pickDefault', () {
+      DeliverySlot slot(String start, {bool isDefault = false, bool isCurrent = false}) =>
+          DeliverySlot(
+            date: '2026-09-12',
+            time: start,
+            datetime: '2026-09-12T$start',
+            endDatetime: '2026-09-12T$start',
+            label: start,
+            dayLabel: 'Today',
+            timeLabel: start,
+            isDefault: isDefault,
+            isCurrent: isCurrent,
+          );
+
+      test('takes the slot the backend marks default, not the running one', () {
+        final running = slot('22:00:00', isCurrent: true);
+        final next = slot('00:00:00', isDefault: true);
+
+        expect(DeliverySlot.pickDefault([running, next]), same(next));
+      });
+
+      test('without a default flag, skips the running slot', () {
+        final running = slot('22:00:00', isCurrent: true);
+        final next = slot('23:30:00');
+
+        expect(DeliverySlot.pickDefault([running, next]), same(next));
+      });
+
+      test('never pre-selects a running slot on its own', () {
+        expect(DeliverySlot.pickDefault([slot('22:00:00', isCurrent: true)]), isNull);
+        expect(DeliverySlot.pickDefault(const []), isNull);
+      });
+    });
+
     test('toJson converts DeliverySlot to JSON correctly', () {
       final slot = DeliverySlot(
         date: '2025-05-02',

@@ -4430,6 +4430,22 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               ),
               trailing: selectedSlot?.datetime == slot.datetime
                   ? Icon(Icons.check_circle, color: Theme.of(context).primaryColor)
+                  : slot.isCurrent
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        context.l10n.statusInProgress,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.orange[800],
+                        ),
+                      ),
+                    )
                   : slot.isDefault
                   ? Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
