@@ -1297,13 +1297,14 @@ class PosRepository {
     if (deliveryEndDatetime != null && deliveryEndDatetime.isNotEmpty) {
       requestData['delivery_end_datetime'] = deliveryEndDatetime;
     }
-    // Only for a slot the operator picked. Without it the server snaps a start
-    // that is already running to the next slot, so an aged auto-default never
-    // books the window in progress. Older servers ignore the key.
-    if (deliverySlotExplicit &&
-        requiredDeliveryDatetime != null &&
+    // Always sent with a delivery start: 1 for a slot the operator picked, 0 for
+    // one the app pre-selected. On 0 the server snaps a start whose slot is
+    // already running (past a short grace) to the next slot, so an aged
+    // auto-default never books the window in progress. A missing key means an
+    // app too old to say, and keeps the running slot. Older servers ignore it.
+    if (requiredDeliveryDatetime != null &&
         requiredDeliveryDatetime.isNotEmpty) {
-      requestData['delivery_slot_explicit'] = 1;
+      requestData['delivery_slot_explicit'] = deliverySlotExplicit ? 1 : 0;
     }
     if (isPickup) {
       requestData['pickup'] = 1;

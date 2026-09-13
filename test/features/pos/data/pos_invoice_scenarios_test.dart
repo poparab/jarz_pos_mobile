@@ -590,7 +590,7 @@ void main() {
       const amendPath = '/api/method/jarz_pos.api.manager.submit_invoice_amendment';
       const item = {'item_code': 'ITEM-001', 'quantity': 1, 'rate': 50.0};
 
-      test('createInvoice - sends delivery_slot_explicit only for an operator pick', () async {
+      test('createInvoice - sends delivery_slot_explicit as 1 for a pick, 0 otherwise', () async {
         mockDio.setResponse(createPath, createSuccessResponse(data: {'name': 'INV-SLOT'}));
 
         await repository.createInvoice(
@@ -607,7 +607,9 @@ void main() {
           items: [item],
           requiredDeliveryDatetime: '2026-09-13T21:00:00',
         );
-        expect(mockDio.requestLog.last['data'].containsKey('delivery_slot_explicit'), isFalse);
+        // Always present with a start: a missing key would read as an old app,
+        // which the server lets keep the running slot.
+        expect(mockDio.requestLog.last['data']['delivery_slot_explicit'], equals(0));
       });
 
       test('createInvoice - no flag without a delivery start (pickup)', () async {
@@ -636,6 +638,14 @@ void main() {
           deliverySlotExplicit: true,
         );
         expect(mockDio.requestLog.last['data']['delivery_slot_explicit'], equals(1));
+
+        await repository.submitInvoiceAmendment(
+          sourceInvoiceId: 'INV-ORIG-SLOT',
+          posProfile: 'Main POS',
+          items: [item],
+          requiredDeliveryDatetime: '2026-09-13T21:00:00',
+        );
+        expect(mockDio.requestLog.last['data']['delivery_slot_explicit'], equals(0));
       });
     });
   });

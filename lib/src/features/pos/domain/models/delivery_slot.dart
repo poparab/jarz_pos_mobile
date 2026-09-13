@@ -62,10 +62,11 @@ class DeliverySlot {
   DeliverySlot asOperatorChoice() => _withDefault(false);
 
   /// Whether this selected slot was picked by the operator rather than
-  /// pre-selected by the app. Checkout sends it as `delivery_slot_explicit`:
-  /// the server only books a slot that is already running when it was chosen
-  /// on purpose, and snaps an aged auto-default to the next slot instead - even
-  /// when the app's own stale-slot refresh failed or the device clock is off.
+  /// pre-selected by the app. Checkout sends it as `delivery_slot_explicit`
+  /// (1 or 0): the server books a slot that is already running when it was
+  /// chosen on purpose, and snaps an aged auto-default to the next slot instead
+  /// - even when the app's own stale-slot refresh failed or the device clock is
+  /// off.
   bool get isOperatorChoice => !isDefault;
 
   DeliverySlot _withDefault(bool value) => DeliverySlot(
