@@ -8,9 +8,11 @@ import 'package:jarz_pos/src/core/network/user_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/daily_plan_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/manufacturing_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/base_item.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/batch_line.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/daily_plan.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/production_policy.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/running_batch.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/repositories/production_basket_repository.dart';
 import 'package:jarz_pos/src/features/manufacturing/domain/base_batch_math.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_today_screen.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/widgets/mixer_run_summary.dart';
@@ -131,6 +133,20 @@ class _QueueDio extends MockDio {
   }
 }
 
+/// The board's Hive queue, which this screen never reads but must empty of
+/// what it posts.
+class _FakeBasketRepository implements ProductionBasketRepository {
+  _FakeBasketRepository([this.stored]);
+  ProductionBasket? stored;
+
+  @override
+  Future<ProductionBasket?> load() async => stored;
+  @override
+  Future<void> save(ProductionBasket basket) async => stored = basket;
+  @override
+  Future<void> clear() async => stored = null;
+}
+
 Map<String, dynamic> _produced(String itemCode) => {
   'line': {'item_code': itemCode},
   'ok': true,
@@ -162,6 +178,7 @@ Future<_QueueDio> _pump(
   BaseItemsNotifier Function()? baseItems,
   Map<String, dynamic>? savedPlan,
   ValueNotifier<bool>? visible,
+  ProductionBasketRepository? basketRepository,
 }) async {
   final dio = _QueueDio()..produceQueue.addAll(produceQueue);
 
@@ -211,6 +228,9 @@ Future<_QueueDio> _pump(
           ManufacturingService(dio),
         ),
         dailyPlanServiceProvider.overrideWithValue(DailyPlanService(dio)),
+        productionBasketRepositoryProvider.overrideWithValue(
+          basketRepository ?? _FakeBasketRepository(),
+        ),
       ],
       child: MaterialApp(
         localizationsDelegates: const [
@@ -365,6 +385,48 @@ void main() {
       dio.requestLog.any((e) => e['path'] == ApiEndpoints.dailyPlanSave),
       isTrue,
     );
+  });
+
+  testWidgets('a Make empties the board queue of what it posted, in storage', (
+    tester,
+  ) async {
+    // Typed and queued on the Plan tab, then made here. The draft alone lost
+    // it only until a restart: the Hive queue brought the jar back into its
+    // field and Start batches posted it a second time.
+    final repo = _FakeBasketRepository(
+      const ProductionBasket(
+        lines: [
+          BatchLine(
+            itemCode: 'JAR-LOTUS',
+            itemName: 'Lotus Jar',
+            bomName: 'BOM-JAR-LOTUS-001',
+            bomQtyYield: 1,
+            batches: 180,
+          ),
+          BatchLine(
+            itemCode: 'JAR-OTHER',
+            itemName: 'Other Jar',
+            bomName: 'BOM-JAR-OTHER-001',
+            bomQtyYield: 1,
+            batches: 12,
+          ),
+        ],
+      ),
+    );
+    await _pump(
+      tester,
+      page: page,
+      produceQueue: [
+        _response([_produced('JAR-LOTUS')]),
+      ],
+      basketRepository: repo,
+    );
+
+    await tester.enterText(_jarField(), '180');
+    await tester.pumpAndSettle();
+    await _tapMake(tester);
+
+    expect(repo.stored!.lines.map((l) => l.itemCode), ['JAR-OTHER']);
   });
 
   testWidgets('a failed bases stage never sends the jars', (tester) async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -395,9 +397,15 @@ class PlanEntryController {
   /// Drops what has just been started. The jars are on the floor now, and a
   /// number left in the field invites the same run to be started twice; what
   /// was planned survives on the saved plan document.
+  ///
+  /// Written to storage at once rather than after the queue's debounce: a
+  /// posted line that is still in Hive when the app dies is restored into its
+  /// field and can be posted again.
   void forgetStarted(Iterable<String> itemCodes) {
     final codes = itemCodes.toList(growable: false);
-    _ref.read(productionBasketProvider.notifier).removeItems(codes);
+    unawaited(
+      _ref.read(productionBasketProvider.notifier).removeItemsNow(codes),
+    );
     _ref.read(dailyPlanDraftProvider.notifier).forget(codes);
     for (final code in codes) {
       setInvalidEntry(code, null);
@@ -410,8 +418,12 @@ class PlanEntryController {
   /// left this tab — a base typed in as jars is the live case. Left alone it
   /// would be invisible and still submitted by Start batches, and still
   /// counted in the tab's badge. Returns whether anything was dropped.
+  ///
+  /// An EMPTY jar list prunes nothing: it is a misconfigured or half-answered
+  /// template far more often than a day with no jars, and pruning against it
+  /// would wipe the whole persisted queue.
   bool dropUnlisted(PlanBoard board) {
-    if (!board.hasJarList) return false;
+    if (!board.hasJarList || board.isEmpty) return false;
     final listed = {for (final row in board.rows) row.itemCode};
     final stale = <String>{
       for (final line in _ref.read(productionBasketProvider).lines)
@@ -451,6 +463,10 @@ class PlanEntryController {
   ///
   /// Items the board does not list are dropped from both stores (see
   /// [dropUnlisted]), and nothing is done until the jar list itself is in.
+  /// Settling a row on a real number also clears a red entry left on it —
+  /// otherwise a "1.36" typed here stays red over the 12 typed on Today — and
+  /// several queued lines for one item collapse into one, since Start batches
+  /// posts every line and the field can show only one number.
   bool reconcile(PlanBoard board) {
     final mismatches = _mismatches(board);
     if (mismatches.isEmpty) return false;
@@ -465,8 +481,17 @@ class PlanEntryController {
         unlisted.add(m.itemCode);
         continue;
       }
+      if (m.clearsInvalidEntry) setInvalidEntry(m.itemCode, null);
       if (m.draftQty != m.target) draft.setQuantity(m.itemCode, m.target);
       if (m.basketOk) continue;
+      if (m.duplicated) {
+        final first = _ref
+            .read(productionBasketProvider)
+            .lines
+            .firstWhere((l) => l.itemCode == m.itemCode);
+        basket.removeItems([m.itemCode]);
+        if (m.target > 0 && row.canQueue) basket.addOrRaise(first);
+      }
       if (m.target > 0 && row.canQueue) {
         basket.setUnitsForItem(row.lineFor(m.target), m.target.toDouble());
       } else {
@@ -481,16 +506,23 @@ class PlanEntryController {
   }
 
   List<_PlanMismatch> _mismatches(PlanBoard board) {
-    if (!board.hasJarList) return const <_PlanMismatch>[];
+    // An empty jar list is treated as no answer — see [dropUnlisted].
+    if (!board.hasJarList || board.isEmpty) return const <_PlanMismatch>[];
 
     final rows = {for (final row in board.rows) row.itemCode: row};
     final quantities = _ref.read(dailyPlanDraftProvider).quantities;
     final draft = _ref.read(dailyPlanDraftProvider.notifier);
     final lines = _ref.read(productionBasketProvider).lines;
+    final invalid = _ref.read(planInvalidEntriesProvider);
 
+    // What Start batches would post per item: EVERY positive line, not only
+    // the first one `indexOfItem` finds.
     final queued = <String, double>{};
+    final lineCount = <String, int>{};
     for (final line in lines) {
-      queued.putIfAbsent(line.itemCode, () => line.units);
+      final units = line.units > 0 ? line.units : 0.0;
+      queued[line.itemCode] = (queued[line.itemCode] ?? 0) + units;
+      lineCount[line.itemCode] = (lineCount[line.itemCode] ?? 0) + 1;
     }
 
     final mismatches = <_PlanMismatch>[];
@@ -507,12 +539,16 @@ class PlanEntryController {
           ? draftQty
           : (units > 0 ? units.round() : 0);
 
+      final duplicated = (lineCount[code] ?? 0) > 1;
       // A zero-unit line posts nothing (`positiveLines`), so it can stay.
-      final basketOk = target > 0 && row.canQueue
-          ? (units - target).abs() < 1e-6
-          : units <= 0;
+      final basketOk =
+          !duplicated &&
+          (target > 0 && row.canQueue
+              ? (units - target).abs() < 1e-6
+              : units <= 0);
+      final clearsInvalidEntry = target > 0 && invalid.containsKey(code);
 
-      if (draftQty != target || !basketOk) {
+      if (draftQty != target || !basketOk || clearsInvalidEntry) {
         mismatches.add(
           _PlanMismatch(
             itemCode: code,
@@ -520,6 +556,8 @@ class PlanEntryController {
             draftQty: draftQty,
             target: target,
             basketOk: basketOk,
+            duplicated: duplicated,
+            clearsInvalidEntry: clearsInvalidEntry,
           ),
         );
       }
@@ -537,6 +575,8 @@ class _PlanMismatch {
     this.draftQty = 0,
     this.target = 0,
     this.basketOk = true,
+    this.duplicated = false,
+    this.clearsInvalidEntry = false,
   });
 
   final String itemCode;
@@ -546,4 +586,10 @@ class _PlanMismatch {
   final int draftQty;
   final int target;
   final bool basketOk;
+
+  /// The queue holds more than one line for the item.
+  final bool duplicated;
+
+  /// The row settles on a real number while a red entry is still recorded.
+  final bool clearsInvalidEntry;
 }

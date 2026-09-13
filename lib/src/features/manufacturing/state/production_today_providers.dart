@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +9,7 @@ import '../data/models/basket_rollup.dart';
 import '../data/models/daily_plan.dart';
 import 'base_production_providers.dart';
 import 'daily_plan_providers.dart';
+import 'production_basket_notifier.dart';
 
 /// One line's answer from `produce_now`.
 class ProduceLineOutcome {
@@ -367,6 +370,14 @@ class ProductionTodayNotifier extends Notifier<ProductionTodayDraft> {
     for (final code in succeeded) {
       if (jarQuantities.containsKey(code)) draft.setQuantity(code, 0);
     }
+
+    // The board's batch queue too, and in storage at once. The draft alone
+    // forgets nothing across a restart: a jar queued on the Plan tab and then
+    // made here stayed in the Hive queue, came back into its field on the next
+    // launch, and Start batches posted it a second time.
+    unawaited(
+      ref.read(productionBasketProvider.notifier).removeItemsNow(succeeded),
+    );
   }
 
   ProduceReport _merge(ProduceReport report, Map<String, dynamic> response) {

@@ -540,6 +540,122 @@ void main() {
       expect(container.read(dailyPlanDraftProvider).savedPlanName, 'DPP-0001');
     });
 
+    test('settling a row on a number clears its red entry', () async {
+      // A red "1.36" on the board, then 12 typed on the Today screen: the
+      // stores held 12 while the field stayed red and Start stayed held.
+      final container = twoJars();
+      await _settle(container);
+
+      final row = container.read(planBoardProvider).rows.first;
+      final entry = container.read(planEntryProvider);
+      entry.setInvalidEntry('CAKE-A', '1.36');
+      entry.setQuantity(row, 0);
+      container.read(dailyPlanDraftProvider.notifier).setQuantity('CAKE-A', 12);
+
+      final board = container.read(planBoardProvider);
+      expect(entry.isReconciled(board), isFalse);
+      entry.reconcile(board);
+
+      expect(container.read(planInvalidEntriesProvider), isEmpty);
+      expect(queued(container), {'CAKE-A': 12.0});
+      expect(entry.isReconciled(board), isTrue);
+    });
+
+    test('a red entry over a zero is left alone', () async {
+      final container = twoJars();
+      await _settle(container);
+
+      final row = container.read(planBoardProvider).rows.first;
+      final entry = container.read(planEntryProvider);
+      entry.setInvalidEntry('CAKE-A', '1.36');
+      entry.setQuantity(row, 0);
+
+      final board = container.read(planBoardProvider);
+      expect(entry.isReconciled(board), isTrue);
+      expect(container.read(planInvalidEntriesProvider), {'CAKE-A': '1.36'});
+    });
+
+    test('an empty jar list prunes nothing', () async {
+      // A template answering with no items is a misconfiguration far more
+      // often than a day with no jars. Pruning against it wiped the whole
+      // persisted queue.
+      final container = _container(
+        page: const ProductionSuggestionsPage(),
+        template: const DailyPlanTemplate(items: []),
+      );
+      await _settle(container);
+
+      container.read(productionBasketProvider.notifier).addOrRaise(cakeALine);
+      container.read(dailyPlanDraftProvider.notifier).setQuantity('CAKE-A', 30);
+
+      final board = container.read(planBoardProvider);
+      final entry = container.read(planEntryProvider);
+      expect(board.hasJarList, isTrue);
+      expect(entry.isReconciled(board), isTrue);
+      expect(entry.reconcile(board), isFalse);
+      expect(entry.dropUnlisted(board), isFalse);
+      expect(queued(container), {'CAKE-A': 30.0});
+    });
+
+    test('several queued lines for one item collapse into one', () async {
+      // Start batches posts every line; the field can show one number. An old
+      // queue holding CAKE-A twice posted the second line invisibly.
+      final container = _container(
+        page: ProductionSuggestionsPage(
+          items: [_suggestion(itemCode: 'CAKE-A')],
+        ),
+        template: DailyPlanTemplate(items: [_templateItem('CAKE-A')]),
+        repo: _FakeBasketRepository()
+          ..saved = ProductionBasket(
+            lines: [
+              cakeALine.copyWith(materialSelections: {'SUGAR': 'SUGAR-ALT'}),
+              cakeALine.withBatches(2),
+            ],
+          ),
+      );
+      await _settle(container);
+      await container.read(productionBasketProvider.notifier).restore();
+      expect(container.read(productionBasketProvider).lines, hasLength(2));
+
+      final entry = container.read(planEntryProvider);
+      final board = container.read(planBoardProvider);
+      entry.reconcile(board);
+
+      final lines = container.read(productionBasketProvider).lines;
+      expect(lines, hasLength(1));
+      // What Start batches would have posted, now on screen.
+      expect(lines.single.units, 50);
+      expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 50});
+      // The first line is the one kept, with its material choice.
+      expect(lines.single.materialSelections, {'SUGAR': 'SUGAR-ALT'});
+      expect(entry.isReconciled(board), isTrue);
+    });
+
+    test('a started line is written out of storage at once', () async {
+      // Start batches forgets each line as it starts. Waiting for the 400 ms
+      // debounce left it in Hive, where an app killed mid-loop restored it.
+      final repo = _FakeBasketRepository();
+      final container = _container(
+        page: ProductionSuggestionsPage(
+          items: [_suggestion(itemCode: 'CAKE-A')],
+        ),
+        template: DailyPlanTemplate(items: [_templateItem('CAKE-A')]),
+        repo: repo,
+      );
+      await _settle(container);
+      await container.read(productionBasketProvider.notifier).restore();
+
+      final row = container.read(planBoardProvider).rows.first;
+      final entry = container.read(planEntryProvider);
+      entry.setQuantity(row, 30);
+      entry.forgetStarted(['CAKE-A']);
+      // Only the save removeItemsNow started, not the debounce timer.
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.saved, isNotNull);
+      expect(repo.saved!.lines, isEmpty);
+    });
+
     test('nothing moves before the jar list is in', () async {
       final container = ProviderContainer(
         overrides: [

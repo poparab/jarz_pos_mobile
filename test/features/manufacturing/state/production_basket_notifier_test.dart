@@ -418,6 +418,59 @@ void main() {
     });
   });
 
+  group('removeItemsNow', () {
+    const lotus = BatchLine(
+      itemCode: 'LOTUS',
+      itemName: 'Lotus',
+      bomName: 'BOM-LOTUS',
+      bomQtyYield: 10,
+      batches: 6,
+    );
+    const berry = BatchLine(
+      itemCode: 'BERRY',
+      itemName: 'Berry',
+      bomName: 'BOM-BERRY',
+      bomQtyYield: 10,
+      batches: 2,
+    );
+
+    test(
+      'a posted line leaves storage at once, not after the debounce',
+      () async {
+        // Killed inside the 400 ms, the line came back after the restart and
+        // could be posted a second time.
+        await notifier().restore();
+        notifier().addOrRaise(lotus);
+        notifier().addOrRaise(berry);
+        final savesBefore = repo.saveCount;
+
+        final pending = notifier().removeItemsNow(['LOTUS']);
+        // Memory first, synchronously.
+        expect(basket().lines.map((l) => l.itemCode), ['BERRY']);
+        await pending;
+
+        expect(repo.saveCount, savesBefore + 1);
+        expect(repo.stored!.lines.map((l) => l.itemCode), ['BERRY']);
+      },
+    );
+
+    test('storage never read this session loses the line too', () async {
+      // A Make on the Today screen, before the board has ever opened: memory
+      // is empty, and yesterday's queue in storage still holds the jar.
+      repo.stored = const ProductionBasket(lines: [lotus, berry]);
+
+      await notifier().removeItemsNow(['LOTUS']);
+
+      expect(repo.stored!.lines.map((l) => l.itemCode), ['BERRY']);
+      expect(basket().lines.map((l) => l.itemCode), ['BERRY']);
+
+      // And the board opening later does not read it back.
+      repo.stored = const ProductionBasket(lines: [lotus, berry]);
+      await notifier().restore();
+      expect(basket().lines.map((l) => l.itemCode), ['BERRY']);
+    });
+  });
+
   group('restore', () {
     test('hydrates a basket saved by a previous session', () async {
       repo.stored = const ProductionBasket(
@@ -474,6 +527,25 @@ void main() {
 
       expect(basket().lines.map((l) => l.itemCode), ['NEW', 'OLD']);
       expect(basket().lines.first.batches, 1);
+    });
+
+    test('reads storage once per app process', () async {
+      // After the first read storage only trails memory. A second read would
+      // bring back a line removed inside the debounce before it was saved.
+      await notifier().restore();
+      repo.stored = const ProductionBasket(
+        lines: [
+          BatchLine(
+            itemCode: 'GONE',
+            itemName: 'Gone',
+            bomName: 'BOM-GONE',
+            bomQtyYield: 10,
+            batches: 1,
+          ),
+        ],
+      );
+      await notifier().restore();
+      expect(basket().lines, isEmpty);
     });
 
     test('an empty stored basket is a no-op', () async {

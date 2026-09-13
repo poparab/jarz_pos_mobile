@@ -514,6 +514,13 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
           materialSelections: line.materialSelections,
         );
         started[line] = result.workOrder;
+        // Out of the form, and out of storage, the moment it is on the floor.
+        // Waiting for the loop to finish left every started line queued in
+        // Hive until then, so an app killed on line three restored lines one
+        // and two into their fields, ready to be started again. Only started
+        // lines leave: a failure stays visible and retryable, and what was
+        // PLANNED survives on the saved plan document.
+        ref.read(planEntryProvider).forgetStarted([line.itemCode]);
       } catch (error) {
         if (!context.mounted) break;
         issues.add(
@@ -523,13 +530,6 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
       }
     }
     ref.read(loadingOverlayProvider.notifier).hide();
-
-    // Only started lines leave the form, so a partial failure stays visible and
-    // retryable instead of vanishing into a snackbar. What was PLANNED survives
-    // on the saved plan document — that is what Save plan is for.
-    ref
-        .read(planEntryProvider)
-        .forgetStarted(started.keys.map((l) => l.itemCode));
 
     if (started.isNotEmpty) {
       ref.invalidate(productionSuggestionsProvider);

@@ -22,6 +22,12 @@ final productionBasketProvider =
 class ProductionBasketNotifier extends Notifier<ProductionBasket> {
   Timer? _persistTimer;
 
+  /// The saved basket has been read into memory (or the day was cleared, which
+  /// makes memory the whole truth). Until then storage can hold lines memory
+  /// has never seen, and a removal written from memory alone would leave them
+  /// there to come back after a restart.
+  bool _restored = false;
+
   ProductionBasketRepository get _repo =>
       ref.read(productionBasketRepositoryProvider);
 
@@ -44,8 +50,14 @@ class ProductionBasketNotifier extends Notifier<ProductionBasket> {
   /// without a trace. Whether each one belongs is the Plan tab's call
   /// (`PlanEntryController.reconcile`): back into its field, or dropped when
   /// the jar has been decided since.
+  ///
+  /// Once per app process: after the first read, storage only ever trails
+  /// memory, and a second read would bring back a line removed inside the
+  /// 400 ms before it was persisted.
   Future<void> restore() async {
+    if (_restored) return;
     final saved = await _repo.load();
+    _restored = true;
     if (saved == null || saved.lines.isEmpty) return;
     if (state.lines.isEmpty) {
       state = saved;
@@ -131,6 +143,27 @@ class ProductionBasketNotifier extends Notifier<ProductionBasket> {
     _update(state.copyWith(lines: next));
   }
 
+  /// Drops [itemCodes] and writes that to storage NOW, not after the debounce.
+  ///
+  /// For lines that have just been posted. The queue survives a restart, so a
+  /// posted line still in storage comes back into its field and can be posted
+  /// a second time: the 400 ms debounce is a window in which killing the app
+  /// does exactly that, and a Make on the Today screen used to leave the line
+  /// in storage indefinitely. Memory changes synchronously; when storage has
+  /// not been read yet this session it is read first, so its copy loses the
+  /// lines too.
+  Future<void> removeItemsNow(Iterable<String> itemCodes) async {
+    final drop = itemCodes.toSet();
+    if (drop.isEmpty) return;
+    removeItems(drop);
+    if (!_restored) {
+      await restore();
+      removeItems(drop);
+    }
+    _persistTimer?.cancel();
+    await _repo.save(state);
+  }
+
   void setBatches(int index, double batches) {
     if (index < 0 || index >= state.lines.length) return;
     _replaceAt(index, state.lines[index].withBatches(batches));
@@ -164,6 +197,7 @@ class ProductionBasketNotifier extends Notifier<ProductionBasket> {
   }
 
   void clear() {
+    _restored = true;
     _update(state.copyWith(lines: const []));
     unawaited(_repo.clear());
   }
