@@ -5,6 +5,13 @@ import 'package:jarz_pos/src/core/constants/storage_keys.dart';
 import 'package:jarz_pos/src/features/auth/data/auth_repository.dart';
 import 'package:jarz_pos/src/features/auth/state/login_notifier.dart';
 import 'package:jarz_pos/src/core/router.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/batch_line.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/repositories/production_basket_repository.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/base_production_providers.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/daily_plan_providers.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/plan_board_providers.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/production_basket_notifier.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/production_today_providers.dart';
 import '../../../helpers/test_helpers.dart';
 import '../../../helpers/mock_services.dart';
 
@@ -34,6 +41,28 @@ class FakeAuthRepository extends AuthRepository {
     logoutCalled = true;
   }
 }
+
+/// The Production Board's persisted jar queue, observable without Hive.
+class _FakeBasketRepository implements ProductionBasketRepository {
+  _FakeBasketRepository();
+  ProductionBasket? stored;
+
+  @override
+  Future<ProductionBasket?> load() async => stored;
+  @override
+  Future<void> save(ProductionBasket basket) async =>
+      stored = basket.lines.isEmpty ? null : basket;
+  @override
+  Future<void> clear() async => stored = null;
+}
+
+const _previousUsersJar = BatchLine(
+  itemCode: 'JAR-LOTUS',
+  itemName: 'Lotus Jar',
+  bomName: 'BOM-JAR-LOTUS-001',
+  bomQtyYield: 1,
+  batches: 60,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -159,6 +188,91 @@ void main() {
           reason: 'logout must clear the draft-cart cache');
       expect(leads.isEmpty, isTrue,
           reason: 'logout must clear the leads cache');
+    });
+
+    group('Production Board state', () {
+      late _FakeBasketRepository basketRepo;
+
+      setUp(() {
+        basketRepo = _FakeBasketRepository();
+        container.dispose();
+        container = ProviderContainer(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(fakeAuthRepo),
+            currentAuthStateProvider.overrideWith((ref) => false),
+            productionBasketRepositoryProvider.overrideWithValue(basketRepo),
+          ],
+        );
+      });
+
+      /// What user A leaves typed and queued on a shared floor tablet.
+      void typeAsPreviousUser() {
+        container.read(productionBasketProvider.notifier).addOrRaise(
+          _previousUsersJar,
+        );
+        container
+            .read(dailyPlanDraftProvider.notifier)
+            .setQuantity('JAR-LOTUS', 60);
+        container.read(planInvalidEntriesProvider.notifier).state = {
+          'JAR-BERRY': '1.36',
+        };
+        container
+            .read(productionTodayProvider.notifier)
+            .setBaseBatches('BASE-FUDGE', 2);
+        container.read(baseSelectionProvider.notifier).select('BASE-FUDGE');
+        container.read(baseProductionDateProvider.notifier).state =
+            DateTime(2026, 9, 12);
+      }
+
+      void expectNothingTyped() {
+        expect(container.read(productionBasketProvider).lines, isEmpty);
+        expect(container.read(dailyPlanDraftProvider).quantities, isEmpty);
+        expect(container.read(planInvalidEntriesProvider), isEmpty);
+        expect(container.read(productionTodayProvider).baseBatches, isEmpty);
+        expect(container.read(baseSelectionProvider), isEmpty);
+        expect(container.read(baseProductionDateProvider), isNull);
+      }
+
+      test('logout leaves none of the typed or queued jars behind', () async {
+        // The next user on the tablet saw them in their own fields, and
+        // Start batches would have posted them under that user's name.
+        typeAsPreviousUser();
+
+        await container.read(loginNotifierProvider.notifier).logout();
+        await flushMicrotasks();
+
+        expectNothingTyped();
+      });
+
+      test('logout clears a saved queue the board never opened', () async {
+        // Only an already-open Hive box was cleared. A queue saved in an
+        // earlier app process sat in a closed box, survived the logout, and
+        // came back into the next user's fields when the board opened.
+        basketRepo.stored = const ProductionBasket(lines: [_previousUsersJar]);
+
+        await container.read(loginNotifierProvider.notifier).logout();
+        await flushMicrotasks();
+        expect(basketRepo.stored, isNull);
+
+        // And a board opened straight after cannot read it back in a race.
+        basketRepo.stored = const ProductionBasket(lines: [_previousUsersJar]);
+        await container.read(productionBasketProvider.notifier).restore();
+        expect(container.read(productionBasketProvider).lines, isEmpty);
+      });
+
+      test('logging in as the next user starts from an empty board', () async {
+        // A crash between sessions skips logout; login is the second chance.
+        typeAsPreviousUser();
+        basketRepo.stored = const ProductionBasket(lines: [_previousUsersJar]);
+
+        await container
+            .read(loginNotifierProvider.notifier)
+            .login('next-user', 'secret');
+        await flushMicrotasks();
+
+        expectNothingTyped();
+        expect(basketRepo.stored, isNull);
+      });
     });
 
     test('successful login updates currentAuthStateProvider', () async {

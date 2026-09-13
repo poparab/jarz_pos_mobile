@@ -11,7 +11,12 @@ import '../../../core/network/session_expired_signal.dart';
 import '../../../core/network/user_service.dart';
 import '../../b2b/state/b2b_pipeline_notifier.dart';
 import '../../manager/state/manager_providers.dart';
+import '../../manufacturing/state/base_production_providers.dart';
+import '../../manufacturing/state/daily_plan_providers.dart';
+import '../../manufacturing/state/plan_board_providers.dart';
+import '../../manufacturing/state/production_basket_notifier.dart';
 import '../../manufacturing/state/production_providers.dart';
+import '../../manufacturing/state/production_today_providers.dart';
 import '../../shift/state/shift_notifier.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../pos/data/repositories/draft_cart_repository.dart';
@@ -153,6 +158,27 @@ class LoginNotifier extends AsyncNotifier<bool> {
     // server then refused. Exactly the "the screen lies" symptom the policy
     // endpoint exists to remove, one login later.
     ref.invalidate(productionPolicyProvider);
+    // The Production Board's typed and queued work: jar quantities (shared by
+    // the Plan tab and the Today screen), red entries, the day's actuals, the
+    // bases typed on Today and on the Bases tab, and the Bases tab's selection
+    // and date. All keep-alive, and all survived a user switch — user A's jars
+    // sat in user B's fields, where Start batches or Make would have posted
+    // them under B's login.
+    ref.invalidate(dailyPlanDraftProvider);
+    ref.invalidate(dailyPlanActualsProvider);
+    ref.invalidate(planInvalidEntriesProvider);
+    ref.invalidate(productionTodayProvider);
+    ref.invalidate(baseRunDraftProvider);
+    ref.invalidate(baseSelectionProvider);
+    ref.invalidate(baseProductionDateProvider);
+    // The jar queue is persisted as well, and is emptied through a fresh
+    // notifier rather than by clearing its Hive box only when that box happens
+    // to be open: a queue saved in an earlier app process sits in a closed box,
+    // and the board restored it into the next user's fields. clear() opens the
+    // box if it must, and marks storage as already read, so a board opened
+    // straight after login cannot restore the old queue before the wipe lands.
+    ref.invalidate(productionBasketProvider);
+    ref.read(productionBasketProvider.notifier).clear();
     // Manager dashboard access + filter selections.
     ref.invalidate(managerAccessProvider);
     ref.invalidate(selectedBranchProvider);
@@ -170,11 +196,12 @@ class LoginNotifier extends AsyncNotifier<bool> {
     } catch (_) {
       // ignore: clearing caches on logout is best-effort.
     }
-    // Leads + inventory-count caches: only clear if already open.
+    // Leads + inventory-count caches: only clear if already open. The
+    // production basket is not here: `_resetUserScopedState` empties it through
+    // its notifier, which also reaches a box that is not open yet.
     for (final boxName in const [
       HiveBoxes.leadsCache,
       HiveBoxes.inventoryCount,
-      HiveBoxes.productionBasket,
     ]) {
       try {
         if (Hive.isBoxOpen(boxName)) {
