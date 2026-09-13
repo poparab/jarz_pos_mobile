@@ -25,6 +25,7 @@ class PlanJarRow extends StatefulWidget {
     required this.quantity,
     required this.onQuantityChanged,
     required this.onUseSuggestion,
+    this.onValidityChanged,
     this.plannedToday,
     this.onUsePlanned,
     this.isShort = false,
@@ -41,6 +42,12 @@ class PlanJarRow extends StatefulWidget {
 
   /// Fills the field with the board's suggestion. One tap, visible result.
   final VoidCallback onUseSuggestion;
+
+  /// Reports whether the field currently holds something that is not a whole
+  /// jar count. While it does, the queue keeps the last valid number — so a
+  /// stray "." does not drop the line and every material choice made on it —
+  /// and the tab refuses to submit until the field is fixed.
+  final ValueChanged<bool>? onValidityChanged;
 
   /// What the plan already filed for this day says about this flavour, when it
   /// says anything.
@@ -74,15 +81,22 @@ class _PlanJarRowState extends State<PlanJarRow> {
   @override
   void didUpdateWidget(covariant PlanJarRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Only when the model actually disagrees with what is on screen: rewriting
+    // Only when the MODEL moved and disagrees with what is on screen: rewriting
     // the field on every rebuild would fight the keyboard and move the caret to
     // the end mid-word. This is how the field catches up with "Use 60" and with
-    // "Fill the day", which write the model and nothing else.
+    // "Fill the day", which write the model and nothing else. Keyed on the model
+    // changing, because an invalid "12." parses as nothing while the model still
+    // holds 12 — comparing the two alone would snap the field back to "12" and
+    // swallow the point again.
+    if (widget.quantity == oldWidget.quantity) return;
     final shown = int.tryParse(_controller.text) ?? 0;
     if (shown == widget.quantity) return;
     final text = _textFor(widget.quantity);
     // A number written from outside ("Use 60") replaces whatever was wrong.
-    _invalid = false;
+    if (_invalid) {
+      _invalid = false;
+      widget.onValidityChanged?.call(false);
+    }
     _controller.value = TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
@@ -91,6 +105,9 @@ class _PlanJarRowState extends State<PlanJarRow> {
 
   @override
   void dispose() {
+    // A row leaving the tree (a filter, a refresh) must not hold the submit
+    // shut for a field nobody can see any more.
+    if (_invalid) widget.onValidityChanged?.call(false);
     _controller.dispose();
     super.dispose();
   }
@@ -111,10 +128,12 @@ class _PlanJarRowState extends State<PlanJarRow> {
   void _onChanged(String text) {
     final trimmed = text.trim();
     final invalid = trimmed.isNotEmpty && !_wholeNumber.hasMatch(trimmed);
-    if (invalid != _invalid) setState(() => _invalid = invalid);
-    // An invalid entry queues nothing: a red field must not still be carrying
-    // the last number it held into Start batches.
-    widget.onQuantityChanged(invalid ? 0 : (int.tryParse(trimmed) ?? 0));
+    if (invalid != _invalid) {
+      setState(() => _invalid = invalid);
+      widget.onValidityChanged?.call(invalid);
+    }
+    if (invalid) return;
+    widget.onQuantityChanged(int.tryParse(trimmed) ?? 0);
   }
 
   /// The figures, the code and the full offer are one tap away rather than on

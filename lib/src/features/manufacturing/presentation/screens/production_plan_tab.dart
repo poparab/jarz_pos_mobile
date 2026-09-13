@@ -56,6 +56,22 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
   /// Deliberately not poured into the fields — see [PlanEntryController.hydrate].
   DailyPlan? _savedPlan;
 
+  /// Rows whose field holds something that is not a whole jar count. Their
+  /// queue lines keep the last valid number, so neither action may run until
+  /// the field is fixed — otherwise a red "1.360" would still post 1.
+  final Set<String> _invalidRows = <String>{};
+
+  void _setRowValidity(String itemCode, bool invalid) {
+    final changed = invalid
+        ? _invalidRows.add(itemCode)
+        : _invalidRows.remove(itemCode);
+    if (!changed) return;
+    // Reported from a row's dispose as well, which can land mid-build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -242,6 +258,8 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
                           onQuantityChanged: (qty) =>
                               entry.setQuantity(row, qty),
                           onUseSuggestion: () => entry.fillSuggestion(row),
+                          onValidityChanged: (invalid) =>
+                              _setRowValidity(row.itemCode, invalid),
                           onUsePlanned: planned.containsKey(row.itemCode)
                               ? () => entry.setQuantity(
                                   row,
@@ -305,7 +323,10 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
           rollupLoading: rollupAsync.isLoading,
           rollupFailed: rollupAsync.hasError,
           materialSelectionsValid: materialSelectionsValid,
-          onSavePlan: draft.isEmpty ? null : () => _savePlan(context),
+          hasInvalidEntry: _invalidRows.isNotEmpty,
+          onSavePlan: draft.isEmpty || _invalidRows.isNotEmpty
+              ? null
+              : () => _savePlan(context),
           onCheckMaterials: draft.isEmpty
               ? null
               : () => ref
@@ -719,6 +740,7 @@ class _PlanActions extends ConsumerWidget {
     required this.rollupLoading,
     required this.rollupFailed,
     required this.materialSelectionsValid,
+    this.hasInvalidEntry = false,
     required this.onSavePlan,
     required this.onCheckMaterials,
     required this.onCancelPlan,
@@ -732,6 +754,9 @@ class _PlanActions extends ConsumerWidget {
   final bool rollupLoading;
   final bool rollupFailed;
   final bool materialSelectionsValid;
+
+  /// A jar field holds something that is not a whole number.
+  final bool hasInvalidEntry;
   final VoidCallback? onSavePlan;
   final VoidCallback? onCheckMaterials;
   final VoidCallback? onCancelPlan;
@@ -756,6 +781,7 @@ class _PlanActions extends ConsumerWidget {
         nothingToSubmit ||
         rollupLoading ||
         rollupFailed ||
+        hasInvalidEntry ||
         !materialSelectionsValid;
 
     // No elevation of its own: the mixer bar directly above already lifts the

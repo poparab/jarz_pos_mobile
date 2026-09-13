@@ -85,4 +85,37 @@ void main() {
       expect(p.isBackDated(DateTime(2026, 9, 7, 23, 59)), isFalse);
     });
   });
+
+  group('a tablet left signed in overnight', () {
+    // The policy is fetched once per login. Frozen at that day, the next
+    // morning's un-dated Make posted at yesterday's date and no gate noticed,
+    // because every gate compared against the same frozen day.
+    tearDown(() => ProductionPolicy.deviceNow = DateTime.now);
+
+    test("the server's today moves forward with the device's days", () {
+      ProductionPolicy.deviceNow = () => DateTime(2026, 9, 13, 22, 0);
+      final p = policy(serverDate: '2026-09-13');
+      expect(p.today(), DateTime(2026, 9, 13));
+
+      ProductionPolicy.deviceNow = () => DateTime(2026, 9, 14, 8, 10);
+      expect(p.today(), DateTime(2026, 9, 14));
+      expect(p.isBackDated(DateTime(2026, 9, 14, 8, 10)), isFalse);
+      expect(p.isBackDated(DateTime(2026, 9, 13)), isTrue);
+    });
+
+    test('a clock offset from the server is kept, not corrected', () {
+      // A tablet a day fast: the server said the 13th on the device's 14th.
+      ProductionPolicy.deviceNow = () => DateTime(2026, 9, 14, 9, 0);
+      final p = policy(serverDate: '2026-09-13');
+      ProductionPolicy.deviceNow = () => DateTime(2026, 9, 15, 9, 0);
+      expect(p.today(), DateTime(2026, 9, 14));
+    });
+
+    test('a month end rolls over', () {
+      ProductionPolicy.deviceNow = () => DateTime(2026, 9, 30, 23, 0);
+      final p = policy(serverDate: '2026-09-30');
+      ProductionPolicy.deviceNow = () => DateTime(2026, 10, 1, 1, 0);
+      expect(p.today(), DateTime(2026, 10, 1));
+    });
+  });
 }

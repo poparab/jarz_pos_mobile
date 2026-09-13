@@ -661,6 +661,47 @@ void main() {
       final lines = (_lastBody(dio, ApiEndpoints.produceNow)['lines'] as List)
           .cast<Map>();
       expect(lines.single['scheduled_at'], '2026-09-12 14:30:00');
+
+      // The moment belonged to that run. Left on the bar it would date the
+      // next Make as well.
+      expect(container(tester).read(baseProductionDateProvider), isNull);
+      expect(find.text('2026-09-13'), findsOneWidget);
+      ScaffoldMessenger.of(
+        tester.element(find.byType(BaseProductionTab)),
+      ).clearSnackBars();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a time chosen on today is still confirmed', (tester) async {
+      // 07:30 left on the bar at 15:00 would otherwise post the afternoon's
+      // batch before the morning's deliveries, without a word.
+      _tallWindow(tester);
+      final dio = await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(itemQty: 2.0),
+        produceNow: produced,
+        policy: policy,
+      );
+
+      container(tester).read(baseProductionDateProvider.notifier).state =
+          DateTime(2026, 9, 13, 7, 30);
+      await tester.pumpAndSettle();
+
+      await _open(tester, 'Blueberry mix');
+      await tester.tap(find.widgetWithText(FilledButton, 'Make 1 mix'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Confirm posting date'), findsOneWidget);
+      expect(_requests(dio, ApiEndpoints.produceNow), isEmpty);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(TextButton, 'Cancel'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(_requests(dio, ApiEndpoints.produceNow), isEmpty);
     });
 
     testWidgets('outside the window is refused before anything posts', (

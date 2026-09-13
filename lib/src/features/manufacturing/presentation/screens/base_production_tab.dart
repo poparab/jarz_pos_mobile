@@ -382,13 +382,23 @@ class _MakeBar extends ConsumerWidget {
       return;
     }
 
-    // Only a past day asks. A same-day Make stays one tap, as it always was:
-    // the question is worth its tap only when the answer is not "now".
-    if (policy.isBackDated(date)) {
+    final scheduledAt = startScheduledAt(
+      date,
+      explicitTime: hasExplicitPostingTime(chosen),
+    );
+
+    // Asked whenever somebody chose the moment, and never when nobody did: an
+    // untouched bar is "now", and a Make of a mix stirred this minute stays one
+    // tap. A chosen time counts even on today — 07:30 left on the bar at 15:00
+    // would post the afternoon's batch before the morning's deliveries. The
+    // TIME is shown too, because a past day with no time picked posts at the
+    // current clock time on that day, and that is exactly the part that decides
+    // whether the entry lands before or after the jars that used the mix.
+    if (chosen != null) {
       final confirmed = await confirmPostingDatesBeforeSubmit(
         context,
-        dates: [date],
-        includeTime: hasExplicitPostingTime(chosen),
+        dates: [DateTime.parse(scheduledAt.replaceFirst(' ', 'T'))],
+        includeTime: true,
       );
       if (!confirmed || !context.mounted) return;
     }
@@ -398,12 +408,7 @@ class _MakeBar extends ConsumerWidget {
     try {
       report = await ref
           .read(baseMakeProvider.notifier)
-          .make(
-            scheduledAt: startScheduledAt(
-              date,
-              explicitTime: hasExplicitPostingTime(chosen),
-            ),
-          );
+          .make(scheduledAt: scheduledAt);
     } finally {
       ref.read(loadingOverlayProvider.notifier).hide();
     }
@@ -411,6 +416,9 @@ class _MakeBar extends ConsumerWidget {
     // Stock has physically moved for every line that succeeded, so every figure
     // the list was showing is now wrong.
     if (!report.postedNothing) {
+      // The moment belonged to the run just recorded. Left on the bar it would
+      // date the next Make too — later today, or tomorrow morning.
+      ref.read(baseProductionDateProvider.notifier).state = null;
       ref.read(baseItemsProvider.notifier).refresh();
       if (report.hasRunningWork) {
         await ref.read(runningBatchesProvider.notifier).refresh();

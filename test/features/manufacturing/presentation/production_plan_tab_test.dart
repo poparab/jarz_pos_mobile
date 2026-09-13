@@ -347,6 +347,50 @@ void main() {
     expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 34});
   });
 
+  testWidgets('a stray point keeps the queued line and holds both actions', (
+    tester,
+  ) async {
+    // Dropping the line on "12." would also drop every material choice made
+    // on it, and typing the point back out would re-add a bare line.
+    await _pump(
+      tester,
+      page: ProductionSuggestionsPage(
+        items: [_item(itemCode: 'CAKE-A', suggestedBatches: 5)],
+        velocityUpdatedOn: '2026-08-01 00:00:00',
+      ),
+    );
+
+    await tester.enterText(_quantityField('CAKE-A'), '12');
+    await tester.pumpAndSettle();
+    await tester.enterText(_quantityField('CAKE-A'), '12.');
+    await tester.pumpAndSettle();
+
+    final container = _container(tester);
+    // Not snapped back to "12": that would swallow the point all over again.
+    expect(_shown(tester, 'CAKE-A'), '12.');
+    expect(container.read(productionBasketProvider).lines.single.units, 12);
+    expect(_button(tester, 'Start batches').onPressed, isNull);
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.ancestor(
+              of: find.text('Save plan'),
+              matching: find.byWidgetPredicate((w) => w is FilledButton),
+            ),
+          )
+          .onPressed,
+      isNull,
+    );
+
+    await tester.enterText(_quantityField('CAKE-A'), '12');
+    await tester.pumpAndSettle();
+    expect(container.read(productionBasketProvider).lines.single.units, 12);
+    expect(
+      find.text('Whole jars only. Mixes and cakes go on the Bases tab.'),
+      findsNothing,
+    );
+  });
+
   testWidgets('flags negative stock so somebody counts the item', (
     tester,
   ) async {
