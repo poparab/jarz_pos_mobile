@@ -43,6 +43,18 @@ class _StubSuggestionsNotifier extends ProductionSuggestionsNotifier {
   Future<ProductionSuggestionsPage> build() async => _page;
 }
 
+/// Stands in for quantities typed on the Today screen, which writes the draft
+/// and nothing else, before the full board is opened.
+class _SeededDraft extends DailyPlanDraftNotifier {
+  _SeededDraft(this._quantities);
+  final Map<String, int> _quantities;
+  @override
+  DailyPlanDraft build() {
+    super.build();
+    return DailyPlanDraft(quantities: _quantities);
+  }
+}
+
 class _SeededBasket extends ProductionBasketNotifier {
   _SeededBasket(this._seed);
   final ProductionBasket _seed;
@@ -137,6 +149,7 @@ Future<void> _pump(
   BasketRollup? rollup,
   ProductionBasket? basket,
   ProductionBasket? restored,
+  Map<String, int>? draft,
   Size size = const Size(430, 1200),
   Locale? locale,
 }) async {
@@ -152,6 +165,8 @@ Future<void> _pump(
         ),
         if (basket != null)
           productionBasketProvider.overrideWith(() => _SeededBasket(basket)),
+        if (draft != null)
+          dailyPlanDraftProvider.overrideWith(() => _SeededDraft(draft)),
         productionSuggestionsProvider.overrideWith(
           () => _StubSuggestionsNotifier(page),
         ),
@@ -872,6 +887,98 @@ void main() {
 
     expect(container.read(dailyPlanDraftProvider).quantities['CAKE-A'], 30);
     expect(_shown(tester, 'CAKE-A'), '30');
+  });
+
+  testWidgets(
+    'jars typed on Today and a restored queue both land in fields AND queue',
+    (tester) async {
+      // The draft is shared with the Today screen. Opening the full board with
+      // jars already typed there used to skip filling the fields from the
+      // restored queue: yesterday's CAKE-B was posted by Start batches with no
+      // field showing it, and Today's CAKE-A showed in its field with nothing
+      // queued behind it.
+      final cakeB = _item(itemCode: 'CAKE-B', suggestedBatches: 5);
+      await _pump(
+        tester,
+        page: ProductionSuggestionsPage(
+          items: [
+            _item(itemCode: 'CAKE-A'),
+            cakeB,
+          ],
+          summary: const ProductionSummary(critical: 2),
+          velocityUpdatedOn: '2026-08-01 00:00:00',
+        ),
+        draft: const {'CAKE-A': 10},
+        restored: const ProductionBasket(
+          lines: [
+            BatchLine(
+              itemCode: 'CAKE-B',
+              itemName: 'CAKE-B name',
+              bomName: 'BOM-CAKE-B',
+              stockUom: 'Nos',
+              bomQtyYield: 10,
+              batches: 0.5,
+            ),
+          ],
+        ),
+      );
+
+      // The host's restore lands after the tab has already queued Today's
+      // jar: coming from Today the jar list is cached, so the tab reconciles on
+      // its first frame while Hive is still opening.
+      final container = _container(tester);
+      expect(
+        container.read(productionBasketProvider).lines.map((l) => l.itemCode),
+        ['CAKE-A'],
+      );
+      await container.read(productionBasketProvider.notifier).restore();
+      await tester.pumpAndSettle();
+
+      expect(_shown(tester, 'CAKE-A'), '10');
+      expect(_shown(tester, 'CAKE-B'), '5');
+      final queued = {
+        for (final l in container.read(productionBasketProvider).positiveLines)
+          l.itemCode: l.units,
+      };
+      expect(queued, {'CAKE-A': 10.0, 'CAKE-B': 5.0});
+      expect(container.read(dailyPlanDraftProvider).quantities, {
+        'CAKE-A': 10,
+        'CAKE-B': 5,
+      });
+    },
+  );
+
+  testWidgets('a jar Today has already made leaves the queue with its field', (
+    tester,
+  ) async {
+    // Today's Make empties the draft and nothing else. A queue line left
+    // behind would come back into the field on the next open and be started a
+    // second time.
+    await _pump(
+      tester,
+      page: ProductionSuggestionsPage(
+        items: [_item(itemCode: 'CAKE-A')],
+        summary: const ProductionSummary(critical: 1),
+        velocityUpdatedOn: '2026-08-01 00:00:00',
+      ),
+    );
+
+    await tester.enterText(_quantityField('CAKE-A'), '12');
+    await tester.pumpAndSettle();
+    final container = _container(tester);
+    expect(
+      container.read(productionBasketProvider).positiveLines,
+      hasLength(1),
+    );
+
+    // What `ProductionTodayNotifier._clearSucceeded` does after a Make.
+    container.read(dailyPlanDraftProvider.notifier).setQuantity('CAKE-A', 0);
+    await tester.pumpAndSettle();
+
+    expect(_shown(tester, 'CAKE-A'), '');
+    expect(container.read(productionBasketProvider).positiveLines, isEmpty);
+    expect(container.read(dailyPlanDraftProvider).quantities, isEmpty);
+    expect(_button(tester, 'Start batches').onPressed, isNull);
   });
 
   testWidgets('an unqueueable row still takes a plan quantity', (tester) async {

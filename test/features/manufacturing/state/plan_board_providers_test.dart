@@ -367,49 +367,171 @@ void main() {
     expect(container.read(dailyPlanDraftProvider).quantities['CAKE-A'], 90);
   });
 
-  group('hydrate', () {
+  group('reconcile', () {
+    const cakeALine = BatchLine(
+      itemCode: 'CAKE-A',
+      itemName: 'CAKE-A name',
+      bomName: 'BOM-CAKE-A',
+      stockUom: 'Nos',
+      bomQtyYield: 10,
+      batches: 3,
+    );
+
+    Map<String, double> queued(ProviderContainer container) => {
+      for (final l in container.read(productionBasketProvider).positiveLines)
+        l.itemCode: l.units,
+    };
+
+    ProviderContainer twoJars() => _container(
+      page: ProductionSuggestionsPage(
+        items: [
+          _suggestion(itemCode: 'CAKE-A'),
+          _suggestion(itemCode: 'CAKE-B'),
+        ],
+      ),
+      template: DailyPlanTemplate(
+        items: [_templateItem('CAKE-A'), _templateItem('CAKE-B')],
+      ),
+    );
+
+    void reconcile(ProviderContainer container) => container
+        .read(planEntryProvider)
+        .reconcile(container.read(planBoardProvider));
+
     test('a restored queue fills the fields it came from', () async {
-      final container = _container(
-        page: ProductionSuggestionsPage(
-          items: [_suggestion(itemCode: 'CAKE-A')],
-        ),
-        template: DailyPlanTemplate(items: [_templateItem('CAKE-A')]),
-      );
+      final container = twoJars();
+      await _settle(container);
+
+      container.read(productionBasketProvider.notifier).addOrRaise(cakeALine);
+
+      final entry = container.read(planEntryProvider);
+      final board = container.read(planBoardProvider);
+      expect(entry.isReconciled(board), isFalse);
+      expect(entry.reconcile(board), isTrue);
+
+      expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 30});
+      expect(queued(container), {'CAKE-A': 30.0});
+      expect(entry.isReconciled(board), isTrue);
+      expect(entry.reconcile(board), isFalse);
+    });
+
+    test(
+      'jars typed on Today and a restored queue end up in both stores',
+      () async {
+        // The draft is shared with the Today screen, which never touches the
+        // queue. The old hydrate skipped whenever the draft held anything, so
+        // yesterday's queued CAKE-A was posted by Start batches with no field
+        // showing it, and Today's CAKE-B showed with nothing queued.
+        final container = twoJars();
+        await _settle(container);
+
+        container
+            .read(dailyPlanDraftProvider.notifier)
+            .setQuantity('CAKE-B', 12);
+        container.read(productionBasketProvider.notifier).addOrRaise(cakeALine);
+
+        reconcile(container);
+
+        expect(container.read(dailyPlanDraftProvider).quantities, {
+          'CAKE-A': 30,
+          'CAKE-B': 12,
+        });
+        expect(queued(container), {'CAKE-A': 30.0, 'CAKE-B': 12.0});
+      },
+    );
+
+    test('the draft wins for a jar it has already decided', () async {
+      final container = twoJars();
+      await _settle(container);
+
+      container.read(dailyPlanDraftProvider.notifier).setQuantity('CAKE-A', 7);
+      container.read(productionBasketProvider.notifier).addOrRaise(cakeALine);
+      reconcile(container);
+
+      expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 7});
+      expect(queued(container), {'CAKE-A': 7.0});
+    });
+
+    test('a jar Today already made is not started again from here', () async {
+      // Today's Make zeroes the draft and leaves the queue alone. An empty
+      // field there is a decision, not a gap to refill from the queue.
+      final container = twoJars();
+      await _settle(container);
+
+      final row = container.read(planBoardProvider).rows.first;
+      container.read(planEntryProvider).setQuantity(row, 30);
+      container.read(dailyPlanDraftProvider.notifier).setQuantity('CAKE-A', 0);
+      reconcile(container);
+
+      expect(container.read(dailyPlanDraftProvider).quantities, isEmpty);
+      expect(queued(container), isEmpty);
+    });
+
+    test('a cleared day drops a queue that lands after it', () async {
+      final container = twoJars();
+      await _settle(container);
+
+      container.read(dailyPlanDraftProvider.notifier).clear();
+      container.read(productionBasketProvider.notifier).addOrRaise(cakeALine);
+      reconcile(container);
+
+      expect(container.read(dailyPlanDraftProvider).quantities, isEmpty);
+      expect(queued(container), isEmpty);
+    });
+
+    test('a part-jar queued line is rounded in both stores', () async {
+      final container = twoJars();
       await _settle(container);
 
       container
           .read(productionBasketProvider.notifier)
-          .addOrRaise(
-            const BatchLine(
-              itemCode: 'CAKE-A',
-              itemName: 'CAKE-A name',
-              bomName: 'BOM-CAKE-A',
-              stockUom: 'Nos',
-              bomQtyYield: 10,
-              batches: 3,
-            ),
-          );
+          .addOrRaise(cakeALine.withBatches(0.25));
+      reconcile(container);
 
-      container.read(planEntryProvider).hydrate();
-      expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 30});
+      expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 3});
+      expect(queued(container), {'CAKE-A': 3.0});
+      expect(
+        container
+            .read(planEntryProvider)
+            .isReconciled(container.read(planBoardProvider)),
+        isTrue,
+      );
     });
+
+    test(
+      'an unqueueable row keeps its plan quantity and queues nothing',
+      () async {
+        final container = _container(
+          page: const ProductionSuggestionsPage(),
+          template: DailyPlanTemplate(items: [_templateItem('CAKE-NOBOM')]),
+        );
+        await _settle(container);
+
+        container
+            .read(dailyPlanDraftProvider.notifier)
+            .setQuantity('CAKE-NOBOM', 4);
+        final entry = container.read(planEntryProvider);
+        final board = container.read(planBoardProvider);
+
+        expect(entry.isReconciled(board), isTrue);
+        expect(entry.reconcile(board), isFalse);
+        expect(container.read(dailyPlanDraftProvider).quantities, {
+          'CAKE-NOBOM': 4,
+        });
+      },
+    );
 
     test('a saved plan is never poured into the fields', () async {
       // The rule the Today screen already keeps: a filed plan is a TARGET.
       // Seeding the fields from it would rebuild the queue behind it, so a run
       // started this morning could be started again by re-opening the tab.
-      final container = _container(
-        page: ProductionSuggestionsPage(
-          items: [_suggestion(itemCode: 'CAKE-A')],
-        ),
-        template: DailyPlanTemplate(items: [_templateItem('CAKE-A')]),
-      );
+      final container = twoJars();
       await _settle(container);
 
       container
           .read(dailyPlanDraftProvider.notifier)
           .attachSavedPlan('DPP-0001');
-      container.read(planEntryProvider).hydrate();
+      reconcile(container);
 
       expect(container.read(dailyPlanDraftProvider).quantities, isEmpty);
       expect(container.read(productionBasketProvider).lines, isEmpty);
@@ -418,34 +540,28 @@ void main() {
       expect(container.read(dailyPlanDraftProvider).savedPlanName, 'DPP-0001');
     });
 
-    test('never overwrites what is already typed', () async {
-      final container = _container(
-        page: ProductionSuggestionsPage(
-          items: [_suggestion(itemCode: 'CAKE-A')],
-        ),
-        template: DailyPlanTemplate(items: [_templateItem('CAKE-A')]),
+    test('nothing moves before the jar list is in', () async {
+      final container = ProviderContainer(
+        overrides: [
+          productionBasketRepositoryProvider.overrideWithValue(
+            _FakeBasketRepository(),
+          ),
+          productionSuggestionsProvider.overrideWith(
+            () => _StubSuggestions(const ProductionSuggestionsPage()),
+          ),
+          dailyPlanTemplateProvider.overrideWith(
+            (ref) => Completer<DailyPlanTemplate>().future,
+          ),
+        ],
       );
-      await _settle(container);
+      addTearDown(container.dispose);
 
-      final row = container.read(planBoardProvider).rows.first;
-      container.read(planEntryProvider).setQuantity(row, 7);
-      // A queue arriving late from Hive must not clobber an entry already
-      // under way.
-      container
-          .read(productionBasketProvider.notifier)
-          .addOrRaise(
-            const BatchLine(
-              itemCode: 'CAKE-B',
-              itemName: 'CAKE-B name',
-              bomName: 'BOM-CAKE-B',
-              stockUom: 'Nos',
-              bomQtyYield: 10,
-              batches: 9,
-            ),
-          );
-      container.read(planEntryProvider).hydrate();
-
-      expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 7});
+      container.read(dailyPlanDraftProvider.notifier).setQuantity('CAKE-A', 5);
+      final board = container.read(planBoardProvider);
+      final entry = container.read(planEntryProvider);
+      expect(entry.isReconciled(board), isTrue);
+      expect(entry.reconcile(board), isFalse);
+      expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 5});
     });
   });
 

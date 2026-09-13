@@ -439,7 +439,9 @@ void main() {
     });
 
     test('never clobbers work the user has already started', () async {
-      // A restore arriving late must not overwrite a live basket.
+      // A restore arriving late must not overwrite a live line. It adds back
+      // the saved lines the live basket lacks instead of discarding them: the
+      // Plan tab decides each one against the fields.
       repo.stored = const ProductionBasket(
         lines: [
           BatchLine(
@@ -448,6 +450,13 @@ void main() {
             bomName: 'BOM-OLD',
             bomQtyYield: 10,
             batches: 9,
+          ),
+          BatchLine(
+            itemCode: 'NEW',
+            itemName: 'New',
+            bomName: 'BOM-NEW',
+            bomQtyYield: 10,
+            batches: 7,
           ),
         ],
       );
@@ -463,7 +472,8 @@ void main() {
 
       await notifier().restore();
 
-      expect(basket().lines.map((l) => l.itemCode), ['NEW']);
+      expect(basket().lines.map((l) => l.itemCode), ['NEW', 'OLD']);
+      expect(basket().lines.first.batches, 1);
     });
 
     test('an empty stored basket is a no-op', () async {

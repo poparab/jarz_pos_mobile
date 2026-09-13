@@ -417,25 +417,126 @@ class PlanEntryController {
     return true;
   }
 
-  /// Re-hydrates the fields after a restart, WITHOUT writing anything back.
+  /// Whether the fields and the queue already describe the same quantities
+  /// for every row on [board]. Pure, so the tab can ask on every build.
+  bool isReconciled(PlanBoard board) => _mismatches(board).isEmpty;
+
+  /// Lines the fields up with the queue, so that Start batches posts exactly
+  /// what the fields show: nothing queued that no field shows, and nothing
+  /// shown that is not queued. Returns whether anything changed.
   ///
-  /// The queue is the half that survives the app being killed, so it is the
-  /// only thing that seeds the fields. A plan already filed for the day
-  /// deliberately does NOT: it is a target, not a quantity somebody has just
-  /// typed, and pouring it back into the fields would rebuild the queue behind
-  /// it — so a run started this morning could be started a second time by
-  /// re-opening the tab and tapping Start. The row shows the planned figure
-  /// beside its field instead, one tap from being used.
-  void hydrate() {
-    final draft = _ref.read(dailyPlanDraftProvider);
-    if (draft.quantities.isNotEmpty) return;
+  /// The two drift because the draft has writers that are not this tab — the
+  /// Today screen types jars into it and empties them after a Make, and never
+  /// touches the queue — while the queue alone survives a restart through
+  /// Hive. Per item, whichever store actually holds the decision wins:
+  ///
+  /// * the draft, once it has taken a position on the jar this session (typed
+  ///   anywhere, zeroed by a Make, cleared with the day). The queue follows,
+  ///   so a jar Today just posted is not started again from here;
+  /// * otherwise the queue, which after a restart is the only record of what
+  ///   was typed. Its number goes back into the field.
+  ///
+  /// A saved plan never seeds anything: it is a target, not a quantity
+  /// somebody has just typed, and pouring it into the fields would rebuild the
+  /// queue behind it, so a run started this morning could be started a second
+  /// time by re-opening the tab. The row shows the planned figure beside its
+  /// field instead, one tap from being used.
+  ///
+  /// Items the board does not list are dropped from both stores (see
+  /// [dropUnlisted]), and nothing is done until the jar list itself is in.
+  bool reconcile(PlanBoard board) {
+    final mismatches = _mismatches(board);
+    if (mismatches.isEmpty) return false;
 
-    final basket = _ref.read(productionBasketProvider);
-    if (basket.positiveLines.isEmpty) return;
+    final draft = _ref.read(dailyPlanDraftProvider.notifier);
+    final basket = _ref.read(productionBasketProvider.notifier);
+    final unlisted = <String>[];
 
-    _ref.read(dailyPlanDraftProvider.notifier).seedQuantities({
-      for (final line in basket.positiveLines)
-        line.itemCode: line.units.round(),
-    });
+    for (final m in mismatches) {
+      final row = m.row;
+      if (row == null) {
+        unlisted.add(m.itemCode);
+        continue;
+      }
+      if (m.draftQty != m.target) draft.setQuantity(m.itemCode, m.target);
+      if (m.basketOk) continue;
+      if (m.target > 0 && row.canQueue) {
+        basket.setUnitsForItem(row.lineFor(m.target), m.target.toDouble());
+      } else {
+        // Nothing to post: a zero, or a row with no BOM to post it against —
+        // which takes a plan quantity and is never queued.
+        basket.removeItems([m.itemCode]);
+      }
+    }
+
+    if (unlisted.isNotEmpty) forgetStarted(unlisted);
+    return true;
   }
+
+  List<_PlanMismatch> _mismatches(PlanBoard board) {
+    if (!board.hasJarList) return const <_PlanMismatch>[];
+
+    final rows = {for (final row in board.rows) row.itemCode: row};
+    final quantities = _ref.read(dailyPlanDraftProvider).quantities;
+    final draft = _ref.read(dailyPlanDraftProvider.notifier);
+    final lines = _ref.read(productionBasketProvider).lines;
+
+    final queued = <String, double>{};
+    for (final line in lines) {
+      queued.putIfAbsent(line.itemCode, () => line.units);
+    }
+
+    final mismatches = <_PlanMismatch>[];
+    for (final code in {...quantities.keys, ...queued.keys}) {
+      final row = rows[code];
+      if (row == null) {
+        mismatches.add(_PlanMismatch(itemCode: code));
+        continue;
+      }
+
+      final draftQty = quantities[code] ?? 0;
+      final units = queued[code] ?? 0;
+      final target = draft.hasDecided(code)
+          ? draftQty
+          : (units > 0 ? units.round() : 0);
+
+      // A zero-unit line posts nothing (`positiveLines`), so it can stay.
+      final basketOk = target > 0 && row.canQueue
+          ? (units - target).abs() < 1e-6
+          : units <= 0;
+
+      if (draftQty != target || !basketOk) {
+        mismatches.add(
+          _PlanMismatch(
+            itemCode: code,
+            row: row,
+            draftQty: draftQty,
+            target: target,
+            basketOk: basketOk,
+          ),
+        );
+      }
+    }
+    return mismatches;
+  }
+}
+
+/// One item on which the fields and the queue disagree, and what to settle on.
+@immutable
+class _PlanMismatch {
+  const _PlanMismatch({
+    required this.itemCode,
+    this.row,
+    this.draftQty = 0,
+    this.target = 0,
+    this.basketOk = true,
+  });
+
+  final String itemCode;
+
+  /// Null when the board does not list the item at all.
+  final PlanRow? row;
+  final int draftQty;
+  final int target;
+  final bool basketOk;
 }

@@ -35,13 +35,28 @@ class ProductionBasketNotifier extends Notifier<ProductionBasket> {
 
   /// Loads any basket left over from a previous session.
   ///
-  /// Only applied when the in-memory basket is still untouched, so a restore
-  /// arriving late can never clobber work the user has already started.
+  /// A restore arriving late never clobbers work the user has already started:
+  /// a live line wins over the saved one for the same item, and the live
+  /// posting date stands. Saved lines for items the live basket does not hold
+  /// are added back rather than thrown away — the Hive load races the Plan
+  /// tab, which queues jars typed on the Today screen the moment it opens, and
+  /// dropping the saved basket whenever that won lost yesterday's queue
+  /// without a trace. Whether each one belongs is the Plan tab's call
+  /// (`PlanEntryController.reconcile`): back into its field, or dropped when
+  /// the jar has been decided since.
   Future<void> restore() async {
     final saved = await _repo.load();
     if (saved == null || saved.lines.isEmpty) return;
-    if (state.lines.isNotEmpty) return;
-    state = saved;
+    if (state.lines.isEmpty) {
+      state = saved;
+      return;
+    }
+    final live = {for (final line in state.lines) line.itemCode};
+    final missing = saved.lines
+        .where((line) => !live.contains(line.itemCode))
+        .toList(growable: false);
+    if (missing.isEmpty) return;
+    _update(state.copyWith(lines: [...state.lines, ...missing]));
   }
 
   /// Adds a line, or raises an existing one to [batches].

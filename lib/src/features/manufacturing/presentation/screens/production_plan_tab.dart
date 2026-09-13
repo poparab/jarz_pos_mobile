@@ -53,33 +53,13 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
   bool _planRequested = false;
 
   /// The plan already filed for this day, shown as a target beside each field.
-  /// Deliberately not poured into the fields — see [PlanEntryController.hydrate].
+  /// Deliberately not poured into the fields — see
+  /// [PlanEntryController.reconcile].
   DailyPlan? _savedPlan;
-
-  @override
-  void initState() {
-    super.initState();
-    // The queue is restored from Hive by the host, asynchronously, so the
-    // fields are filled from it after the first frame rather than in build().
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ref.read(planEntryProvider).hydrate();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-
-    // The queue comes back from Hive after this tab is already on screen —
-    // `restore()` awaits a box open — so the one-shot in `initState` is not
-    // enough on its own. Nothing to loop on: an edit writes the fields first
-    // and the queue second, so by the time this fires the draft is no longer
-    // empty and `hydrate` returns without touching anything.
-    ref.listen<ProductionBasket>(productionBasketProvider, (previous, next) {
-      if ((previous?.lines.isNotEmpty ?? false) || next.lines.isEmpty) return;
-      ref.read(planEntryProvider).hydrate();
-    });
 
     final board = ref.watch(planBoardProvider);
 
@@ -114,13 +94,15 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
     final entry = ref.read(planEntryProvider);
     final invalidEntries = ref.watch(planInvalidEntriesProvider);
 
-    // A queue restored from Hive can hold a line for an item this tab no longer
-    // lists — a base typed in as jars before bases left the tab. It would be
-    // submitted by Start batches while no field showed it, so it goes. Checked
-    // on every build because the queue and the jar list land in either order.
-    if (board.hasJarList && _holdsUnlisted(board, basket, draft)) {
+    // The fields show the draft and Start batches posts the queue, and the two
+    // are written from outside this tab: the Today screen types jars into the
+    // draft alone and empties them after a Make, and the host restores the
+    // queue from Hive after this tab is already on screen. Checked on every
+    // build — both are watched, and they land in either order with the jar
+    // list — and settled after the frame. See [PlanEntryController.reconcile].
+    if (!entry.isReconciled(board)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) ref.read(planEntryProvider).dropUnlisted(board);
+        if (mounted) ref.read(planEntryProvider).reconcile(board);
       });
     }
     final groups = ref.watch(visiblePlanBoardProvider);
@@ -338,16 +320,6 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
     );
   }
 
-  static bool _holdsUnlisted(
-    PlanBoard board,
-    ProductionBasket basket,
-    DailyPlanDraft draft,
-  ) {
-    final listed = {for (final row in board.rows) row.itemCode};
-    return basket.lines.any((l) => !listed.contains(l.itemCode)) ||
-        draft.quantities.keys.any((code) => !listed.contains(code));
-  }
-
   static Map<String, String> _selectionsFor(
     ProductionBasket basket,
     String itemCode,
@@ -377,7 +349,7 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
   /// The name is attached so a later Save updates that document instead of
   /// filing a second plan for the same date. Its quantities go onto the rows as
   /// a target beside each field and nowhere else — see
-  /// [PlanEntryController.hydrate] for why they must not land IN the field.
+  /// [PlanEntryController.reconcile] for why they must not land IN the field.
   Future<void> _loadExistingPlan(String name) async {
     try {
       final plan = await ref.read(dailyPlanServiceProvider).getPlan(name);

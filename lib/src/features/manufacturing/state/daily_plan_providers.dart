@@ -78,6 +78,28 @@ final dailyPlanDraftProvider =
 class DailyPlanDraftNotifier extends Notifier<DailyPlanDraft> {
   Timer? _debounce;
 
+  /// Items this draft has taken a position on since the app started — typed,
+  /// zeroed, forgotten after a start or a Make — including the ones it now
+  /// holds nothing for.
+  ///
+  /// An empty draft means two different things, and the Plan tab has to tell
+  /// them apart when it lines the fields up with the Hive-backed queue: after a
+  /// restart nothing has been said, so a queued line is the only record of the
+  /// jar and belongs back in its field; after a Make on the Today screen the
+  /// jar was just posted, and the queued line left behind would be started a
+  /// second time.
+  final Set<String> _decided = <String>{};
+
+  /// Set by [clear] and [seedQuantities], which speak for every item at once.
+  bool _decidedWholeDay = false;
+
+  /// Whether the draft's number for [itemCode] (possibly none) is a decision
+  /// rather than a gap. See [_decided].
+  bool hasDecided(String itemCode) =>
+      _decidedWholeDay ||
+      _decided.contains(itemCode) ||
+      state.quantities.containsKey(itemCode);
+
   /// Long enough to swallow a multi-digit entry, short enough that the split
   /// feels like it is reacting to what was typed.
   static const _debounceDelay = Duration(milliseconds: 350);
@@ -89,6 +111,7 @@ class DailyPlanDraftNotifier extends Notifier<DailyPlanDraft> {
   }
 
   void setQuantity(String itemCode, int qty) {
+    _decided.add(itemCode);
     final next = Map<String, int>.from(state.quantities);
     if (qty <= 0) {
       next.remove(itemCode);
@@ -111,12 +134,13 @@ class DailyPlanDraftNotifier extends Notifier<DailyPlanDraft> {
 
   /// Adopts a set of quantities wholesale, without writing anything back out.
   ///
-  /// Used to re-hydrate the form from a source that is already authoritative —
-  /// a saved plan, or the Hive-backed batch queue after a restart. Deliberately
-  /// one-way: the merged Plan tab writes through [setQuantity] so the queue and
-  /// this draft move together, and a seed that echoed back into the queue would
-  /// re-add lines a start had just removed.
+  /// Used to re-hydrate the form from a source that is already authoritative,
+  /// so it speaks for every item: anything it leaves out is a decided zero.
+  /// Deliberately one-way — nothing is written to the batch queue here; the
+  /// Plan tab lines the queue up afterwards through
+  /// `PlanEntryController.reconcile`.
   void seedQuantities(Map<String, int> quantities, {String? planName}) {
+    _decidedWholeDay = true;
     state = DailyPlanDraft(
       quantities: {
         for (final entry in quantities.entries)
@@ -136,6 +160,7 @@ class DailyPlanDraftNotifier extends Notifier<DailyPlanDraft> {
   void forget(Iterable<String> itemCodes) {
     final drop = itemCodes.toSet();
     if (drop.isEmpty) return;
+    _decided.addAll(drop);
     final next = Map<String, int>.from(state.quantities)
       ..removeWhere((code, _) => drop.contains(code));
     if (next.length == state.quantities.length) return;
@@ -157,6 +182,7 @@ class DailyPlanDraftNotifier extends Notifier<DailyPlanDraft> {
 
   void clear() {
     _debounce?.cancel();
+    _decidedWholeDay = true;
     state = const DailyPlanDraft();
   }
 
