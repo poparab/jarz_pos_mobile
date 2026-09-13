@@ -2600,6 +2600,12 @@ abstract class AppLocalizations {
   /// **'This operation was already processed. Check the order status before submitting again.'**
   String get userErrorAlreadyProcessed;
 
+  /// No description provided for @userErrorTransferReceiptRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'InstaPay and wallet payments need a confirmed transfer receipt. Attach the customer transfer screenshot to this order and have a manager confirm it, then pay again.'**
+  String get userErrorTransferReceiptRequired;
+
   /// No description provided for @userErrorRequiredFields.
   ///
   /// In en, this message translates to:
@@ -7957,6 +7963,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment failed'**
   String get invoicePaymentFailed;
+
+  /// No description provided for @transferProofTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer screenshot'**
+  String get transferProofTitle;
+
+  /// No description provided for @transferProofIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'InstaPay and wallet payments are recorded only after a manager confirms the customer transfer screenshot.'**
+  String get transferProofIntro;
+
+  /// No description provided for @transferProofAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to be paid'**
+  String get transferProofAmountLabel;
+
+  /// No description provided for @transferProofMethodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get transferProofMethodLabel;
+
+  /// No description provided for @transferProofAlreadyUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'A screenshot is already attached and waiting for confirmation. You can continue with it or replace it.'**
+  String get transferProofAlreadyUploaded;
+
+  /// No description provided for @transferProofRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The previous screenshot was rejected. Attach a new one.'**
+  String get transferProofRejected;
+
+  /// No description provided for @transferProofRejectedReason.
+  ///
+  /// In en, this message translates to:
+  /// **'The previous screenshot was rejected: {reason}. Attach a new one.'**
+  String transferProofRejectedReason(String reason);
+
+  /// No description provided for @transferProofAttach.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach screenshot'**
+  String get transferProofAttach;
+
+  /// No description provided for @transferProofImageSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'New screenshot selected'**
+  String get transferProofImageSelected;
+
+  /// No description provided for @transferProofSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send screenshot'**
+  String get transferProofSend;
+
+  /// No description provided for @transferProofContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with this screenshot'**
+  String get transferProofContinue;
+
+  /// No description provided for @transferProofSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending screenshot...'**
+  String get transferProofSending;
+
+  /// No description provided for @transferProofConfirming.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming transfer...'**
+  String get transferProofConfirming;
+
+  /// No description provided for @transferProofConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Did the transfer arrive?'**
+  String get transferProofConfirmTitle;
+
+  /// No description provided for @transferProofConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the company bank account and check that the transfer of {amount} has arrived. Confirm only if you can see it.'**
+  String transferProofConfirmBody(String amount);
+
+  /// No description provided for @transferProofConfirmYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, it arrived. Confirm and pay'**
+  String get transferProofConfirmYes;
+
+  /// No description provided for @transferProofConfirmNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet'**
+  String get transferProofConfirmNo;
+
+  /// No description provided for @transferProofAwaitingManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot sent. A manager must confirm it in Payment Receipts, then press Pay and choose {method} again.'**
+  String transferProofAwaitingManager(String method);
+
+  /// No description provided for @transferProofAwaitingConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot saved. The receipt is waiting for confirmation, so no payment was recorded yet. Press Pay again once the transfer is confirmed.'**
+  String get transferProofAwaitingConfirmation;
 
   /// No description provided for @invoicePaymentError.
   ///

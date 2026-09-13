@@ -25,6 +25,8 @@ import 'settlement_preview_dialog.dart';
 import 'cancel_order_dialog.dart';
 import 'return_order_dialog.dart';
 import 'payment_collection_change_dialog.dart';
+import 'transfer_proof_logic.dart';
+import 'transfer_proof_sheet.dart';
 import 'sub_territory_selection_sheet.dart';
 import 'custom_shipping_request_dialog.dart';
 import 'invoice_notes_sheet.dart';
@@ -1759,16 +1761,117 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final notifier = container.read(kanbanProvider.notifier);
     final posState = container.read(posNotifierProvider);
     final messenger = ScaffoldMessenger.of(context);
-    String? posProfile;
+
     if (method.toLowerCase() == PaymentModes.cashLower) {
-      posProfile = posState.selectedProfile?['name'];
+      final String? posProfile = posState.selectedProfile?['name'];
       if (posProfile == null) {
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.invoiceNoPosProfileCash)),
         );
         return;
       }
+      await _payAndReport(
+        method: method,
+        posProfile: posProfile,
+        l10n: l10n,
+        notifier: notifier,
+        messenger: messenger,
+      );
+      return;
     }
+
+    // InstaPay / Wallet. `pay_invoice` refuses these until a POS Payment
+    // Receipt for the invoice is Confirmed AND carries the customer's transfer
+    // screenshot. The card used to pay first and create the receipt only after
+    // a success that could never come — a dead end on every order. The proof
+    // now comes first; paying happens only once a manager has confirmed it.
+    final receiptMethod = transferReceiptMethod(method);
+    if (receiptMethod == null ||
+        transferPaymentStepFor(widget.invoice, receiptMethod) ==
+            TransferPaymentStep.payDirectly) {
+      await _payAndReport(
+        method: method,
+        posProfile: null,
+        l10n: l10n,
+        notifier: notifier,
+        messenger: messenger,
+      );
+      return;
+    }
+
+    final canConfirm = container.read(canActAsLineManagerProvider);
+    final outcome = await TransferProofSheet.show(
+      context,
+      invoice: widget.invoice,
+      method: receiptMethod,
+      posProfile: transferReceiptPosProfile(
+        widget.invoice,
+        posState.selectedProfile?['name']?.toString(),
+      ),
+      canConfirm: canConfirm,
+    );
+    switch (outcome) {
+      case null:
+        return;
+      case TransferProofOutcome.confirmed:
+        await _payAndReport(
+          method: method,
+          posProfile: null,
+          l10n: l10n,
+          notifier: notifier,
+          messenger: messenger,
+        );
+        return;
+      case TransferProofOutcome.confirmedAndRecorded:
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(l10n.receiptConfirmedSuccess),
+            backgroundColor: Colors.green[700],
+          ),
+        );
+        try {
+          await notifier.loadInvoices();
+        } catch (_) {
+          // The realtime refresh will catch up; the payment is recorded.
+        }
+        return;
+      case TransferProofOutcome.awaitingManager:
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(l10n.transferProofAwaitingManager(
+              receiptMethod == 'Wallet' ? l10n.invoiceWallet : l10n.paymentMethodInstapay,
+            )),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+        _refreshBoardQuietly(notifier);
+        return;
+      case TransferProofOutcome.awaitingConfirmation:
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(l10n.transferProofAwaitingConfirmation),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+        _refreshBoardQuietly(notifier);
+        return;
+    }
+  }
+
+  /// Picks up the new receipt state so the next Pay press sees it.
+  void _refreshBoardQuietly(KanbanNotifier notifier) {
+    notifier.loadInvoices().catchError((_) {});
+  }
+
+  /// Calls `pay_invoice` and reports the result. Uses only references hoisted
+  /// by the caller, never `context`, so it is safe after the card is disposed.
+  Future<void> _payAndReport({
+    required String method,
+    required String? posProfile,
+    required AppLocalizations l10n,
+    required KanbanNotifier notifier,
+    required ScaffoldMessengerState messenger,
+  }) async {
     try {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.invoiceProcessingPayment(method))),
@@ -1778,82 +1881,19 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         paymentMode: method,
         posProfile: posProfile,
       );
+      // Replace the "processing" note instead of queueing behind it, so the
+      // outcome (and especially a refusal's reason) shows at once.
+      messenger.hideCurrentSnackBar();
       if (result != null && result['success'] == true) {
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.invoicePaymentSuccess('${result['payment_entry']}'))),
         );
-        
+
         // Show collect cash dialog for cash payments
         if (method.toLowerCase() == PaymentModes.cashLower) {
           final amount = result['amount'] ?? result['allocated_amount'];
-          if (amount != null && context.mounted) {
+          if (amount != null && mounted && context.mounted) {
             _showCollectCashDialog(context, amount.toString(), widget.invoice.name);
-          }
-        }
-        
-        // Create payment receipt for Instapay/Wallet payments
-        if (method == 'InstaPay' || method == 'Wallet') {
-          final amount = result['amount'] ?? result['allocated_amount'];
-          // Try to get POS profile from invoice, fallback to selected profile for cash
-          final invoicePosProfile = widget.invoice.posProfile ?? posState.selectedProfile?['name'];
-          
-          if (amount == null) {
-            if (context.mounted) {
-              messenger.showSnackBar(
-                SnackBar(content: Text(l10n.invoiceReceiptAmountWarning)),
-              );
-            }
-          } else if (invoicePosProfile == null || invoicePosProfile.isEmpty) {
-            if (context.mounted) {
-              messenger.showSnackBar(
-                SnackBar(
-                  content: Text(l10n.invoiceReceiptNoPosProfile),
-                  duration: const Duration(seconds: 4),
-                ),
-              );
-            }
-          } else {
-            try {
-              final receiptResult = await notifier.createPaymentReceipt(
-                salesInvoice: widget.invoice.name,
-                paymentMethod: method,
-                amount: double.tryParse(amount.toString()) ?? 0.0,
-                posProfile: invoicePosProfile,
-              );
-              
-              if (context.mounted) {
-                if (receiptResult != null && receiptResult['success'] == true) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.invoiceReceiptCreated('${receiptResult['receipt_name']}')),
-                      duration: const Duration(seconds: 4),
-                      backgroundColor: Colors.green[700],
-                    ),
-                  );
-                } else {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(userErrorMessageFor(_errorLocalizations, receiptResult?['message']?.toString() ?? l10n.commonError)),
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
-                }
-              }
-            } catch (e) {
-              // Don't block payment success, just log
-              if (context.mounted) {
-                final errorMessage = _formatErrorMessage(
-                  e,
-                  fallback: l10n.commonError,
-                );
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(userErrorMessageFor(_errorLocalizations, errorMessage)),
-                    duration: const Duration(seconds: 3),
-                  ),
-                );
-              }
-            }
           }
         }
       } else {
@@ -1862,12 +1902,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         );
       }
     } catch (e) {
-      final errorMessage = _formatErrorMessage(
-        e,
-        fallback: l10n.invoicePaymentFailed,
-      );
+      // The server's reason, not a bare "Payment failed": the notifier now
+      // rethrows instead of swallowing, and a missing confirmed transfer
+      // receipt maps to its own localized instruction.
+      messenger.hideCurrentSnackBar();
       messenger.showSnackBar(
-        SnackBar(content: Text(userErrorMessageFor(_errorLocalizations, errorMessage))),
+        SnackBar(
+          content: Text(paymentFailureMessage(l10n, e)),
+          duration: const Duration(seconds: 6),
+        ),
       );
     }
   }

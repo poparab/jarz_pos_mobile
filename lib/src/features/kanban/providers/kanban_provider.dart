@@ -1163,10 +1163,14 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       await loadInvoices();
       return result;
     } catch (e) {
-      state = state.copyWith(
-        error: _formatActionError(e, action: 'Payment failed'),
-      );
-      return null;
+      debugPrint('Pay invoice error: $e');
+      // Rethrown, like the receipt methods below, so the card can show WHY.
+      // Returning null here left the caller only the generic "Payment failed"
+      // and hid refusals such as a missing confirmed transfer receipt. No
+      // "Payment failed:" prefix: the server sentence alone is what the error
+      // presenter matches, and the prefix pushed long refusals past its length
+      // gate.
+      throw Exception(extractFrappeErrorMessage(e, fallback: 'Payment failed'));
     }
   }
   

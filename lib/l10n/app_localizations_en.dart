@@ -1561,6 +1561,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This operation was already processed. Check the order status before submitting again.';
 
   @override
+  String get userErrorTransferReceiptRequired =>
+      'InstaPay and wallet payments need a confirmed transfer receipt. Attach the customer transfer screenshot to this order and have a manager confirm it, then pay again.';
+
+  @override
   String get userErrorRequiredFields =>
       'Complete the required fields before continuing.';
 
@@ -4857,6 +4861,73 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invoicePaymentFailed => 'Payment failed';
+
+  @override
+  String get transferProofTitle => 'Transfer screenshot';
+
+  @override
+  String get transferProofIntro =>
+      'InstaPay and wallet payments are recorded only after a manager confirms the customer transfer screenshot.';
+
+  @override
+  String get transferProofAmountLabel => 'Amount to be paid';
+
+  @override
+  String get transferProofMethodLabel => 'Payment method';
+
+  @override
+  String get transferProofAlreadyUploaded =>
+      'A screenshot is already attached and waiting for confirmation. You can continue with it or replace it.';
+
+  @override
+  String get transferProofRejected =>
+      'The previous screenshot was rejected. Attach a new one.';
+
+  @override
+  String transferProofRejectedReason(String reason) {
+    return 'The previous screenshot was rejected: $reason. Attach a new one.';
+  }
+
+  @override
+  String get transferProofAttach => 'Attach screenshot';
+
+  @override
+  String get transferProofImageSelected => 'New screenshot selected';
+
+  @override
+  String get transferProofSend => 'Send screenshot';
+
+  @override
+  String get transferProofContinue => 'Continue with this screenshot';
+
+  @override
+  String get transferProofSending => 'Sending screenshot...';
+
+  @override
+  String get transferProofConfirming => 'Confirming transfer...';
+
+  @override
+  String get transferProofConfirmTitle => 'Did the transfer arrive?';
+
+  @override
+  String transferProofConfirmBody(String amount) {
+    return 'Open the company bank account and check that the transfer of $amount has arrived. Confirm only if you can see it.';
+  }
+
+  @override
+  String get transferProofConfirmYes => 'Yes, it arrived. Confirm and pay';
+
+  @override
+  String get transferProofConfirmNo => 'Not yet';
+
+  @override
+  String transferProofAwaitingManager(String method) {
+    return 'Screenshot sent. A manager must confirm it in Payment Receipts, then press Pay and choose $method again.';
+  }
+
+  @override
+  String get transferProofAwaitingConfirmation =>
+      'Screenshot saved. The receipt is waiting for confirmation, so no payment was recorded yet. Press Pay again once the transfer is confirmed.';
 
   @override
   String invoicePaymentError(Object error) {

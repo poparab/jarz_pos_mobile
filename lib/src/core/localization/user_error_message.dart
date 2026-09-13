@@ -50,6 +50,7 @@ String userErrorMessageFor(
     l10n.userErrorInsufficientStock,
     l10n.userErrorShiftRequired,
     l10n.userErrorAlreadyProcessed,
+    l10n.userErrorTransferReceiptRequired,
     l10n.userErrorRequiredFields,
     l10n.manufacturingQuantityMustBePositive,
     l10n.checkoutSelectProfileFirst,
@@ -355,6 +356,15 @@ String? _businessMessage(AppLocalizations l10n, String? candidate) {
   if (text.contains('shift') &&
       _hasAny(text, const ['closed', 'no active', 'not open']))
     return l10n.userErrorShiftRequired;
+  // `pay_invoice` refuses InstaPay/Wallet until a manager has confirmed the
+  // customer's transfer screenshot. Without this clause an Arabic UI dropped
+  // the English sentence and staff saw only "payment failed".
+  if (_hasAny(text, const [
+    'need a confirmed transfer receipt',
+    'needs a confirmed transfer receipt',
+  ])) {
+    return l10n.userErrorTransferReceiptRequired;
+  }
   if (_hasAny(text, const [
     'already submitted',
     'already paid',

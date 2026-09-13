@@ -1556,6 +1556,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم تنفيذ هذه العملية بالفعل. راجع حالة الطلب قبل الإرسال مرة أخرى.';
 
   @override
+  String get userErrorTransferReceiptRequired =>
+      'الدفع بإنستاباي أو المحفظة محتاج إيصال تحويل متأكد. ارفع صورة تحويل العميل على الطلب ده وخلي المدير يأكدها، وبعدين ادفع تاني.';
+
+  @override
   String get userErrorRequiredFields => 'أكمل البيانات المطلوبة قبل المتابعة.';
 
   @override
@@ -4842,6 +4846,73 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invoicePaymentFailed => 'فشل الدفع';
+
+  @override
+  String get transferProofTitle => 'صورة التحويل';
+
+  @override
+  String get transferProofIntro =>
+      'الدفع بإنستاباي أو المحفظة مبيتسجلش غير بعد ما المدير يأكد صورة تحويل العميل.';
+
+  @override
+  String get transferProofAmountLabel => 'المبلغ المطلوب دفعه';
+
+  @override
+  String get transferProofMethodLabel => 'طريقة الدفع';
+
+  @override
+  String get transferProofAlreadyUploaded =>
+      'فيه صورة مرفوعة بالفعل ومستنية التأكيد. تقدر تكمل بيها أو تستبدلها.';
+
+  @override
+  String get transferProofRejected =>
+      'الصورة اللي فاتت اترفضت. ارفع صورة جديدة.';
+
+  @override
+  String transferProofRejectedReason(String reason) {
+    return 'الصورة اللي فاتت اترفضت: $reason. ارفع صورة جديدة.';
+  }
+
+  @override
+  String get transferProofAttach => 'إرفاق صورة التحويل';
+
+  @override
+  String get transferProofImageSelected => 'تم اختيار صورة جديدة';
+
+  @override
+  String get transferProofSend => 'إرسال الصورة';
+
+  @override
+  String get transferProofContinue => 'كمّل بالصورة دي';
+
+  @override
+  String get transferProofSending => 'جارٍ إرسال الصورة...';
+
+  @override
+  String get transferProofConfirming => 'جارٍ تأكيد التحويل...';
+
+  @override
+  String get transferProofConfirmTitle => 'التحويل وصل؟';
+
+  @override
+  String transferProofConfirmBody(String amount) {
+    return 'افتح حساب الشركة في البنك واتأكد إن تحويل $amount وصل. أكّد بس لو شايفه.';
+  }
+
+  @override
+  String get transferProofConfirmYes => 'أيوه وصل، أكّد وادفع';
+
+  @override
+  String get transferProofConfirmNo => 'لسه';
+
+  @override
+  String transferProofAwaitingManager(String method) {
+    return 'الصورة اتبعتت. لازم المدير يأكدها من إيصالات الدفع، وبعدين دوس دفع واختار $method تاني.';
+  }
+
+  @override
+  String get transferProofAwaitingConfirmation =>
+      'الصورة اتحفظت. الإيصال مستني التأكيد، ولسه مفيش دفع اتسجل. دوس دفع تاني بعد ما التحويل يتأكد.';
 
   @override
   String invoicePaymentError(Object error) {

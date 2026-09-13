@@ -472,37 +472,17 @@ class KanbanService {
         _logger.debug("Payment entry ${msg["payment_entry"]} created");
         return Map<String, dynamic>.from(msg);
       }
-      throw Exception(msg is Map ? msg["error"] ?? "Payment failed" : "Payment failed");
+      throw Exception(
+        _friendlyMessage(msg ?? "Payment failed", fallback: "Payment failed"),
+      );
     } catch (e) {
       _logger.error("Failed to pay invoice", e);
-      // Surface backend error details if available (Frappe sends message/exc in JSON on non-200)
-      if (e is DioException) {
-        try {
-          final data = e.response?.data;
-          if (data is Map) {
-            // Common Frappe error shapes
-            final m = data['message'] ?? data['exception'] ?? data['exc'] ?? data['error'];
-            if (m is String && m.trim().isNotEmpty) {
-              throw Exception(m);
-            }
-            if (m is Map && (m['message'] != null || m['error'] != null)) {
-              throw Exception((m['message'] ?? m['error']).toString());
-            }
-          }
-          // If response has text body
-          if (data is String && data.trim().isNotEmpty) {
-            throw Exception(data);
-          }
-        } catch (_) {
-          // fallthrough to generic path
-        }
-        // Include HTTP status text if present
-        final status = e.response?.statusCode;
-        final statusText = e.response?.statusMessage;
-  throw Exception(status != null ? "Payment failed ($status ${statusText ?? ''}).".trim() : "Payment failed");
-      }
-      // Non-Dio error
-      throw Exception(e.toString());
+      // The server's own refusal must reach the card. The previous handler
+      // threw `Exception(m)` inside a `try` whose `catch (_)` swallowed it, so
+      // every Frappe refusal (e.g. "InstaPay payments need a confirmed transfer
+      // receipt") collapsed into "Payment failed (417 ...)". The shared mapper
+      // reads `message` / `_server_messages` / `exception` from the body.
+      throw _friendlyException(e, fallback: "Payment failed");
     }
   }
 

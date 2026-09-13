@@ -15,6 +15,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -38,13 +39,17 @@ class _PendingPaymentKanbanNotifier extends StateNotifier<KanbanState>
   final Completer<Map<String, dynamic>?> payment =
       Completer<Map<String, dynamic>?>();
   int loadInvoicesCalls = 0;
+  int payInvoiceCalls = 0;
 
   @override
   Future<Map<String, dynamic>?> payInvoice({
     required String invoiceId,
     required String paymentMode,
     String? posProfile,
-  }) => payment.future;
+  }) {
+    payInvoiceCalls++;
+    return payment.future;
+  }
 
   @override
   Future<void> loadInvoices({bool immediate = false}) async {
@@ -74,7 +79,13 @@ class _PendingOrderAlertService implements OrderAlertService {
       throw UnsupportedError('${invocation.memberName} is not stubbed');
 }
 
-InvoiceCard _card({bool requiresAcceptance = false}) {
+/// [confirmedInstapay] attaches a Confirmed InstaPay receipt with a screenshot,
+/// the only state in which the card may call `pay_invoice` for InstaPay
+/// straight away. Without it the card must ask for the transfer proof first.
+InvoiceCard _card({
+  bool requiresAcceptance = false,
+  bool confirmedInstapay = false,
+}) {
   return InvoiceCard(
     id: 'ACC-SINV-2026-00042',
     invoiceIdShort: '42',
@@ -91,6 +102,11 @@ InvoiceCard _card({bool requiresAcceptance = false}) {
     requiresAcceptanceFlag: requiresAcceptance,
     outstandingAmount: 450,
     isPickup: false,
+    paymentReceiptName: confirmedInstapay ? 'PR-0042' : null,
+    paymentReceiptMethod: confirmedInstapay ? 'InstaPay' : null,
+    paymentReceiptStatus: confirmedInstapay ? 'Confirmed' : null,
+    paymentReceiptImageUrl:
+        confirmedInstapay ? '/private/files/transfer.jpg' : null,
   );
 }
 
@@ -125,6 +141,13 @@ Widget _host({
 }
 
 void main() {
+  // A card carrying a receipt screenshot resolves its URL through dotenv,
+  // which the app loads in main(). An empty ERP_BASE_URL keeps the preview
+  // off the network in tests.
+  setUpAll(() {
+    dotenv.loadFromString(isOptional: true);
+  });
+
   testWidgets(
     'a payment that fails after the card left the tree does not go fatal',
     (tester) async {
@@ -134,7 +157,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       final kanban = _PendingPaymentKanbanNotifier();
-      final invoice = _card();
+      final invoice = _card(confirmedInstapay: true);
       final overrides = <Override>[
         kanbanProvider.overrideWith((ref) => kanban),
         posNotifierProvider.overrideWith((ref) => _PosNotifierStub()),
@@ -182,7 +205,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       final kanban = _PendingPaymentKanbanNotifier();
-      final invoice = _card();
+      final invoice = _card(confirmedInstapay: true);
       final overrides = <Override>[
         kanbanProvider.overrideWith((ref) => kanban),
         posNotifierProvider.overrideWith((ref) => _PosNotifierStub()),
@@ -213,6 +236,102 @@ void main() {
       kanban.payment.complete({'success': true, 'payment_entry': 'PE-001'});
       await tester.pumpAndSettle();
 
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'InstaPay without a confirmed receipt asks for the transfer proof first',
+    (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final kanban = _PendingPaymentKanbanNotifier();
+      final invoice = _card();
+      final overrides = <Override>[
+        kanbanProvider.overrideWith((ref) => kanban),
+        posNotifierProvider.overrideWith((ref) => _PosNotifierStub()),
+        isLineManagerProvider.overrideWithValue(false),
+        canActAsLineManagerProvider.overrideWithValue(false),
+        managerAccessProvider.overrideWith((ref) => false),
+      ];
+
+      await tester.pumpWidget(
+        _host(showCard: true, invoice: invoice, overrides: overrides),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.payment).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Instapay'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Submit'));
+      await tester.pumpAndSettle();
+
+      // The server would refuse this payment, so the card must not try it.
+      expect(kanban.payInvoiceCalls, 0);
+      expect(find.text('Transfer screenshot'), findsOneWidget);
+      expect(find.text('Attach screenshot'), findsOneWidget);
+      // Nothing attached yet: the send button stays disabled.
+      final send = tester.widget<ButtonStyleButton>(
+        find.ancestor(
+          of: find.text('Send screenshot'),
+          matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+        ),
+      );
+      expect(send.onPressed, isNull);
+
+      // Closing without attaching anything changes nothing.
+      await tester.tap(find.text('Cancel').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Transfer screenshot'), findsNothing);
+      expect(kanban.payInvoiceCalls, 0);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'InstaPay with a confirmed receipt pays directly',
+    (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final kanban = _PendingPaymentKanbanNotifier();
+      final invoice = _card(confirmedInstapay: true);
+      final overrides = <Override>[
+        kanbanProvider.overrideWith((ref) => kanban),
+        posNotifierProvider.overrideWith((ref) => _PosNotifierStub()),
+        isLineManagerProvider.overrideWithValue(false),
+        canActAsLineManagerProvider.overrideWithValue(false),
+        managerAccessProvider.overrideWith((ref) => false),
+      ];
+
+      await tester.pumpWidget(
+        _host(showCard: true, invoice: invoice, overrides: overrides),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.payment).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Instapay'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Submit'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Transfer screenshot'), findsNothing);
+      expect(kanban.payInvoiceCalls, 1);
+
+      // A refusal now reaches the card with its reason, not a bare failure.
+      kanban.payment.completeError(Exception(
+        'InstaPay payments need a confirmed transfer receipt.',
+      ));
+      await tester.pumpAndSettle();
+      final en = lookupAppLocalizations(const Locale('en'));
+      expect(find.text(en.userErrorTransferReceiptRequired), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

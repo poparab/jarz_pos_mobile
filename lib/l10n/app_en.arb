@@ -858,6 +858,7 @@
   "userErrorInsufficientStock": "There is not enough stock. Check the available quantity or contact the branch.",
   "userErrorShiftRequired": "An open shift is required. Check your shift before continuing.",
   "userErrorAlreadyProcessed": "This operation was already processed. Check the order status before submitting again.",
+  "userErrorTransferReceiptRequired": "InstaPay and wallet payments need a confirmed transfer receipt. Attach the customer transfer screenshot to this order and have a manager confirm it, then pay again.",
   "userErrorRequiredFields": "Complete the required fields before continuing.",
   "userErrorScreenFailed": "This page could not be displayed. Close it and open it again.",
   "commonSubmit": "Submit",
@@ -2433,6 +2434,46 @@
     }
   },
   "invoicePaymentFailed": "Payment failed",
+  "transferProofTitle": "Transfer screenshot",
+  "transferProofIntro": "InstaPay and wallet payments are recorded only after a manager confirms the customer transfer screenshot.",
+  "transferProofAmountLabel": "Amount to be paid",
+  "transferProofMethodLabel": "Payment method",
+  "transferProofAlreadyUploaded": "A screenshot is already attached and waiting for confirmation. You can continue with it or replace it.",
+  "transferProofRejected": "The previous screenshot was rejected. Attach a new one.",
+  "transferProofRejectedReason": "The previous screenshot was rejected: {reason}. Attach a new one.",
+  "@transferProofRejectedReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "transferProofAttach": "Attach screenshot",
+  "transferProofImageSelected": "New screenshot selected",
+  "transferProofSend": "Send screenshot",
+  "transferProofContinue": "Continue with this screenshot",
+  "transferProofSending": "Sending screenshot...",
+  "transferProofConfirming": "Confirming transfer...",
+  "transferProofConfirmTitle": "Did the transfer arrive?",
+  "transferProofConfirmBody": "Open the company bank account and check that the transfer of {amount} has arrived. Confirm only if you can see it.",
+  "@transferProofConfirmBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "transferProofConfirmYes": "Yes, it arrived. Confirm and pay",
+  "transferProofConfirmNo": "Not yet",
+  "transferProofAwaitingManager": "Screenshot sent. A manager must confirm it in Payment Receipts, then press Pay and choose {method} again.",
+  "@transferProofAwaitingManager": {
+    "placeholders": {
+      "method": {
+        "type": "String"
+      }
+    }
+  },
+  "transferProofAwaitingConfirmation": "Screenshot saved. The receipt is waiting for confirmation, so no payment was recorded yet. Press Pay again once the transfer is confirmed.",
   "invoicePaymentError": "Payment error: {error}",
   "@invoicePaymentError": {
     "placeholders": {

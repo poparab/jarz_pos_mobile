@@ -277,6 +277,52 @@ void main() {
       expect(userErrorMessageFor(ar, error), 'الكمية غير متاحة في المخزون');
     });
 
+    // `pay_invoice` refuses InstaPay/Wallet without a confirmed transfer
+    // receipt (production, 2026-09-13). The English sentence used to be dropped
+    // by the Arabic guard, so staff saw only "payment failed".
+    const transferRefusal =
+        "InstaPay payments need a confirmed transfer receipt. Attach the "
+        "customer's transfer screenshot to this order and have a manager "
+        'confirm it -- for an order awaiting payment, confirming the receipt '
+        'records the payment itself.';
+
+    test('maps the missing confirmed transfer receipt refusal in both locales',
+        () {
+      for (final l10n in [en, ar]) {
+        expect(
+          userErrorMessageFor(l10n, Exception(transferRefusal)),
+          l10n.userErrorTransferReceiptRequired,
+          reason: l10n.localeName,
+        );
+        expect(
+          userErrorMessageFor(
+            l10n,
+            dioError(
+              type: DioExceptionType.badResponse,
+              status: 417,
+              data: {
+                'exception': 'frappe.exceptions.ValidationError: $transferRefusal',
+              },
+            ),
+          ),
+          l10n.userErrorTransferReceiptRequired,
+          reason: '${l10n.localeName} 417 body',
+        );
+        expect(
+          userErrorMessageFor(l10n, l10n.userErrorTransferReceiptRequired),
+          l10n.userErrorTransferReceiptRequired,
+          reason: '${l10n.localeName} shared error panel',
+        );
+      }
+      expect(
+        userErrorMessageFor(
+          ar,
+          Exception('Wallet payments need a confirmed transfer receipt.'),
+        ),
+        ar.userErrorTransferReceiptRequired,
+      );
+    });
+
     test('keeps legitimate English and Arabic ValidationError refusals', () {
       expect(
         userErrorMessageFor(

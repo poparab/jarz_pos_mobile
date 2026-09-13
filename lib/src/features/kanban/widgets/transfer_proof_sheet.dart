@@ -1,0 +1,634 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../core/localization/localization_extensions.dart';
+import '../../../core/localization/localized_display_mappers.dart';
+import '../../../core/localization/localized_formatters.dart';
+import '../../../core/localization/user_error_message.dart';
+import '../models/kanban_models.dart';
+import '../providers/kanban_provider.dart';
+import 'transfer_proof_logic.dart';
+
+/// How the transfer-proof step ended. `null` from [TransferProofSheet.show]
+/// means the user closed it without changing anything.
+enum TransferProofOutcome {
+  /// The receipt is Confirmed with a screenshot; the caller pays the invoice.
+  confirmed,
+
+  /// Confirmation itself recorded the payment (an "Awaiting Payment" order);
+  /// the caller must not pay again.
+  confirmedAndRecorded,
+
+  /// The screenshot is attached and a manager has to confirm it.
+  awaitingManager,
+
+  /// A confirm-tier user chose not to confirm yet; the receipt stays
+  /// Unconfirmed.
+  awaitingConfirmation,
+}
+
+/// Collects the customer's transfer screenshot before an InstaPay / Wallet
+/// payment, and — for a user in the confirm tier — the explicit "the transfer
+/// arrived" confirmation.
+///
+/// It lives on the root navigator, not inside the card, so a board refresh
+/// that rebuilds the card mid-upload cannot tear it down. It never pays the
+/// invoice itself: it reports a [TransferProofOutcome] and the card decides.
+class TransferProofSheet extends ConsumerStatefulWidget {
+  const TransferProofSheet({
+    super.key,
+    required this.invoice,
+    required this.method,
+    required this.posProfile,
+    required this.canConfirm,
+  });
+
+  final InvoiceCard invoice;
+
+  /// Receipt API spelling: `InstaPay` or `Wallet`.
+  final String method;
+  final String? posProfile;
+
+  /// Client-side mirror of the confirm tier. The server stays the authority.
+  final bool canConfirm;
+
+  static Future<TransferProofOutcome?> show(
+    BuildContext context, {
+    required InvoiceCard invoice,
+    required String method,
+    required String? posProfile,
+    required bool canConfirm,
+  }) {
+    return showModalBottomSheet<TransferProofOutcome>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      // Closing must go through [_close] so an upload made here is reported.
+      isDismissible: false,
+      enableDrag: false,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => TransferProofSheet(
+        invoice: invoice,
+        method: method,
+        posProfile: posProfile,
+        canConfirm: canConfirm,
+      ),
+    );
+  }
+
+  @override
+  ConsumerState<TransferProofSheet> createState() => _TransferProofSheetState();
+}
+
+class _TransferProofSheetState extends ConsumerState<TransferProofSheet> {
+  final ImagePicker _picker = ImagePicker();
+
+  late TransferReceiptState _receiptState;
+  String? _receiptName;
+  String? _receiptImageUrl;
+  String? _rejectionReason;
+
+  XFile? _pickedImage;
+  Uint8List? _pickedBytes;
+
+  bool _busy = false;
+  String? _busyLabel;
+  String? _error;
+
+  /// A screenshot was attached during THIS visit, so closing the sheet still
+  /// has something to report.
+  bool _uploadedHere = false;
+
+  double get _amount => transferReceiptAmount(widget.invoice);
+
+  @override
+  void initState() {
+    super.initState();
+    _receiptState = transferReceiptStateFor(widget.invoice, widget.method);
+    if (_receiptState != TransferReceiptState.none) {
+      _receiptName = widget.invoice.paymentReceiptName?.trim();
+      _receiptImageUrl = widget.invoice.paymentReceiptImageUrl?.trim();
+    }
+    if (_receiptState == TransferReceiptState.rejected) {
+      _loadRejectionReason();
+    }
+  }
+
+  /// The card model carries the status but not the reason; the receipt list
+  /// does. Best effort: without it the sheet still says "rejected".
+  Future<void> _loadRejectionReason() async {
+    final name = _receiptName;
+    if (name == null || name.isEmpty) return;
+    try {
+      final rows = await ref
+          .read(kanbanProvider.notifier)
+          .listPaymentReceipts(posProfile: widget.posProfile, status: 'Rejected');
+      final match = rows.where((row) => row['name'] == name);
+      final reason =
+          match.isEmpty ? '' : (match.first['rejection_reason'] ?? '').toString();
+      if (!mounted || reason.trim().isEmpty) return;
+      setState(() => _rejectionReason = reason.trim());
+    } catch (_) {
+      // Reason is decoration; the rejected banner is already showing.
+    }
+  }
+
+  bool get _hasPickedImage => (_pickedBytes?.isNotEmpty ?? false);
+
+  bool get _canUseExistingProof => canContinueWithExistingProof(_receiptState);
+
+  bool get _needsPosProfile =>
+      (_receiptName ?? '').isEmpty &&
+      (widget.posProfile?.trim().isEmpty ?? true);
+
+  Future<void> _pickImage() async {
+    if (_busy) return;
+    final l10n = context.l10n;
+    final source = await showDialog<ImageSource>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.receiptSelectImageSource),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text(l10n.receiptCamera),
+              onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: Text(l10n.receiptGallery),
+              onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+    try {
+      final image = await _picker.pickImage(source: source);
+      if (image == null) return;
+      final bytes = await image.readAsBytes();
+      if (!mounted) return;
+      // A zero-byte pick (revoked permission, unreadable cloud/HEIC asset)
+      // would be refused by the upload chokepoint anyway; say so now.
+      if (bytes.isEmpty) {
+        setState(() => _error = l10n.receiptImageEmpty);
+        return;
+      }
+      setState(() {
+        _pickedImage = image;
+        _pickedBytes = bytes;
+        _error = null;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _error = userErrorMessageFor(l10n, error));
+    }
+  }
+
+  /// Ensures the receipt row exists, then attaches the picked screenshot.
+  Future<bool> _sendPickedImage() async {
+    final l10n = context.l10n;
+    final notifier = ref.read(kanbanProvider.notifier);
+    final image = _pickedImage;
+    final bytes = _pickedBytes;
+    if (image == null || bytes == null || bytes.isEmpty) return false;
+
+    setState(() {
+      _busy = true;
+      _busyLabel = l10n.transferProofSending;
+      _error = null;
+    });
+    try {
+      var receiptName = (_receiptName ?? '').trim();
+      if (receiptName.isEmpty) {
+        final posProfile = widget.posProfile?.trim() ?? '';
+        if (posProfile.isEmpty) {
+          throw Exception(l10n.invoiceSelectPosFirst);
+        }
+        final created = await notifier.createPaymentReceipt(
+          salesInvoice: widget.invoice.name,
+          paymentMethod: widget.method,
+          amount: _amount,
+          posProfile: posProfile,
+        );
+        receiptName = (created?['receipt_name'] ?? '').toString().trim();
+        if (created == null || created['success'] != true || receiptName.isEmpty) {
+          throw Exception(
+            (created?['message']?.toString().trim().isNotEmpty ?? false)
+                ? created!['message'].toString()
+                : l10n.commonError,
+          );
+        }
+        if (!mounted) return false;
+        setState(() => _receiptName = receiptName);
+      }
+
+      final uploaded = await notifier.uploadReceiptImage(
+        receiptName: receiptName,
+        imageData: base64Encode(bytes),
+        filename: image.name,
+      );
+      if (!mounted) return false;
+      setState(() {
+        _receiptImageUrl = (uploaded?['file_url'] ?? '').toString().trim();
+        final status =
+            (uploaded?['status'] ?? 'Unconfirmed').toString().trim().toLowerCase();
+        _receiptState = status == 'confirmed'
+            ? TransferReceiptState.confirmed
+            : TransferReceiptState.uploadedUnconfirmed;
+        _rejectionReason = null;
+        _pickedImage = null;
+        _pickedBytes = null;
+        _uploadedHere = true;
+        _busy = false;
+        _busyLabel = null;
+      });
+      return true;
+    } catch (error) {
+      if (!mounted) return false;
+      setState(() {
+        _busy = false;
+        _busyLabel = null;
+        _error = userErrorMessageFor(l10n, error, fallback: l10n.receiptUploadFailed);
+      });
+      return false;
+    }
+  }
+
+  Future<void> _submit() async {
+    if (_busy) return;
+    if (_hasPickedImage) {
+      final ok = await _sendPickedImage();
+      if (!ok || !mounted) return;
+    } else if (!_canUseExistingProof) {
+      return;
+    }
+    await _afterProofAttached();
+  }
+
+  Future<void> _afterProofAttached() async {
+    final navigator = Navigator.of(context);
+    if (_receiptState == TransferReceiptState.confirmed) {
+      navigator.pop(TransferProofOutcome.confirmed);
+      return;
+    }
+    switch (transferProofNextStep(canConfirm: widget.canConfirm)) {
+      case TransferProofNextStep.awaitManager:
+        navigator.pop(TransferProofOutcome.awaitingManager);
+        return;
+      case TransferProofNextStep.askToConfirmThenPay:
+        break;
+    }
+
+    final l10n = context.l10n;
+    final amountText = formatCurrency(context, _amount);
+    final arrived = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.transferProofConfirmTitle),
+        content: Text(l10n.transferProofConfirmBody(amountText)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.transferProofConfirmNo),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            icon: const Icon(Icons.verified_outlined, size: 18),
+            label: Text(l10n.transferProofConfirmYes),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[600],
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (arrived != true) {
+      navigator.pop(TransferProofOutcome.awaitingConfirmation);
+      return;
+    }
+
+    final receiptName = (_receiptName ?? '').trim();
+    setState(() {
+      _busy = true;
+      _busyLabel = l10n.transferProofConfirming;
+      _error = null;
+    });
+    try {
+      final result = await ref
+          .read(kanbanProvider.notifier)
+          .confirmReceipt(receiptName: receiptName);
+      if (!mounted) return;
+      if (result == null || result['success'] != true) {
+        throw Exception(l10n.receiptConfirmFailed);
+      }
+      navigator.pop(
+        confirmRecordsPayment(widget.invoice, result)
+            ? TransferProofOutcome.confirmedAndRecorded
+            : TransferProofOutcome.confirmed,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      if (isPermissionRefusal(error)) {
+        navigator.pop(TransferProofOutcome.awaitingManager);
+        return;
+      }
+      setState(() {
+        _busy = false;
+        _busyLabel = null;
+        _error = userErrorMessageFor(l10n, error, fallback: l10n.receiptConfirmFailed);
+      });
+    }
+  }
+
+  void _close() {
+    if (_busy) return;
+    if (!_uploadedHere) {
+      Navigator.of(context).pop();
+      return;
+    }
+    Navigator.of(context).pop(
+      widget.canConfirm
+          ? TransferProofOutcome.awaitingConfirmation
+          : TransferProofOutcome.awaitingManager,
+    );
+  }
+
+  String? _resolveReceiptUrl(String? rawUrl) {
+    final value = (rawUrl ?? '').trim();
+    if (value.isEmpty) return null;
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      return value;
+    }
+    final baseUrl = dotenv.get('ERP_BASE_URL', fallback: '').trim();
+    if (baseUrl.isEmpty) return null;
+    final normalizedBase =
+        baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    final normalizedPath = value.startsWith('/') ? value : '/$value';
+    return '$normalizedBase$normalizedPath';
+  }
+
+  Future<void> _previewExisting() async {
+    final resolved = _resolveReceiptUrl(_receiptImageUrl);
+    if (resolved == null) return;
+    final uri = Uri.tryParse(resolved);
+    if (uri == null) return;
+    await launchUrl(uri);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final methodLabel = localizedPaymentMethodLabel(context, widget.method);
+    final hasExistingImage = (_receiptImageUrl ?? '').trim().isNotEmpty;
+
+    String? primaryLabel;
+    if (_hasPickedImage) {
+      primaryLabel = l10n.transferProofSend;
+    } else if (_canUseExistingProof) {
+      primaryLabel = l10n.transferProofContinue;
+    }
+    final canSubmit = primaryLabel != null &&
+        !_busy &&
+        !(_hasPickedImage && _needsPosProfile);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.receipt_long, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(l10n.transferProofTitle,
+                      style: theme.textTheme.titleMedium),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: l10n.commonClose,
+                  onPressed: _busy ? null : _close,
+                ),
+              ],
+            ),
+            Text(
+              l10n.transferProofIntro,
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 12),
+            _InfoLine(label: l10n.transferProofMethodLabel, value: methodLabel),
+            const SizedBox(height: 6),
+            _InfoLine(
+              label: l10n.transferProofAmountLabel,
+              value: formatCurrency(context, _amount),
+              emphasize: true,
+            ),
+            const SizedBox(height: 12),
+            if (_receiptState == TransferReceiptState.rejected)
+              _Banner(
+                color: Colors.red,
+                icon: Icons.block,
+                text: (_rejectionReason ?? '').isEmpty
+                    ? l10n.transferProofRejected
+                    : l10n.transferProofRejectedReason(_rejectionReason!),
+              )
+            else if (_canUseExistingProof && !_hasPickedImage)
+              _Banner(
+                color: Colors.green,
+                icon: Icons.verified_outlined,
+                text: l10n.transferProofAlreadyUploaded,
+              ),
+            if (_needsPosProfile) ...[
+              const SizedBox(height: 8),
+              Text(
+                l10n.invoiceSelectPosFirst,
+                style: TextStyle(
+                  color: theme.colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+            if (_hasPickedImage) ...[
+              const SizedBox(height: 10),
+              Text(l10n.transferProofImageSelected,
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.memory(
+                  _pickedBytes!,
+                  height: 180,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ],
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _busy ? null : _pickImage,
+                  icon: Icon(
+                    _hasPickedImage || hasExistingImage
+                        ? Icons.refresh
+                        : Icons.add_a_photo_outlined,
+                  ),
+                  label: Text(
+                    _hasPickedImage || _canUseExistingProof
+                        ? l10n.receiptReplaceImageButton
+                        : l10n.transferProofAttach,
+                  ),
+                ),
+                if (hasExistingImage && !_hasPickedImage)
+                  TextButton.icon(
+                    onPressed: _busy ? null : _previewExisting,
+                    icon: const Icon(Icons.open_in_new),
+                    label: Text(l10n.commonPreview),
+                  ),
+              ],
+            ),
+            if (_busy) ...[
+              const SizedBox(height: 12),
+              const LinearProgressIndicator(),
+              if (_busyLabel != null) ...[
+                const SizedBox(height: 6),
+                Text(_busyLabel!, style: theme.textTheme.bodySmall),
+              ],
+            ],
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _error!,
+                style: TextStyle(
+                  color: theme.colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: _busy ? null : _close,
+                  child: Text(l10n.commonCancel),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: ElevatedButton.icon(
+                    onPressed: canSubmit ? _submit : null,
+                    icon: const Icon(Icons.check, size: 16),
+                    label: Text(primaryLabel ?? l10n.transferProofSend),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[600],
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoLine extends StatelessWidget {
+  const _InfoLine({
+    required this.label,
+    required this.value,
+    this.emphasize = false,
+  });
+
+  final String label;
+  final String value;
+  final bool emphasize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.black54,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: emphasize ? 16 : 14,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Banner extends StatelessWidget {
+  const _Banner({
+    required this.color,
+    required this.icon,
+    required this.text,
+  });
+
+  final MaterialColor color;
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: color[700]),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(color: color[800], fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
