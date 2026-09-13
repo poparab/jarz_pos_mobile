@@ -353,8 +353,10 @@ String? _businessMessage(AppLocalizations l10n, String? candidate) {
   if (text.contains('quantity') &&
       _hasAny(text, const ['greater than zero', 'positive']))
     return l10n.manufacturingQuantityMustBePositive;
+  // "No open shift on branch X, so … is not allowed" is what the server's
+  // shift gate actually says; the older phrasings are kept.
   if (text.contains('shift') &&
-      _hasAny(text, const ['closed', 'no active', 'not open']))
+      _hasAny(text, const ['closed', 'no active', 'not open', 'no open shift']))
     return l10n.userErrorShiftRequired;
   // `pay_invoice` refuses InstaPay/Wallet until a manager has confirmed the
   // customer's transfer screenshot. Without this clause an Arabic UI dropped

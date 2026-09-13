@@ -2204,6 +2204,8 @@
   "transferProofMethodLabel": "طريقة الدفع",
   "transferProofAlreadyUploaded": "فيه صورة مرفوعة بالفعل ومستنية التأكيد. تقدر تكمل بيها أو تستبدلها.",
   "transferProofRejected": "الصورة اللي فاتت اترفضت. ارفع صورة جديدة.",
+  "transferProofChecking": "بنراجع الإيصال…",
+  "transferProofReceiptChanged": "الإيصال ده اتغير من ساعة ما اللوحة اتحملت. اقفل ودوس دفع تاني.",
   "transferProofRejectedReason": "الصورة اللي فاتت اترفضت: {reason}. ارفع صورة جديدة.",
   "transferProofAttach": "إرفاق صورة التحويل",
   "transferProofImageSelected": "تم اختيار صورة جديدة",

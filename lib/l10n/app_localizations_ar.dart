@@ -4869,6 +4869,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصورة اللي فاتت اترفضت. ارفع صورة جديدة.';
 
   @override
+  String get transferProofChecking => 'بنراجع الإيصال…';
+
+  @override
+  String get transferProofReceiptChanged =>
+      'الإيصال ده اتغير من ساعة ما اللوحة اتحملت. اقفل ودوس دفع تاني.';
+
+  @override
   String transferProofRejectedReason(String reason) {
     return 'الصورة اللي فاتت اترفضت: $reason. ارفع صورة جديدة.';
   }

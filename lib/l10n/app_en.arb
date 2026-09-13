@@ -2440,6 +2440,8 @@
   "transferProofMethodLabel": "Payment method",
   "transferProofAlreadyUploaded": "A screenshot is already attached and waiting for confirmation. You can continue with it or replace it.",
   "transferProofRejected": "The previous screenshot was rejected. Attach a new one.",
+  "transferProofChecking": "Checking the receipt…",
+  "transferProofReceiptChanged": "This receipt changed since the board loaded. Close and press Pay again.",
   "transferProofRejectedReason": "The previous screenshot was rejected: {reason}. Attach a new one.",
   "@transferProofRejectedReason": {
     "placeholders": {

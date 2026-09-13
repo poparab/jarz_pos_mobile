@@ -4884,6 +4884,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'The previous screenshot was rejected. Attach a new one.';
 
   @override
+  String get transferProofChecking => 'Checking the receipt…';
+
+  @override
+  String get transferProofReceiptChanged =>
+      'This receipt changed since the board loaded. Close and press Pay again.';
+
+  @override
   String transferProofRejectedReason(String reason) {
     return 'The previous screenshot was rejected: $reason. Attach a new one.';
   }

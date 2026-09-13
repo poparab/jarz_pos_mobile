@@ -8000,6 +8000,18 @@ abstract class AppLocalizations {
   /// **'The previous screenshot was rejected. Attach a new one.'**
   String get transferProofRejected;
 
+  /// No description provided for @transferProofChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the receipt…'**
+  String get transferProofChecking;
+
+  /// No description provided for @transferProofReceiptChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'This receipt changed since the board loaded. Close and press Pay again.'**
+  String get transferProofReceiptChanged;
+
   /// No description provided for @transferProofRejectedReason.
   ///
   /// In en, this message translates to:

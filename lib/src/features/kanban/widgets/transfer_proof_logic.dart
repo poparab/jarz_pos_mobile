@@ -69,6 +69,54 @@ TransferReceiptState transferReceiptStateFor(
   return TransferReceiptState.uploadedUnconfirmed;
 }
 
+/// The receipt as the server holds it NOW, read from a `list_payment_receipts`
+/// row, as it applies to [method].
+///
+/// The card's copy is a board snapshot. A manager may have rejected or replaced
+/// the screenshot since, and the backend deliberately lets a Rejected receipt be
+/// confirmed — so confirming off the snapshot could post money against proof
+/// that was already turned down. A missing row (receipt Changed, or the read
+/// failed) is [TransferReceiptState.none]: nothing current to confirm.
+TransferReceiptState transferReceiptStateFromRow(
+  Map<String, dynamic>? row,
+  String method,
+) {
+  if (row == null) return TransferReceiptState.none;
+  final wanted = transferReceiptMethod(method);
+  if (wanted == null ||
+      transferReceiptMethod(row['payment_method']?.toString()) != wanted) {
+    return TransferReceiptState.none;
+  }
+  final status = (row['status'] ?? '').toString().trim().toLowerCase();
+  final hasImage = (row['receipt_image_url'] ?? '').toString().trim().isNotEmpty ||
+      (row['receipt_image'] ?? '').toString().trim().isNotEmpty;
+  switch (status) {
+    case 'rejected':
+      return TransferReceiptState.rejected;
+    case 'confirmed':
+      return hasImage
+          ? TransferReceiptState.confirmed
+          : TransferReceiptState.missingImage;
+    case 'unconfirmed':
+      return hasImage
+          ? TransferReceiptState.uploadedUnconfirmed
+          : TransferReceiptState.missingImage;
+    default:
+      return TransferReceiptState.none;
+  }
+}
+
+/// The row for receipt [name] in a `list_payment_receipts` result, if present.
+Map<String, dynamic>? findReceiptRow(
+  List<Map<String, dynamic>> rows,
+  String name,
+) {
+  for (final row in rows) {
+    if ((row['name'] ?? '').toString() == name) return row;
+  }
+  return null;
+}
+
 /// First branch of the flow: can the card go straight to `pay_invoice`?
 enum TransferPaymentStep { payDirectly, proofRequired }
 
@@ -106,16 +154,21 @@ TransferProofNextStep transferProofNextStep({required bool canConfirm}) =>
 /// must NOT follow up with `pay_invoice`.
 ///
 /// For an order that went out on the promise of a transfer ("Awaiting
-/// Payment") the server posts the payment as part of the confirmation; paying
-/// again would be refused as already paid. A normal order's confirmation only
-/// stamps the receipt.
-bool confirmRecordsPayment(
-  InvoiceCard invoice,
-  Map<String, dynamic>? confirmResult,
-) {
-  if (invoice.isAwaitingOnlinePayment) return true;
-  final entry = (confirmResult?['payment_entry'] ?? '').toString().trim();
-  return entry.isNotEmpty;
+/// Payment") the server posts the payment as part of the confirmation; a normal
+/// order's confirmation only stamps the receipt.
+///
+/// Decided by the server's reply ALONE. It used to return true whenever the
+/// card believed the order was Awaiting Payment — but the server makes that
+/// call from its own current state, so a stale board skipped `pay_invoice`
+/// after a plain stamp and left the invoice unpaid while the card said it
+/// worked. If the server did record it, paying again is harmless anyway:
+/// `pay_invoice` returns the existing Payment Entry.
+bool confirmRecordsPayment(Map<String, dynamic>? confirmResult) {
+  if (confirmResult == null) return false;
+  final entry = (confirmResult['payment_entry'] ?? '').toString().trim();
+  if (entry.isNotEmpty) return true;
+  final message = (confirmResult['message'] ?? '').toString().toLowerCase();
+  return message.contains('payment recorded');
 }
 
 /// The amount the receipt claims: what the customer still owes, falling back
@@ -136,12 +189,24 @@ String? transferReceiptPosProfile(InvoiceCard invoice, String? selected) {
   return fallback.isEmpty ? null : fallback;
 }
 
+/// Whether a failed call was refused for want of an open shift.
+///
+/// `ensure_open_shift` says "No open shift on branch X, so … is not allowed.
+/// Start a shift on this branch first." — which also contains "not allowed".
+bool isShiftRefusal(Object? error) {
+  if (error == null) return false;
+  final text = error.toString().toLowerCase();
+  return text.contains('no open shift') || text.contains('start a shift');
+}
+
 /// Whether a failed `confirmReceipt` means "you are not allowed to confirm".
 ///
 /// The server stays the authority on the confirm tier; a client that believed
-/// the user could confirm treats this refusal as "a manager must do it".
+/// the user could confirm treats this refusal as "a manager must do it". A
+/// shift refusal is NOT one: the user may confirm, they just need a shift, and
+/// telling them "a manager must confirm" hid the real fix.
 bool isPermissionRefusal(Object? error) {
-  if (error == null) return false;
+  if (error == null || isShiftRefusal(error)) return false;
   final text = error.toString().toLowerCase();
   const needles = [
     'permission',

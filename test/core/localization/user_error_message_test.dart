@@ -44,6 +44,9 @@ void main() {
         'Quantity must be greater than zero.':
             ar.manufacturingQuantityMustBePositive,
         'No active shift': ar.userErrorShiftRequired,
+        // The shift gate's real sentence (utils/access_control.py).
+        'No open shift on branch Maadi, so confirming a receipt is not allowed.':
+            ar.userErrorShiftRequired,
         'Already submitted': ar.userErrorAlreadyProcessed,
         'Customer is required': ar.userErrorRequiredFields,
         'Invalid credentials': ar.authInvalidCredentials,

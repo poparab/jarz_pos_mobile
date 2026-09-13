@@ -77,8 +77,10 @@ void main() {
 
     test('no receipt requires proof', () {
       final invoice = _invoice();
-      expect(transferReceiptStateFor(invoice, 'InstaPay'),
-          TransferReceiptState.none);
+      expect(
+        transferReceiptStateFor(invoice, 'InstaPay'),
+        TransferReceiptState.none,
+      );
       expect(
         transferPaymentStepFor(invoice, 'InstaPay'),
         TransferPaymentStep.proofRequired,
@@ -92,8 +94,10 @@ void main() {
         receiptStatus: 'Confirmed',
         receiptImageUrl: '/private/files/shot.jpg',
       );
-      expect(transferReceiptStateFor(invoice, 'InstaPay'),
-          TransferReceiptState.none);
+      expect(
+        transferReceiptStateFor(invoice, 'InstaPay'),
+        TransferReceiptState.none,
+      );
       expect(
         transferPaymentStepFor(invoice, 'InstaPay'),
         TransferPaymentStep.proofRequired,
@@ -110,8 +114,10 @@ void main() {
         receiptMethod: 'InstaPay',
         receiptStatus: 'Confirmed',
       );
-      expect(transferReceiptStateFor(invoice, 'InstaPay'),
-          TransferReceiptState.missingImage);
+      expect(
+        transferReceiptStateFor(invoice, 'InstaPay'),
+        TransferReceiptState.missingImage,
+      );
       expect(
         transferPaymentStepFor(invoice, 'InstaPay'),
         TransferPaymentStep.proofRequired,
@@ -136,62 +142,162 @@ void main() {
 
       expect(unconfirmedState, TransferReceiptState.uploadedUnconfirmed);
       expect(canContinueWithExistingProof(unconfirmedState), isTrue);
-      expect(transferPaymentStepFor(unconfirmed, 'InstaPay'),
-          TransferPaymentStep.proofRequired);
+      expect(
+        transferPaymentStepFor(unconfirmed, 'InstaPay'),
+        TransferPaymentStep.proofRequired,
+      );
 
       expect(rejectedState, TransferReceiptState.rejected);
       expect(canContinueWithExistingProof(rejectedState), isFalse);
-      expect(transferPaymentStepFor(rejected, 'InstaPay'),
-          TransferPaymentStep.proofRequired);
+      expect(
+        transferPaymentStepFor(rejected, 'InstaPay'),
+        TransferPaymentStep.proofRequired,
+      );
     });
   });
 
   group('after the screenshot is attached', () {
-    test('a confirm-tier user is asked to confirm; others wait for a manager',
-        () {
-      expect(transferProofNextStep(canConfirm: true),
-          TransferProofNextStep.askToConfirmThenPay);
-      expect(transferProofNextStep(canConfirm: false),
-          TransferProofNextStep.awaitManager);
+    test(
+      'a confirm-tier user is asked to confirm; others wait for a manager',
+      () {
+        expect(
+          transferProofNextStep(canConfirm: true),
+          TransferProofNextStep.askToConfirmThenPay,
+        );
+        expect(
+          transferProofNextStep(canConfirm: false),
+          TransferProofNextStep.awaitManager,
+        );
+      },
+    );
+
+    test(
+      'a permission refusal from confirmReceipt means "needs a manager"',
+      () {
+        expect(
+          isPermissionRefusal(
+            Exception(
+              'Failed to confirm receipt: Not permitted to confirm receipts',
+            ),
+          ),
+          isTrue,
+        );
+        expect(
+          isPermissionRefusal(
+            Exception(
+              'Failed to confirm receipt: You do not have permission for Maadi',
+            ),
+          ),
+          isTrue,
+        );
+        expect(
+          isPermissionRefusal(
+            Exception(
+              'Only branch managers and above can confirm payment receipts.',
+            ),
+          ),
+          isTrue,
+        );
+        expect(
+          isPermissionRefusal(
+            Exception('Failed to confirm receipt: Network connection failed.'),
+          ),
+          isFalse,
+        );
+      },
+    );
+
+    test('only the server reply says the payment was recorded', () {
+      // A plain stamp — whatever the card believed about the order.
+      expect(confirmRecordsPayment({'success': true}), isFalse);
+      expect(
+        confirmRecordsPayment({
+          'success': true,
+          'message': 'Receipt confirmed successfully',
+        }),
+        isFalse,
+      );
+      expect(confirmRecordsPayment(null), isFalse);
+      // The server's own "recorded" replies (api/payment_receipts.py).
+      expect(
+        confirmRecordsPayment({'success': true, 'payment_entry': 'ACC-PAY-1'}),
+        isTrue,
+      );
+      expect(
+        confirmRecordsPayment({
+          'success': true,
+          'message': 'Receipt confirmed and payment recorded',
+          'payment_entry': null,
+        }),
+        isTrue,
+      );
     });
 
-    test('a permission refusal from confirmReceipt means "needs a manager"', () {
-      expect(
-        isPermissionRefusal(Exception(
-            'Failed to confirm receipt: Not permitted to confirm receipts')),
-        isTrue,
+    test('a shift refusal is not a "needs a manager" refusal', () {
+      final shift = Exception(
+        'Failed to confirm receipt: No open shift on branch Maadi, so '
+        'confirming an online payment is not allowed. Start a shift on this '
+        'branch first.',
       );
+      expect(isShiftRefusal(shift), isTrue);
+      expect(isPermissionRefusal(shift), isFalse);
       expect(
-        isPermissionRefusal(Exception(
-            'Failed to confirm receipt: You do not have permission for Maadi')),
-        isTrue,
-      );
-      expect(
-        isPermissionRefusal(Exception(
-            'Only branch managers and above can confirm payment receipts.')),
-        isTrue,
-      );
-      expect(
-        isPermissionRefusal(
-            Exception('Failed to confirm receipt: Network connection failed.')),
+        isShiftRefusal(
+          Exception(
+            'Only branch managers and above can confirm payment receipts.',
+          ),
+        ),
         isFalse,
       );
     });
+  });
 
-    test('confirmation records the payment only for an awaiting order', () {
-      expect(confirmRecordsPayment(_invoice(), {'success': true}), isFalse);
+  group('receipt state re-read from the server', () {
+    Map<String, dynamic> row({
+      String status = 'Unconfirmed',
+      String method = 'InstaPay',
+      String? image = '/private/files/transfer.jpg',
+    }) => {
+      'name': 'PR-0042',
+      'payment_method': method,
+      'status': status,
+      'receipt_image_url': image,
+    };
+
+    test('reads each server status as it applies to the method', () {
       expect(
-        confirmRecordsPayment(
-          _invoice(paymentConfirmationStatus: 'Awaiting Payment'),
-          {'success': true},
-        ),
-        isTrue,
+        transferReceiptStateFromRow(row(), 'InstaPay'),
+        TransferReceiptState.uploadedUnconfirmed,
       );
       expect(
-        confirmRecordsPayment(
-            _invoice(), {'success': true, 'payment_entry': 'ACC-PAY-1'}),
-        isTrue,
+        transferReceiptStateFromRow(row(status: 'Rejected'), 'InstaPay'),
+        TransferReceiptState.rejected,
       );
+      expect(
+        transferReceiptStateFromRow(row(status: 'Confirmed'), 'InstaPay'),
+        TransferReceiptState.confirmed,
+      );
+      expect(
+        transferReceiptStateFromRow(row(image: ''), 'InstaPay'),
+        TransferReceiptState.missingImage,
+      );
+      expect(
+        transferReceiptStateFromRow(row(method: 'Wallet'), 'InstaPay'),
+        TransferReceiptState.none,
+      );
+    });
+
+    test('a receipt that is gone or Changed has nothing to confirm', () {
+      expect(
+        transferReceiptStateFromRow(null, 'InstaPay'),
+        TransferReceiptState.none,
+      );
+      expect(
+        transferReceiptStateFromRow(row(status: 'Changed'), 'InstaPay'),
+        TransferReceiptState.none,
+      );
+      expect(findReceiptRow([row()], 'PR-9999'), isNull);
+      expect(findReceiptRow([row()], 'PR-0042'), isNotNull);
     });
   });
 
@@ -207,7 +313,10 @@ void main() {
         transferReceiptPosProfile(_invoice(posProfile: null), 'Nasr City'),
         'Nasr City',
       );
-      expect(transferReceiptPosProfile(_invoice(posProfile: ' '), null), isNull);
+      expect(
+        transferReceiptPosProfile(_invoice(posProfile: ' '), null),
+        isNull,
+      );
     });
   });
 
@@ -221,26 +330,36 @@ void main() {
         "customer's transfer screenshot to this order and have a manager "
         'confirm it.',
       );
-      expect(paymentFailureMessage(en, error),
-          en.userErrorTransferReceiptRequired);
-      expect(paymentFailureMessage(ar, error),
-          ar.userErrorTransferReceiptRequired);
-    });
-
-    test('an English UI shows an unmapped server reason after the generic copy',
-        () {
-      final error = Exception('Invoice ACC-SINV-2026-18289 is on hold by finance');
       expect(
         paymentFailureMessage(en, error),
-        '${en.invoicePaymentFailed}: Invoice ACC-SINV-2026-18289 is on hold by finance',
+        en.userErrorTransferReceiptRequired,
       );
-      // An Arabic UI never surfaces an English server sentence.
-      expect(paymentFailureMessage(ar, error), ar.invoicePaymentFailed);
+      expect(
+        paymentFailureMessage(ar, error),
+        ar.userErrorTransferReceiptRequired,
+      );
     });
 
+    test(
+      'an English UI shows an unmapped server reason after the generic copy',
+      () {
+        final error = Exception(
+          'Invoice ACC-SINV-2026-18289 is on hold by finance',
+        );
+        expect(
+          paymentFailureMessage(en, error),
+          '${en.invoicePaymentFailed}: Invoice ACC-SINV-2026-18289 is on hold by finance',
+        );
+        // An Arabic UI never surfaces an English server sentence.
+        expect(paymentFailureMessage(ar, error), ar.invoicePaymentFailed);
+      },
+    );
+
     test('a bare "Payment failed" is not repeated', () {
-      expect(paymentFailureMessage(en, Exception('Payment failed')),
-          en.invoicePaymentFailed);
+      expect(
+        paymentFailureMessage(en, Exception('Payment failed')),
+        en.invoicePaymentFailed,
+      );
     });
   });
 }
