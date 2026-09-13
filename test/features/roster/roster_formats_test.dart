@@ -108,5 +108,21 @@ void main() {
       expect(branchToken(''), '');
       expect(branchToken('   '), '');
     });
+
+    test('a name made only of separators yields nothing instead of throwing', () {
+      // Splitting "-" on the separator set leaves no words, and taking the
+      // first of none threw a StateError. That throw happened inside a day
+      // cell's build, so one badly typed branch name broke every cell rostered
+      // to it. There are no letters to abbreviate, so it follows the rule
+      // above: nothing rather than junk.
+      expect(branchToken('-'), '');
+      expect(branchToken(' - / _ '), '');
+      expect(branchToken('---'), '');
+    });
+
+    test('separators around a real name still leave its token', () {
+      expect(branchToken('- Dokki -'), 'DO');
+      expect(branchToken('/Nasr/City/'), 'NC');
+    });
   });
 }

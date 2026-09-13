@@ -760,8 +760,11 @@ class _DayCell extends ConsumerWidget {
         .where((m) => m != RosterCellMarker.selected)
         .toList();
 
-    final branch = (data?.shiftLocation ?? '').trim();
-    final showBranch = branch.isNotEmpty && state == RosterCellState.working;
+    // Decided on the TOKEN, not the raw name: a name with no letters in it
+    // ("-") yields no token, and an empty label must not claim a slot in the
+    // bottom row.
+    final token = branchToken((data?.shiftLocation ?? '').trim());
+    final showBranch = token.isNotEmpty && state == RosterCellState.working;
 
     return Semantics(
       button: true,
@@ -930,7 +933,7 @@ class _DayCell extends ConsumerWidget {
                                 fit: BoxFit.scaleDown,
                                 alignment: AlignmentDirectional.centerStart,
                                 child: Text(
-                                  branchToken(branch),
+                                  token,
                                   maxLines: 1,
                                   style: theme.textTheme.labelSmall?.copyWith(
                                     fontSize: 9,

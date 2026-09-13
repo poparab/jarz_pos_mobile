@@ -28,6 +28,10 @@ String branchToken(String branch) {
       .split(RegExp(r'[\s\-_/]+'))
       .where((w) => w.isNotEmpty)
       .toList();
+  // A name made only of separators ("-", " / ") splits into no words at all.
+  // `words.first` on that threw inside a day cell's build, so one badly typed
+  // branch name broke every cell rostered to it. No letters, no token.
+  if (words.isEmpty) return '';
   if (words.length >= 2) {
     return (words[0].characters.first + words[1].characters.first)
         .toUpperCase();

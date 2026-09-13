@@ -25,11 +25,11 @@ const _nextDay = '2026-10-07';
 /// The worst case for the bottom corners: a working day that is a cover day
 /// on a public holiday with overtime. That is the maximum of three corner
 /// markers, and it is a working day, so the branch token is drawn as well.
-RosterMonth _month() {
+RosterMonth _month({String location = 'Nasr City'}) {
   Map<String, dynamic> working(String date, {bool crowded = false}) => {
     'date': date,
     'shift_type': 'Branch Opening',
-    'shift_location': 'Nasr City',
+    'shift_location': location,
     'hours': crowded ? 12 : 9,
     if (crowded) 'is_holiday': 1,
     if (crowded) 'is_cover': 1,
@@ -71,6 +71,7 @@ RosterMonth _month() {
 Future<ProviderContainer> _pump(
   WidgetTester tester, {
   Locale locale = const Locale('en'),
+  RosterMonth? month,
 }) async {
   tester.view.physicalSize = const Size(1080, 2340);
   tester.view.devicePixelRatio = 3;
@@ -78,7 +79,7 @@ Future<ProviderContainer> _pump(
 
   final container = ProviderContainer();
   addTearDown(container.dispose);
-  final month = _month();
+  final grid = month ?? _month();
 
   await tester.pumpWidget(
     UncontrolledProviderScope(
@@ -94,9 +95,9 @@ Future<ProviderContainer> _pump(
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: RosterGrid(
-            month: month,
-            palette: RosterShiftPalette.fromMonth(month),
-            coverIndex: RosterCoverIndex.fromMonth(month),
+            month: grid,
+            palette: RosterShiftPalette.fromMonth(grid),
+            coverIndex: RosterCoverIndex.fromMonth(grid),
           ),
         ),
       ),
@@ -250,6 +251,33 @@ void main() {
         reason:
             'crowded token ${crowded.size} is under 60% of plain ${plain.size}',
       );
+    });
+  });
+
+  group('a branch name with no letters in it', () {
+    testWidgets('renders its cells instead of throwing, and draws no label', (
+      tester,
+    ) async {
+      // A Shift Location named "-" (or " / ") used to throw a StateError from
+      // branchToken inside the day cell's build, so every cell rostered to that
+      // branch failed to render. It now yields no token: the markers still draw,
+      // the label does not.
+      await _pump(tester, month: _month(location: ' - / '));
+
+      expect(tester.takeException(), isNull);
+      final crowded = _cell(_employee, _crowdedDay);
+      expect(crowded, findsOneWidget);
+      expect(_markers(crowded), findsNWidgets(3));
+      expect(_in(crowded, find.text('')), findsNothing);
+      // Exactly one Text fewer than the same cell with a real branch: the label.
+      final withoutLabel = tester
+          .widgetList(_in(_cell(_employee, _plainDay), find.byType(Text)))
+          .length;
+      await _pump(tester);
+      final withLabel = tester
+          .widgetList(_in(_cell(_employee, _plainDay), find.byType(Text)))
+          .length;
+      expect(withoutLabel, withLabel - 1);
     });
   });
 
