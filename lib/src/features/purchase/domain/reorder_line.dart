@@ -21,8 +21,8 @@ class ReorderLine {
 
   /// The line's UOM is gone from the Item and nothing says what it held, so
   /// the quantity could not be restated in the stock UOM. It is left at zero
-  /// for the buyer to enter — the server refuses a zero quantity, so this
-  /// cannot be submitted by accident.
+  /// for the buyer to enter. A zero line never reaches the server on its own —
+  /// submit expansion drops it — so submit refuses it: see [linesWithoutQty].
   final bool needsQty;
 
   const ReorderLine({
@@ -98,9 +98,15 @@ ReorderLine reorderLineFrom(
   // needs the list: while it is unavailable the line keeps its own VAT, since
   // clearing it would send every refilled line out untaxed and lose the input
   // VAT without a word.
-  if (itemTaxTemplates != null &&
-      !itemTaxTemplates.any((t) => t['name'] == template)) {
-    template = '';
+  if (template.isNotEmpty && itemTaxTemplates != null) {
+    bool offered(String name) =>
+        name.isNotEmpty && itemTaxTemplates.any((t) => t['name'] == name);
+    if (!offered(template)) {
+      // The line was taxed; a retired rate is replaced by the one the Item
+      // carries today rather than silently becoming "No VAT".
+      final current = (detail?['item_tax_template'] ?? '').toString();
+      template = offered(current) ? current : '';
+    }
   }
 
   return ReorderLine(
@@ -156,3 +162,11 @@ double _num(dynamic value) {
 
 /// Trims float noise (60.00000000001) without touching a real fraction.
 double _round(double value) => (value * 1e6).roundToDouble() / 1e6;
+
+/// Cart lines that would be submitted with no quantity.
+///
+/// Submit expands each line into invoice rows, and a line with nothing to buy
+/// expands into none — the invoice is created without that item, short of the
+/// supplier's bill and with no error. Submit refuses while this is non-empty.
+List<Map<String, dynamic>> linesWithoutQty(List<Map<String, dynamic>> cart) =>
+    cart.where((line) => !(_num(line['qty']) > 0)).toList();

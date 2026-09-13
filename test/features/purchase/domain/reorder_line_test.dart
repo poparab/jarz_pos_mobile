@@ -142,6 +142,25 @@ void main() {
       expect(line.itemTaxTemplate, isNull);
     });
 
+    test('a retired template falls back to the Item\'s current one', () {
+      final line = reorderLineFrom(
+        boxLine(template: 'VAT 10% - OLD'),
+        detail: detail()..['item_tax_template'] = 'VAT 14% - JZ',
+        itemTaxTemplates: const [vat14],
+      );
+      expect(line.itemTaxTemplate, 'VAT 14% - JZ',
+          reason: 'a taxed line must not quietly become No VAT');
+    });
+
+    test('the Item\'s template never taxes a line bought untaxed', () {
+      final line = reorderLineFrom(
+        boxLine(template: ''),
+        detail: detail()..['item_tax_template'] = 'VAT 14% - JZ',
+        itemTaxTemplates: const [vat14],
+      );
+      expect(line.itemTaxTemplate, isNull);
+    });
+
     test('an unavailable list keeps the line\'s own VAT', () {
       final line = reorderLineFrom(boxLine(template: 'VAT 14% - JZ'),
           detail: detail(), itemTaxTemplates: null);
@@ -160,6 +179,37 @@ void main() {
             .itemTaxTemplate,
         isNull,
       );
+    });
+  });
+
+  group('linesWithoutQty', () {
+    test('an unconverted refill cannot be submitted', () {
+      final refill = reorderLineFrom(boxLine(factor: null),
+          detail: detail(), itemTaxTemplates: const []);
+      final cart = [
+        {'item_code': 'RM-SUGAR', 'qty': 2.0},
+        {'item_code': 'RM-CUPS', 'qty': refill.qty},
+      ];
+      expect(linesWithoutQty(cart).map((l) => l['item_code']), ['RM-CUPS'],
+          reason: 'a zero line expands to no invoice rows and is dropped');
+    });
+
+    test('zero, negative and missing quantities are all refused', () {
+      final cart = <Map<String, dynamic>>[
+        {'item_code': 'A', 'qty': 0},
+        {'item_code': 'B', 'qty': -1},
+        {'item_code': 'C'},
+        {'item_code': 'D', 'qty': 0.001},
+      ];
+      expect(linesWithoutQty(cart).map((l) => l['item_code']), ['A', 'B', 'C']);
+    });
+
+    test('a full cart passes', () {
+      expect(
+          linesWithoutQty([
+            {'item_code': 'A', 'qty': 1.0}
+          ]),
+          isEmpty);
     });
   });
 

@@ -617,6 +617,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
             const SizedBox(width: 4),
             SizedBox(width: 80, child: TextFormField(
               controller: qtyCtrl,
+              decoration: _qtyDecoration(qty),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               onChanged: (v) { final q = double.tryParse(v) ?? qty; setState(() => line['qty'] = q); onChanged(); },
             )),
@@ -843,6 +844,9 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     // The item's UOM list and price list, so a refilled line behaves exactly
     // like one added by hand — its UOM dropdown needs every option. A failed
     // lookup still refills the line, just with its own UOM as the only choice.
+    // Only what the buyer agreed to replace. A line added while the lookups
+    // below are running is new, and survives the refill.
+    final replaced = List<Map<String, dynamic>>.of(cart);
     final service = ref.read(purchaseServiceProvider);
     final details = <String, Map<String, dynamic>>{};
     // The VAT list too: refilling before it arrives used to clear every line's
@@ -858,14 +862,18 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     final templates = await templatesLoad;
     if (!mounted) return;
 
-    for (final line in cart) {
+    final stale = cart.where((l) => replaced.any((r) => identical(r, l))).toList();
+    for (final line in stale) {
       try {
         (line['qtyCtrl'] as TextEditingController?)?.dispose();
       } catch (_) {}
     }
     setState(() {
-      cart.clear();
+      cart.removeWhere((l) => stale.any((r) => identical(r, l)));
       _cartGeneration++;
+      // A new purchase. Reusing the key of an earlier attempt whose response
+      // was lost would let the server answer with that invoice instead.
+      _idempotencyKey = _newIdempotencyKey();
       if (supplierName.isNotEmpty) supplier = supplierName;
       if (templates != null) itemTaxTemplates = templates;
       for (final line in lines) {
@@ -1512,6 +1520,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                   width: 90,
                   child: TextFormField(
                     controller: qtyCtrl,
+                    decoration: _qtyDecoration(qty),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     onChanged: (v) {
                       final q = double.tryParse(v) ?? qty;
@@ -1589,6 +1598,20 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
 
+    // A zero line expands into no invoice rows, so it would not be refused by
+    // the server — the purchase would simply go out without that item.
+    final missingQty = linesWithoutQty(cart);
+    if (missingQty.isNotEmpty) {
+      final names = missingQty
+          .map((l) => l10n.commonNameWithCode(
+              (l['item_name'] ?? l['item_code']).toString(),
+              (l['item_code'] ?? '').toString()))
+          .join(', ');
+      messenger.showSnackBar(SnackBar(
+          content: Text('$names: ${l10n.manufacturingQuantityMustBePositive}')));
+      return;
+    }
+
     final paymentOption = await _choosePaymentOption();
     if (paymentOption == null || !mounted) return;
 
@@ -1638,6 +1661,17 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       : _fmtDate(postingDate);
 
   String _fmtDate(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}' ;
+
+  /// Marks a quantity that submit will refuse — a refilled line whose unit
+  /// could not be converted arrives at zero and must be filled in.
+  InputDecoration _qtyDecoration(double qty) {
+    if (qty > 0) return const InputDecoration();
+    final error = BorderSide(color: Theme.of(context).colorScheme.error, width: 2);
+    return InputDecoration(
+      enabledBorder: UnderlineInputBorder(borderSide: error),
+      focusedBorder: UnderlineInputBorder(borderSide: error),
+    );
+  }
 
   // Helpers for UOM labels and conversion lookups
   String _uomLabel(Map<String, dynamic> u, String? stockUom) {
