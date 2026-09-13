@@ -146,6 +146,11 @@ class ItemRequest {
   final String? requestedByUser;
   final String? note;
   final bool isMine;
+
+  /// Buyer who accepted the request, and when. Null until someone does — the
+  /// requester's only signal that the request was seen before goods arrive.
+  final String? acknowledgedBy;
+  final DateTime? acknowledgedAt;
   final List<RequestLine> items;
 
   const ItemRequest({
@@ -160,10 +165,14 @@ class ItemRequest {
     required this.requestedByUser,
     required this.note,
     required this.isMine,
+    this.acknowledgedBy,
+    this.acknowledgedAt,
     required this.items,
   });
 
   int get itemCount => items.length;
+
+  bool get isAcknowledged => acknowledgedAt != null;
 
   /// True once the "needed by" date has passed and stock is still outstanding.
   bool get isOverdue {
@@ -187,6 +196,8 @@ class ItemRequest {
       requestedByUser: _toNullableStr(json['requested_by_user']),
       note: _toNullableStr(json['note']),
       isMine: json['is_mine'] == true,
+      acknowledgedBy: _toNullableStr(json['acknowledged_by']),
+      acknowledgedAt: _toDate(json['acknowledged_at']),
       items: ((json['items'] as List?) ?? const [])
           .whereType<Map>()
           .map((e) => RequestLine.fromJson(Map<String, dynamic>.from(e)))
@@ -335,6 +346,24 @@ class ItemRequestPage {
           .toList(),
       total: (json['total'] is num) ? (json['total'] as num).toInt() : 0,
       canReview: json['can_review'] == true,
+    );
+  }
+}
+
+/// Open requests the caller can see, for the side-menu indicator.
+class ItemRequestCounts {
+  final int open;
+
+  /// Open requests no buyer has accepted yet.
+  final int unacknowledged;
+
+  const ItemRequestCounts({required this.open, required this.unacknowledged});
+
+  factory ItemRequestCounts.fromJson(Map<String, dynamic> json) {
+    int asInt(dynamic v) => v is num ? v.toInt() : int.tryParse('$v') ?? 0;
+    return ItemRequestCounts(
+      open: asInt(json['open']),
+      unacknowledged: asInt(json['unacknowledged']),
     );
   }
 }

@@ -9338,7 +9338,7 @@ abstract class AppLocalizations {
   /// No description provided for @purchaseReorderFromSupplier.
   ///
   /// In en, this message translates to:
-  /// **'Reorder from same supplier'**
+  /// **'Reorder the same purchase'**
   String get purchaseReorderFromSupplier;
 
   /// No description provided for @purchaseHistoryTitle.
@@ -11482,6 +11482,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Request reopened'**
   String get requestsReopened;
+
+  /// No description provided for @requestsAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get requestsAccept;
+
+  /// No description provided for @requestsAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Request accepted — the requester can see it'**
+  String get requestsAccepted;
+
+  /// No description provided for @requestsAcceptedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted by {name}'**
+  String requestsAcceptedBy(Object name);
+
+  /// No description provided for @requestsAwaitingAcceptance.
+  ///
+  /// In en, this message translates to:
+  /// **'Not accepted yet'**
+  String get requestsAwaitingAcceptance;
+
+  /// No description provided for @purchaseReorderReplaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the current cart?'**
+  String get purchaseReorderReplaceTitle;
+
+  /// No description provided for @purchaseReorderReplaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The cart already has items. Reordering replaces them with the items from {invoice}.'**
+  String purchaseReorderReplaceBody(Object invoice);
+
+  /// No description provided for @purchaseReorderReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get purchaseReorderReplace;
+
+  /// No description provided for @purchaseReorderFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled from {invoice} — review, then submit'**
+  String purchaseReorderFilled(Object invoice);
+
+  /// No description provided for @purchaseReorderNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'This invoice has no items to reorder'**
+  String get purchaseReorderNothing;
 
   /// No description provided for @requestsLineProgress.
   ///

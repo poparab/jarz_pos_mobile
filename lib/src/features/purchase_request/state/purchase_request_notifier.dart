@@ -86,15 +86,29 @@ class PurchaseRequestState {
 
 final purchaseRequestNotifierProvider =
     StateNotifierProvider<PurchaseRequestNotifier, PurchaseRequestState>((ref) {
-  return PurchaseRequestNotifier(ref.watch(purchaseRequestRepositoryProvider));
+  return PurchaseRequestNotifier(
+    ref.watch(purchaseRequestRepositoryProvider),
+    // Every change to the queue moves the side-menu badge, so re-ask for it
+    // rather than leave a count the user just acted on.
+    onChanged: () => ref.invalidate(itemRequestCountsProvider),
+  );
+});
+
+/// The side-menu indicator. `autoDispose`, so opening the drawer re-asks; a
+/// failed read renders no badge rather than a stale number.
+final itemRequestCountsProvider =
+    FutureProvider.autoDispose<ItemRequestCounts>((ref) async {
+  return ref.watch(purchaseRequestRepositoryProvider).getCounts();
 });
 
 class PurchaseRequestNotifier extends StateNotifier<PurchaseRequestState> {
   final PurchaseRequestRepository _repository;
+  final void Function()? _onChanged;
   static const _pageSize = 30;
 
-  PurchaseRequestNotifier(this._repository)
-      : super(PurchaseRequestState.initial());
+  PurchaseRequestNotifier(this._repository, {void Function()? onChanged})
+      : _onChanged = onChanged,
+        super(PurchaseRequestState.initial());
 
   Future<void> load({RequestFilter? filter}) async {
     final target = filter ?? state.filter;
@@ -170,6 +184,7 @@ class PurchaseRequestNotifier extends StateNotifier<PurchaseRequestState> {
         requests: [created, ...state.requests],
         total: state.total + 1,
       );
+      _onChanged?.call();
       return created;
     } catch (error) {
       state = state.copyWith(isSubmitting: false, error: error.toString());
@@ -180,6 +195,17 @@ class PurchaseRequestNotifier extends StateNotifier<PurchaseRequestState> {
   Future<bool> stopRequest(String name, {String? reason}) async {
     try {
       final updated = await _repository.stopRequest(name, reason: reason);
+      _replace(updated);
+      return true;
+    } catch (error) {
+      state = state.copyWith(error: error.toString());
+      return false;
+    }
+  }
+
+  Future<bool> acknowledgeRequest(String name) async {
+    try {
+      final updated = await _repository.acknowledgeRequest(name);
       _replace(updated);
       return true;
     } catch (error) {
@@ -214,6 +240,7 @@ class PurchaseRequestNotifier extends StateNotifier<PurchaseRequestState> {
       total: visible.length < next.length ? state.total - 1 : state.total,
       clearError: true,
     );
+    _onChanged?.call();
   }
 
   void clearError() => state = state.copyWith(clearError: true);

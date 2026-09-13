@@ -97,6 +97,23 @@ class PurchaseRequestRepository {
     );
   }
 
+  Future<ItemRequest> acknowledgeRequest(String name) async {
+    final response = await _dio.post(
+      ApiEndpoints.acknowledgeItemRequest,
+      data: {'name': name},
+    );
+    final payload = _unwrap(response.data);
+    return ItemRequest.fromJson(
+      Map<String, dynamic>.from(payload['request'] as Map),
+    );
+  }
+
+  Future<ItemRequestCounts> getCounts() async {
+    final response =
+        await _dio.post(ApiEndpoints.getItemRequestCounts, data: {});
+    return ItemRequestCounts.fromJson(_unwrap(response.data));
+  }
+
   /// The consolidated buying list — one row per item, demand summed across
   /// every open request.
   Future<List<RequestDemandLine>> getOpenDemand() async {

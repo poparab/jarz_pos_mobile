@@ -86,6 +86,18 @@ class _PurchaseRequestsScreenState
     }
   }
 
+  Future<void> _accept(ItemRequest request) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await ref
+        .read(purchaseRequestNotifierProvider.notifier)
+        .acknowledgeRequest(request.name);
+    if (!mounted) return;
+    if (ok) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.requestsAccepted)));
+    }
+  }
+
   Future<void> _reopen(ItemRequest request) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
@@ -218,6 +230,7 @@ class _PurchaseRequestsScreenState
             canReview: state.canReview,
             onReject: () => _reject(request),
             onReopen: () => _reopen(request),
+            onAccept: () => _accept(request),
           );
         },
       ),

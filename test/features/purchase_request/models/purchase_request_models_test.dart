@@ -332,4 +332,50 @@ void main() {
       expect(page.canReview, isFalse);
     });
   });
+
+  // ── Acceptance ───────────────────────────────────────────────────────
+  //
+  // The requester's only signal that a buyer saw the request before goods
+  // arrive, and what the side-menu badge colours on.
+
+  group('ItemRequest acceptance', () {
+    Map<String, dynamic> base() => {
+          'name': 'MAT-MR-0001',
+          'status': 'Pending',
+          'requested_by': 'Staff',
+          'items': const [],
+        };
+
+    test('an unaccepted request carries no acceptance', () {
+      final request = ItemRequest.fromJson(base());
+      expect(request.isAcknowledged, isFalse);
+      expect(request.acknowledgedBy, isNull);
+    });
+
+    test('parses who accepted and when', () {
+      final request = ItemRequest.fromJson({
+        ...base(),
+        'acknowledged_by': 'Belal',
+        'acknowledged_at': '2026-09-13 10:15:00.123456',
+      });
+      expect(request.isAcknowledged, isTrue);
+      expect(request.acknowledgedBy, 'Belal');
+      expect(request.acknowledgedAt, DateTime(2026, 9, 13, 10, 15, 0, 123, 456));
+    });
+  });
+
+  group('ItemRequestCounts.fromJson', () {
+    test('reads both counts', () {
+      final counts =
+          ItemRequestCounts.fromJson({'open': 4, 'unacknowledged': 1});
+      expect(counts.open, 4);
+      expect(counts.unacknowledged, 1);
+    });
+
+    test('tolerates missing or stringly values', () {
+      final counts = ItemRequestCounts.fromJson({'open': '3'});
+      expect(counts.open, 3);
+      expect(counts.unacknowledged, 0);
+    });
+  });
 }

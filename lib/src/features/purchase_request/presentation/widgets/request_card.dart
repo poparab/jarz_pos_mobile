@@ -12,6 +12,7 @@ class RequestCard extends StatefulWidget {
   final bool canReview;
   final VoidCallback? onReject;
   final VoidCallback? onReopen;
+  final VoidCallback? onAccept;
 
   const RequestCard({
     super.key,
@@ -19,6 +20,7 @@ class RequestCard extends StatefulWidget {
     required this.canReview,
     this.onReject,
     this.onReopen,
+    this.onAccept,
   });
 
   @override
@@ -38,6 +40,65 @@ class _RequestCardState extends State<RequestCard> {
     return value == value.roundToDouble()
         ? value.toStringAsFixed(0)
         : value.toStringAsFixed(2);
+  }
+
+  /// Whether a buyer has seen the request. Collapsed-view on purpose: this is
+  /// the one thing the requester opens the list to find out, and the Accept
+  /// button is the one thing a buyer should not have to expand a card for.
+  Widget _acceptanceRow(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final request = widget.request;
+
+    if (request.isAcknowledged) {
+      final who = request.acknowledgedBy;
+      final at = request.acknowledgedAt;
+      return Row(
+        children: [
+          Icon(Icons.verified_outlined, size: 14, color: Colors.green.shade700),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              [
+                l10n.requestsAcceptedBy(who ?? '—'),
+                if (at != null) DateFormat('MMM d, HH:mm').format(at),
+              ].join(' · '),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.green.shade800,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      );
+    }
+
+    final canAccept = widget.canReview && widget.onAccept != null;
+    return Row(
+      children: [
+        Icon(Icons.hourglass_empty, size: 14, color: theme.colorScheme.tertiary),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Text(
+            l10n.requestsAwaitingAcceptance,
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.tertiary),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (canAccept)
+          FilledButton.tonalIcon(
+            onPressed: widget.onAccept,
+            icon: const Icon(Icons.check, size: 16),
+            label: Text(l10n.requestsAccept),
+            style: FilledButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+          ),
+      ],
+    );
   }
 
   @override
@@ -132,6 +193,10 @@ class _RequestCardState extends State<RequestCard> {
                       ),
                     ],
                   ),
+                  if (request.status.isOpen || request.isAcknowledged) ...[
+                    const SizedBox(height: 6),
+                    _acceptanceRow(context),
+                  ],
                   if (request.status == RequestStatus.partiallyReceived) ...[
                     const SizedBox(height: 8),
                     ClipRRect(

@@ -2871,7 +2871,7 @@
   "managerApproveDefaultError": "Unable to approve the request.",
   "managerRejectDefaultError": "Unable to reject the request.",
   "purchaseNoInvoicesYet": "No purchase invoices yet",
-  "purchaseReorderFromSupplier": "Reorder from same supplier",
+  "purchaseReorderFromSupplier": "Reorder the same purchase",
   "purchaseHistoryTitle": "Purchase History",
   "posCreateCustomer": "Create Customer",
   "posCustomerCreatedSuccess": "Customer created successfully!",
@@ -3662,6 +3662,30 @@
   "requestsRejected": "Request rejected",
   "requestsReopen": "Reopen",
   "requestsReopened": "Request reopened",
+  "requestsAccept": "Accept",
+  "requestsAccepted": "Request accepted — the requester can see it",
+  "requestsAcceptedBy": "Accepted by {name}",
+  "@requestsAcceptedBy": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "requestsAwaitingAcceptance": "Not accepted yet",
+  "purchaseReorderReplaceTitle": "Replace the current cart?",
+  "purchaseReorderReplaceBody": "The cart already has items. Reordering replaces them with the items from {invoice}.",
+  "@purchaseReorderReplaceBody": {
+    "placeholders": {
+      "invoice": {}
+    }
+  },
+  "purchaseReorderReplace": "Replace",
+  "purchaseReorderFilled": "Filled from {invoice} — review, then submit",
+  "@purchaseReorderFilled": {
+    "placeholders": {
+      "invoice": {}
+    }
+  },
+  "purchaseReorderNothing": "This invoice has no items to reorder",
   "requestsLineProgress": "{received} of {requested} {uom}",
   "@requestsLineProgress": {
     "placeholders": {

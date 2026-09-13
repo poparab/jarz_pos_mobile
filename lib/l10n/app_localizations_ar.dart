@@ -5645,7 +5645,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get purchaseNoInvoicesYet => 'لا توجد فواتير شراء بعد';
 
   @override
-  String get purchaseReorderFromSupplier => 'إعادة الطلب من نفس المورد';
+  String get purchaseReorderFromSupplier => 'إعادة نفس الطلب';
 
   @override
   String get purchaseHistoryTitle => 'سجل المشتريات';
@@ -6813,6 +6813,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get requestsReopened => 'الطلب اتفتح تاني';
+
+  @override
+  String get requestsAccept => 'قبول';
+
+  @override
+  String get requestsAccepted => 'الطلب اتقبل — صاحب الطلب هيشوف ده';
+
+  @override
+  String requestsAcceptedBy(Object name) {
+    return 'اتقبل من $name';
+  }
+
+  @override
+  String get requestsAwaitingAcceptance => 'لسه متقبلش';
+
+  @override
+  String get purchaseReorderReplaceTitle => 'تستبدل السلة الحالية؟';
+
+  @override
+  String purchaseReorderReplaceBody(Object invoice) {
+    return 'السلة فيها أصناف. إعادة الطلب هتستبدلها بأصناف $invoice.';
+  }
+
+  @override
+  String get purchaseReorderReplace => 'استبدال';
+
+  @override
+  String purchaseReorderFilled(Object invoice) {
+    return 'اتملت من $invoice — راجع وبعدين أكّد';
+  }
+
+  @override
+  String get purchaseReorderNothing => 'الفاتورة دي مفيهاش أصناف لإعادة الطلب';
 
   @override
   String requestsLineProgress(Object received, Object requested, Object uom) {

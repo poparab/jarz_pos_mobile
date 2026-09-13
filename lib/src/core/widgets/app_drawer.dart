@@ -12,6 +12,7 @@ import '../network/user_service.dart';
 import '../../features/pos/state/pos_notifier.dart';
 import '../../features/shift/state/shift_notifier.dart';
 import '../../features/labels/state/labels_notifier.dart';
+import '../../features/purchase_request/state/purchase_request_notifier.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -252,11 +253,7 @@ class AppDrawer extends ConsumerWidget {
       // Ungated on purpose: anyone who notices a shortage can raise a request,
       // and the server gate (ROLES.PURCHASE_REQUEST) is deliberately the widest
       // in the app. Hiding this behind manager access would defeat the feature.
-      navTile(
-        icon: Icons.playlist_add,
-        title: l10n.menuItemRequests,
-        onTap: () => navigate(AppRoutes.itemRequests),
-      ),
+      _ItemRequestsNavTile(onTap: () => navigate(AppRoutes.itemRequests)),
       if (canAccessPurchaseInvoice)
         navTile(
           icon: Icons.receipt_long,
@@ -435,11 +432,20 @@ class AppDrawer extends ConsumerWidget {
       required String label,
       required List<Widget> children,
       required bool expanded,
+      Widget? badge,
     }) {
       if (children.isEmpty) return null;
       return ExpansionTile(
         leading: Icon(icon),
-        title: Text(label),
+        title: badge == null
+            ? Text(label)
+            : Row(
+                children: [
+                  Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
+                  const SizedBox(width: 8),
+                  badge,
+                ],
+              ),
         initiallyExpanded: expanded,
         childrenPadding: const EdgeInsets.only(left: 16),
         children: children,
@@ -482,6 +488,9 @@ class AppDrawer extends ConsumerWidget {
         label: l10n.drawerGroupPurchasing,
         children: purchasingChildren,
         expanded: matchesRoute(purchasingRoutes),
+        // The group starts collapsed, so without this the open-request count
+        // on its child tile is invisible until someone thinks to expand it.
+        badge: const _ItemRequestsBadge(dotOnly: true),
       ),
       group(
         icon: Icons.insights,
@@ -564,6 +573,68 @@ class _DrawerHeaderTitle extends StatelessWidget {
           style: const TextStyle(color: Colors.white70, fontSize: 14),
         ),
       ],
+    );
+  }
+}
+
+/// Drawer entry for team item requests, badged with how many are still open.
+///
+/// Red while any open request has not been accepted by a buyer — that is the
+/// part that needs someone to act — and neutral once every open one has been.
+class _ItemRequestsNavTile extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _ItemRequestsNavTile({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.playlist_add),
+      title: Text(context.l10n.menuItemRequests),
+      trailing: const _ItemRequestsBadge(),
+      onTap: onTap,
+    );
+  }
+}
+
+class _ItemRequestsBadge extends ConsumerWidget {
+  /// A plain dot for the collapsed group header, the number on the tile.
+  final bool dotOnly;
+
+  const _ItemRequestsBadge({this.dotOnly = false});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final counts = ref.watch(itemRequestCountsProvider).maybeWhen(
+          data: (c) => c,
+          orElse: () => null,
+        );
+    if (counts == null || counts.open == 0) return const SizedBox.shrink();
+
+    final color = counts.unacknowledged > 0
+        ? const Color(0xFFB3261E)
+        : Colors.blueGrey.shade600;
+    if (dotOnly) {
+      return Container(
+        width: 9,
+        height: 9,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        '${counts.open}',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }

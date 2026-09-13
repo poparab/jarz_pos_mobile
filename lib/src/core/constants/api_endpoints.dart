@@ -246,6 +246,10 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.purchase_request.reopen_request';
   static const getOpenRequestLines =
       '/api/method/jarz_pos.api.purchase_request.get_open_request_lines';
+  static const acknowledgeItemRequest =
+      '/api/method/jarz_pos.api.purchase_request.acknowledge_request';
+  static const getItemRequestCounts =
+      '/api/method/jarz_pos.api.purchase_request.get_request_counts';
 
   // ── Manager ───────────────────────────────────────────────────────────
   static const getManagerDashboardSummary =

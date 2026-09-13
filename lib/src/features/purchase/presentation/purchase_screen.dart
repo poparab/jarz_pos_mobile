@@ -772,13 +772,9 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
               const Divider(),
               Expanded(
                 child: _PurchaseHistoryTab(
-                  onNavigateToInvoice: (inv) {
+                  onReorder: (inv) {
                     Navigator.of(context, rootNavigator: true).pop();
-                    final supplierName =
-                        (inv['supplier'] ?? inv['supplier_name'] ?? '').toString();
-                    if (supplierName.isNotEmpty) {
-                      setState(() => supplier = supplierName);
-                    }
+                    _reorderFrom(inv);
                   },
                 ),
               ),
@@ -787,6 +783,120 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
         ),
       ),
     );
+  }
+
+  /// Refill the form from a past invoice — same supplier, same lines, same
+  /// quantities and rates — and stop there.
+  ///
+  /// Nothing is submitted. The old button only picked the supplier, so a
+  /// weekly repeat order still meant finding and adding every item by hand;
+  /// now the buyer adjusts what changed and submits as usual. Request links
+  /// are deliberately not carried: the old purchase already credited them.
+  Future<void> _reorderFrom(Map<String, dynamic> inv) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final invoiceName = (inv['name'] ?? '').toString();
+    final supplierName =
+        (inv['supplier'] ?? inv['supplier_name'] ?? '').toString();
+    final lines = ((inv['items'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .where((l) =>
+            (l['item_code'] ?? '').toString().isNotEmpty &&
+            _num(l['qty']).abs() > 0)
+        .toList();
+    if (lines.isEmpty) {
+      messenger.showSnackBar(
+          SnackBar(content: Text(l10n.purchaseReorderNothing)));
+      return;
+    }
+
+    if (cart.isNotEmpty) {
+      final replace = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(ctx.l10n.purchaseReorderReplaceTitle),
+          content: Text(ctx.l10n.purchaseReorderReplaceBody(invoiceName)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(ctx.l10n.commonCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(ctx.l10n.purchaseReorderReplace),
+            ),
+          ],
+        ),
+      );
+      if (replace != true || !mounted) return;
+    }
+
+    // The item's UOM list and price list, so a refilled line behaves exactly
+    // like one added by hand — its UOM dropdown needs every option. A failed
+    // lookup still refills the line, just with its own UOM as the only choice.
+    final service = ref.read(purchaseServiceProvider);
+    final details = <String, Map<String, dynamic>>{};
+    await Future.wait({for (final l in lines) l['item_code'].toString()}
+        .map((code) async {
+      try {
+        details[code] = await service.getItemDetails(code);
+      } catch (_) {}
+    }));
+    if (!mounted) return;
+
+    for (final line in cart) {
+      try {
+        (line['qtyCtrl'] as TextEditingController?)?.dispose();
+      } catch (_) {}
+    }
+    setState(() {
+      cart.clear();
+      if (supplierName.isNotEmpty) supplier = supplierName;
+      for (final line in lines) {
+        final code = line['item_code'].toString();
+        final detail = details[code];
+        final stockUom =
+            (detail?['stock_uom'] ?? line['uom'] ?? '').toString();
+        final uom = (line['uom'] ?? stockUom).toString();
+        final uoms = ((detail?['uoms'] as List?) ?? const [])
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+        // DropdownButton asserts when its value is missing from the options.
+        if (!uoms.any((u) => u['uom'] == uom)) {
+          uoms.add({'uom': uom, 'conversion_factor': 1});
+        }
+        // abs(): a return invoice stores negative quantities and rates.
+        final qty = _num(line['qty']).abs();
+        final template = (line['item_tax_template'] ?? '').toString();
+        cart.add({
+          'item_code': code,
+          'item_name':
+              (line['item_name'] ?? detail?['item_name'] ?? code).toString(),
+          'uom': uom,
+          'qty': qty,
+          'qtyCtrl': TextEditingController(text: qty.toStringAsFixed(2)),
+          'rate': _num(line['rate']).abs(),
+          'stock_uom': stockUom,
+          'uoms': uoms,
+          'prices': ((detail?['prices'] as List?) ?? const [])
+              .whereType<Map>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList(),
+          // "The same as before" includes the VAT that line carried.
+          'item_tax_template': template.isEmpty ? null : template,
+        });
+      }
+    });
+    _sheetSetState?.call(() {});
+
+    messenger.showSnackBar(
+        SnackBar(content: Text(l10n.purchaseReorderFilled(invoiceName))));
+    // On a phone the cart lives in a sheet; open it so the refill is visible.
+    if (ResponsiveUtils.isPhone(context) && _sheetSetState == null) {
+      _openCartSheet();
+    }
   }
 
   Future<void> _openSupplierPicker({required bool initialRecent}) async {
@@ -1709,8 +1819,8 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
 
 /// History tab showing recent purchase invoices with expandable item details.
 class _PurchaseHistoryTab extends ConsumerStatefulWidget {
-  final void Function(Map<String, dynamic> invoice)? onNavigateToInvoice;
-  const _PurchaseHistoryTab({this.onNavigateToInvoice});
+  final void Function(Map<String, dynamic> invoice)? onReorder;
+  const _PurchaseHistoryTab({this.onReorder});
 
   @override
   ConsumerState<_PurchaseHistoryTab> createState() => _PurchaseHistoryTabState();
@@ -2035,8 +2145,8 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
             return _PurchaseInvoiceCard(
               key: ValueKey(_invoices[index]['name']),
               invoice: _invoices[index],
-              onReorder: widget.onNavigateToInvoice != null
-                  ? () => widget.onNavigateToInvoice!(_invoices[index])
+              onReorder: widget.onReorder != null
+                  ? () => widget.onReorder!(_invoices[index])
                   : null,
               onPay: () => _pay(_invoices[index]),
               onReturn: () => _returnInvoice(_invoices[index]),
@@ -2305,7 +2415,8 @@ class _PurchaseInvoiceCardState extends State<_PurchaseInvoiceCard> {
                               size: 16),
                           label: Text(context.l10n.purchaseReturnAction),
                         ),
-                      if (widget.onReorder != null)
+                      // A return is goods sent back, not an order to repeat.
+                      if (widget.onReorder != null && grandTotal >= 0)
                         OutlinedButton.icon(
                           onPressed: widget.onReorder,
                           icon: const Icon(Icons.replay, size: 16),

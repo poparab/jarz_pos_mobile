@@ -5671,7 +5671,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get purchaseNoInvoicesYet => 'No purchase invoices yet';
 
   @override
-  String get purchaseReorderFromSupplier => 'Reorder from same supplier';
+  String get purchaseReorderFromSupplier => 'Reorder the same purchase';
 
   @override
   String get purchaseHistoryTitle => 'Purchase History';
@@ -6849,6 +6849,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get requestsReopened => 'Request reopened';
+
+  @override
+  String get requestsAccept => 'Accept';
+
+  @override
+  String get requestsAccepted => 'Request accepted — the requester can see it';
+
+  @override
+  String requestsAcceptedBy(Object name) {
+    return 'Accepted by $name';
+  }
+
+  @override
+  String get requestsAwaitingAcceptance => 'Not accepted yet';
+
+  @override
+  String get purchaseReorderReplaceTitle => 'Replace the current cart?';
+
+  @override
+  String purchaseReorderReplaceBody(Object invoice) {
+    return 'The cart already has items. Reordering replaces them with the items from $invoice.';
+  }
+
+  @override
+  String get purchaseReorderReplace => 'Replace';
+
+  @override
+  String purchaseReorderFilled(Object invoice) {
+    return 'Filled from $invoice — review, then submit';
+  }
+
+  @override
+  String get purchaseReorderNothing => 'This invoice has no items to reorder';
 
   @override
   String requestsLineProgress(Object received, Object requested, Object uom) {
