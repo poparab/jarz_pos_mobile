@@ -12,7 +12,9 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../purchase/data/purchase_service.dart';
+import '../domain/reorder_line.dart';
 import '../domain/request_allocation.dart';
+import 'widgets/line_rate_field.dart';
 import '../../purchase_request/presentation/widgets/buy_from_requests_sheet.dart';
 import '../../../core/constants/business_constants.dart';
 
@@ -48,6 +50,12 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   /// template cannot express that.
   List<Map<String, dynamic>> itemTaxTemplates = const [];
 
+  /// The load behind [itemTaxTemplates]. Reorder waits on it — and retries a
+  /// failed one — because it cannot tell a retired template from a list that
+  /// simply has not arrived yet.
+  late final RetryingLoad<List<Map<String, dynamic>>> _itemTaxTemplateLoad =
+      RetryingLoad(() => ref.read(purchaseServiceProvider).getItemTaxTemplates());
+
   /// Guards the submit path. Without it a double tap on a slow connection
   /// created two invoices — double stock and double cash out.
   bool _submitting = false;
@@ -58,9 +66,9 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
 
   final List<Map<String, dynamic>> cart = [];
 
-  /// Bumped on every reorder. Part of each rate box's key: a refill that puts
-  /// the same item back at the same position would otherwise keep the old box,
-  /// which reads its value only once — showing one rate while another is sent.
+  /// Bumped on every reorder. Part of each rate box's key, so a refill that
+  /// puts the same item back at the same position gets a fresh box rather
+  /// than inheriting the replaced line's field state.
   int _cartGeneration = 0;
   StateSetter? _sheetSetState;
   late final TextEditingController _itemSearchController;
@@ -156,15 +164,11 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   }
 
   Future<void> _loadItemTaxTemplates() async {
-    try {
-      final templates =
-          await ref.read(purchaseServiceProvider).getItemTaxTemplates();
-      if (!mounted) return;
-      setState(() => itemTaxTemplates = templates);
-    } catch (_) {
-      // Same as above: without these the per-line picker simply stays hidden
-      // and the item's own default still applies server-side.
-    }
+    final templates = await _itemTaxTemplateLoad.ensure();
+    // A failure is the same as above: without these the per-line picker simply
+    // stays hidden and the item's own default still applies server-side.
+    if (!mounted || templates == null) return;
+    setState(() => itemTaxTemplates = templates);
   }
 
   /// "VAT 14%" rather than the raw template name — the buyer is picking a rate,
@@ -631,15 +635,14 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
           Row(children: [
             Text(l10n.commonRateLabel),
             const SizedBox(width: 6),
-            SizedBox(width: 90, child: TextFormField(
+            SizedBox(width: 90, child: LineRateField(
               // Keyed by item, not list position. Without a key Flutter reuses
               // the field element by index, so deleting a row left the next
               // row's rate box showing the deleted row's number — silently
               // mis-pricing the line.
               key: ValueKey('rate-$_cartGeneration-${line['item_code']}-$i'),
-              initialValue: rate.toStringAsFixed(2),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              onChanged: (v) { final r = double.tryParse(v) ?? rate; setState(() => line['rate'] = r); onChanged(); },
+              rate: rate,
+              onChanged: (r) { setState(() => line['rate'] = r); onChanged(); },
             )),
             const SizedBox(width: 12),
             Text(l10n.commonAmountValue(amount.toStringAsFixed(2))),
@@ -842,12 +845,17 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     // lookup still refills the line, just with its own UOM as the only choice.
     final service = ref.read(purchaseServiceProvider);
     final details = <String, Map<String, dynamic>>{};
+    // The VAT list too: refilling before it arrives used to clear every line's
+    // template, sending the purchase out as No VAT. `null` after a retry means
+    // it is still unavailable, and the lines keep their own templates.
+    final templatesLoad = _itemTaxTemplateLoad.ensure();
     await Future.wait({for (final l in lines) l['item_code'].toString()}
         .map((code) async {
       try {
         details[code] = await service.getItemDetails(code);
       } catch (_) {}
     }));
+    final templates = await templatesLoad;
     if (!mounted) return;
 
     for (final line in cart) {
@@ -859,59 +867,28 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       cart.clear();
       _cartGeneration++;
       if (supplierName.isNotEmpty) supplier = supplierName;
+      if (templates != null) itemTaxTemplates = templates;
       for (final line in lines) {
         final code = line['item_code'].toString();
         final detail = details[code];
-        final stockUom =
-            (detail?['stock_uom'] ?? line['uom'] ?? '').toString();
-        var uom = (line['uom'] ?? stockUom).toString();
-        var rate = _num(line['rate']).abs();
-        final uoms = ((detail?['uoms'] as List?) ?? const [])
-            .whereType<Map>()
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
-        final prices = ((detail?['prices'] as List?) ?? const [])
-            .whereType<Map>()
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
-        if (!uoms.any((u) => u['uom'] == uom)) {
-          if (detail != null && stockUom.isNotEmpty) {
-            // The old UOM was removed from the Item. Offering it anyway would
-            // book stock 1:1 with no error, so fall back to the stock UOM.
-            uom = stockUom;
-            final stockPrice = prices.firstWhere(
-              (p) => p['uom'] == stockUom,
-              orElse: () => const {},
-            );
-            if (_num(stockPrice['rate']) > 0) rate = _num(stockPrice['rate']);
-            if (!uoms.any((u) => u['uom'] == uom)) {
-              uoms.add({'uom': uom, 'conversion_factor': 1});
-            }
-          } else {
-            // Lookup failed: keep the line's own UOM as its only option —
-            // DropdownButton asserts when its value is missing.
-            uoms.add({'uom': uom, 'conversion_factor': 1});
-          }
-        }
-        // abs(): a return invoice stores negative quantities and rates.
-        final qty = _num(line['qty']).abs();
-        var template = (line['item_tax_template'] ?? '').toString();
-        // A template no longer offered would show as "No VAT" yet still be
-        // sent, and the server would reject the purchase with no visible cause.
-        if (!itemTaxTemplates.any((t) => t['name'] == template)) template = '';
+        final refill = reorderLineFrom(
+          line,
+          detail: detail,
+          itemTaxTemplates: templates,
+        );
         cart.add({
           'item_code': code,
           'item_name':
               (line['item_name'] ?? detail?['item_name'] ?? code).toString(),
-          'uom': uom,
-          'qty': qty,
-          'qtyCtrl': TextEditingController(text: qty.toStringAsFixed(2)),
-          'rate': rate,
-          'stock_uom': stockUom,
-          'uoms': uoms,
-          'prices': prices,
+          'uom': refill.uom,
+          'qty': refill.qty,
+          'qtyCtrl': TextEditingController(text: refill.qty.toStringAsFixed(2)),
+          'rate': refill.rate,
+          'stock_uom': refill.stockUom,
+          'uoms': refill.uoms,
+          'prices': refill.prices,
           // "The same as before" includes the VAT that line carried.
-          'item_tax_template': template.isEmpty ? null : template,
+          'item_tax_template': refill.itemTaxTemplate,
         });
       }
     });
@@ -1568,18 +1545,14 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                 const SizedBox(width: 6),
                 SizedBox(
                   width: 100,
-                  child: TextFormField(
+                  child: LineRateField(
                     // See the note on the sheet's rate field: an unkeyed
-                    // TextFormField in a list reuses state by index and shows a
+                    // field in a list reuses state by index and shows a
                     // deleted row's value on the row that takes its place.
                     key: ValueKey(
                         'rate-panel-$_cartGeneration-${line['item_code']}-$i'),
-                    initialValue: rate.toStringAsFixed(2),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    onChanged: (v) {
-                      final r = double.tryParse(v) ?? rate;
-                      setState(() => line['rate'] = r);
-                    },
+                    rate: rate,
+                    onChanged: (r) => setState(() => line['rate'] = r),
                   ),
                 ),
                 const SizedBox(width: 16),
