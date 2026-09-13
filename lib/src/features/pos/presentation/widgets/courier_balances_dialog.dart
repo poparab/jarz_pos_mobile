@@ -270,17 +270,23 @@ class _CourierTile extends StatelessWidget {
     );
   }
 
+  // Everything inside the sheet must use the SHEET's own contexts, never this
+  // tile's `context`. The sheet is a separate route that outlives the tile: the
+  // dialog body swaps its whole list for a spinner on every balances reload
+  // (after a settlement, or a websocket-driven refresh), which disposes this
+  // tile while the sheet stays open. Its context is then defunct, and the next
+  // tap on a per-invoice Settle hit `ScaffoldMessenger.of(<dead context>)` ->
+  // "Null check operator used on a null value" (Sentry JARZ-FLUTTER-CLIENT-J).
   void _showDetails(BuildContext context) {
-    final ctx = context;
     showModalBottomSheet(
-      context: ctx,
+      context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) {
+      builder: (routeCtx) {
         return DraggableScrollableSheet(
-          initialChildSize: ResponsiveUtils.getCartBottomSheetInitialSize(ctx),
-          minChildSize: ResponsiveUtils.getCartBottomSheetMinSize(ctx),
-          maxChildSize: ResponsiveUtils.getCartBottomSheetMaxSize(ctx),
+          initialChildSize: ResponsiveUtils.getCartBottomSheetInitialSize(routeCtx),
+          minChildSize: ResponsiveUtils.getCartBottomSheetMinSize(routeCtx),
+          maxChildSize: ResponsiveUtils.getCartBottomSheetMaxSize(routeCtx),
           expand: false,
           builder: (sheetCtx, scrollController) {
             return Column(
@@ -298,7 +304,7 @@ class _CourierTile extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          context.l10n.courierBalancesDetailsTitle(b.courierName.isNotEmpty ? b.courierName : b.courier),
+                          sheetCtx.l10n.courierBalancesDetailsTitle(b.courierName.isNotEmpty ? b.courierName : b.courier),
                           style: Theme.of(sheetCtx).textTheme.titleMedium?.copyWith(
                             color: Theme.of(sheetCtx).colorScheme.onPrimary,
                           ),
@@ -347,14 +353,15 @@ class _CourierTile extends StatelessWidget {
                                 width: 60,
                                 height: 28,
                                 child: Consumer(
-                                  builder: (sheetCtx, ref, _) {
+                                  builder: (buttonCtx, ref, _) {
                                     return ElevatedButton(
                                       onPressed: () async {
-                                        final messenger = ScaffoldMessenger.of(ctx);
+                                        if (!buttonCtx.mounted) return;
+                                        final messenger = ScaffoldMessenger.of(buttonCtx);
                                         try {
                                           final posProfile = ref.read(posNotifierProvider).selectedProfile?['name'];
                                           if (posProfile == null || posProfile.isEmpty) {
-                                            messenger.showSnackBar(SnackBar(content: Text(context.l10n.posProfileSelectionPrompt)));
+                                            messenger.showSnackBar(SnackBar(content: Text(buttonCtx.l10n.posProfileSelectionPrompt)));
                                             return;
                                           }
                                           String partyType = b.partyType.isNotEmpty ? b.partyType : 'Supplier';
@@ -367,10 +374,10 @@ class _CourierTile extends StatelessWidget {
                                           );
                                           if (partyType.isEmpty && (preview['party_type'] ?? '') != '') partyType = preview['party_type'];
                                           if (party.isEmpty && (preview['party'] ?? '') != '') party = preview['party'];
-                                          if (!ctx.mounted) return;
+                                          if (!buttonCtx.mounted) return;
 
                                           final confirmation = await showSettlementConfirmDialog(
-                                            ctx,
+                                            buttonCtx,
                                             preview,
                                             invoice: d.invoice,
                                             orderFallback: d.amount,
@@ -399,20 +406,20 @@ class _CourierTile extends StatelessWidget {
                                               party: party,
                                             );
                                           } else {
-                                            messenger.showSnackBar(SnackBar(content: Text(context.l10n.settlementNothingToSettle)));
+                                            messenger.showSnackBar(SnackBar(content: Text(buttonCtx.l10n.settlementNothingToSettle)));
                                             return;
                                           }
 
-                                          if (!ctx.mounted) return;
+                                          if (!buttonCtx.mounted) return;
                                           if (res != null && (res['success'] == true || res['journal_entry'] != null)) {
-                                            messenger.showSnackBar(SnackBar(content: Text(context.l10n.courierSettlementComplete)));
+                                            messenger.showSnackBar(SnackBar(content: Text(buttonCtx.l10n.courierSettlementComplete)));
                                             try { await ref.read(courierBalancesProvider.notifier).load(); } catch (_) {}
                                           } else {
-                                            messenger.showSnackBar(SnackBar(content: Text(context.l10n.courierSettlementFailed)));
+                                            messenger.showSnackBar(SnackBar(content: Text(buttonCtx.l10n.courierSettlementFailed)));
                                           }
                                         } catch (e) {
-                                          if (ctx.mounted) {
-                                            messenger.showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
+                                          if (buttonCtx.mounted) {
+                                            messenger.showSnackBar(SnackBar(content: Text(buttonCtx.userErrorMessage(e))));
                                           }
                                         }
                                       },
