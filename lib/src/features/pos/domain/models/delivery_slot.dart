@@ -59,7 +59,16 @@ class DeliverySlot {
   /// moves such a slot to the next one once it has started, while a deliberate
   /// pick survives until the slot ends. Tapping the default slot in the picker is
   /// deliberate, so the copy the picker stores clears the flag.
-  DeliverySlot asOperatorChoice() => DeliverySlot(
+  DeliverySlot asOperatorChoice() => _withDefault(false);
+
+  /// Whether this selected slot was picked by the operator rather than
+  /// pre-selected by the app. Checkout sends it as `delivery_slot_explicit`:
+  /// the server only books a slot that is already running when it was chosen
+  /// on purpose, and snaps an aged auto-default to the next slot instead - even
+  /// when the app's own stale-slot refresh failed or the device clock is off.
+  bool get isOperatorChoice => !isDefault;
+
+  DeliverySlot _withDefault(bool value) => DeliverySlot(
     date: date,
     time: time,
     datetime: datetime,
@@ -67,18 +76,20 @@ class DeliverySlot {
     label: label,
     dayLabel: dayLabel,
     timeLabel: timeLabel,
+    isDefault: value,
     isCurrent: isCurrent,
   );
 
   /// The slot to pre-select: the one the backend marks default, otherwise the
   /// first slot that has not started. Never the running slot - picking that is
-  /// always a deliberate choice.
+  /// always a deliberate choice. The fallback is marked default too, so a
+  /// pre-selection is never mistaken for an operator pick.
   static DeliverySlot? pickDefault(List<DeliverySlot> slots) {
     for (final slot in slots) {
       if (slot.isDefault) return slot;
     }
     for (final slot in slots) {
-      if (!slot.isCurrent) return slot;
+      if (!slot.isCurrent) return slot._withDefault(true);
     }
     return null;
   }

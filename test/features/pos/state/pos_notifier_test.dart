@@ -26,6 +26,10 @@ class _FakePosRepository extends PosRepository {
   final List<double?> createInvoiceDeliveryIncomes = [];
   /// required_delivery_datetime sent with each createInvoice call, in order.
   final List<String?> createInvoiceDeliveryStarts = [];
+  /// delivery_slot_explicit sent with each createInvoice call, in order.
+  final List<bool> createInvoiceSlotExplicit = [];
+  /// When set, getDeliverySlots throws (a failed stale-slot refresh).
+  bool slotsShouldThrow = false;
   // Delay injected into getBundles to simulate async gap in tests.
   Duration? getBundlesDelay;
 
@@ -69,6 +73,7 @@ class _FakePosRepository extends PosRepository {
 
   @override
   Future<List<DeliverySlot>> getDeliverySlots(String posProfile) async {
+    if (slotsShouldThrow) throw Exception('slots error');
     return slotsResult;
   }
 
@@ -79,6 +84,7 @@ class _FakePosRepository extends PosRepository {
     Map<String, dynamic>? customer,
     String? requiredDeliveryDatetime,
     String? deliveryEndDatetime,
+    bool deliverySlotExplicit = false,
     String? salesPartner,
     String? paymentType,
     bool isPickup = false,
@@ -96,6 +102,7 @@ class _FakePosRepository extends PosRepository {
     createInvoiceCalls += 1;
     createInvoiceDeliveryIncomes.add(customDeliveryIncome);
     createInvoiceDeliveryStarts.add(requiredDeliveryDatetime);
+    createInvoiceSlotExplicit.add(deliverySlotExplicit);
     return {'invoice_name': 'INV-NEW-001'};
   }
 
@@ -107,6 +114,7 @@ class _FakePosRepository extends PosRepository {
     Map<String, dynamic>? customer,
     String? requiredDeliveryDatetime,
     String? deliveryEndDatetime,
+    bool deliverySlotExplicit = false,
     String? salesPartner,
     String? paymentType,
     bool isPickup = false,
@@ -1259,6 +1267,63 @@ void main() {
       ).asOperatorChoice();
 
       expect(await checkoutWith(tappedDefault), tappedDefault.datetime);
+    });
+
+    test('the running slot picked from the list is sent as explicit', () async {
+      final running = slotAt(
+        const Duration(minutes: -10),
+        const Duration(minutes: 90),
+        isCurrent: true,
+      );
+
+      await checkoutWith(running);
+      expect(repository.createInvoiceSlotExplicit.single, isTrue);
+    });
+
+    test('a failed refresh leaves an aged default unflagged for the server to snap', () async {
+      final staleDefault = slotAt(
+        const Duration(minutes: -20),
+        const Duration(minutes: 90),
+        isDefault: true,
+      );
+      repository.slotsShouldThrow = true;
+
+      expect(await checkoutWith(staleDefault), staleDefault.datetime);
+      expect(repository.createInvoiceSlotExplicit.single, isFalse);
+    });
+
+    test('a default the device clock still thinks is upcoming is not explicit', () async {
+      // Clock skew: the device is behind, so the guard never refreshes it.
+      final skewedDefault = slotAt(
+        const Duration(minutes: 5),
+        const Duration(minutes: 90),
+        isDefault: true,
+      );
+
+      expect(await checkoutWith(skewedDefault), skewedDefault.datetime);
+      expect(repository.createInvoiceSlotExplicit.single, isFalse);
+    });
+
+    test('the replacement for a stale default is not explicit', () async {
+      final staleDefault = slotAt(
+        const Duration(minutes: -10),
+        const Duration(minutes: 90),
+        isDefault: true,
+      );
+
+      expect(await checkoutWith(staleDefault), nextSlot.datetime);
+      expect(repository.createInvoiceSlotExplicit.single, isFalse);
+    });
+
+    test('a tapped default is explicit', () async {
+      final tappedDefault = slotAt(
+        const Duration(minutes: -3),
+        const Duration(minutes: 90),
+        isDefault: true,
+      ).asOperatorChoice();
+
+      await checkoutWith(tappedDefault);
+      expect(repository.createInvoiceSlotExplicit.single, isTrue);
     });
 
     test('a slot that has ended is replaced even when it was chosen', () async {

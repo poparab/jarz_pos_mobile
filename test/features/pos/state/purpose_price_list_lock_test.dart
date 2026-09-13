@@ -131,6 +131,7 @@ class _FakePosRepository extends PosRepository {
     Map<String, dynamic>? customer,
     String? requiredDeliveryDatetime,
     String? deliveryEndDatetime,
+    bool deliverySlotExplicit = false,
     String? salesPartner,
     String? paymentType,
     bool isPickup = false,

@@ -585,5 +585,58 @@ void main() {
         expect(requests.last['data']['customer_name'], equals('CUST-001'));
       });
     });
+    group('Delivery slot explicit flag', () {
+      const createPath = '/api/method/jarz_pos.api.invoices.create_pos_invoice';
+      const amendPath = '/api/method/jarz_pos.api.manager.submit_invoice_amendment';
+      const item = {'item_code': 'ITEM-001', 'quantity': 1, 'rate': 50.0};
+
+      test('createInvoice - sends delivery_slot_explicit only for an operator pick', () async {
+        mockDio.setResponse(createPath, createSuccessResponse(data: {'name': 'INV-SLOT'}));
+
+        await repository.createInvoice(
+          posProfile: 'Main POS',
+          items: [item],
+          requiredDeliveryDatetime: '2026-09-13T21:00:00',
+          deliveryEndDatetime: '2026-09-13T22:30:00',
+          deliverySlotExplicit: true,
+        );
+        expect(mockDio.requestLog.last['data']['delivery_slot_explicit'], equals(1));
+
+        await repository.createInvoice(
+          posProfile: 'Main POS',
+          items: [item],
+          requiredDeliveryDatetime: '2026-09-13T21:00:00',
+        );
+        expect(mockDio.requestLog.last['data'].containsKey('delivery_slot_explicit'), isFalse);
+      });
+
+      test('createInvoice - no flag without a delivery start (pickup)', () async {
+        mockDio.setResponse(createPath, createSuccessResponse(data: {'name': 'INV-PICKUP'}));
+
+        await repository.createInvoice(
+          posProfile: 'Main POS',
+          items: [item],
+          isPickup: true,
+          deliverySlotExplicit: true,
+        );
+        expect(mockDio.requestLog.last['data'].containsKey('delivery_slot_explicit'), isFalse);
+      });
+
+      test('submitInvoiceAmendment - forwards delivery_slot_explicit', () async {
+        mockDio.setResponse(
+          amendPath,
+          createSuccessResponse(data: {'replacement_invoice_id': 'INV-AMD-SLOT'}),
+        );
+
+        await repository.submitInvoiceAmendment(
+          sourceInvoiceId: 'INV-ORIG-SLOT',
+          posProfile: 'Main POS',
+          items: [item],
+          requiredDeliveryDatetime: '2026-09-13T21:00:00',
+          deliverySlotExplicit: true,
+        );
+        expect(mockDio.requestLog.last['data']['delivery_slot_explicit'], equals(1));
+      });
+    });
   });
 }

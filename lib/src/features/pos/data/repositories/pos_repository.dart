@@ -997,6 +997,7 @@ class PosRepository {
     Map<String, dynamic>? customer,
     String? requiredDeliveryDatetime,
     String? deliveryEndDatetime,
+    bool deliverySlotExplicit = false,
     String? salesPartner,
     String? paymentType, // 'cash' | 'online' (optional, advisory)
     bool isPickup = false,
@@ -1018,6 +1019,7 @@ class PosRepository {
         customer: customer,
         requiredDeliveryDatetime: requiredDeliveryDatetime,
         deliveryEndDatetime: deliveryEndDatetime,
+        deliverySlotExplicit: deliverySlotExplicit,
         salesPartner: salesPartner,
         paymentType: paymentType,
         isPickup: isPickup,
@@ -1073,6 +1075,7 @@ class PosRepository {
     Map<String, dynamic>? customer,
     String? requiredDeliveryDatetime,
     String? deliveryEndDatetime,
+    bool deliverySlotExplicit = false,
     String? salesPartner,
     String? paymentType,
     bool isPickup = false,
@@ -1101,6 +1104,7 @@ class PosRepository {
         customer: customer,
         requiredDeliveryDatetime: requiredDeliveryDatetime,
         deliveryEndDatetime: deliveryEndDatetime,
+        deliverySlotExplicit: deliverySlotExplicit,
         salesPartner: salesPartner,
         paymentType: paymentType,
         isPickup: isPickup,
@@ -1212,6 +1216,7 @@ class PosRepository {
     Map<String, dynamic>? customer,
     String? requiredDeliveryDatetime,
     String? deliveryEndDatetime,
+    bool deliverySlotExplicit = false,
     String? salesPartner,
     String? paymentType,
     bool isPickup = false,
@@ -1291,6 +1296,14 @@ class PosRepository {
     }
     if (deliveryEndDatetime != null && deliveryEndDatetime.isNotEmpty) {
       requestData['delivery_end_datetime'] = deliveryEndDatetime;
+    }
+    // Only for a slot the operator picked. Without it the server snaps a start
+    // that is already running to the next slot, so an aged auto-default never
+    // books the window in progress. Older servers ignore the key.
+    if (deliverySlotExplicit &&
+        requiredDeliveryDatetime != null &&
+        requiredDeliveryDatetime.isNotEmpty) {
+      requestData['delivery_slot_explicit'] = 1;
     }
     if (isPickup) {
       requestData['pickup'] = 1;

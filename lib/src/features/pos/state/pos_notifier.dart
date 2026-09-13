@@ -4118,6 +4118,9 @@ class PosNotifier extends StateNotifier<PosState> {
     // side to "now + 5 minutes", booking a window no timetable sells, so refresh
     // the grid and take the next real slot before we send anything.
     await _refreshStaleDeliverySlot();
+    final deliverySlotExplicit =
+        !state.isPickup &&
+        (state.selectedDeliverySlot?.isOperatorChoice ?? false);
 
     // Sent only for an Employee order: the backend reads it to either leave the
     // invoice unpaid on the staff customer or settle it into the branch till.
@@ -4149,6 +4152,7 @@ class PosNotifier extends StateNotifier<PosState> {
               deliveryEndDatetime: state.isPickup
                   ? null
                   : state.selectedDeliverySlot?.endDatetime,
+              deliverySlotExplicit: deliverySlotExplicit,
               isPickup: state.isPickup,
               salesPartner: state.selectedSalesPartner?['name'],
               paymentType: paymentType,
@@ -4173,6 +4177,7 @@ class PosNotifier extends StateNotifier<PosState> {
               deliveryEndDatetime: state.isPickup
                   ? null
                   : state.selectedDeliverySlot?.endDatetime,
+              deliverySlotExplicit: deliverySlotExplicit,
               isPickup: state.isPickup,
               salesPartner: state.selectedSalesPartner?['name'],
               paymentType: paymentType,

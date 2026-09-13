@@ -43,6 +43,27 @@ void main() {
       expect(slot.isDefault, isFalse);
     });
 
+    DeliverySlot plain(String hhmm, {bool isDefault = false, bool isCurrent = false}) =>
+        DeliverySlot(
+          date: '2026-09-13',
+          time: '$hhmm:00',
+          datetime: '2026-09-13T$hhmm:00',
+          endDatetime: '2026-09-13T$hhmm:00',
+          label: hhmm,
+          dayLabel: 'Today',
+          timeLabel: hhmm,
+          isDefault: isDefault,
+          isCurrent: isCurrent,
+        );
+
+    test('a pre-selected slot is never an operator choice, a tapped one is', () {
+      final auto = plain('21:00', isDefault: true);
+
+      expect(auto.isOperatorChoice, isFalse);
+      expect(auto.asOperatorChoice().isOperatorChoice, isTrue);
+      expect(auto.asOperatorChoice().datetime, auto.datetime);
+    });
+
     test('fromJson reads is_current and defaults it to false', () {
       final base = {
         'date': '2026-09-12',
@@ -83,8 +104,12 @@ void main() {
       test('without a default flag, skips the running slot', () {
         final running = slot('22:00:00', isCurrent: true);
         final next = slot('23:30:00');
+        final picked = DeliverySlot.pickDefault([running, next])!;
 
-        expect(DeliverySlot.pickDefault([running, next]), same(next));
+        expect(picked, equals(next));
+        // Marked as pre-selected, so checkout never reads it as an operator pick.
+        expect(picked.isDefault, isTrue);
+        expect(picked.isOperatorChoice, isFalse);
       });
 
       test('asOperatorChoice clears isDefault and keeps the slot identity', () {
