@@ -19,8 +19,10 @@ import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/core/constants/api_endpoints.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/manufacturing_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/base_item.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/production_policy.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/base_production_tab.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/base_production_providers.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/production_providers.dart';
 
 import '../helpers/mock_services.dart';
 
@@ -32,10 +34,7 @@ final _page = BaseItemsPage(
     _mix(
       'Blueberry mix',
       onHand: 0.58,
-      consumers: const [
-        ('Blueberry Medium', 0.03),
-        ('Blueberry Large', 0.04),
-      ],
+      consumers: const [('Blueberry Medium', 0.03), ('Blueberry Large', 0.04)],
       status: 'low',
       daysOfCover: 2.4,
     ),
@@ -52,10 +51,7 @@ final _page = BaseItemsPage(
     _mix(
       'raspberry mix',
       onHand: 0.465,
-      consumers: const [
-        ('Redvelvet Medium', 0.03),
-        ('Redvelvet Large', 0.04),
-      ],
+      consumers: const [('Redvelvet Medium', 0.03), ('Redvelvet Large', 0.04)],
       status: 'low',
       daysOfCover: 3.1,
     ),
@@ -63,10 +59,7 @@ final _page = BaseItemsPage(
       'Mango mix',
       onHand: 0.09,
       batchYield: 3.0,
-      consumers: const [
-        ('Mango Medium', 0.073),
-        ('Mango Large', 0.097),
-      ],
+      consumers: const [('Mango Medium', 0.073), ('Mango Large', 0.097)],
       status: 'critical',
       daysOfCover: 0.4,
     ),
@@ -74,18 +67,27 @@ final _page = BaseItemsPage(
       'Chocolate ganache',
       onHand: 2.54,
       batchYield: 5.898,
-      consumers: const [
-        ('Molten Medium', 0.045),
-        ('Molten Large', 0.075),
-      ],
+      consumers: const [('Molten Medium', 0.045), ('Molten Large', 0.075)],
       status: 'ok',
       daysOfCover: 18.0,
     ),
     _baked('Fudge Cake', yieldKg: 9.258, onHand: 18.5, eggs: 30, cover: 9.2),
-    _baked('Red Velvet Cake', yieldKg: 9.278, onHand: 4.1, eggs: 30, cover: 3.0),
+    _baked(
+      'Red Velvet Cake',
+      yieldKg: 9.278,
+      onHand: 4.1,
+      eggs: 30,
+      cover: 3.0,
+    ),
     _baked('Savoiardi', yieldKg: 2.5, onHand: 6.2, eggs: 30, cover: 21.0),
     _baked('Sponge Cake', yieldKg: 4.0, onHand: 1.3, eggs: 45, cover: 4.4),
-    _baked('Butter Biscuit', yieldKg: 13.674, onHand: 27.3, eggs: 23, cover: 30.0),
+    _baked(
+      'Butter Biscuit',
+      yieldKg: 13.674,
+      onHand: 27.3,
+      eggs: 23,
+      cover: 30.0,
+    ),
   ],
 );
 
@@ -156,8 +158,9 @@ final _flutterFonts = () {
 /// `flutter test` ships no fonts, so text renders as filled boxes without this.
 Future<void> _loadFonts() async {
   Future<void> load(String family, List<String> paths) async {
-    final present =
-        paths.where((p) => p.isNotEmpty && File(p).existsSync()).toList();
+    final present = paths
+        .where((p) => p.isNotEmpty && File(p).existsSync())
+        .toList();
     if (present.isEmpty) return;
     final loader = FontLoader(family);
     for (final path in present) {
@@ -278,6 +281,16 @@ Future<MockDio> _pump(
     ProviderScope(
       overrides: [
         baseItemsProvider.overrideWith(() => _StubBases(_page)),
+        // The date bar asks the policy what day it is, and the fallback policy
+        // answers from the device clock — a golden that expires at midnight.
+        // Pinned to production's own window.
+        productionPolicyProvider.overrideWith(
+          (ref) async => ProductionPolicy(
+            canBackDate: true,
+            maxBackDateDays: 30,
+            serverDate: DateTime(2026, 9, 12),
+          ),
+        ),
         manufacturingServiceProvider.overrideWithValue(
           ManufacturingService(dio),
         ),

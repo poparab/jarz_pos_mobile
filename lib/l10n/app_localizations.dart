@@ -5686,6 +5686,12 @@ abstract class AppLocalizations {
   /// **'Jars'**
   String get productionPlanQty;
 
+  /// No description provided for @productionPlanWholeJarsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole jars only. Mixes and cakes go on the Bases tab.'**
+  String get productionPlanWholeJarsOnly;
+
   /// No description provided for @productionUseSuggestion.
   ///
   /// In en, this message translates to:

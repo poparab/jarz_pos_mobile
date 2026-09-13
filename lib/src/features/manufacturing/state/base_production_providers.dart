@@ -45,6 +45,19 @@ class BaseItemsNotifier extends AsyncNotifier<BaseItemsPage> {
   }
 }
 
+/// The day a base run is recorded against, or null for "now".
+///
+/// The Bases tab used to stamp every Make with the device's current minute, so
+/// a mix made yesterday had no way onto the ledger except the Plan tab — which
+/// only understands whole jars, and read the 1.36 Kg a strawberry mix needed
+/// as 1360. Both endpoints this tab posts to already gate `scheduled_at` on the
+/// server's back-date window, so the date is the app's to offer.
+///
+/// Its own state rather than the Plan tab's basket date: that one is persisted
+/// with the jar queue, and a past day left on it would silently date a base run
+/// made on another tab days later.
+final baseProductionDateProvider = StateProvider<DateTime?>((ref) => null);
+
 // ── One base's draft ────────────────────────────────────────────────────
 
 /// The run one base is set up to make, in the unit its recipe is measured in.
@@ -172,11 +185,7 @@ class BaseRunDraftNotifier extends FamilyNotifier<BaseRunDraft, String> {
       ensurePreview();
       return;
     }
-    state = state.copyWith(
-      qty: clampQty(qty),
-      touched: true,
-      clearError: true,
-    );
+    state = state.copyWith(qty: clampQty(qty), touched: true, clearError: true);
     _schedulePreview();
   }
 
@@ -341,7 +350,10 @@ class BaseRunDraftNotifier extends FamilyNotifier<BaseRunDraft, String> {
     }
   }
 
-  bool _stillWanted(double requested, Map<String, String> requestedSelections) =>
+  bool _stillWanted(
+    double requested,
+    Map<String, String> requestedSelections,
+  ) =>
       (state.qty - requested).abs() <= kQtyEpsilon &&
       _sameSelections(state.materialSelections, requestedSelections);
 

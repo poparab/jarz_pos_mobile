@@ -3388,6 +3388,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productionPlanQty => 'برطمانات';
 
   @override
+  String get productionPlanWholeJarsOnly =>
+      'عدد برطمانات صحيح بس. المخلوطات والكيك بتتسجل من تبويب الأساسات.';
+
+  @override
   String productionUseSuggestion(Object units) {
     return 'خُد $units';
   }

@@ -81,6 +81,8 @@ class _PlanJarRowState extends State<PlanJarRow> {
     final shown = int.tryParse(_controller.text) ?? 0;
     if (shown == widget.quantity) return;
     final text = _textFor(widget.quantity);
+    // A number written from outside ("Use 60") replaces whatever was wrong.
+    _invalid = false;
     _controller.value = TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
@@ -94,6 +96,26 @@ class _PlanJarRowState extends State<PlanJarRow> {
   }
 
   static String _textFor(int quantity) => quantity > 0 ? '$quantity' : '';
+
+  /// The field holds something that is not a whole jar count.
+  ///
+  /// A decimal point is let INTO the field on purpose. The old digits-only
+  /// filter dropped it silently, so the 1.360 Kg a strawberry mix needed was
+  /// typed as "1.360" and read as 1360 jars. Refusing the keystroke would do
+  /// the same thing one digit later; showing the field as wrong is the only
+  /// version that tells anybody.
+  bool _invalid = false;
+
+  static final _wholeNumber = RegExp(r'^[0-9]+$');
+
+  void _onChanged(String text) {
+    final trimmed = text.trim();
+    final invalid = trimmed.isNotEmpty && !_wholeNumber.hasMatch(trimmed);
+    if (invalid != _invalid) setState(() => _invalid = invalid);
+    // An invalid entry queues nothing: a red field must not still be carrying
+    // the last number it held into Start batches.
+    widget.onQuantityChanged(invalid ? 0 : (int.tryParse(trimmed) ?? 0));
+  }
 
   /// The figures, the code and the full offer are one tap away rather than on
   /// every row. Dozens of these stack up on a phone, and the two numbers a
@@ -157,6 +179,14 @@ class _PlanJarRowState extends State<PlanJarRow> {
                     // Kept on the closed row on purpose: it is the roll-up's
                     // verdict, it is why Start batches will refuse, and only the
                     // consolidated check can see it.
+                    if (_invalid) ...[
+                      const SizedBox(height: 4),
+                      _InlineWarning(
+                        icon: Icons.error_outline,
+                        text: l10n.productionPlanWholeJarsOnly,
+                        color: scheme.error,
+                      ),
+                    ],
                     if (widget.isShort) ...[
                       const SizedBox(height: 4),
                       _InlineWarning(
@@ -183,7 +213,9 @@ class _PlanJarRowState extends State<PlanJarRow> {
                     child: TextField(
                       controller: _controller,
                       keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp('[0-9.,٫]')),
+                      ],
                       textAlign: TextAlign.end,
                       decoration: InputDecoration(
                         isDense: true,
@@ -193,13 +225,16 @@ class _PlanJarRowState extends State<PlanJarRow> {
                         // a label would clip, while a hint ellipsizes and gets
                         // out of the way the moment a digit is typed.
                         hintText: l10n.productionPlanQty,
+                        // The border only: the sentence is too long for a
+                        // 104 dp field and sits under the name instead.
+                        errorText: _invalid ? '' : null,
+                        errorStyle: const TextStyle(height: 0, fontSize: 0),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 10,
                         ),
                       ),
-                      onChanged: (text) =>
-                          widget.onQuantityChanged(int.tryParse(text) ?? 0),
+                      onChanged: _onChanged,
                     ),
                   ),
                   if (widget.plannedToday case final planned?)

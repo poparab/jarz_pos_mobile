@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/batch_line.dart';
@@ -24,6 +26,12 @@ class _FakeBasketRepository implements ProductionBasketRepository {
   Future<void> save(ProductionBasket basket) async => saved = basket;
   @override
   Future<void> clear() async => saved = null;
+}
+
+class _FailingSuggestions extends ProductionSuggestionsNotifier {
+  @override
+  Future<ProductionSuggestionsPage> build() async =>
+      throw Exception('suggestions are down');
 }
 
 class _StubSuggestions extends ProductionSuggestionsNotifier {
@@ -93,14 +101,7 @@ Future<void> _settle(ProviderContainer container) async {
 void main() {
   test('the board joins the flavour list to the ranked figures', () async {
     final container = _container(
-      page: ProductionSuggestionsPage(
-        items: [
-          _suggestion(itemCode: 'CAKE-A'),
-          // Ranked but not on the plan template — it must still be visible on a
-          // board whose job is to say what is running low.
-          _suggestion(itemCode: 'CAKE-EXTRA', itemGroup: 'Trays'),
-        ],
-      ),
+      page: ProductionSuggestionsPage(items: [_suggestion(itemCode: 'CAKE-A')]),
       template: DailyPlanTemplate(
         items: [_templateItem('CAKE-A'), _templateItem('CAKE-NOBOM')],
       ),
@@ -108,12 +109,9 @@ void main() {
     await _settle(container);
 
     final board = container.read(planBoardProvider);
-    expect(board.groups.map((g) => g.name), ['Jars', 'Trays']);
-    expect(board.rows.map((r) => r.itemCode), [
-      'CAKE-A',
-      'CAKE-NOBOM',
-      'CAKE-EXTRA',
-    ]);
+    expect(board.hasJarList, isTrue);
+    expect(board.groups.map((g) => g.name), ['Jars']);
+    expect(board.rows.map((r) => r.itemCode), ['CAKE-A', 'CAKE-NOBOM']);
 
     final joined = board.rows.first;
     expect(joined.suggestion, isNotNull);
@@ -129,7 +127,127 @@ void main() {
     expect(noBom.suggestedJars, 0);
   });
 
-  test('one source failing still leaves a usable board', () async {
+  test('a ranked base the template does not list is not a jar row', () async {
+    // The ranked board also ranks the bases, because they own a BOM too. On
+    // this tab they got a whole-jar field, and the 1.36 Kg a strawberry mix
+    // needed was typed as "1.360" and queued as 1360 Kg. Bases belong to the
+    // Bases tab, in their own unit.
+    final container = _container(
+      page: ProductionSuggestionsPage(
+        items: [
+          _suggestion(itemCode: 'CAKE-A'),
+          _suggestion(
+            itemCode: 'strawberry mix',
+            itemGroup: 'Sub Assemblies',
+            bomQty: 2,
+          ),
+        ],
+      ),
+      template: DailyPlanTemplate(items: [_templateItem('CAKE-A')]),
+    );
+    await _settle(container);
+
+    final board = container.read(planBoardProvider);
+    expect(board.rows.map((r) => r.itemCode), ['CAKE-A']);
+  });
+
+  test(
+    'a queued line for an unlisted item is dropped from both stores',
+    () async {
+      // A tablet can carry a persisted line from before bases left this tab.
+      // Unpruned it is invisible, still counted in the badge, and still posted
+      // by Start batches.
+      final container = _container(
+        page: ProductionSuggestionsPage(
+          items: [_suggestion(itemCode: 'CAKE-A')],
+        ),
+        template: DailyPlanTemplate(items: [_templateItem('CAKE-A')]),
+      );
+      await _settle(container);
+
+      final row = container.read(planBoardProvider).rows.first;
+      final entry = container.read(planEntryProvider);
+      entry.setQuantity(row, 12);
+      container
+          .read(productionBasketProvider.notifier)
+          .addOrRaise(
+            const BatchLine(
+              itemCode: 'strawberry mix',
+              itemName: 'strawberry mix',
+              bomName: 'BOM-strawberry mix-004',
+              stockUom: 'Kg',
+              bomQtyYield: 2,
+              batches: 680,
+            ),
+          );
+      container
+          .read(dailyPlanDraftProvider.notifier)
+          .setQuantity('strawberry mix', 1360);
+
+      expect(entry.dropUnlisted(container.read(planBoardProvider)), isTrue);
+      expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 12});
+      expect(
+        container.read(productionBasketProvider).lines.map((l) => l.itemCode),
+        ['CAKE-A'],
+      );
+      // Idempotent: nothing left to drop.
+      expect(entry.dropUnlisted(container.read(planBoardProvider)), isFalse);
+    },
+  );
+
+  test(
+    'nothing is pruned against a board still waiting for its jar list',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          productionBasketRepositoryProvider.overrideWithValue(
+            _FakeBasketRepository(),
+          ),
+          productionSuggestionsProvider.overrideWith(
+            () => _StubSuggestions(const ProductionSuggestionsPage()),
+          ),
+          dailyPlanTemplateProvider.overrideWith(
+            (ref) => Completer<DailyPlanTemplate>().future,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.read(dailyPlanDraftProvider.notifier).setQuantity('CAKE-A', 5);
+      final board = container.read(planBoardProvider);
+      expect(board.hasJarList, isFalse);
+      expect(container.read(planEntryProvider).dropUnlisted(board), isFalse);
+      expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 5});
+    },
+  );
+
+  test('the ranked board failing still leaves a usable plan form', () async {
+    final container = ProviderContainer(
+      overrides: [
+        productionBasketRepositoryProvider.overrideWithValue(
+          _FakeBasketRepository(),
+        ),
+        productionSuggestionsProvider.overrideWith(_FailingSuggestions.new),
+        dailyPlanTemplateProvider.overrideWith(
+          (ref) async => DailyPlanTemplate(items: [_templateItem('CAKE-A')]),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await expectLater(
+      container.read(productionSuggestionsProvider.future),
+      throwsA(isA<Exception>()),
+    );
+    await container.read(dailyPlanTemplateProvider.future);
+
+    final board = container.read(planBoardProvider);
+    expect(board.error, isNull);
+    expect(board.rows.map((r) => r.itemCode), ['CAKE-A']);
+    expect(board.rows.single.suggestion, isNull);
+  });
+
+  test('without the jar list the board says so instead of guessing', () async {
     final container = ProviderContainer(
       overrides: [
         productionBasketRepositoryProvider.overrideWithValue(
@@ -153,9 +271,11 @@ void main() {
       throwsA(isA<Exception>()),
     );
 
+    // The ranked board alone cannot tell a jar from a base, and guessing is
+    // what put 1360 Kg of strawberry mix in a jar field.
     final board = container.read(planBoardProvider);
-    expect(board.error, isNull);
-    expect(board.rows.map((r) => r.itemCode), ['CAKE-A']);
+    expect(board.error, isNotNull);
+    expect(board.rows, isEmpty);
   });
 
   test('a quantity written once lands in both stores', () async {
@@ -183,51 +303,59 @@ void main() {
     expect(container.read(dailyPlanDraftProvider).quantities, isEmpty);
   });
 
-  test('fill the day caps at what materials allow and reports the rest', () async {
-    final container = _container(
-      page: ProductionSuggestionsPage(
-        items: [
-          _suggestion(itemCode: 'CAKE-A', suggestedBatches: 4),
-          _suggestion(
-            itemCode: 'CAKE-B',
-            status: ProductionStatus.low,
-            suggestedBatches: 6,
-            canMakeNowBatches: 2,
-          ),
-          _suggestion(
-            itemCode: 'CAKE-BLOCKED',
-            suggestedBatches: 6,
-            canMakeNowBatches: 0,
-          ),
-          _suggestion(
-            itemCode: 'CAKE-OK',
-            status: ProductionStatus.ok,
-            suggestedBatches: 0,
-          ),
-        ],
-      ),
-      template: const DailyPlanTemplate(),
-    );
-    await _settle(container);
+  test(
+    'fill the day caps at what materials allow and reports the rest',
+    () async {
+      final container = _container(
+        page: ProductionSuggestionsPage(
+          items: [
+            _suggestion(itemCode: 'CAKE-A', suggestedBatches: 4),
+            _suggestion(
+              itemCode: 'CAKE-B',
+              status: ProductionStatus.low,
+              suggestedBatches: 6,
+              canMakeNowBatches: 2,
+            ),
+            _suggestion(
+              itemCode: 'CAKE-BLOCKED',
+              suggestedBatches: 6,
+              canMakeNowBatches: 0,
+            ),
+            _suggestion(
+              itemCode: 'CAKE-OK',
+              status: ProductionStatus.ok,
+              suggestedBatches: 0,
+            ),
+          ],
+        ),
+        template: DailyPlanTemplate(
+          items: [
+            for (final code in ['CAKE-A', 'CAKE-B', 'CAKE-BLOCKED', 'CAKE-OK'])
+              _templateItem(code),
+          ],
+        ),
+      );
+      await _settle(container);
 
-    final board = container.read(planBoardProvider);
-    final result = container.read(planEntryProvider).fillTheDay(board.rows);
+      final board = container.read(planBoardProvider);
+      final result = container.read(planEntryProvider).fillTheDay(board.rows);
 
-    expect(result.itemsFilled, 2);
-    expect(result.jarsFilled, 60);
-    expect(result.skippedNoMaterials, 1);
-    expect(container.read(dailyPlanDraftProvider).quantities, {
-      'CAKE-A': 40,
-      'CAKE-B': 20,
-    });
-  });
+      expect(result.itemsFilled, 2);
+      expect(result.jarsFilled, 60);
+      expect(result.skippedNoMaterials, 1);
+      expect(container.read(dailyPlanDraftProvider).quantities, {
+        'CAKE-A': 40,
+        'CAKE-B': 20,
+      });
+    },
+  );
 
   test('fill the day never lowers a number the operator typed', () async {
     final container = _container(
       page: ProductionSuggestionsPage(
         items: [_suggestion(itemCode: 'CAKE-A', suggestedBatches: 4)],
       ),
-      template: const DailyPlanTemplate(),
+      template: DailyPlanTemplate(items: [_templateItem('CAKE-A')]),
     );
     await _settle(container);
 
@@ -249,16 +377,18 @@ void main() {
       );
       await _settle(container);
 
-      container.read(productionBasketProvider.notifier).addOrRaise(
-        const BatchLine(
-          itemCode: 'CAKE-A',
-          itemName: 'CAKE-A name',
-          bomName: 'BOM-CAKE-A',
-          stockUom: 'Nos',
-          bomQtyYield: 10,
-          batches: 3,
-        ),
-      );
+      container
+          .read(productionBasketProvider.notifier)
+          .addOrRaise(
+            const BatchLine(
+              itemCode: 'CAKE-A',
+              itemName: 'CAKE-A name',
+              bomName: 'BOM-CAKE-A',
+              stockUom: 'Nos',
+              bomQtyYield: 10,
+              batches: 3,
+            ),
+          );
 
       container.read(planEntryProvider).hydrate();
       expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 30});
@@ -276,9 +406,9 @@ void main() {
       );
       await _settle(container);
 
-      container.read(dailyPlanDraftProvider.notifier).attachSavedPlan(
-        'DPP-0001',
-      );
+      container
+          .read(dailyPlanDraftProvider.notifier)
+          .attachSavedPlan('DPP-0001');
       container.read(planEntryProvider).hydrate();
 
       expect(container.read(dailyPlanDraftProvider).quantities, isEmpty);
@@ -301,16 +431,18 @@ void main() {
       container.read(planEntryProvider).setQuantity(row, 7);
       // A queue arriving late from Hive must not clobber an entry already
       // under way.
-      container.read(productionBasketProvider.notifier).addOrRaise(
-        const BatchLine(
-          itemCode: 'CAKE-B',
-          itemName: 'CAKE-B name',
-          bomName: 'BOM-CAKE-B',
-          stockUom: 'Nos',
-          bomQtyYield: 10,
-          batches: 9,
-        ),
-      );
+      container
+          .read(productionBasketProvider.notifier)
+          .addOrRaise(
+            const BatchLine(
+              itemCode: 'CAKE-B',
+              itemName: 'CAKE-B name',
+              bomName: 'BOM-CAKE-B',
+              stockUom: 'Nos',
+              bomQtyYield: 10,
+              batches: 9,
+            ),
+          );
       container.read(planEntryProvider).hydrate();
 
       expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 7});
@@ -340,10 +472,7 @@ void main() {
     expect(container.read(settledBasketProvider).isLoading, isTrue);
 
     await Future<void>.delayed(const Duration(milliseconds: 600));
-    expect(
-      container.read(settledBasketProvider).valueOrNull?.totalUnits,
-      50,
-    );
+    expect(container.read(settledBasketProvider).valueOrNull?.totalUnits, 50);
   });
 
   test('an emptied queue clears the heavy checks at once', () async {
@@ -376,7 +505,9 @@ void main() {
           _suggestion(itemCode: 'CAKE-B'),
         ],
       ),
-      template: const DailyPlanTemplate(),
+      template: DailyPlanTemplate(
+        items: [_templateItem('CAKE-A'), _templateItem('CAKE-B')],
+      ),
     );
     await _settle(container);
 

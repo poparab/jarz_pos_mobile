@@ -6,8 +6,10 @@ import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/core/constants/api_endpoints.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/manufacturing_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/base_item.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/production_policy.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/base_production_tab.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/base_production_providers.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/production_providers.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/running_batches_notifier.dart';
 
 import '../../../helpers/mock_services.dart';
@@ -131,6 +133,7 @@ Future<MockDio> _pump(
   Map<String, dynamic>? produceNow,
   Map<String, dynamic>? startBatches,
   Locale? locale,
+  ProductionPolicy? policy,
 }) async {
   final dio = MockDio();
   dio.setResponse(_materialOptionsEndpoint, {
@@ -159,6 +162,8 @@ Future<MockDio> _pump(
           ManufacturingService(dio),
         ),
         baseItemsProvider.overrideWith(() => _StubBaseItemsNotifier(page)),
+        if (policy != null)
+          productionPolicyProvider.overrideWith((ref) async => policy),
       ],
       child: MaterialApp(
         localizationsDelegates: const [
@@ -205,7 +210,10 @@ void main() {
       await _pump(tester, BaseItemsPage(items: [_mix(), _cake()]));
 
       expect(find.text('Mixes'), findsOneWidget);
-      expect(find.text('Made by the kilo — enter jars or weight'), findsOneWidget);
+      expect(
+        find.text('Made by the kilo — enter jars or weight'),
+        findsOneWidget,
+      );
       expect(find.text('Cakes & biscuits'), findsOneWidget);
       expect(find.text('Made in batches — counted in eggs'), findsOneWidget);
     });
@@ -217,22 +225,23 @@ void main() {
       expect(find.text('Cakes & biscuits'), findsNothing);
     });
 
-    testWidgets('a closed row shows the store, and no batch language on a mix', (
-      tester,
-    ) async {
-      await _pump(
-        tester,
-        BaseItemsPage(
-          coverIncluded: true,
-          items: [_mix(status: 'low', daysOfCover: 2.1)],
-        ),
-      );
+    testWidgets(
+      'a closed row shows the store, and no batch language on a mix',
+      (tester) async {
+        await _pump(
+          tester,
+          BaseItemsPage(
+            coverIncluded: true,
+            items: [_mix(status: 'low', daysOfCover: 2.1)],
+          ),
+        );
 
-      expect(find.text('0.58 Kg in store · 2.1 d'), findsOneWidget);
-      // The whole complaint this screen answers: a mix has no batch, so no
-      // figure on it may be expressed in one.
-      expect(find.textContaining('batch'), findsNothing);
-    });
+        expect(find.text('0.58 Kg in store · 2.1 d'), findsOneWidget);
+        // The whole complaint this screen answers: a mix has no batch, so no
+        // figure on it may be expressed in one.
+        expect(find.textContaining('batch'), findsNothing);
+      },
+    );
   });
 
   group('a mix is entered in jars and kilos', () {
@@ -399,9 +408,7 @@ void main() {
       // batch figures rather than rendering "0 eggs".
       await _pump(
         tester,
-        BaseItemsPage(
-          items: [_cake(batchUnit: const BaseBatchUnit())],
-        ),
+        BaseItemsPage(items: [_cake(batchUnit: const BaseBatchUnit())]),
         preview: _preview(
           itemQty: 9.258,
           batchYield: 9.258,
@@ -426,7 +433,11 @@ void main() {
       await _pump(
         tester,
         BaseItemsPage(
-          items: [_mix(), _mix(itemCode: 'strawberry mix'), _cake()],
+          items: [
+            _mix(),
+            _mix(itemCode: 'strawberry mix'),
+            _cake(),
+          ],
         ),
         preview: _preview(itemQty: 2.0),
       );
@@ -440,7 +451,10 @@ void main() {
       await _open(tester, 'Fudge Cake');
       // Two different things happen to stock, so the button says so rather than
       // hiding it behind a generic Submit.
-      expect(find.widgetWithText(FilledButton, 'Make 2 · start 1'), findsOneWidget);
+      expect(
+        find.widgetWithText(FilledButton, 'Make 2 · start 1'),
+        findsOneWidget,
+      );
       expect(
         find.text(
           'Mixes are booked as made · batches go to Running to be finished',
@@ -459,12 +473,20 @@ void main() {
         preview: _preview(itemQty: 2.0),
         produceNow: {
           'results': [
-            {'ok': true, 'work_order': 'WO-1', 'line': {'item_code': 'Blueberry mix'}},
+            {
+              'ok': true,
+              'work_order': 'WO-1',
+              'line': {'item_code': 'Blueberry mix'},
+            },
           ],
         },
         startBatches: {
           'results': [
-            {'ok': true, 'work_order': 'WO-2', 'line': {'item_code': 'Fudge Cake'}},
+            {
+              'ok': true,
+              'work_order': 'WO-2',
+              'line': {'item_code': 'Fudge Cake'},
+            },
           ],
         },
       );
@@ -499,7 +521,11 @@ void main() {
         preview: _preview(itemQty: 2.0),
         produceNow: {
           'results': [
-            {'ok': true, 'work_order': 'WO-1', 'line': {'item_code': 'Blueberry mix'}},
+            {
+              'ok': true,
+              'work_order': 'WO-1',
+              'line': {'item_code': 'Blueberry mix'},
+            },
           ],
         },
       );
@@ -581,6 +607,115 @@ void main() {
     });
   });
 
+  group('a past day', () {
+    // A mix made yesterday used to have no way onto the ledger from here: the
+    // tab stamped every Make with the current minute.
+    final policy = ProductionPolicy(
+      canBackDate: true,
+      maxBackDateDays: 30,
+      serverDate: DateTime(2026, 9, 13),
+    );
+    final produced = {
+      'results': [
+        {
+          'ok': true,
+          'work_order': 'WO-1',
+          'line': {'item_code': 'Blueberry mix'},
+        },
+      ],
+    };
+
+    ProviderContainer container(WidgetTester tester) =>
+        ProviderScope.containerOf(
+          tester.element(find.byType(BaseProductionTab)),
+        );
+
+    testWidgets('is offered on the date bar and posted after a confirm', (
+      tester,
+    ) async {
+      _tallWindow(tester);
+      final dio = await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(itemQty: 2.0),
+        produceNow: produced,
+        policy: policy,
+      );
+      expect(find.text('2026-09-13'), findsOneWidget);
+
+      container(tester).read(baseProductionDateProvider.notifier).state =
+          DateTime(2026, 9, 12, 14, 30);
+      await tester.pumpAndSettle();
+      expect(find.text('Recording production for a past date'), findsOneWidget);
+
+      await _open(tester, 'Blueberry mix');
+      await tester.tap(find.widgetWithText(FilledButton, 'Make 1 mix'));
+      await tester.pumpAndSettle();
+
+      // Nothing posts until the past day is confirmed.
+      expect(_requests(dio, ApiEndpoints.produceNow), isEmpty);
+      expect(find.text('Confirm posting date'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirm'));
+      await tester.pumpAndSettle();
+
+      final lines = (_lastBody(dio, ApiEndpoints.produceNow)['lines'] as List)
+          .cast<Map>();
+      expect(lines.single['scheduled_at'], '2026-09-12 14:30:00');
+    });
+
+    testWidgets('outside the window is refused before anything posts', (
+      tester,
+    ) async {
+      _tallWindow(tester);
+      final dio = await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(itemQty: 2.0),
+        produceNow: produced,
+        policy: policy,
+      );
+
+      container(tester).read(baseProductionDateProvider.notifier).state =
+          DateTime(2026, 8, 1, 10, 0);
+      await tester.pumpAndSettle();
+
+      await _open(tester, 'Blueberry mix');
+      await tester.tap(find.widgetWithText(FilledButton, 'Make 1 mix'));
+      await tester.pumpAndSettle();
+
+      expect(_requests(dio, ApiEndpoints.produceNow), isEmpty);
+      expect(find.text('Confirm posting date'), findsNothing);
+      ScaffoldMessenger.of(
+        tester.element(find.byType(BaseProductionTab)),
+      ).clearSnackBars();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('today posts at once, with no question asked', (tester) async {
+      _tallWindow(tester);
+      final dio = await _pump(
+        tester,
+        BaseItemsPage(items: [_mix()]),
+        preview: _preview(itemQty: 2.0),
+        produceNow: produced,
+        policy: policy,
+      );
+
+      await _open(tester, 'Blueberry mix');
+      await tester.tap(find.widgetWithText(FilledButton, 'Make 1 mix'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Confirm posting date'), findsNothing);
+      final lines = (_lastBody(dio, ApiEndpoints.produceNow)['lines'] as List)
+          .cast<Map>();
+      expect(lines.single['scheduled_at'], startsWith('2026-09-13 '));
+      ScaffoldMessenger.of(
+        tester.element(find.byType(BaseProductionTab)),
+      ).clearSnackBars();
+      await tester.pumpAndSettle();
+    });
+  });
+
   group('an older backend', () {
     testWidgets('reads every base as a batch rather than crashing', (
       tester,
@@ -648,10 +783,7 @@ void main() {
 /// The jar count field sitting beside [jarName].
 Finder _jarField(WidgetTester tester, String jarName) {
   return find.descendant(
-    of: find.ancestor(
-      of: find.text(jarName),
-      matching: find.byType(Row),
-    ).first,
+    of: find.ancestor(of: find.text(jarName), matching: find.byType(Row)).first,
     matching: find.byType(TextField),
   );
 }

@@ -1809,6 +1809,7 @@
   "productionFillTheDaySkipped": "{skipped} skipped — no materials",
   "productionFillTheDayNothing": "Nothing to add",
   "productionPlanQty": "Jars",
+  "productionPlanWholeJarsOnly": "Whole jars only. Mixes and cakes go on the Bases tab.",
   "productionUseSuggestion": "Use {units}",
   "productionPlannedToday": "Planned {count}",
   "productionStartBatches": "Start batches",

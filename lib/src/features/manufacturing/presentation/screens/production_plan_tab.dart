@@ -112,6 +112,16 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
     final draft = ref.watch(dailyPlanDraftProvider);
     final basket = ref.watch(productionBasketProvider);
     final entry = ref.read(planEntryProvider);
+
+    // A queue restored from Hive can hold a line for an item this tab no longer
+    // lists — a base typed in as jars before bases left the tab. It would be
+    // submitted by Start batches while no field showed it, so it goes. Checked
+    // on every build because the queue and the jar list land in either order.
+    if (board.hasJarList && _holdsUnlisted(board, basket, draft)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(planEntryProvider).dropUnlisted(board);
+      });
+    }
     final groups = ref.watch(visiblePlanBoardProvider);
     final readiness = ref.watch(bomReadinessProvider).valueOrNull;
 
@@ -317,6 +327,16 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
         ),
       ],
     );
+  }
+
+  static bool _holdsUnlisted(
+    PlanBoard board,
+    ProductionBasket basket,
+    DailyPlanDraft draft,
+  ) {
+    final listed = {for (final row in board.rows) row.itemCode};
+    return basket.lines.any((l) => !listed.contains(l.itemCode)) ||
+        draft.quantities.keys.any((code) => !listed.contains(code));
   }
 
   static Map<String, String> _selectionsFor(

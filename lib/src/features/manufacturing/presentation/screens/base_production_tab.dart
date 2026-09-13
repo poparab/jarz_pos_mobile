@@ -5,11 +5,16 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/ui/loading_overlay.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../data/models/base_item.dart';
 import '../../data/models/production_suggestion.dart' show ProductionStatus;
 import '../../state/base_production_providers.dart';
+import '../../state/production_providers.dart';
 import '../../state/running_batches_notifier.dart';
+import '../back_date_gate.dart';
+import '../production_timestamp.dart';
 import '../widgets/base_run_row.dart';
+import '../widgets/batch_date_bar.dart';
 
 /// "Make the bases the jars are built from."
 ///
@@ -96,6 +101,22 @@ class _Loaded extends ConsumerWidget {
             child: ListView(
               padding: padding,
               children: [
+                // The same bar, window and server calendar as the Plan tab, so
+                // a mix made yesterday is recorded here in Kg rather than
+                // typed into a jar field there.
+                BatchDateBar(
+                  date:
+                      ref.watch(baseProductionDateProvider) ??
+                      ref.watch(productionPolicyOrFallbackProvider).today(),
+                  onChanged: (date) =>
+                      ref.read(baseProductionDateProvider.notifier).state =
+                          date,
+                  policy: ref.watch(productionPolicyOrFallbackProvider),
+                  timeChosen: hasExplicitPostingTime(
+                    ref.watch(baseProductionDateProvider),
+                  ),
+                ),
+                const SizedBox(height: 4),
                 _Header(page: page),
                 if (mixes.isNotEmpty) ...[
                   _GroupHeading(
@@ -350,12 +371,39 @@ class _MakeBar extends ConsumerWidget {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
 
+    final chosen = ref.read(baseProductionDateProvider);
+    final policy = ref.read(productionPolicyOrFallbackProvider);
+    final date = chosen ?? policy.today();
+
+    // Refused here with the reason, rather than by the server per line.
+    final refusal = backDateRefusal(l10n, policy, date);
+    if (refusal != null) {
+      messenger.showSnackBar(SnackBar(content: Text(refusal)));
+      return;
+    }
+
+    // Only a past day asks. A same-day Make stays one tap, as it always was:
+    // the question is worth its tap only when the answer is not "now".
+    if (policy.isBackDated(date)) {
+      final confirmed = await confirmPostingDatesBeforeSubmit(
+        context,
+        dates: [date],
+        includeTime: hasExplicitPostingTime(chosen),
+      );
+      if (!confirmed || !context.mounted) return;
+    }
+
     ref.read(loadingOverlayProvider.notifier).show(l10n.productionSubmitting);
     BaseMakeReport report;
     try {
       report = await ref
           .read(baseMakeProvider.notifier)
-          .make(scheduledAt: nowStampToTheMinute());
+          .make(
+            scheduledAt: startScheduledAt(
+              date,
+              explicitTime: hasExplicitPostingTime(chosen),
+            ),
+          );
     } finally {
       ref.read(loadingOverlayProvider.notifier).hide();
     }
@@ -371,9 +419,7 @@ class _MakeBar extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-    messenger.showSnackBar(
-      SnackBar(content: Text(_message(context, report))),
-    );
+    messenger.showSnackBar(SnackBar(content: Text(_message(context, report))));
 
     // Only a cake has left something to do. Yanking somebody to the Running tab
     // after booking three mixes would be moving them away from the screen they
@@ -405,22 +451,14 @@ class _MakeBar extends ConsumerWidget {
 
     final parts = <String>[
       if (report.madeCount > 0) l10n.basesReportMade(report.madeCount),
-      if (report.startedCount > 0)
-        l10n.basesReportStarted(report.startedCount),
+      if (report.startedCount > 0) l10n.basesReportStarted(report.startedCount),
     ];
     final summary = parts.join(' · ');
     final failed = report.failures.length;
-    return failed == 0 ? summary : '$summary · ${l10n.basesReportFailed(failed)}';
+    return failed == 0
+        ? summary
+        : '$summary · ${l10n.basesReportFailed(failed)}';
   }
-}
-
-/// Now, to the minute — a base run is always posted as it happens, so there is
-/// no back-dating path here and no posting-date confirmation either.
-String nowStampToTheMinute() {
-  String two(int v) => v.toString().padLeft(2, '0');
-  final now = DateTime.now();
-  return '${now.year}-${two(now.month)}-${two(now.day)} '
-      '${two(now.hour)}:${two(now.minute)}:00';
 }
 
 class _Pill extends StatelessWidget {

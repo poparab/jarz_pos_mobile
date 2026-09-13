@@ -1734,6 +1734,7 @@
   "productionFillTheDaySkipped": "{skipped} اتخطّت — مفيش خامات",
   "productionFillTheDayNothing": "مفيش حاجة تتضاف",
   "productionPlanQty": "برطمانات",
+  "productionPlanWholeJarsOnly": "عدد برطمانات صحيح بس. المخلوطات والكيك بتتسجل من تبويب الأساسات.",
   "productionUseSuggestion": "خُد {units}",
   "productionPlannedToday": "المخطط {count}",
   "productionStartBatches": "ابدأ التشغيلات",

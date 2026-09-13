@@ -156,8 +156,7 @@ Future<void> _pump(
         ),
         dailyPlanTemplateProvider.overrideWith(
           (ref) async =>
-              template ??
-              _template(page.items.map((i) => i.itemCode).toList()),
+              template ?? _template(page.items.map((i) => i.itemCode).toList()),
         ),
         bomReadinessProvider.overrideWith(
           (ref) async => const BomReadiness(ok: true),
@@ -313,6 +312,41 @@ void main() {
     expect(container.read(dailyPlanDraftProvider).quantities, isEmpty);
   });
 
+  testWidgets('a decimal in the jar field is shown as wrong, never swallowed', (
+    tester,
+  ) async {
+    // The old digits-only filter dropped the point: "1.360" (the kilos a
+    // strawberry mix needed) arrived as 1360 jars and was queued.
+    await _pump(
+      tester,
+      page: ProductionSuggestionsPage(
+        items: [_item(itemCode: 'CAKE-A', suggestedBatches: 5)],
+        velocityUpdatedOn: '2026-08-01 00:00:00',
+      ),
+    );
+
+    await tester.enterText(_quantityField('CAKE-A'), '1.360');
+    await tester.pumpAndSettle();
+
+    final container = _container(tester);
+    expect(_shown(tester, 'CAKE-A'), '1.360');
+    expect(
+      find.text('Whole jars only. Mixes and cakes go on the Bases tab.'),
+      findsOneWidget,
+    );
+    // A red field queues nothing.
+    expect(container.read(dailyPlanDraftProvider).quantities, isEmpty);
+    expect(container.read(productionBasketProvider).lines, isEmpty);
+
+    await tester.enterText(_quantityField('CAKE-A'), '34');
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Whole jars only. Mixes and cakes go on the Bases tab.'),
+      findsNothing,
+    );
+    expect(container.read(dailyPlanDraftProvider).quantities, {'CAKE-A': 34});
+  });
+
   testWidgets('flags negative stock so somebody counts the item', (
     tester,
   ) async {
@@ -411,9 +445,7 @@ void main() {
     await tester.tap(find.text('Use 120'));
     await tester.pumpAndSettle();
 
-    final line = _container(
-      tester,
-    ).read(productionBasketProvider).lines.single;
+    final line = _container(tester).read(productionBasketProvider).lines.single;
     expect(line.itemCode, 'CAKE-BLOCKED');
     expect(line.units, 120);
   });
@@ -462,7 +494,10 @@ void main() {
     // that nothing sells.
     await _pump(
       tester,
-      page: const ProductionSuggestionsPage(items: [], summary: ProductionSummary()),
+      page: const ProductionSuggestionsPage(
+        items: [],
+        summary: ProductionSummary(),
+      ),
       template: const DailyPlanTemplate(),
     );
 
@@ -845,10 +880,7 @@ void main() {
     expect(tester.takeException(), isNull);
     // Both actions still reachable rather than pushed off the bottom.
     expect(find.byType(TextField), findsOneWidget);
-    expect(
-      find.byWidgetPredicate((w) => w is ButtonStyleButton),
-      findsWidgets,
-    );
+    expect(find.byWidgetPredicate((w) => w is ButtonStyleButton), findsWidgets);
   });
 
   testWidgets('the status filter hides rows without hiding their quantity', (

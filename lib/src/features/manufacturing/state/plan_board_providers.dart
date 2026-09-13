@@ -123,9 +123,18 @@ class PlanGroup {
 
 /// Everything the merged Plan tab needs, from both endpoints at once.
 ///
-/// The two loads stay independent on purpose. A ranked board that fails still
-/// leaves a usable plan form, and a plan template that fails still leaves the
-/// cover figures and the batch queue — only losing both is an error state.
+/// The plan template is the list of rows: it is the server's own answer to
+/// "which items are jars" (`FINISHED_GOODS_GROUPS`), the same list the Today
+/// screen fills jars from. The ranked board only decorates those rows with
+/// cover figures, so a board that fails still leaves a usable plan form.
+///
+/// The reverse does not hold, and that is deliberate. The ranked board also
+/// ranks the BASES — strawberry mix, sponge cake — because they own a BOM too,
+/// and this tab once listed them under "Other items" with a whole-jar field.
+/// Typing the 1.36 Kg a mix needed there lost the decimal point and queued
+/// 1360 Kg against a two-kilo recipe. Bases are entered on the Bases tab, in
+/// their own unit, so without the template this tab cannot tell a jar from a
+/// base and says so instead of guessing.
 @immutable
 class PlanBoard {
   const PlanBoard({
@@ -135,9 +144,16 @@ class PlanBoard {
     this.existingPlan,
     this.isLoading = false,
     this.error,
+    this.hasJarList = false,
   });
 
   final List<PlanGroup> groups;
+
+  /// The plan template has answered, so [groups] is the whole jar list rather
+  /// than an empty placeholder. Anything that prunes against the rows must
+  /// wait for this: pruning against a board still loading would empty the
+  /// queue.
+  final bool hasJarList;
 
   /// The ranked board's own header data (season, velocity freshness, summary).
   /// Null when that call failed or has not landed.
@@ -151,7 +167,7 @@ class PlanBoard {
 
   final bool isLoading;
 
-  /// Set only when NEITHER source could be read.
+  /// Set when the jar list itself could not be read.
   final Object? error;
 
   bool get isEmpty => groups.every((g) => g.rows.isEmpty);
@@ -167,10 +183,8 @@ final planBoardProvider = Provider<PlanBoard>((ref) {
   final page = suggestions.valueOrNull;
   final plan = template.valueOrNull;
 
-  if (page == null && plan == null) {
-    if (suggestions.hasError && template.hasError) {
-      return PlanBoard(error: suggestions.error);
-    }
+  if (plan == null) {
+    if (template.hasError) return PlanBoard(error: template.error);
     return const PlanBoard(isLoading: true);
   }
 
@@ -180,51 +194,33 @@ final planBoardProvider = Provider<PlanBoard>((ref) {
   };
 
   final grouped = <String, List<PlanRow>>{};
-  final seen = <String>{};
 
-  for (final item in plan?.items ?? const <DailyPlanItem>[]) {
+  for (final item in plan.items) {
     final suggestion = byCode[item.itemCode];
-    seen.add(item.itemCode);
-    grouped.putIfAbsent(item.itemGroup, () => <PlanRow>[]).add(
-      PlanRow(
-        itemCode: item.itemCode,
-        itemName: item.itemName,
-        itemGroup: item.itemGroup,
-        stockUom: suggestion?.stockUom ?? '',
-        // The template's BOM is the fallback: it names the recipe but not its
-        // yield, so a row known only to the template queues jar-for-jar. That
-        // is the right `item_qty` either way — only the batch COUNT in the
-        // totals is then a jar count.
-        bomName: suggestion?.defaultBom ?? item.defaultBom ?? '',
-        bomQty: suggestion?.bomQty ?? 1.0,
-        jarsPerBatch: item.jarsPerBatch,
-        usesMix: item.usesMix,
-        inTemplate: true,
-        suggestion: suggestion,
-      ),
-    );
-  }
-
-  // Anything the ranked board wants made that the template does not list. It
-  // would otherwise be invisible on a board whose whole job is to say what is
-  // running low.
-  for (final item in page?.items ?? const <ProductionSuggestion>[]) {
-    if (seen.contains(item.itemCode)) continue;
-    grouped.putIfAbsent(item.itemGroup ?? '', () => <PlanRow>[]).add(
-      PlanRow(
-        itemCode: item.itemCode,
-        itemName: item.itemName,
-        itemGroup: item.itemGroup ?? '',
-        stockUom: item.stockUom,
-        bomName: item.defaultBom,
-        bomQty: item.bomQty,
-        suggestion: item,
-      ),
-    );
+    grouped
+        .putIfAbsent(item.itemGroup, () => <PlanRow>[])
+        .add(
+          PlanRow(
+            itemCode: item.itemCode,
+            itemName: item.itemName,
+            itemGroup: item.itemGroup,
+            stockUom: suggestion?.stockUom ?? '',
+            // The template's BOM is the fallback: it names the recipe but not its
+            // yield, so a row known only to the template queues jar-for-jar. That
+            // is the right `item_qty` either way — only the batch COUNT in the
+            // totals is then a jar count.
+            bomName: suggestion?.defaultBom ?? item.defaultBom ?? '',
+            bomQty: suggestion?.bomQty ?? 1.0,
+            jarsPerBatch: item.jarsPerBatch,
+            usesMix: item.usesMix,
+            inTemplate: true,
+            suggestion: suggestion,
+          ),
+        );
   }
 
   // Named groups in alphabetical order, the way the morning list has always
-  // read; the unnamed catch-all last, because it is the leftovers.
+  // read; an unnamed group last.
   final names = grouped.keys.where((k) => k.isNotEmpty).toList()..sort();
   if (grouped.containsKey('')) names.add('');
 
@@ -233,9 +229,10 @@ final planBoardProvider = Provider<PlanBoard>((ref) {
       for (final name in names) PlanGroup(name: name, rows: grouped[name]!),
     ],
     page: page,
-    mix: plan?.mix ?? const DailyPlanMix(),
-    existingPlan: plan?.existingPlan,
+    mix: plan.mix,
+    existingPlan: plan.existingPlan,
     isLoading: suggestions.isLoading || template.isLoading,
+    hasJarList: true,
   );
 });
 
@@ -366,6 +363,26 @@ class PlanEntryController {
     final codes = itemCodes.toList(growable: false);
     _ref.read(productionBasketProvider.notifier).removeItems(codes);
     _ref.read(dailyPlanDraftProvider.notifier).forget(codes);
+  }
+
+  /// Drops every queued quantity for an item that is not a row on [board].
+  ///
+  /// The queue is persisted, so a tablet can carry a line from before a row
+  /// left this tab — a base typed in as jars is the live case. Left alone it
+  /// would be invisible and still submitted by Start batches, and still
+  /// counted in the tab's badge. Returns whether anything was dropped.
+  bool dropUnlisted(PlanBoard board) {
+    if (!board.hasJarList) return false;
+    final listed = {for (final row in board.rows) row.itemCode};
+    final stale = <String>{
+      for (final line in _ref.read(productionBasketProvider).lines)
+        if (!listed.contains(line.itemCode)) line.itemCode,
+      for (final code in _ref.read(dailyPlanDraftProvider).quantities.keys)
+        if (!listed.contains(code)) code,
+    };
+    if (stale.isEmpty) return false;
+    forgetStarted(stale);
+    return true;
   }
 
   /// Re-hydrates the fields after a restart, WITHOUT writing anything back.

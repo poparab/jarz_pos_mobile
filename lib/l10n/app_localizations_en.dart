@@ -3401,6 +3401,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productionPlanQty => 'Jars';
 
   @override
+  String get productionPlanWholeJarsOnly =>
+      'Whole jars only. Mixes and cakes go on the Bases tab.';
+
+  @override
   String productionUseSuggestion(Object units) {
     return 'Use $units';
   }
