@@ -17,6 +17,7 @@ import 'package:jarz_pos/src/core/network/user_service.dart';
 import 'package:jarz_pos/src/features/kanban/models/kanban_models.dart';
 import 'package:jarz_pos/src/features/kanban/providers/kanban_provider.dart';
 import 'package:jarz_pos/src/features/kanban/widgets/invoice_card_widget.dart';
+import 'package:jarz_pos/src/features/kanban/widgets/transfer_proof_sheet.dart';
 import 'package:jarz_pos/src/features/manager/state/manager_providers.dart';
 import 'package:jarz_pos/src/features/pos/state/pos_notifier.dart';
 
@@ -27,8 +28,20 @@ class _RecordingKanbanNotifier extends StateNotifier<KanbanState>
     this.confirmReply = const {'success': true},
     this.confirmGate,
     this.receiptStatus = 'Unconfirmed',
+    this.receiptGone = false,
+    this.receiptLookupError,
     this.payError,
   }) : super(KanbanState());
+
+  /// When true, get_payment_receipt answers "no current receipt" (null).
+  final bool receiptGone;
+
+  /// When set, getPaymentReceipt throws it (an old server, a not-found...).
+  final Object? receiptLookupError;
+
+  /// Receipt reads, in order: `get:<name>` or `list`. Kept apart from [calls]
+  /// so the write sequence assertions stay about writes.
+  final List<String> reads = [];
 
   /// When set, payInvoice throws it (e.g. the server's shift gate).
   final Object? payError;
@@ -51,14 +64,24 @@ class _RecordingKanbanNotifier extends StateNotifier<KanbanState>
     String? posProfile,
     String? status,
   }) async {
-    return [
-      {
-        'name': 'PR-0042',
-        'payment_method': 'InstaPay',
-        'status': receiptStatus,
-        'receipt_image_url': '/private/files/transfer.jpg',
-      },
-    ];
+    reads.add('list');
+    return [if (!receiptGone) _row()];
+  }
+
+  Map<String, dynamic> _row() => {
+    'name': 'PR-0042',
+    'payment_method': 'InstaPay',
+    'status': receiptStatus,
+    'receipt_image_url': '/private/files/transfer.jpg',
+  };
+
+  @override
+  Future<Map<String, dynamic>?> getPaymentReceipt({
+    required String receiptName,
+  }) async {
+    reads.add('get:$receiptName');
+    if (receiptLookupError != null) throw receiptLookupError!;
+    return receiptGone ? null : _row();
   }
 
   @override
@@ -393,6 +416,8 @@ void main() {
 
     expect(find.text(en.transferProofTitle), findsNothing);
     expect(kanban.calls, isEmpty);
+    // Nothing was learned about the receipt, so nothing to reload.
+    expect(kanban.loads, 0);
     expect(tester.takeException(), isNull);
   });
 
@@ -458,4 +483,109 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  // The "receipt changed" loop, and the bounded re-read.
+
+  Finder sheetClose() => find.descendant(
+    of: find.byType(TransferProofSheet),
+    matching: find.byIcon(Icons.close),
+  );
+
+  testWidgets(
+    'closing after "receipt changed" reloads the board so Pay sees the truth',
+    (tester) async {
+      final kanban = _RecordingKanbanNotifier(receiptGone: true);
+      await _openInstapayProof(tester, kanban: kanban, canConfirm: true);
+
+      await tester.tap(find.text(en.transferProofContinue));
+      await tester.pumpAndSettle();
+      expect(find.text(en.transferProofReceiptChanged), findsOneWidget);
+      expect(kanban.loads, 0);
+
+      await tester.tap(sheetClose());
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.transferProofTitle), findsNothing);
+      expect(kanban.loads, 1);
+      expect(kanban.calls, isEmpty);
+      // A quiet reload: no "awaiting" note that would misstate what happened.
+      expect(find.byType(SnackBar), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('Android back after a rejection found on re-read reloads too', (
+    tester,
+  ) async {
+    final kanban = _RecordingKanbanNotifier(receiptStatus: 'Rejected');
+    await _openInstapayProof(tester, kanban: kanban, canConfirm: true);
+
+    await tester.tap(find.text(en.transferProofContinue));
+    await tester.pumpAndSettle();
+    expect(find.text(en.transferProofRejected), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text(en.transferProofTitle), findsNothing);
+    expect(kanban.loads, 1);
+    expect(find.byType(SnackBar), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the re-read fetches the one receipt, never the branch list', (
+    tester,
+  ) async {
+    final kanban = _RecordingKanbanNotifier();
+    await _openInstapayProof(tester, kanban: kanban, canConfirm: true);
+
+    await tester.tap(find.text(en.transferProofContinue));
+    await tester.pumpAndSettle();
+
+    expect(find.text(en.transferProofConfirmTitle), findsOneWidget);
+    expect(kanban.reads, ['get:PR-0042']);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a server without get_payment_receipt falls back to the list', (
+    tester,
+  ) async {
+    final kanban = _RecordingKanbanNotifier(
+      receiptLookupError: Exception(
+        'Failed to get method for command '
+        'jarz_pos.api.payment_receipts.get_payment_receipt with module '
+        "'jarz_pos.api.payment_receipts' has no attribute "
+        "'get_payment_receipt'",
+      ),
+    );
+    await _openInstapayProof(tester, kanban: kanban, canConfirm: true);
+
+    await tester.tap(find.text(en.transferProofContinue));
+    await tester.pumpAndSettle();
+
+    expect(kanban.reads, ['get:PR-0042', 'list']);
+    expect(find.text(en.transferProofConfirmTitle), findsOneWidget);
+    await tester.tap(find.text(en.transferProofConfirmYes));
+    await tester.pumpAndSettle();
+    expect(kanban.calls, ['confirm:PR-0042', 'pay:InstaPay']);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a not-found answer stops the confirm and does not fall back', (
+    tester,
+  ) async {
+    final kanban = _RecordingKanbanNotifier(
+      receiptLookupError: Exception('POS Payment Receipt PR-0042 not found'),
+    );
+    await _openInstapayProof(tester, kanban: kanban, canConfirm: true);
+
+    await tester.tap(find.text(en.transferProofContinue));
+    await tester.pumpAndSettle();
+
+    expect(kanban.reads, ['get:PR-0042']);
+    expect(find.text(en.transferProofReceiptChanged), findsOneWidget);
+    expect(find.text(en.transferProofConfirmTitle), findsNothing);
+    expect(kanban.calls, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
 }

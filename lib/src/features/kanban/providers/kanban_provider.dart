@@ -5,6 +5,8 @@ import 'package:jarz_pos/l10n/app_localizations.dart';
 import '../models/kanban_models.dart';
 import '../services/kanban_service.dart';
 import '../services/notification_polling_service.dart';
+import '../widgets/transfer_proof_logic.dart'
+    show ReceiptLookupFailure, classifyReceiptLookupError;
 import '../../../core/constants/ws_events.dart';
 import '../../../core/network/dio_provider.dart'; // shared Dio instance
 import '../../../core/network/frappe_error_message.dart';
@@ -1566,6 +1568,26 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     } catch (e) {
       debugPrint('List payment receipts error: $e');
       return [];
+    }
+  }
+
+  /// One payment receipt as the server holds it now, or null when there is no
+  /// current receipt: missing, or on a branch this user cannot read.
+  ///
+  /// Every other failure is rethrown untouched, so the caller can recognise a
+  /// server that predates `get_payment_receipt` (see
+  /// [classifyReceiptLookupError]) and fall back to [listPaymentReceipts].
+  Future<Map<String, dynamic>?> getPaymentReceipt({
+    required String receiptName,
+  }) async {
+    try {
+      return await _kanbanService.getPaymentReceipt(receiptName: receiptName);
+    } catch (e) {
+      debugPrint('Get payment receipt error: $e');
+      if (classifyReceiptLookupError(e) == ReceiptLookupFailure.noReceipt) {
+        return null;
+      }
+      rethrow;
     }
   }
 

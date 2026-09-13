@@ -1,6 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 
 import '../../../core/localization/user_error_message.dart';
+import '../../../core/network/frappe_error_message.dart';
 import '../models/kanban_models.dart';
 
 /// Pure decisions behind Kanban card → Pay → InstaPay / Wallet.
@@ -115,6 +117,71 @@ Map<String, dynamic>? findReceiptRow(
     if ((row['name'] ?? '').toString() == name) return row;
   }
   return null;
+}
+
+/// Why a `get_payment_receipt` read failed, as far as the proof sheet cares.
+enum ReceiptLookupFailure {
+  /// The server predates `get_payment_receipt` (the app reached it before the
+  /// backend deploy). Fall back to `list_payment_receipts`.
+  methodMissing,
+
+  /// The server answered: the receipt does not exist, or it belongs to a
+  /// branch this user cannot read. Either way there is no current receipt to
+  /// confirm — a real answer, NOT a reason to fall back.
+  noReceipt,
+
+  /// Anything else (network, 5xx, an unexpected body). Treated like the old
+  /// list read failing: nothing current to confirm.
+  unavailable,
+}
+
+/// Classifies a failed `get_payment_receipt` call.
+///
+/// Frappe reports an unknown method in the call path as "Failed to get method
+/// for command … with module '…' has no attribute '…'" (HTTP 417 on v15; a
+/// later release may answer 404), so the text is checked before the status.
+/// A 404 or 417 that carries no receipt-specific answer is still read as the
+/// method missing: falling back to the list is harmless, while mistaking an old
+/// server for "receipt gone" would block every confirm until the backend ships.
+ReceiptLookupFailure classifyReceiptLookupError(Object? error) {
+  if (error == null) return ReceiptLookupFailure.unavailable;
+  int? status;
+  final parts = <String>[];
+  if (error is DioException) {
+    status = error.response?.statusCode;
+    parts
+      ..add(extractFrappeErrorMessage(error, fallback: ''))
+      ..add((error.response?.data ?? '').toString())
+      ..add(error.message ?? '');
+  } else {
+    parts.add(error.toString());
+  }
+  final text = parts.join(' ').toLowerCase();
+
+  const methodMissingNeedles = [
+    'failed to get method',
+    'has no attribute',
+    'not whitelisted',
+    'no module named',
+    'method not found',
+  ];
+  if (methodMissingNeedles.any(text.contains)) {
+    return ReceiptLookupFailure.methodMissing;
+  }
+
+  final denied =
+      status == 403 ||
+      text.contains('permissionerror') ||
+      text.contains('not permitted') ||
+      isPermissionRefusal(text);
+  final notFound =
+      text.contains('doesnotexisterror') ||
+      ((text.contains('not found') || text.contains('does not exist')) &&
+          text.contains('receipt'));
+  if (denied || notFound) return ReceiptLookupFailure.noReceipt;
+
+  if (status == 404 || status == 417) return ReceiptLookupFailure.methodMissing;
+  return ReceiptLookupFailure.unavailable;
 }
 
 /// First branch of the flow: can the card go straight to `pay_invoice`?

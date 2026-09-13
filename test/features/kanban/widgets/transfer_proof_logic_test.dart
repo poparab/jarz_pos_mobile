@@ -6,6 +6,7 @@
 // never came. These tests pin the new ordering: proof first, pay last.
 library;
 
+import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
@@ -298,6 +299,121 @@ void main() {
       );
       expect(findReceiptRow([row()], 'PR-9999'), isNull);
       expect(findReceiptRow([row()], 'PR-0042'), isNotNull);
+    });
+  });
+
+  group('classifyReceiptLookupError', () {
+    DioException http(int status, Object? body) {
+      final options = RequestOptions(
+        path: '/api/method/jarz_pos.api.payment_receipts.get_payment_receipt',
+      );
+      return DioException(
+        requestOptions: options,
+        type: DioExceptionType.badResponse,
+        response: Response(
+          requestOptions: options,
+          statusCode: status,
+          data: body,
+        ),
+      );
+    }
+
+    test('an old server without the method falls back', () {
+      // Frappe v15: ValidationError, HTTP 417.
+      expect(
+        classifyReceiptLookupError(
+          http(417, {
+            'exc_type': 'ValidationError',
+            'exception':
+                'frappe.exceptions.ValidationError: Failed to get method for '
+                'command jarz_pos.api.payment_receipts.get_payment_receipt '
+                "with module 'jarz_pos.api.payment_receipts' has no attribute "
+                "'get_payment_receipt'",
+          }),
+        ),
+        ReceiptLookupFailure.methodMissing,
+      );
+      // Even when the not-found text is wrapped in a DoesNotExistError 404.
+      expect(
+        classifyReceiptLookupError(
+          http(404, {
+            'exc_type': 'DoesNotExistError',
+            'exception': "module 'jarz_pos.api.payment_receipts' has no "
+                "attribute 'get_payment_receipt'",
+          }),
+        ),
+        ReceiptLookupFailure.methodMissing,
+      );
+      expect(
+        classifyReceiptLookupError(http(404, '<html>Page Missing</html>')),
+        ReceiptLookupFailure.methodMissing,
+      );
+      expect(
+        classifyReceiptLookupError(http(417, null)),
+        ReceiptLookupFailure.methodMissing,
+      );
+      expect(
+        classifyReceiptLookupError(
+          Exception('Method get_payment_receipt is not whitelisted'),
+        ),
+        ReceiptLookupFailure.methodMissing,
+      );
+    });
+
+    test('a missing receipt or another branch is a real answer', () {
+      expect(
+        classifyReceiptLookupError(
+          http(404, {
+            'exc_type': 'DoesNotExistError',
+            'exception':
+                'frappe.exceptions.DoesNotExistError: POS Payment Receipt '
+                'PR-0042 not found',
+          }),
+        ),
+        ReceiptLookupFailure.noReceipt,
+      );
+      expect(
+        classifyReceiptLookupError(
+          http(403, {
+            'exc_type': 'PermissionError',
+            'exception': 'frappe.exceptions.PermissionError: Not permitted',
+          }),
+        ),
+        ReceiptLookupFailure.noReceipt,
+      );
+      expect(
+        classifyReceiptLookupError(
+          Exception('POS Payment Receipt PR-0042 not found'),
+        ),
+        ReceiptLookupFailure.noReceipt,
+      );
+      expect(
+        classifyReceiptLookupError(
+          Exception('You do not have permission to read this receipt'),
+        ),
+        ReceiptLookupFailure.noReceipt,
+      );
+    });
+
+    test('network and server failures neither fall back nor claim absence', () {
+      final options = RequestOptions(path: '/x');
+      expect(
+        classifyReceiptLookupError(
+          DioException(
+            requestOptions: options,
+            type: DioExceptionType.connectionTimeout,
+          ),
+        ),
+        ReceiptLookupFailure.unavailable,
+      );
+      expect(
+        classifyReceiptLookupError(http(500, {'exc_type': 'OperationalError'})),
+        ReceiptLookupFailure.unavailable,
+      );
+      expect(
+        classifyReceiptLookupError(null),
+        ReceiptLookupFailure.unavailable,
+      );
     });
   });
 

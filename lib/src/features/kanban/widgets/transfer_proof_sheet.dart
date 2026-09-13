@@ -31,6 +31,13 @@ enum TransferProofOutcome {
   /// A confirm-tier user chose not to confirm yet; the receipt stays
   /// Unconfirmed.
   awaitingConfirmation,
+
+  /// Nothing was attached or confirmed, but the sheet found the server's
+  /// receipt differs from the card's snapshot (rejected, replaced, Changed,
+  /// gone, or a receipt created here whose upload failed). The caller reloads
+  /// the board quietly: on the stale card, Pay reopened the sheet into the
+  /// same "receipt changed" stop forever.
+  receiptStateChanged,
 }
 
 /// Collects the customer's transfer screenshot before an InstaPay / Wallet
@@ -109,12 +116,21 @@ class _TransferProofSheetState extends ConsumerState<TransferProofSheet> {
   /// has something to report.
   bool _uploadedHere = false;
 
+  /// The receipt state the card showed when the sheet opened.
+  late final TransferReceiptState _snapshotState;
+
+  /// The sheet learned the server's receipt is not what the card showed, so a
+  /// plain close must still make the card reload (see
+  /// [TransferProofOutcome.receiptStateChanged]).
+  bool _serverStateChanged = false;
+
   double get _amount => transferReceiptAmount(widget.invoice);
 
   @override
   void initState() {
     super.initState();
     _receiptState = transferReceiptStateFor(widget.invoice, widget.method);
+    _snapshotState = _receiptState;
     if (_receiptState != TransferReceiptState.none) {
       _receiptName = widget.invoice.paymentReceiptName?.trim();
       _receiptImageUrl = widget.invoice.paymentReceiptImageUrl?.trim();
@@ -124,27 +140,54 @@ class _TransferProofSheetState extends ConsumerState<TransferProofSheet> {
     }
   }
 
-  /// The card model carries the status but not the reason; the receipt list
+  /// The card model carries the status but not the reason; the receipt row
   /// does. Best effort: without it the sheet still says "rejected".
   Future<void> _loadRejectionReason() async {
     final name = _receiptName;
     if (name == null || name.isEmpty) return;
     try {
-      final rows = await ref
-          .read(kanbanProvider.notifier)
-          .listPaymentReceipts(
-            posProfile: widget.posProfile,
-            status: 'Rejected',
-          );
-      final match = rows.where((row) => row['name'] == name);
-      final reason = match.isEmpty
-          ? ''
-          : (match.first['rejection_reason'] ?? '').toString();
+      final row = await _readCurrentReceipt(name, fallbackStatus: 'Rejected');
+      // A row that is no longer Rejected (a manager confirmed or replaced it
+      // since the board loaded): a close must reload the card.
+      if (row != null &&
+          transferReceiptStateFromRow(row, widget.method) != _snapshotState) {
+        _serverStateChanged = true;
+      }
+      final reason = (row?['rejection_reason'] ?? '').toString();
       if (!mounted || reason.trim().isEmpty) return;
       setState(() => _rejectionReason = reason.trim());
     } catch (_) {
       // Reason is decoration; the rejected banner is already showing.
     }
+  }
+
+  /// The server's current row for receipt [name], or null when there is no
+  /// current receipt (gone, another branch, or the read failed).
+  ///
+  /// Reads just that receipt with `get_payment_receipt`. A server that predates
+  /// it ([ReceiptLookupFailure.methodMissing]) is served by the old path: the
+  /// branch's whole receipt list, optionally narrowed by [fallbackStatus]. A
+  /// not-found or permission answer is a real answer and never falls back.
+  Future<Map<String, dynamic>?> _readCurrentReceipt(
+    String name, {
+    String? fallbackStatus,
+  }) async {
+    final notifier = ref.read(kanbanProvider.notifier);
+    try {
+      return await notifier.getPaymentReceipt(receiptName: name);
+    } catch (error) {
+      if (classifyReceiptLookupError(error) !=
+          ReceiptLookupFailure.methodMissing) {
+        return null;
+      }
+    }
+    if (!mounted) return null;
+    final profile = widget.posProfile?.trim();
+    final rows = await notifier.listPaymentReceipts(
+      posProfile: (profile == null || profile.isEmpty) ? null : profile,
+      status: fallbackStatus,
+    );
+    return findReceiptRow(rows, name);
   }
 
   bool get _hasPickedImage => (_pickedBytes?.isNotEmpty ?? false);
@@ -215,6 +258,7 @@ class _TransferProofSheetState extends ConsumerState<TransferProofSheet> {
       _busyLabel = l10n.transferProofSending;
       _error = null;
     });
+    var createdHere = false;
     try {
       var receiptName = (_receiptName ?? '').trim();
       if (receiptName.isEmpty) {
@@ -238,6 +282,7 @@ class _TransferProofSheetState extends ConsumerState<TransferProofSheet> {
                 : l10n.commonError,
           );
         }
+        createdHere = true;
         if (!mounted) return false;
         setState(() => _receiptName = receiptName);
       }
@@ -267,14 +312,36 @@ class _TransferProofSheetState extends ConsumerState<TransferProofSheet> {
       return true;
     } catch (error) {
       if (!mounted) return false;
+      var message = userErrorMessageFor(
+        l10n,
+        error,
+        fallback: l10n.receiptUploadFailed,
+      );
+      final existingName = (_receiptName ?? '').trim();
+      if (createdHere) {
+        // The board does not know the receipt made a moment ago.
+        _serverStateChanged = true;
+      } else if (existingName.isNotEmpty) {
+        // The server refuses a screenshot on a receipt that is already
+        // Confirmed or was Changed since the board loaded. Look, so a close
+        // reloads the card instead of reopening this sheet on the old snapshot.
+        // Only a row the server actually returned counts: a failed read (the
+        // upload may have failed for want of a network too) must not turn the
+        // real error into "receipt changed".
+        setState(() => _busyLabel = l10n.transferProofChecking);
+        final row = await _readCurrentReceipt(existingName);
+        if (!mounted) return false;
+        final fresh = transferReceiptStateFromRow(row, widget.method);
+        if (row != null && fresh != _snapshotState) {
+          _serverStateChanged = true;
+          _receiptState = fresh;
+          message = l10n.transferProofReceiptChanged;
+        }
+      }
       setState(() {
         _busy = false;
         _busyLabel = null;
-        _error = userErrorMessageFor(
-          l10n,
-          error,
-          fallback: l10n.receiptUploadFailed,
-        );
+        _error = message;
       });
       return false;
     }
@@ -307,15 +374,10 @@ class _TransferProofSheetState extends ConsumerState<TransferProofSheet> {
       _busyLabel = l10n.transferProofChecking;
       _error = null;
     });
-    final profile = widget.posProfile?.trim();
-    final rows = await ref
-        .read(kanbanProvider.notifier)
-        .listPaymentReceipts(
-          posProfile: (profile == null || profile.isEmpty) ? null : profile,
-        );
+    final row = await _readCurrentReceipt(name);
     if (!mounted) return false;
-    final row = findReceiptRow(rows, name);
     final fresh = transferReceiptStateFromRow(row, widget.method);
+    if (fresh != _snapshotState) _serverStateChanged = true;
     setState(() {
       _busy = false;
       _busyLabel = null;
@@ -441,7 +503,11 @@ class _TransferProofSheetState extends ConsumerState<TransferProofSheet> {
   void _close() {
     if (_busy) return;
     if (!_uploadedHere) {
-      Navigator.of(context).pop();
+      // Nothing attached here. If the sheet nonetheless found the receipt
+      // changed on the server, say so, so the card reloads; otherwise `null`.
+      Navigator.of(context).pop(
+        _serverStateChanged ? TransferProofOutcome.receiptStateChanged : null,
+      );
       return;
     }
     Navigator.of(context).pop(

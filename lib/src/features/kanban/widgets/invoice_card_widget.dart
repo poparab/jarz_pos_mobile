@@ -1855,6 +1855,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         );
         _refreshBoardQuietly(notifier);
         return;
+      case TransferProofOutcome.receiptStateChanged:
+        // The sheet already told the user why it stopped; a snackbar here
+        // would repeat it. Reload only, so the next Pay sees the real receipt.
+        _refreshBoardQuietly(notifier);
+        return;
     }
   }
 

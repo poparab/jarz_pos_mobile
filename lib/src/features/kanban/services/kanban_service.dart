@@ -1036,6 +1036,51 @@ class KanbanService {
     }
   }
 
+  /// One receipt by name (POST `receipt_name`). Newer than the list endpoint:
+  /// callers fall back to `listPaymentReceipts` on a server without it.
+  ///
+  /// Kept here rather than in `ApiEndpoints` on purpose: anything under
+  /// `lib/src/core/` classifies a release as a full APK (a forced reinstall for
+  /// every operator), while this feature-only change ships as a Shorebird patch.
+  static const _getPaymentReceiptEndpoint =
+      '/api/method/jarz_pos.api.payment_receipts.get_payment_receipt';
+
+  /// One payment receipt by name, or null when the server answered without a
+  /// receipt row.
+  ///
+  /// Errors are rethrown UNWRAPPED, unlike the other receipt calls: the caller
+  /// has to tell "this server has no `get_payment_receipt` yet" (fall back to
+  /// [listPaymentReceipts]) from "the receipt is gone / not your branch" (no
+  /// current receipt), and that needs the HTTP status and the raw Frappe body
+  /// that `_friendlyException` flattens away. See
+  /// `classifyReceiptLookupError` in `widgets/transfer_proof_logic.dart`.
+  Future<Map<String, dynamic>?> getPaymentReceipt({
+    required String receiptName,
+  }) async {
+    try {
+      _logger.info('Fetching payment receipt $receiptName');
+      final resp = await _dio.post(
+        _getPaymentReceiptEndpoint,
+        data: {'receipt_name': receiptName},
+      );
+      final data = resp.data;
+      final msg = data is Map ? data['message'] : null;
+      if (msg is Map) {
+        if (msg['success'] == true) {
+          final receipt = msg['receipt'];
+          return receipt is Map ? Map<String, dynamic>.from(receipt) : null;
+        }
+        throw Exception(
+          _friendlyMessage(msg, fallback: 'Failed to fetch payment receipt'),
+        );
+      }
+      throw Exception('Failed to fetch payment receipt');
+    } catch (e) {
+      _logger.error('Failed to get payment receipt $receiptName', e);
+      rethrow;
+    }
+  }
+
   /// Create a payment receipt record
   Future<Map<String, dynamic>> createPaymentReceipt({
     required String salesInvoice,
