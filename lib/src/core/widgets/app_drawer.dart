@@ -75,6 +75,10 @@ class AppDrawer extends ConsumerWidget {
     final canAccessMonthlyExpenses =
         ref.watch(canAccessMonthlyExpensesProvider);
     final locale = ref.watch(localeNotifierProvider);
+    final openItemRequests = ref.watch(itemRequestCountsProvider).maybeWhen(
+          data: (c) => c.open,
+          orElse: () => 0,
+        );
     final englishLocale = const Locale('en');
     final arabicLocale = const Locale('ar');
     final currentLocale = locale?.languageCode ?? englishLocale.languageCode;
@@ -490,7 +494,10 @@ class AppDrawer extends ConsumerWidget {
         expanded: matchesRoute(purchasingRoutes),
         // The group starts collapsed, so without this the open-request count
         // on its child tile is invisible until someone thinks to expand it.
-        badge: const _ItemRequestsBadge(dotOnly: true),
+        // Null when there is nothing open, so the header is the plain one.
+        badge: openItemRequests > 0
+            ? const _ItemRequestsBadge(dotOnly: true)
+            : null,
       ),
       group(
         icon: Icons.insights,
@@ -581,17 +588,23 @@ class _DrawerHeaderTitle extends StatelessWidget {
 ///
 /// Red while any open request has not been accepted by a buyer — that is the
 /// part that needs someone to act — and neutral once every open one has been.
-class _ItemRequestsNavTile extends StatelessWidget {
+class _ItemRequestsNavTile extends ConsumerWidget {
   final VoidCallback onTap;
 
   const _ItemRequestsNavTile({required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final open = ref.watch(itemRequestCountsProvider).maybeWhen(
+          data: (c) => c.open,
+          orElse: () => 0,
+        );
     return ListTile(
       leading: const Icon(Icons.playlist_add),
       title: Text(context.l10n.menuItemRequests),
-      trailing: const _ItemRequestsBadge(),
+      // Null rather than an empty widget: any trailing slot, even an empty
+      // one, reserves space and shifts the title.
+      trailing: open > 0 ? const _ItemRequestsBadge() : null,
       onTap: onTap,
     );
   }
