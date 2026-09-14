@@ -230,9 +230,10 @@ void _expectServerAccepts(
   } else if (purpose == 'B2B Supply') {
     expect(priceList, customerResolvedList, reason: 'rule 2');
   } else {
+    // Standard / Free Shipping Waiver: the POS default and nothing else.
     expect(
-      ['B2B Selling', 'B2B Tier A', 'Employee', 'Sample'],
-      isNot(contains(priceList)),
+      priceList,
+      'Standard Selling',
       reason: 'rule 3 for ${purpose ?? 'Standard'}',
     );
   }
@@ -277,11 +278,8 @@ void main() {
       expect(state.isPriceListReserved('Sample'), isTrue);
       expect(state.isPriceListReserved('B2B Selling'), isTrue);
       expect(state.isPriceListReserved('Standard Selling'), isFalse);
-      expect(state.selectablePriceLists.map((o) => o['name']), [
-        'Standard Selling',
-        'Selling Bundle of 3',
-        'B2B Tier A',
-      ]);
+      expect(state.isPriceListReserved('Selling Bundle of 3'), isFalse);
+      expect(state.isPriceListReserved('B2B Tier A'), isFalse);
     });
 
     test('should follow reserved_for_purposes when the backend sends it', () {
@@ -307,14 +305,15 @@ void main() {
     test('should reserve nothing by fallback when no policies are loaded, '
         'but still honour the backend flag', () {
       final legacy = PosState(availablePriceLists: _legacyLists());
-      expect(legacy.selectablePriceLists, hasLength(_rates.length));
+      for (final name in _rates.keys) {
+        expect(legacy.isPriceListReserved(name), isFalse, reason: name);
+      }
 
       final flagged = PosState(availablePriceLists: _reservingLists());
       expect(flagged.isPriceListReserved('Employee'), isTrue);
-      expect(flagged.selectablePriceLists.map((o) => o['name']), [
-        'Standard Selling',
-        'Selling Bundle of 3',
-      ]);
+      expect(flagged.isPriceListReserved('B2B Tier A'), isTrue);
+      expect(flagged.isPriceListReserved('Standard Selling'), isFalse);
+      expect(flagged.isPriceListReserved('Selling Bundle of 3'), isFalse);
     });
 
     test('should parse reserved_for_purposes leniently', () {
@@ -341,15 +340,37 @@ void main() {
       expect(repository.itemPriceLists, isEmpty);
     });
 
-    test('should refuse a reserved list for a Standard order', () async {
+    test('should refuse any non-default list for a Standard order', () async {
       final repository = _FakePosRepository();
       final notifier = _notifier(repository);
 
       await notifier.setSelectedPriceList('Sample');
       expect(notifier.state.selectedPriceListName, 'Standard Selling');
 
+      // Not reserved, but not the POS default either: the server refuses it.
       await notifier.setSelectedPriceList('Selling Bundle of 3');
-      expect(notifier.state.selectedPriceListName, 'Selling Bundle of 3');
+      expect(notifier.state.selectedPriceListName, 'Standard Selling');
+      expect(repository.itemPriceLists, isEmpty);
+    });
+
+    test('should refuse a non-default list for Free Shipping Waiver', () async {
+      final repository = _FakePosRepository();
+      final notifier = _notifier(repository, policy: _freeShipping);
+
+      await notifier.setSelectedPriceList('Selling Bundle of 3');
+
+      expect(notifier.state.selectedPriceListName, 'Standard Selling');
+      expect(repository.itemPriceLists, isEmpty);
+    });
+
+    test('should accept the POS default for a free-list order', () async {
+      final repository = _FakePosRepository();
+      final notifier = _notifier(repository, priceList: 'Selling Bundle of 3');
+
+      await notifier.setSelectedPriceList('Standard Selling');
+
+      expect(notifier.state.selectedPriceListName, 'Standard Selling');
+      expect(repository.itemPriceLists.last, 'Standard Selling');
     });
 
     test(
@@ -482,6 +503,42 @@ void main() {
       expect(notifier.state.cartItems.single['rate'], 100);
     });
 
+    for (final policy in <CommercialPolicy?>[null, _freeShipping]) {
+      test('should restore a ${policy?.orderPurpose ?? 'Standard'} draft on '
+          'a non-default list at the POS default', () async {
+        final repository = _FakePosRepository();
+        final drafts = _MemoryDrafts([
+          draft(policy: policy, priceList: 'Selling Bundle of 3'),
+        ]);
+        final notifier = _notifier(repository, drafts: drafts);
+        notifier.state = notifier.state.copyWith(cartItems: const []);
+
+        await notifier.switchDraft('draft-1');
+
+        expect(notifier.state.selectedCommercialPolicy?.name, policy?.name);
+        expect(notifier.state.selectedPriceListName, 'Standard Selling');
+        expect(repository.itemPriceLists.last, 'Standard Selling');
+        expect(notifier.state.cartItems.single['rate'], 100);
+      });
+    }
+
+    test(
+      'should reconcile a non-default Standard list on catalog refresh',
+      () async {
+        final repository = _FakePosRepository();
+        final notifier = _notifier(
+          repository,
+          priceList: 'Selling Bundle of 3',
+        );
+
+        await notifier.refreshCatalog();
+
+        expect(notifier.state.selectedPriceListName, 'Standard Selling');
+        expect(repository.itemPriceLists.last, 'Standard Selling');
+        expect(notifier.state.cartItems.single['rate'], 100);
+      },
+    );
+
     test('should reconcile a mismatched pair on catalog refresh', () async {
       final repository = _FakePosRepository();
       final notifier = _notifier(repository, priceList: 'B2B Selling');
@@ -524,6 +581,27 @@ void main() {
       await notifier.checkout();
       expect(repository.invoices, hasLength(1));
       _expectServerAccepts(repository.invoices.single);
+    });
+
+    test('should reprice and stop when a Standard order holds a non-default '
+        'list, then send the default', () async {
+      final repository = _FakePosRepository();
+      final notifier = _notifier(repository, priceList: 'Selling Bundle of 3');
+      notifier.state = notifier.state.copyWith(
+        cartItems: [
+          {..._cartLine, 'rate': 90},
+        ],
+      );
+
+      await notifier.checkout();
+      expect(repository.invoices, isEmpty);
+      expect(notifier.state.error, PosNotifier.purposePriceListUpdatedError);
+      expect(notifier.state.selectedPriceListName, 'Standard Selling');
+      expect(notifier.state.cartItems.single['rate'], 100);
+
+      await notifier.checkout();
+      expect(repository.invoices.single['price_list'], 'Standard Selling');
+      expect(repository.invoices.single['order_purpose'], isNull);
     });
 
     test('should reprice and stop when an Employee order holds a retail '

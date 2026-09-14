@@ -1199,11 +1199,7 @@ class CartWidget extends ConsumerWidget {
   ) {
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
-    // A free-list order (Standard, Free Shipping Waiver) may not pick a list
-    // reserved for another purpose, so those are not offered at all.
-    final priceLists = state.selectablePriceLists;
     final selectedPriceList = state.selectedPriceList;
-    final selectedPriceListName = state.selectedPriceListName;
     final zeroShippingDefault =
         selectedPriceList?['zero_shipping_default'] == true ||
         selectedPriceList?['zero_shipping_default'] == 1;
@@ -1236,74 +1232,17 @@ class CartWidget extends ConsumerWidget {
                     ),
                   ),
                 ),
-                if (selectedPriceList?['is_default'] == true)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      l10n.posCartPriceListDefaultChip,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
               ],
             ),
             const SizedBox(height: 12),
-            // The purpose comes first because it decides which price lists
-            // the order may use; the server refuses a contradicting pair.
+            // The purpose comes first because it decides the price list; the
+            // operator never picks one, and the server refuses a contradicting
+            // pair.
             if (state.availableCommercialPolicies.isNotEmpty) ...[
               _buildOrderPurposeControls(context, ref, state),
               const SizedBox(height: 12),
             ],
-            if (state.isB2bOrder || state.isPriceListLockedByPurpose)
-              _buildLockedPriceListField(context, state)
-            else
-              DropdownButtonFormField<String>(
-                key: ValueKey(
-                  'price-list-${selectedPriceListName ?? 'default'}',
-                ),
-                initialValue:
-                    priceLists.any(
-                      (priceList) =>
-                          priceList['name']?.toString() ==
-                          selectedPriceListName,
-                    )
-                    ? selectedPriceListName
-                    : null,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: l10n.posCartPriceListLabel,
-                  helperText: l10n.posCartPriceListHint,
-                  helperMaxLines: 2,
-                  border: const OutlineInputBorder(),
-                ),
-                items: priceLists
-                    .map(
-                      (priceList) => DropdownMenuItem<String>(
-                        value: priceList['name']?.toString(),
-                        child: Text(
-                          _priceListLabel(priceList),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: priceLists.isEmpty || state.isLoading
-                    ? null
-                    : (value) {
-                        ref
-                            .read(posNotifierProvider.notifier)
-                            .setSelectedPriceList(value);
-                      },
-              ),
+            _buildPriceListField(context, state),
             const SizedBox(height: 12),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
@@ -1335,10 +1274,16 @@ class CartWidget extends ConsumerWidget {
     return priceList?['name']?.toString().trim() ?? '';
   }
 
-  /// The price list shown read-only because the order purpose decides it
-  /// (Employee, Sample, B2B Supply) or the B2B launch flow owns it.
-  Widget _buildLockedPriceListField(BuildContext context, PosState state) {
+  /// The order's price list, always read-only: the order purpose decides it.
+  ///
+  ///  - Employee / Sample / B2B Supply, or the B2B launch flow → the purpose's
+  ///    list with a lock and "set by the order purpose" (or "after customer");
+  ///  - Standard / Free Shipping Waiver → the POS profile default, marked
+  ///    "Default". The server refuses any other list on those orders.
+  Widget _buildPriceListField(BuildContext context, PosState state) {
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
+    final locked = state.isB2bOrder || state.isPriceListLockedByPurpose;
     final selectedName = state.selectedPriceListName;
     final awaitingCustomer =
         !state.isB2bOrder &&
@@ -1354,18 +1299,52 @@ class CartWidget extends ConsumerWidget {
     // Until B2B Supply knows its customer there is no list to show; the one
     // still loaded is only a placeholder that checkout will not send.
     final label = awaitingCustomer ? '' : _priceListLabel(option);
+    final isDefault =
+        option?['is_default'] == true || option?['is_default'] == 1;
+
+    final Widget? suffix;
+    if (locked) {
+      suffix = const Icon(Icons.lock_outline);
+    } else if (isDefault) {
+      suffix = Padding(
+        padding: const EdgeInsetsDirectional.only(end: 8),
+        child: Container(
+          key: const ValueKey('price-list-default-chip'),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            l10n.posCartPriceListDefaultChip,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      );
+    } else {
+      suffix = null;
+    }
+
     return InputDecorator(
-      key: const ValueKey('locked-price-list'),
+      key: ValueKey(locked ? 'locked-price-list' : 'default-price-list'),
       isEmpty: label.isEmpty,
       decoration: InputDecoration(
         labelText: l10n.posCartPriceListLabel,
-        helperText: awaitingCustomer
-            ? l10n.posCartPriceListAfterCustomer
-            : l10n.posCartPriceListSetByPurpose,
+        helperText: !locked
+            ? null
+            : (awaitingCustomer
+                  ? l10n.posCartPriceListAfterCustomer
+                  : l10n.posCartPriceListSetByPurpose),
         helperMaxLines: 2,
         border: const OutlineInputBorder(),
         enabled: false,
-        suffixIcon: const Icon(Icons.lock_outline),
+        suffixIcon: suffix,
+        suffixIconConstraints: locked
+            ? null
+            : const BoxConstraints(minWidth: 0, minHeight: 0),
       ),
       child: Text(label, overflow: TextOverflow.ellipsis),
     );

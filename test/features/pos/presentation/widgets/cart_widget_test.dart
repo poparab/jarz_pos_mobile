@@ -353,20 +353,20 @@ void main() {
       isPickup: true,
     );
 
-    Future<Set<String>> openPriceListMenu(WidgetTester tester) async {
-      final dropdown = find.byWidgetPredicate(
-        (widget) =>
-            widget.key is ValueKey<String> &&
-            (widget.key! as ValueKey<String>).value.startsWith('price-list-'),
+    /// No purpose offers a price-list picker any more.
+    void expectNoPriceListDropdown() {
+      // The only dropdown left on the card is the order purpose.
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is DropdownButtonFormField<String> &&
+              !((widget.key as ValueKey<String>?)?.value.startsWith(
+                    'order-purpose-',
+                  ) ??
+                  false),
+        ),
+        findsNothing,
       );
-      expect(dropdown, findsOneWidget);
-      await tester.tap(dropdown);
-      await tester.pumpAndSettle();
-      return tester
-          .widgetList<Text>(find.byType(Text))
-          .map((text) => text.data ?? '')
-          .where((label) => label.endsWith(' [pl]'))
-          .toSet();
     }
 
     testWidgets('shows a locked purpose list read-only, below the purpose', (
@@ -382,8 +382,10 @@ void main() {
         roles: managerRoles,
       );
 
+      expectNoPriceListDropdown();
       final locked = find.byKey(const ValueKey('locked-price-list'));
       expect(locked, findsOneWidget);
+      expect(find.text('Default'), findsNothing);
       expect(
         find.descendant(of: locked, matching: find.text('Sample [pl]')),
         findsOneWidget,
@@ -413,6 +415,7 @@ void main() {
         roles: managerRoles,
       );
 
+      expectNoPriceListDropdown();
       expect(find.byKey(const ValueKey('locked-price-list')), findsOneWidget);
       expect(
         find.text(
@@ -423,44 +426,58 @@ void main() {
       expect(find.text('Standard Selling [pl]'), findsNothing);
     });
 
-    testWidgets('hides lists the backend reserves from a Standard order', (
+    for (final policy in <CommercialPolicy?>[null, freeShippingPolicy]) {
+      final purpose = policy?.orderPurpose ?? 'Standard';
+      testWidgets(
+        'shows the POS default list read-only with the Default marker '
+        'for $purpose',
+        (tester) async {
+          final notifier = await _pumpCartWidget(
+            tester,
+            pricingState(
+              priceLists: lists(withServerFlag: true),
+              policy: policy,
+            ),
+            roles: managerRoles,
+          );
+
+          expectNoPriceListDropdown();
+          final field = find.byKey(const ValueKey('default-price-list'));
+          expect(field, findsOneWidget);
+          expect(find.byKey(const ValueKey('locked-price-list')), findsNothing);
+          expect(
+            find.descendant(
+              of: field,
+              matching: find.text('Standard Selling [pl]'),
+            ),
+            findsOneWidget,
+          );
+          expect(
+            find.descendant(of: field, matching: find.text('Default')),
+            findsOneWidget,
+          );
+          expect(find.text('Set by the order purpose.'), findsNothing);
+          expect(
+            tester.getTopLeft(find.text('Order purpose')).dy,
+            lessThan(tester.getTopLeft(field).dy),
+          );
+          expect(
+            tester.getTopLeft(field).dy,
+            lessThan(tester.getTopLeft(find.byType(SwitchListTile)).dy),
+          );
+
+          // Nothing to open: no other list is ever offered.
+          await tester.tap(field);
+          await tester.pumpAndSettle();
+          expect(find.text('Selling Bundle of 3 [pl]'), findsNothing);
+          expect(notifier.state.selectedPriceListName, 'Standard Selling');
+        },
+      );
+    }
+
+    testWidgets('shows the default read-only when no policies are loaded', (
       tester,
     ) async {
-      await _pumpCartWidget(
-        tester,
-        pricingState(priceLists: lists(withServerFlag: true)),
-        roles: managerRoles,
-      );
-
-      expect(await openPriceListMenu(tester), {
-        'Standard Selling [pl]',
-        'Selling Bundle of 3 [pl]',
-      });
-    });
-
-    testWidgets(
-      'hides fallback-reserved lists on an older backend for Free Shipping',
-      (tester) async {
-        await _pumpCartWidget(
-          tester,
-          pricingState(
-            priceLists: lists(withServerFlag: false),
-            policy: freeShippingPolicy,
-          ),
-          roles: managerRoles,
-        );
-
-        // Sample is a policy list, B2B Selling the B2B base; Employee is not
-        // fixed by any loaded policy, so the fallback leaves it offered.
-        expect(await openPriceListMenu(tester), {
-          'Standard Selling [pl]',
-          'Selling Bundle of 3 [pl]',
-          'Employee [pl]',
-        });
-      },
-    );
-
-    testWidgets('keeps every list when no policies are loaded', (tester) async {
       await _pumpCartWidget(
         tester,
         pricingState(
@@ -471,7 +488,36 @@ void main() {
       );
 
       expect(find.text('Order purpose'), findsNothing);
-      expect(await openPriceListMenu(tester), hasLength(5));
+      expectNoPriceListDropdown();
+      final field = find.byKey(const ValueKey('default-price-list'));
+      expect(
+        find.descendant(
+          of: field,
+          matching: find.text('Standard Selling [pl]'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: field, matching: find.text('Default')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('omits the Default marker for a list that is not the default', (
+      tester,
+    ) async {
+      await _pumpCartWidget(
+        tester,
+        pricingState(
+          priceLists: lists(withServerFlag: true),
+          selected: 'Selling Bundle of 3',
+        ),
+        roles: managerRoles,
+      );
+
+      expectNoPriceListDropdown();
+      expect(find.text('Selling Bundle of 3 [pl]'), findsOneWidget);
+      expect(find.text('Default'), findsNothing);
     });
   });
 

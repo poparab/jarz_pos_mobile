@@ -418,11 +418,6 @@ class PosState {
     return policies.any((policy) => fixedPriceListFor(policy) == normalized);
   }
 
-  /// The price lists a free-list purpose may offer in the dropdown.
-  List<Map<String, dynamic>> get selectablePriceLists => availablePriceLists
-      .where((option) => !isPriceListReserved(option['name']?.toString()))
-      .toList(growable: false);
-
   double get cartTotal {
     return cartItems.fold(0.0, (total, item) {
       final price = ((item['rate'] ?? 0) as num).toDouble();
@@ -1920,17 +1915,20 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(selectedDeliverySlot: slot);
   }
 
-  /// The operator's price-list pick from the manager pricing card.
+  /// Public price-list setter. No UI reaches it any more: the order purpose
+  /// alone decides the list, and the cart card only shows it.
   ///
   /// Refused while the order purpose decides the list
-  /// ([PosState.isPriceListLockedByPurpose]), and refused for a list reserved
-  /// for another purpose: either would send a purpose/price-list pair the
-  /// server rejects. The purpose flow applies its list through
-  /// [_applySelectedPriceList], which this guard does not weaken.
+  /// ([PosState.isPriceListLockedByPurpose]). For a free-list purpose
+  /// (Standard, Free Shipping Waiver) only the POS default is accepted —
+  /// the server refuses any other list on those orders, reserved or not.
+  /// The purpose flow applies its list through [_applySelectedPriceList],
+  /// which this guard does not weaken.
   Future<void> setSelectedPriceList(String? name) async {
     if (!state.isB2bOrder) {
       if (state.isPriceListLockedByPurpose) return;
       if (state.isPriceListReserved(name)) return;
+      if (_isNonDefaultFreeList(name)) return;
     }
     await _applySelectedPriceList(name);
   }
@@ -2387,13 +2385,18 @@ class PosNotifier extends StateNotifier<PosState> {
           : purposePriceListUpdatedError;
     }
 
-    // Standard or another free-list purpose: no reserved list.
-    if (!state.isPriceListReserved(before)) return null;
+    // Standard or another free-list purpose: the POS default list only. A
+    // reserved list and an ordinary non-default one (an old draft on
+    // "Selling Bundle of 3") are both refused by the server.
+    if (!state.isPriceListReserved(before) && !_isNonDefaultFreeList(before)) {
+      return null;
+    }
     // An amendment with no purpose chosen keeps the source invoice's list; the
     // server owns that pairing, so it is not rewritten to retail here.
     if (policy == null && state.isAmendmentDraft) return null;
     await _applySelectedPriceList(null);
-    return state.isPriceListReserved(state.selectedPriceListName)
+    final after = state.selectedPriceListName;
+    return state.isPriceListReserved(after) || _isNonDefaultFreeList(after)
         ? purposePriceListUnavailableError
         : purposePriceListUpdatedError;
   }
@@ -2475,11 +2478,15 @@ class PosNotifier extends StateNotifier<PosState> {
     // Simply clear the cart - shipping is handled separately, not as cart items
     _priceListResolutionToken++;
     // Clearing drops a retail purpose back to Standard, so a list that purpose
-    // had locked in (Employee, Sample, a B2B tier) must go with it.
+    // had locked in (Employee, Sample, a B2B tier) — or any other list than
+    // the POS default — must go with it. An amendment keeps its source
+    // invoice's ordinary list, as it does on refresh and at checkout.
     final leavesPurposeList =
         !state.isB2bOrder &&
         (state.isPriceListLockedByPurpose ||
-            state.isPriceListReserved(state.selectedPriceListName));
+            state.isPriceListReserved(state.selectedPriceListName) ||
+            (!state.isAmendmentDraft &&
+                _isNonDefaultFreeList(state.selectedPriceListName)));
     state = state.copyWith(
       cartItems: [],
       clearSelectedCommercialPolicy: !state.isB2bOrder,
@@ -2659,8 +2666,8 @@ class PosNotifier extends StateNotifier<PosState> {
   ///    refuses the mismatch rather than inventing a list);
   ///  - B2B Supply → [current]; the customer-resolved list is applied by
   ///    [_applyEffectivePriceListForPolicy] and enforced at checkout;
-  ///  - Standard / other free purposes → [current] unless it is reserved, in
-  ///    which case the POS default free list.
+  ///  - Standard / other free purposes → the POS default free list, whatever
+  ///    [current] holds ([current] only when no lists are loaded).
   Map<String, dynamic>? _purposeConsistentPriceList({
     required CommercialPolicy? policy,
     required List<Map<String, dynamic>> priceLists,
@@ -2672,17 +2679,36 @@ class PosNotifier extends StateNotifier<PosState> {
       return _matchingPriceListSelection(fixed, priceLists) ?? current;
     }
     if (PosState.isB2bSupplyPolicy(policy)) return current;
+    if (priceLists.isEmpty) return current;
     final currentName = current?['name']?.toString().trim() ?? '';
-    if (currentName.isNotEmpty &&
-        !PosState.isPriceListReservedIn(
-          currentName,
-          priceLists: priceLists,
-          policies: policies,
-        )) {
-      return current;
-    }
-    if (currentName.isEmpty && priceLists.isEmpty) return current;
-    return _defaultFreePriceListSelection(priceLists, policies) ?? current;
+    final defaultSelection = _defaultFreePriceListSelection(
+      priceLists,
+      policies,
+    );
+    final defaultName = defaultSelection?['name']?.toString().trim() ?? '';
+    if (defaultName.isEmpty || defaultName == currentName) return current;
+    return defaultSelection;
+  }
+
+  /// True when [name] is a list other than the POS default a free-list
+  /// purpose (Standard, Free Shipping Waiver) must use. False for no name or
+  /// when no lists are loaded, since then there is no default to compare to.
+  bool _isNonDefaultFreeList(
+    String? name, [
+    List<Map<String, dynamic>>? options,
+    List<CommercialPolicy>? policies,
+  ]) {
+    final normalized = name?.trim() ?? '';
+    if (normalized.isEmpty) return false;
+    final available = options ?? state.availablePriceLists;
+    if (available.isEmpty) return false;
+    final defaultName =
+        _defaultFreePriceListSelection(
+          available,
+          policies,
+        )?['name']?.toString().trim() ??
+        '';
+    return defaultName.isNotEmpty && defaultName != normalized;
   }
 
   bool _zeroShippingDefaultForPriceList(Map<String, dynamic>? priceList) {
