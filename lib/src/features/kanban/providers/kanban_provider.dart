@@ -7,6 +7,7 @@ import '../services/kanban_service.dart';
 import '../services/notification_polling_service.dart';
 import '../widgets/transfer_proof_logic.dart'
     show ReceiptLookupFailure, classifyReceiptLookupError;
+import 'dispatch_outcome.dart';
 import '../../../core/constants/ws_events.dart';
 import '../../../core/network/dio_provider.dart'; // shared Dio instance
 import '../../../core/network/frappe_error_message.dart';
@@ -641,9 +642,19 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     if (card == null) return;
     final outKey = _stateKey('Out For Delivery');
     final shippingAmt = (payload['shipping_amount'] ?? card.shippingExpense);
+    // Not every dispatch collects the money any more. An order paid by bank
+    // transfer, and one taken on account, both go out while the customer still
+    // owes — see `dispatch_outcome.dart`. Stamping those Paid here showed the
+    // floor a collected order until the next board reload, which is the same
+    // thing the backend fix stopped doing to the ledger.
+    final leftUnpaid = dispatchLeftInvoiceUnpaid(payload);
+    final awaitsTransfer = dispatchAwaitsTransfer(payload);
     final updated = card.copyWith(
       status: 'Out For Delivery',
-      docStatus: 'Paid',
+      docStatus: leftUnpaid ? docStatusAfterUnpaidDispatch(card.docStatus) : 'Paid',
+      paymentConfirmationStatus: awaitsTransfer
+          ? 'Awaiting Payment'
+          : card.paymentConfirmationStatus,
       shippingExpense: (shippingAmt is num ? shippingAmt.toDouble() : card.shippingExpense),
       courier: payload['display_name'] ?? payload['courier'] ?? card.courier,
       settlementMode: payload['mode'] ?? payload['settlement'] ?? card.settlementMode,
@@ -664,6 +675,15 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     current[outKey] = dest;
     final ti = Set<String>.from(state.transitioningInvoices)..remove(invoiceId);
     state = state.copyWith(invoices: _sortReceivedColumn(current), transitioningInvoices: ti);
+    if (awaitsTransfer) {
+      // The server did more than move the card: it also corrected the order's
+      // declared payment method to the receipt's (a Woo order reaches dispatch
+      // labelled Cash however the customer paid), and the response carries no
+      // method to copy. Pull the row rather than guess it — this is the same
+      // reconcile the InstaPay dispatch path does, and it only runs for the
+      // rare order that carries a transfer screenshot.
+      unawaited(refreshSingle(invoiceId));
+    }
   }
 
   /// The column a card currently occupies, or null when it is not on the board.

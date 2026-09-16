@@ -101,6 +101,31 @@ class _FakeKanbanService extends KanbanService {
     };
   }
 
+  /// What the dispatch endpoint answers. The backend picks the shape: an order
+  /// carrying a transfer screenshot comes back `unpaid_online_deliver_unconfirmed`
+  /// rather than as a collected cash order.
+  Map<String, dynamic> ofdResponse = const {'success': true, 'mode': 'settle_later'};
+  Map<String, dynamic>? lastOfdRequest;
+
+  @override
+  Future<Map<String, dynamic>> handleOutForDeliveryTransition({
+    required String invoiceName,
+    required String courier,
+    required String mode,
+    required String posProfile,
+    required String idempotencyToken,
+    String? partyType,
+    String? party,
+  }) async {
+    lastOfdRequest = {
+      'invoice': invoiceName,
+      'courier': courier,
+      'mode': mode,
+      'pos_profile': posProfile,
+    };
+    return Map<String, dynamic>.from(ofdResponse);
+  }
+
   @override
   Future<KanbanFilterOptions> getKanbanFilters() async {
     return KanbanFilterOptions(
@@ -351,6 +376,25 @@ InvoiceCard _card(String id) => InvoiceCard.fromJson({
       'full_address': 'Somewhere',
       'items': const [],
     });
+InvoiceCard _unpaidCard(String id) => InvoiceCard.fromJson({
+      'name': id,
+      'invoice_id_short': id,
+      'customer_name': 'Whoever',
+      'customer': 'CUST-9',
+      'territory': 'Metro',
+      'status': 'Received',
+      'doc_status': 'Unpaid',
+      'posting_date': '2024-03-02',
+      'posting_time': '10:00:00',
+      'creation': '2024-03-02 10:00:00',
+      'grand_total': 480,
+      'net_total': 480,
+      'outstanding_amount': 480,
+      'total_taxes_and_charges': 0,
+      'payment_method': 'Cash',
+      'full_address': 'Somewhere',
+      'items': const [],
+    });
 Future<void> _waitForInvoiceReloadDebounce() =>
     Future<void>.delayed(const Duration(milliseconds: 600));
 
@@ -391,6 +435,118 @@ void main() {
       expect(received, hasLength(2));
       expect(received!.first.id, 'INV-NEW');
       expect(received.last.id, 'INV-OLD');
+    });
+
+    /// Serve one board on the first fetch and an empty one afterwards.
+    ///
+    /// The second fetch is the reconcile that a transfer dispatch kicks off;
+    /// answering it with a board that no longer holds the card makes
+    /// `refreshSingle` a no-op, so what these tests assert is the optimistic
+    /// patch itself rather than the server's later correction of it.
+    var boardIsEmpty = false;
+    void serveBoardOnce(InvoiceCard card) {
+      boardIsEmpty = false;
+      service.fetchInvoicesGate = (_) {
+        final gate = Completer<Map<String, List<InvoiceCard>>>();
+        gate.complete(boardIsEmpty
+            ? {'received': const <InvoiceCard>[], 'out_for_delivery': const <InvoiceCard>[]}
+            : {'received': [card], 'out_for_delivery': const <InvoiceCard>[]});
+        return gate;
+      };
+    }
+
+    InvoiceCard? cardInColumn(String column, String id) {
+      final list = container.read(kanbanProvider).invoices[column] ?? const <InvoiceCard>[];
+      for (final c in list) {
+        if (c.id == id) return c;
+      }
+      return null;
+    }
+
+    test('a dispatch that collected the money still marks the card paid', () async {
+      serveBoardOnce(_unpaidCard('INV-CASH'));
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      service.ofdResponse = const {
+        'success': true,
+        'mode': 'settle_later',
+        'shipping_amount': 25,
+      };
+      boardIsEmpty = true; // the reconcile fetch must not re-seed the card
+      await notifier.outForDeliveryUnified(
+        invoiceId: 'INV-CASH',
+        courier: 'HR-EMP-1',
+        mode: 'later',
+        posProfile: 'Dokki',
+      );
+      await _flushMicrotasks();
+
+      final card = cardInColumn('out_for_delivery', 'INV-CASH');
+      expect(card, isNotNull);
+      expect(card!.docStatus, 'Paid');
+      expect(card.isAwaitingOnlinePayment, isFalse);
+    });
+
+    test('a transfer dispatch leaves the card unpaid and awaiting the transfer', () async {
+      // The card used to claim Paid the moment the order went out, for an order
+      // whose money is still in the customer's bank until a manager confirms
+      // the screenshot -- the same lie the backend stopped telling the ledger.
+      serveBoardOnce(_unpaidCard('INV-TRANSFER'));
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      service.ofdResponse = const {
+        'success': true,
+        'mode': 'unpaid_online_deliver_unconfirmed',
+        'payment_confirmation_status': 'Awaiting Payment',
+        'shipping_amount': 25,
+      };
+      boardIsEmpty = true; // the reconcile fetch must not re-seed the card
+      await notifier.outForDeliveryUnified(
+        invoiceId: 'INV-TRANSFER',
+        courier: 'HR-EMP-1',
+        mode: 'later',
+        posProfile: 'Dokki',
+      );
+      await _flushMicrotasks();
+
+      final card = cardInColumn('out_for_delivery', 'INV-TRANSFER');
+      expect(card, isNotNull, reason: 'the card still moves to Out For Delivery');
+      expect(card!.docStatus, 'Unpaid');
+      expect(card.isFullyPaid, isFalse);
+      expect(card.isAwaitingOnlinePayment, isTrue);
+    });
+
+    test('an on-account dispatch leaves the card unpaid without queueing a transfer',
+        () async {
+      serveBoardOnce(_unpaidCard('INV-CREDIT'));
+      final notifier = container.read(kanbanProvider.notifier);
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+
+      service.ofdResponse = const {
+        'success': true,
+        'mode': 'credit_deliver_on_account',
+        'payment_confirmation_status': null,
+      };
+      boardIsEmpty = true; // the reconcile fetch must not re-seed the card
+      await notifier.outForDeliveryUnified(
+        invoiceId: 'INV-CREDIT',
+        courier: 'HR-EMP-1',
+        mode: 'later',
+        posProfile: 'Dokki',
+      );
+      await _flushMicrotasks();
+
+      final card = cardInColumn('out_for_delivery', 'INV-CREDIT');
+      expect(card, isNotNull);
+      expect(card!.docStatus, 'Unpaid');
+      // Not awaiting: a credit order owes no transfer, and flagging one would
+      // park it in the manager's reconciliation queue for ever.
+      expect(card.isAwaitingOnlinePayment, isFalse);
     });
 
     test('updateFilters forwards filter payload to service', () async {
@@ -643,6 +799,34 @@ void main() {
       final card = state.invoices['received']!.firstWhere((entry) => entry.id == 'INV-OLD');
       expect(card.latestNote, 'Second note');
       expect(card.latestNotePreview, 'Second note');
+    });
+
+    test('realtime out-for-delivery transition keeps a transfer order unpaid', () async {
+      // The realtime event and the API response are handled by the SAME patch,
+      // so a dispatch made on another device must not mark this board's card
+      // Paid either. The socket forwards the backend payload verbatim.
+      serveBoardOnce(_unpaidCard('INV-WS-TRANSFER'));
+      final notifier = container.read(kanbanProvider.notifier);
+      final ws = container.read(webSocketServiceProvider) as _FakeWebSocketService;
+      await notifier.loadKanbanData();
+      await _flushMicrotasks();
+      boardIsEmpty = true; // the reconcile fetch must not re-seed the card
+
+      ws._kanbanController.add({
+        'event': 'jarz_pos_out_for_delivery_transition',
+        'invoice': 'INV-WS-TRANSFER',
+        'invoice_id': 'INV-WS-TRANSFER',
+        'mode': 'unpaid_online_deliver_unconfirmed',
+        'payment_confirmation_status': 'Awaiting Payment',
+        'courier_transaction': 'CT-1',
+        'shipping_amount': 25,
+      });
+      await _flushMicrotasks();
+
+      final card = cardInColumn('out_for_delivery', 'INV-WS-TRANSFER');
+      expect(card, isNotNull);
+      expect(card!.docStatus, 'Unpaid');
+      expect(card.isAwaitingOnlinePayment, isTrue);
     });
 
     test('realtime invoice_note_added updates card badge count without reload', () async {
