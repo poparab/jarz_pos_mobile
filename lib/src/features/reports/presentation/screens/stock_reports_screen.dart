@@ -250,6 +250,9 @@ class _FinalProductsTable extends StatelessWidget {
     final totalStyle = theme.textTheme.bodySmall?.copyWith(
       fontWeight: FontWeight.bold,
     );
+    final negativeStyle = cellStyle?.copyWith(color: theme.colorScheme.error);
+    final negativeTotalStyle =
+        totalStyle?.copyWith(color: theme.colorScheme.error);
 
     return LayoutBuilder(builder: (context, constraints) {
       final viewportWidth = constraints.maxWidth.isFinite
@@ -324,18 +327,21 @@ class _FinalProductsTable extends StatelessWidget {
                 )),
                 ...warehouses.map((wh) {
                   final qty = (whQty[wh] as num?)?.toDouble() ?? 0;
-                  final formattedQty = qty > 0 ? _formatQty(qty) : '-';
+                  // A negative bin is stock the branch has oversold. It used to
+                  // collapse to the same '-' as an empty cell, which is the one
+                  // reading that hides it.
+                  final formattedQty = qty != 0 ? _formatQty(qty) : '-';
                   return DataCell(_buildNumericCell(
                     text: formattedQty,
                     width: dataColWidth,
-                    style: cellStyle,
+                    style: qty < 0 ? negativeStyle : cellStyle,
                     tooltip: '${_shortWarehouse(wh)}: $formattedQty',
                   ));
                 }),
                 DataCell(_buildNumericCell(
                   text: _formatQty(total),
                   width: dataColWidth,
-                  style: totalStyle,
+                  style: total < 0 ? negativeTotalStyle : totalStyle,
                   tooltip: '${l10n.reportsTotal}: ${_formatQty(total)}',
                 )),
               ]);
