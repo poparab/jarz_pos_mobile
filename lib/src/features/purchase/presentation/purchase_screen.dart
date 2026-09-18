@@ -85,6 +85,12 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   int _itemSearchToken = 0;
   List<Map<String, dynamic>> _items = const [];
   bool _itemsLoading = true;
+  // The server returns the catalogue a page at a time. Without these the list
+  // stopped at the first 20 items A–Z, so anything from "C" onwards could only
+  // be reached by typing its name — and looked missing to anyone scrolling.
+  int _itemsPage = 0;
+  bool _itemsHasMore = false;
+  bool _itemsLoadingMore = false;
 
   static String _newIdempotencyKey() =>
       'pi-${DateTime.now().microsecondsSinceEpoch}-${identityHashCode(DateTime.now())}';
@@ -131,19 +137,59 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     // Monotonic token: a slow response for "ah" must not overwrite the results
     // already shown for "ahmed".
     final token = ++_itemSearchToken;
-    if (mounted) setState(() => _itemsLoading = true);
+    if (mounted) {
+      setState(() {
+        _itemsLoading = true;
+        _itemsLoadingMore = false;
+      });
+    }
     try {
       final results = await ref.read(purchaseServiceProvider).searchItems(query);
       if (!mounted || token != _itemSearchToken) return;
       setState(() {
         _items = results;
+        _itemsPage = 0;
+        _itemsHasMore = results.length >= kItemSearchPageSize;
         _itemsLoading = false;
       });
     } catch (_) {
       if (!mounted || token != _itemSearchToken) return;
       setState(() {
         _items = const [];
+        _itemsPage = 0;
+        _itemsHasMore = false;
         _itemsLoading = false;
+      });
+    }
+  }
+
+  /// Appends the next page of the current search. Shares [_itemSearchToken]
+  /// with [_runItemSearch], so a page that lands after the query changed is
+  /// dropped instead of being glued onto the new results.
+  Future<void> _loadMoreItems() async {
+    if (!_itemsHasMore || _itemsLoading || _itemsLoadingMore) return;
+    final token = _itemSearchToken;
+    final nextPage = _itemsPage + 1;
+    setState(() => _itemsLoadingMore = true);
+    try {
+      final results = await ref
+          .read(purchaseServiceProvider)
+          .searchItems(itemQuery, page: nextPage);
+      if (!mounted || token != _itemSearchToken) return;
+      setState(() {
+        _items = [..._items, ...results];
+        _itemsPage = nextPage;
+        _itemsHasMore = results.length >= kItemSearchPageSize;
+        _itemsLoadingMore = false;
+      });
+    } catch (_) {
+      if (!mounted || token != _itemSearchToken) return;
+      // Keep what is already listed and stop paging: the footer row fetches on
+      // build, so leaving "has more" set would retry in a tight loop while the
+      // server is down. Typing a search starts paging again.
+      setState(() {
+        _itemsLoadingMore = false;
+        _itemsHasMore = false;
       });
     }
   }
@@ -1181,9 +1227,28 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     if (_items.isEmpty) return Center(child: Text(l10n.commonNoItems));
 
     return ListView.separated(
-      itemCount: _items.length,
+      // One extra row at the end while more pages exist: building it is what
+      // fetches the next page, so it also fires when the first page is too
+      // short to scroll at all.
+      itemCount: _items.length + (_itemsHasMore ? 1 : 0),
       separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (ctx, i) {
+        if (i >= _items.length) {
+          if (!_itemsLoadingMore) {
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => _loadMoreItems());
+          }
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
         final itemL10n = ctx.l10n;
         final it = _items[i];
         final code = it['item_code'];

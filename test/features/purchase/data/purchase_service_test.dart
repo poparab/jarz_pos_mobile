@@ -101,6 +101,22 @@ void main() {
         final requests = mockDio.requestLog;
         expect(requests.first['data']['search'], equals('laptop'));
       });
+
+      test('asks for the first page by default and a later page on request',
+          () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.purchase.search_items',
+          {'message': []},
+        );
+
+        await service.searchItems('');
+        await service.searchItems('', page: 2);
+
+        final requests = mockDio.requestLog;
+        expect(requests[0]['data']['page'], equals(0));
+        expect(requests[0]['data']['limit'], equals(kItemSearchPageSize));
+        expect(requests[1]['data']['page'], equals(2));
+      });
     });
 
     group('getItemDetails', () {

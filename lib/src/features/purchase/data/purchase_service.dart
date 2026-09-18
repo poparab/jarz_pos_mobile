@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/constants/api_endpoints.dart';
 
+/// Rows per item-search page. The server clamps anything above 100.
+const int kItemSearchPageSize = 20;
+
 final purchaseServiceProvider = Provider<PurchaseService>((ref) {
   final dio = ref.watch(dioProvider);
   return PurchaseService(dio);
@@ -38,10 +41,17 @@ class PurchaseService {
     return [];
   }
 
-  Future<List<Map<String, dynamic>>> searchItems(String search) async {
+  /// One page of purchasable items, A–Z. The server caps a page at [limit]
+  /// rows, so a caller that wants the whole catalogue has to ask for the next
+  /// [page] — a short page is the end of the list.
+  Future<List<Map<String, dynamic>>> searchItems(
+    String search, {
+    int page = 0,
+    int limit = kItemSearchPageSize,
+  }) async {
     final resp = await _dio.post(
       ApiEndpoints.searchItems,
-      data: {'search': search},
+      data: {'search': search, 'page': page, 'limit': limit},
     );
     final payload = resp.data;
     if (payload is Map && payload['message'] is List) {
