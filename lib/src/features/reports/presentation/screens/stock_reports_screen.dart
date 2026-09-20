@@ -602,7 +602,14 @@ class _CompactItemGrid extends StatelessWidget {
                         '${_formatQty(totalQty)} $stockUom',
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSecondaryContainer,
+                          // An oversold material now reaches this card at all
+                          // (the backend counted only positive bins before), so
+                          // it has to read as a problem rather than as a small
+                          // number. Same treatment the Final Products table
+                          // already gives a negative.
+                          color: totalQty < 0
+                              ? theme.colorScheme.error
+                              : theme.colorScheme.onSecondaryContainer,
                         ),
                       ),
                     ),
@@ -615,7 +622,9 @@ class _CompactItemGrid extends StatelessWidget {
                           child: Text(
                             '${_shortWarehouse(e.key)}: ${_formatQty(qty)}',
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                              color: qty < 0
+                                  ? theme.colorScheme.error
+                                  : theme.colorScheme.onSurfaceVariant,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
