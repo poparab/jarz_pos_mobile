@@ -12,6 +12,39 @@ if (appBasePath.endsWith('/push/')) {
   appBasePath = appBasePath.slice(0, -'push/'.length);
 }
 
+// One definition of the tag and the click target for BOTH handlers below (the
+// FCM onBackgroundMessage path and the standard VAPID push path), because they
+// must agree: a tag REPLACES the notification already on screen, so if the two
+// handlers disagree a browser served by both shows one entry or two depending
+// on which fired.
+//
+// The tag must be per-EVENT, not per-type. It used to fall back to data.type
+// when there was no invoice_id, which is identical for every expense approval:
+// the second pending request silently replaced the first in the tray, and a
+// manager answered one of two. notification_id is set by every payload builder
+// and equals invoice_id on the invoice paths, so this changes nothing there.
+function notificationTagFor(data) {
+  return data.invoice_id || data.notification_id || data.type || 'jarz_pos';
+}
+
+// A "?notification=<id>" URL means "an INVOICE is waiting" -- the app hands that id
+// straight to the POS order-alert path. Sending an expense name through it
+// dropped the manager on the till with a JEXP- id masquerading as an invoice,
+// so only invoice types may use it.
+//
+// Approvals deep-link to the expenses screen through the fragment: this app
+// does not install Flutter's path URL strategy, so its routes live after a
+// '#', and '<base>expenses' would be a 404 on the server.
+function notificationUrlFor(data) {
+  if (data.type === 'expense_approval_required') {
+    return `${appBasePath}#/expenses`;
+  }
+  const invoiceId = data.invoice_id || '';
+  return invoiceId
+    ? `${appBasePath}?notification=${encodeURIComponent(invoiceId)}`
+    : appBasePath;
+}
+
 try {
   importScripts('firebase-web-config.js');
 } catch (error) {
@@ -47,20 +80,15 @@ if (typeof JARZ_FIREBASE_WEB_CONFIG !== 'undefined') {
 
       const title = data.title || notification.title || 'Jarz POS';
       const body = data.body || notification.body || 'New POS update';
-      const invoiceId = data.invoice_id || data.notification_id || '';
+      const invoiceId = data.invoice_id || '';
       const type = data.type || 'pos_update';
 
       self.registration.showNotification(title, {
         body,
         icon: `${appBasePath}icons/Icon-192.png`,
         badge: `${appBasePath}icons/Icon-192.png`,
-        tag: invoiceId || type,
-        data: {
-          ...data,
-          url: invoiceId
-            ? `${appBasePath}?notification=${encodeURIComponent(invoiceId)}`
-            : appBasePath,
-        },
+        tag: notificationTagFor(data),
+        data: { ...data, url: notificationUrlFor(data) },
         requireInteraction: type === 'new_invoice',
       });
     });
@@ -82,19 +110,16 @@ self.addEventListener('push', (event) => {
 
   const title = data.title || 'Jarz POS';
   const body = data.body || 'New order received';
-  const invoiceId = data.invoice_id || '';
-  const notifUrl = invoiceId
-    ? `${appBasePath}?notification=${encodeURIComponent(invoiceId)}`
-    : appBasePath;
+  const notifUrl = notificationUrlFor(data);
 
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
       icon: `${appBasePath}icons/Icon-192.png`,
       badge: `${appBasePath}icons/Icon-192.png`,
-      tag: invoiceId || data.type || 'jarz_pos',
+      tag: notificationTagFor(data),
       requireInteraction: data.type === 'new_invoice',
-      data: { url: notifUrl, ...data },
+      data: { ...data, url: notifUrl },
     })
   );
 });

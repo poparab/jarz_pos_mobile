@@ -504,7 +504,9 @@ class OrderAlertBridge {
         // already has the expenses screen open: without this the new request
         // would not appear until they pulled to refresh, and the push would
         // point at a list that does not show it.
-        unawaited(_refreshPendingExpenses());
+        unawaited(
+          _refreshPendingExpenses(expenseMonth: data['expense_month']?.toString()),
+        );
         if (openedApp) {
           _navigateToExpenses();
         }
@@ -521,12 +523,24 @@ class OrderAlertBridge {
   /// nobody has opened would fire the manager-only endpoint on every device
   /// that receives the push, including one whose user cannot see expenses at
   /// all — an error toast for a screen they never asked for.
-  Future<void> _refreshPendingExpenses() async {
+  ///
+  /// [expenseMonth] is the month the request is FILED under, which is not
+  /// always the current one: a request dated 31 Aug and entered on 1 Sept lives
+  /// in 2026-08. A plain refresh reloads whatever month is selected, so without
+  /// this the manager is taken to a list that provably does not contain the
+  /// request they were just told about.
+  Future<void> _refreshPendingExpenses({String? expenseMonth}) async {
     try {
       if (!_ref.read(expensesNotifierProvider).initialized) {
         return;
       }
-      await _ref.read(expensesNotifierProvider.notifier).refresh();
+      final notifier = _ref.read(expensesNotifierProvider.notifier);
+      final month = expenseMonth?.trim() ?? '';
+      if (month.isNotEmpty) {
+        await notifier.setMonth(month);
+      } else {
+        await notifier.refresh();
+      }
     } catch (error, stackTrace) {
       _logger.error('Failed to refresh expenses after approval push', error, stackTrace);
     }
@@ -568,7 +582,7 @@ class OrderAlertBridge {
       // point of the notification, so go there rather than dropping the
       // manager on whatever screen they left open.
       _logger.info('Launch payload expense_approval_required: ${payload['expense_id']}');
-      unawaited(_refreshPendingExpenses());
+      unawaited(_refreshPendingExpenses(expenseMonth: payload['expense_month']));
       _navigateToExpenses();
     }
   }

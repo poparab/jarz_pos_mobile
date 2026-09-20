@@ -35,6 +35,17 @@ class JarzFirebaseMessagingService : FlutterFirebaseMessagingService() {
                 "shift_started", "shift_ended" -> {
                     OrderAlertNative.showShiftNotification(applicationContext, data)
                 }
+                // onMessageReceived runs for a FOREGROUND message, and the SDK
+                // deliberately draws no tray entry in that case -- so without
+                // this branch a manager with the app open (the normal state for
+                // a manager on the floor) got no notification, no sound and no
+                // badge for an expense waiting on them. Exactly the silence the
+                // feature exists to end. Backgrounded, this method is not
+                // called and the SDK renders the notification block instead, so
+                // there is one entry either way and never two.
+                "expense_approval_required" -> {
+                    OrderAlertNative.showApprovalNotification(applicationContext, data)
+                }
             }
         }
         super.onMessageReceived(remoteMessage)

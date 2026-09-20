@@ -45,6 +45,7 @@ object OrderAlertNative {
     // gets the approval on the order channel, which is loud but visible; it
     // moves to this one as soon as the new APK is installed.
     private const val APPROVAL_CHANNEL_ID = "jarz_approvals"
+    private const val APPROVAL_NOTIFICATION_ID = 4030
     private const val ORDER_NOTIFICATION_SOUND_RESOURCE = "jarz_order_alert_notification"
 
     // Mute state is mirrored here from Dart because the FCM service starts the
@@ -399,6 +400,53 @@ object OrderAlertNative {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentTitle(title)
             .setContentText(body)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setShowWhen(true)
+
+        NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+    }
+
+    fun showApprovalNotification(context: Context, data: Map<String, String>) {
+        ensureApprovalChannel(context)
+
+        // Keyed on the request id, so two pending expenses are two tray
+        // entries. Using a single constant id here would reproduce, in the
+        // native path, exactly the collapse the FCM tag was changed to avoid.
+        val requestId = data["notification_id"] ?: data["expense_id"] ?: ""
+        val notificationId = if (requestId.isNotEmpty()) {
+            APPROVAL_NOTIFICATION_ID + (requestId.hashCode() and 0x0000FFFF)
+        } else {
+            APPROVAL_NOTIFICATION_ID
+        }
+
+        val title = data["title"] ?: "Approval needed"
+        val body = data["body"] ?: ""
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            // Carried so the tap reaches _handleLaunchPayload with enough to
+            // route to the expenses screen and land on the right month.
+            putExtra("type", data["type"] ?: "expense_approval_required")
+            putExtra("expense_id", data["expense_id"] ?: "")
+            putExtra("expense_month", data["expense_month"] ?: "")
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            notificationId,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val builder = NotificationCompat.Builder(context, APPROVAL_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setShowWhen(true)
