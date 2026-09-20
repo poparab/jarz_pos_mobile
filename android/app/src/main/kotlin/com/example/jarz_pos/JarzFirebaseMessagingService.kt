@@ -4,6 +4,16 @@ import com.google.firebase.messaging.RemoteMessage
 import io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService
 
 class JarzFirebaseMessagingService : FlutterFirebaseMessagingService() {
+    // A message carrying a notification block while the app is backgrounded is
+    // rendered by the SDK from handleIntent, which never calls
+    // onMessageReceived below -- so preparing the channels there alone is too
+    // late for exactly the case that matters. The service is still constructed
+    // to handle the intent, so onCreate is the earliest point that always runs.
+    override fun onCreate() {
+        super.onCreate()
+        OrderAlertNative.prepareNotificationChannels(applicationContext)
+    }
+
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         OrderAlertNative.prepareNotificationChannels(applicationContext)
         val data = remoteMessage.data

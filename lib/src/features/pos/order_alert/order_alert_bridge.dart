@@ -14,6 +14,7 @@ import '../../../core/utils/logger.dart';
 import '../../../core/network/session_expired_signal.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/websocket/websocket_service.dart';
+import '../../expenses/state/expenses_notifier.dart';
 import '../state/pos_notifier.dart';
 import 'data/order_alert_service.dart';
 import 'domain/invoice_alert.dart';
@@ -493,9 +494,50 @@ class OrderAlertBridge {
         // Android shows the FCM notification automatically (it has title/body in the data payload)
         // No additional in-app handling needed — the native notification is sufficient
         break;
+      case 'expense_approval_required':
+        _logger.info(
+          'FCM expense approval: ${data['expense_id']} '
+          'from ${data['requested_by_name']} for ${data['amount']}',
+        );
+        // The tray entry is drawn by the SDK from the notification block, so
+        // nothing has to be rendered here. What does matter is the manager who
+        // already has the expenses screen open: without this the new request
+        // would not appear until they pulled to refresh, and the push would
+        // point at a list that does not show it.
+        unawaited(_refreshPendingExpenses());
+        if (openedApp) {
+          _navigateToExpenses();
+        }
+        break;
       default:
         _logger.debug('Ignored push message of type $type');
     }
+  }
+
+  /// Pull the expenses list again so a screen that is already open shows the
+  /// request the push just announced.
+  ///
+  /// Only when the list has been loaded once. Calling  on a notifier
+  /// nobody has opened would fire the manager-only endpoint on every device
+  /// that receives the push, including one whose user cannot see expenses at
+  /// all — an error toast for a screen they never asked for.
+  Future<void> _refreshPendingExpenses() async {
+    try {
+      if (!_ref.read(expensesNotifierProvider).initialized) {
+        return;
+      }
+      await _ref.read(expensesNotifierProvider.notifier).refresh();
+    } catch (error, stackTrace) {
+      _logger.error('Failed to refresh expenses after approval push', error, stackTrace);
+    }
+  }
+
+  void _navigateToExpenses() {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null) {
+      return;
+    }
+    GoRouter.of(context).go(AppRoutes.expenses);
   }
 
   void _handleLaunchPayload(Map<String, String> payload) {
@@ -521,6 +563,13 @@ class OrderAlertBridge {
           await controller.syncPendingAlerts();
         });
       }
+    } else if (type == 'expense_approval_required') {
+      // Tapped from the tray while the app was dead. The list is the whole
+      // point of the notification, so go there rather than dropping the
+      // manager on whatever screen they left open.
+      _logger.info('Launch payload expense_approval_required: ${payload['expense_id']}');
+      unawaited(_refreshPendingExpenses());
+      _navigateToExpenses();
     }
   }
 

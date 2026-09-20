@@ -27,6 +27,24 @@ object OrderAlertNative {
     private const val MAX_EXPANDED_ITEM_LINES = 4
     const val CHANNEL_ID = "jarz_order_alerts"
     private const val SHIFT_CHANNEL_ID = "jarz_shift_updates"
+
+    // Things waiting on a manager's decision (expense approvals today).
+    //
+    // Its own channel rather than CHANNEL_ID: "Order Alerts" bypasses Do Not
+    // Disturb and plays the order-alarm tone, which is right for a customer at
+    // the counter and wrong for an expense that can be answered in the morning.
+    // Separate channels are also the only way a manager can silence one without
+    // silencing the other.
+    //
+    // IMPORTANCE_HIGH so it heads-up: a pending approval is a cashier who
+    // cannot finish what they are doing.
+    //
+    // An install that predates this channel is not left silent -- FCM falls
+    // back to the manifest's default_notification_channel_id (jarz_order_alerts)
+    // when a message names a channel the app has not created. Such a device
+    // gets the approval on the order channel, which is loud but visible; it
+    // moves to this one as soon as the new APK is installed.
+    private const val APPROVAL_CHANNEL_ID = "jarz_approvals"
     private const val ORDER_NOTIFICATION_SOUND_RESOURCE = "jarz_order_alert_notification"
 
     // Mute state is mirrored here from Dart because the FCM service starts the
@@ -52,6 +70,7 @@ object OrderAlertNative {
     fun prepareNotificationChannels(context: Context) {
         ensureChannel(context, recreateIfSoundChanged = true)
         ensureShiftChannel(context)
+        ensureApprovalChannel(context)
     }
 
     private fun prefs(context: Context) =
@@ -385,6 +404,23 @@ object OrderAlertNative {
             .setShowWhen(true)
 
         NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+    }
+
+    private fun ensureApprovalChannel(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val existing = manager.getNotificationChannel(APPROVAL_CHANNEL_ID)
+            if (existing == null) {
+                val channel = NotificationChannel(
+                    APPROVAL_CHANNEL_ID,
+                    "Approvals",
+                    NotificationManager.IMPORTANCE_HIGH,
+                )
+                channel.description = "Requests waiting for a manager's approval"
+                channel.enableVibration(true)
+                manager.createNotificationChannel(channel)
+            }
+        }
     }
 
     private fun ensureShiftChannel(context: Context) {

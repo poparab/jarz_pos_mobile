@@ -38,6 +38,11 @@ abstract final class WsEvents {
   static const shiftStarted = 'jarz_pos_shift_started';
   static const shiftEnded = 'jarz_pos_shift_ended';
 
+  // ── Approvals ─────────────────────────────────────────────────────────
+  /// A Jarz Expense Request is waiting for a JARZ Manager's decision.
+  static const expenseApprovalRequested =
+      'jarz_pos_expense_approval_requested';
+
   // ── Courier app (COURIER_CONTRACTS.md §7 — frozen 2026-08-05) ──────────
   static const courierStopArrived = 'jarz_pos_courier_stop_arrived';
   static const courierStopDelivered = 'jarz_pos_courier_stop_delivered';
