@@ -123,7 +123,27 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   }
 
   void _onItemQueryChanged(String value) {
-    setState(() => itemQuery = value);
+    setState(() {
+      itemQuery = value;
+      // Invalidate any page load already in flight, and stop the footer row
+      // starting another one, the MOMENT the query text changes.
+      //
+      // itemQuery updates synchronously on every keystroke but the token only
+      // moved 300ms later, when the debounce fired _runItemSearch. In that gap
+      // the setState rebuilt the list, the footer row built and post-frame
+      // called _loadMoreItems, which read the NEW itemQuery and the OLD token
+      // -- so page 1 of "choc" was appended to page 0 of the unfiltered
+      // catalogue and the token check let it through. The buyer saw 20
+      // unrelated items followed by "choc" matches 21-40, with 1-20 missing.
+      // It healed when the debounce landed, which is why it read as a flicker
+      // rather than a bug.
+      //
+      // _itemsHasMore as well as the token: the token alone would discard the
+      // response but still issue the request. _runItemSearch sets both again
+      // from the new query's first page.
+      _itemSearchToken++;
+      _itemsHasMore = false;
+    });
     _itemDebounce?.cancel();
     // One request per keystroke was the previous behaviour; 300ms of quiet
     // turns a typed word into roughly two calls instead of twenty.
