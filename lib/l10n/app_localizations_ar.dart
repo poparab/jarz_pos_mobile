@@ -13285,4 +13285,169 @@ class AppLocalizationsAr extends AppLocalizations {
   String approvalsMenuBadgeSemantics(int count) {
     return 'القائمة: $count حاجة مستنية تصرفك';
   }
+
+  @override
+  String b2bBranchesTitleCount(int count) {
+    return 'الفروع ($count)';
+  }
+
+  @override
+  String get b2bAddBranch => 'ضيف فرع';
+
+  @override
+  String get b2bNoBranches => 'لسه مفيش فروع.';
+
+  @override
+  String b2bBranchInvoiceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فاتورة',
+      many: '$count فاتورة',
+      few: '$count فواتير',
+      two: 'فاتورتين',
+      one: 'فاتورة واحدة',
+      zero: 'مفيش فواتير',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String b2bBilledAmount(String amount) {
+    return 'اتحاسب $amount';
+  }
+
+  @override
+  String b2bOutstandingAmount(String amount) {
+    return 'متبقي $amount';
+  }
+
+  @override
+  String b2bLastOrderOn(String date) {
+    return 'آخر طلب $date';
+  }
+
+  @override
+  String get b2bNoOrdersYet => 'لسه مفيش طلبات';
+
+  @override
+  String get b2bOpenBranchMap => 'افتح على الخريطة';
+
+  @override
+  String get b2bPrimaryBranch => 'الأساسي';
+
+  @override
+  String get b2bTerritoryMissing => 'مفيش منطقة توصيل';
+
+  @override
+  String get b2bUnassignedInvoices => 'فواتير مش متسجلة على فرع';
+
+  @override
+  String get b2bUnassignedInvoicesHint => 'فواتير مش مطابقة لعنوان أي فرع';
+
+  @override
+  String get b2bUnassignedShort => 'من غير فرع';
+
+  @override
+  String get b2bViewAllInvoices => 'كل الفواتير';
+
+  @override
+  String get b2bInvoicesTitle => 'الفواتير';
+
+  @override
+  String get b2bFilterAllBranches => 'كل الفروع';
+
+  @override
+  String get b2bSummaryInvoices => 'الفواتير';
+
+  @override
+  String get b2bSummaryBilled => 'إجمالي المحاسبة';
+
+  @override
+  String get b2bSummaryOutstanding => 'المتبقي';
+
+  @override
+  String get b2bNoInvoicesForSelection => 'مفيش فواتير للاختيار ده.';
+
+  @override
+  String b2bInvoicesTruncated(int count) {
+    return 'بيظهر أول $count فاتورة بس.';
+  }
+
+  @override
+  String get b2bInvoiceReturn => 'مرتجع';
+
+  @override
+  String get b2bMergeMenuItem => 'ضيف حساب تاني كفرع…';
+
+  @override
+  String get b2bMergeSearchTitle => 'ضيف حساب كفرع';
+
+  @override
+  String get b2bMergeSearchHint => 'دوّر على الحسابات بالاسم أو الموبايل';
+
+  @override
+  String get b2bMergeNoCandidates => 'مفيش حسابات مطابقة.';
+
+  @override
+  String get b2bMergeDoctypeLead => 'عميل محتمل';
+
+  @override
+  String get b2bMergeDoctypeCustomer => 'عميل';
+
+  @override
+  String b2bMergeLinkedCustomer(String customer) {
+    return 'العميل المربوط: $customer';
+  }
+
+  @override
+  String get b2bMergeConfirmTitle => 'دمج كفرع';
+
+  @override
+  String b2bMergeBecomesBranch(String source, String target) {
+    return '$source هيبقى فرع من $target.';
+  }
+
+  @override
+  String b2bMergeSwap(String name) {
+    return 'خلّي $name هو الأساسي';
+  }
+
+  @override
+  String b2bMergeSourceCustomer(String name) {
+    return 'العميل اللي هيتدمج: $name';
+  }
+
+  @override
+  String b2bMergeTargetCustomer(String name) {
+    return 'العميل الأساسي: $name';
+  }
+
+  @override
+  String get b2bMergeWarningsTitle => 'قبل ما تدمج';
+
+  @override
+  String get b2bMergeWarningIrreversible =>
+      'دمج حسابين عملاء مينفعش يترجع فيه. كل الفواتير والمدفوعات هتتنقل للعميل الأساسي.';
+
+  @override
+  String get b2bMergeWarningCredit =>
+      'شروط الآجل بتاعة الحساب المدموج هتتنقل معاه.';
+
+  @override
+  String get b2bMergeBlockedTitle => 'الدمج ده مينفعش يتعمل';
+
+  @override
+  String get b2bMergeBranchNameLabel => 'اسم الفرع';
+
+  @override
+  String get b2bMergeManagerOnly => 'المدير بس اللي يقدر يدمج حسابين عملاء.';
+
+  @override
+  String get b2bMergeConfirm => 'ادمج';
+
+  @override
+  String b2bMergeSuccess(String source, String target) {
+    return '$source بقى فرع من $target.';
+  }
 }

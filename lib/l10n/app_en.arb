@@ -7714,5 +7714,138 @@
         "type": "int"
       }
     }
+  },
+  "b2bBranchesTitleCount": "Branches ({count})",
+  "@b2bBranchesTitleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "b2bAddBranch": "Add branch",
+  "b2bNoBranches": "No branches yet.",
+  "b2bBranchInvoiceCount": "{count, plural, =0{No invoices} =1{1 invoice} other{{count} invoices}}",
+  "@b2bBranchInvoiceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "b2bBilledAmount": "billed {amount}",
+  "@b2bBilledAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bOutstandingAmount": "outstanding {amount}",
+  "@b2bOutstandingAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bLastOrderOn": "Last order {date}",
+  "@b2bLastOrderOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bNoOrdersYet": "No orders yet",
+  "b2bOpenBranchMap": "Open on map",
+  "b2bPrimaryBranch": "Primary",
+  "b2bTerritoryMissing": "No delivery area",
+  "b2bUnassignedInvoices": "Unassigned invoices",
+  "b2bUnassignedInvoicesHint": "Invoices that match no branch address",
+  "b2bUnassignedShort": "Unassigned",
+  "b2bViewAllInvoices": "All invoices",
+  "b2bInvoicesTitle": "Invoices",
+  "b2bFilterAllBranches": "All branches",
+  "b2bSummaryInvoices": "Invoices",
+  "b2bSummaryBilled": "Total billed",
+  "b2bSummaryOutstanding": "Outstanding",
+  "b2bNoInvoicesForSelection": "No invoices for this selection.",
+  "b2bInvoicesTruncated": "Showing the first {count} invoices only.",
+  "@b2bInvoicesTruncated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "b2bInvoiceReturn": "Return",
+  "b2bMergeMenuItem": "Add another account as a branch…",
+  "b2bMergeSearchTitle": "Add an account as a branch",
+  "b2bMergeSearchHint": "Search accounts by name or phone",
+  "b2bMergeNoCandidates": "No matching accounts.",
+  "b2bMergeDoctypeLead": "Lead",
+  "b2bMergeDoctypeCustomer": "Customer",
+  "b2bMergeLinkedCustomer": "Linked customer: {customer}",
+  "@b2bMergeLinkedCustomer": {
+    "placeholders": {
+      "customer": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bMergeConfirmTitle": "Merge as a branch",
+  "b2bMergeBecomesBranch": "{source} will become a branch of {target}.",
+  "@b2bMergeBecomesBranch": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bMergeSwap": "Keep {name} instead",
+  "@b2bMergeSwap": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bMergeSourceCustomer": "Merged customer: {name}",
+  "@b2bMergeSourceCustomer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bMergeTargetCustomer": "Kept customer: {name}",
+  "@b2bMergeTargetCustomer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bMergeWarningsTitle": "Before you merge",
+  "b2bMergeWarningIrreversible": "Merging two customer accounts cannot be undone. All invoices and payments move to the kept customer.",
+  "b2bMergeWarningCredit": "The merged account’s credit terms are carried over.",
+  "b2bMergeBlockedTitle": "This merge can’t be done",
+  "b2bMergeBranchNameLabel": "Branch name",
+  "b2bMergeManagerOnly": "Only a manager can merge two customer accounts.",
+  "b2bMergeConfirm": "Merge",
+  "b2bMergeSuccess": "{source} is now a branch of {target}.",
+  "@b2bMergeSuccess": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
   }
 }

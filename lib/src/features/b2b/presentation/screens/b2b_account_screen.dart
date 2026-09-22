@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/repositories/customer_address_repository.dart';
@@ -26,8 +27,12 @@ import '../../../pricing/presentation/screens/customer_pricing_screen.dart';
 import '../../data/b2b_repository.dart';
 import '../../data/models/b2b_account_labels.dart';
 import '../../data/models/b2b_models.dart';
+import '../../state/b2b_pipeline_notifier.dart';
+import '../../state/b2b_today_notifier.dart';
 import '../b2b_order_launch.dart';
+import '../widgets/b2b_merge_branch_flow.dart';
 import '../widgets/b2b_stage_chip.dart';
+import 'b2b_branch_invoices_screen.dart';
 import '../../../../core/utils/territory_label.dart';
 
 /// B2B account detail: contact, stage, lead score, predicted next order, recent
@@ -72,7 +77,28 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.b2bAccountTitle)),
+      appBar: AppBar(
+        title: Text(context.l10n.b2bAccountTitle),
+        actions: [
+          if (canMergeAsBranch(widget.doctype))
+            PopupMenuButton<String>(
+              enabled: !_busy,
+              onSelected: (value) {
+                if (value == 'merge') unawaited(_mergeAnotherAccount());
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem<String>(
+                  value: 'merge',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.call_merge),
+                    title: Text(context.l10n.b2bMergeMenuItem),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
       body: FutureBuilder<B2bAccountDetail>(
         future: _future,
         builder: (context, snapshot) {
@@ -127,6 +153,12 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
                     ),
                   )
                 : null,
+            onAddBranch: (customer != null && customer.isNotEmpty)
+                ? () => _addBranch(account, customer)
+                : null,
+            onOpenInvoices: (customer != null && customer.isNotEmpty)
+                ? (branch) => _openInvoices(account, branch)
+                : null,
           );
         },
       ),
@@ -153,6 +185,87 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
   }
 
   bool get _isLead => widget.doctype == 'Lead';
+
+  /// Adds a named branch (a shipping Address) to the account's Customer via
+  /// the same picker the order flow uses, then reloads the branch list. The
+  /// reload runs even on cancel: the dialog saves a new branch before the
+  /// picker closes.
+  Future<void> _addBranch(B2bAccount account, String customer) async {
+    await chooseCustomerShippingAddress(
+      context,
+      customer: <String, dynamic>{
+        'name': customer,
+        'customer_name': account.title,
+        if (account.contact.mobileNo case final mobile?) 'mobile_no': mobile,
+      },
+      repository: ref.read(customerAddressRepositoryProvider),
+      forcePicker: true,
+      requireBranchName: true,
+      setAsPrimary: false,
+    );
+    if (mounted) _reload();
+  }
+
+  /// Opens the invoice list filtered to [branch] (null = every invoice).
+  Future<void> _openInvoices(B2bAccount account, String? branch) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => B2bBranchInvoicesScreen(
+          doctype: widget.doctype,
+          name: widget.name,
+          accountTitle: account.title,
+          branches: account.branches,
+          hasUnassigned: account.unassignedInvoices != null,
+          initialBranch: branch,
+        ),
+      ),
+    );
+  }
+
+  /// Folds another account into this one as a branch (or, swapped in the
+  /// confirmation, this one into the other). Lands on the surviving account.
+  Future<void> _mergeAnotherAccount() async {
+    String title = widget.name;
+    try {
+      title = (await _future).account.title;
+    } catch (_) {
+      // Fall back to the record name when the account failed to load.
+    }
+    if (!mounted) return;
+    final outcome = await runMergeAsBranchFlow(
+      context,
+      doctype: widget.doctype,
+      name: widget.name,
+      title: title,
+    );
+    if (outcome == null || !mounted) return;
+    ref.invalidate(b2bPipelineProvider);
+    ref.invalidate(b2bTodayProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          context.l10n.b2bMergeSuccess(
+            outcome.sourceTitle,
+            outcome.targetTitle,
+          ),
+        ),
+      ),
+    );
+    final result = outcome.result;
+    if (result.targetDoctype == widget.doctype &&
+        result.targetName == widget.name) {
+      _reload();
+      return;
+    }
+    // This account no longer exists on its own: replace it with the survivor.
+    context.pushReplacement(
+      AppRoutes.b2bAccount,
+      extra: <String, dynamic>{
+        'doctype': result.targetDoctype,
+        'name': result.targetName,
+      },
+    );
+  }
 
   /// Opens the full lead catalog page for this card — the rich profile, the
   /// branches, the addresses and the merge tools the account view only
@@ -673,6 +786,11 @@ class _AccountBody extends StatelessWidget {
   final void Function(String label)? onOpenLabel;
   final VoidCallback? onSetupLabels;
   final VoidCallback? onViewPricing;
+  final VoidCallback? onAddBranch;
+
+  /// Opens the invoice list for a branch key, the unassigned bucket, or all
+  /// invoices (null). Null itself when no Customer is linked.
+  final void Function(String? branch)? onOpenInvoices;
 
   const _AccountBody({
     required this.account,
@@ -687,6 +805,8 @@ class _AccountBody extends StatelessWidget {
     this.onOpenLabel,
     this.onSetupLabels,
     this.onViewPricing,
+    this.onAddBranch,
+    this.onOpenInvoices,
   });
 
   @override
@@ -752,6 +872,13 @@ class _AccountBody extends StatelessWidget {
             ]),
             if (account.doctype == 'Lead')
               _LeadProfileSection(leadName: account.name),
+            if (onOpenInvoices != null)
+              _BranchesSection(
+                branches: account.branches,
+                unassigned: account.unassignedInvoices,
+                onAddBranch: busy ? null : onAddBranch,
+                onOpenInvoices: onOpenInvoices!,
+              ),
             const SizedBox(height: 16),
             // The same diary the lead page shows — one journey per account, not
             // one per screen. `onJourneyChanged` reloads the account because a
@@ -785,28 +912,38 @@ class _AccountBody extends StatelessWidget {
               onOpenLabel: busy ? null : onOpenLabel,
               onSetupLabels: busy ? null : onSetupLabels,
             ),
-            _section(
-              context,
-              context.l10n.b2bSectionRecentInvoices,
-              account.recentInvoices.isEmpty
-                  ? [Text(context.l10n.b2bNone)]
-                  : account.recentInvoices
-                        .map(
-                          (inv) => ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            dense: true,
-                            title: Text(inv.displayId),
-                            subtitle: Text(
-                              '${inv.postingDate ?? ''} · '
-                              '${inv.orderPurpose ?? ''} · ${inv.status ?? ''}',
-                            ),
-                            trailing: Text(
-                              inv.grandTotal?.toStringAsFixed(2) ?? '',
-                            ),
-                          ),
-                        )
-                        .toList(),
-            ),
+            _section(context, context.l10n.b2bSectionRecentInvoices, [
+              if (account.recentInvoices.isEmpty)
+                Text(context.l10n.b2bNone)
+              else
+                ...account.recentInvoices.map(
+                  (inv) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: Text(inv.displayId),
+                    subtitle: Text(
+                      [
+                        inv.postingDate ?? '',
+                        inv.orderPurpose ?? '',
+                        inv.status ?? '',
+                        if (inv.branchName ?? inv.branchAddress
+                            case final branch?)
+                          branch,
+                      ].join(' · '),
+                    ),
+                    trailing: Text(inv.grandTotal?.toStringAsFixed(2) ?? ''),
+                  ),
+                ),
+              if (onOpenInvoices != null)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton.icon(
+                    onPressed: () => onOpenInvoices!(null),
+                    icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                    label: Text(context.l10n.b2bViewAllInvoices),
+                  ),
+                ),
+            ]),
             _section(
               context,
               context.l10n.b2bSectionOpenTodos,
@@ -919,6 +1056,203 @@ class _AccountBody extends StatelessWidget {
             ),
           ),
           Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+}
+
+/// The Customer's branches (named shipping Addresses), each with its own
+/// invoice totals and a shortcut to its invoices and map pin.
+class _BranchesSection extends ConsumerWidget {
+  final List<B2bBranch> branches;
+  final B2bBranchStats? unassigned;
+  final VoidCallback? onAddBranch;
+  final void Function(String? branch) onOpenInvoices;
+
+  const _BranchesSection({
+    required this.branches,
+    required this.unassigned,
+    required this.onAddBranch,
+    required this.onOpenInvoices,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    // Territory ids are Woo codes; the cached territory list carries the
+    // readable (Arabic) name. Falls back to the id while it loads.
+    final territories =
+        ref.watch(territoriesProvider(null)).valueOrNull ??
+        const <Map<String, dynamic>>[];
+    String territoryName(String id) {
+      for (final row in territories) {
+        if (row['name']?.toString() == id) return territoryLabelOf(row);
+      }
+      return territoryLabel(raw: id);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.b2bBranchesTitleCount(branches.length),
+                style: theme.textTheme.titleMedium,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: onAddBranch,
+              icon: const Icon(Icons.add_business_outlined, size: 18),
+              label: Text(l10n.b2bAddBranch),
+            ),
+          ],
+        ),
+        const Divider(),
+        if (branches.isEmpty) Text(l10n.b2bNoBranches),
+        for (final branch in branches)
+          _branchTile(context, branch, territoryName),
+        if (unassigned case final stats?)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(
+              Icons.help_outline,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            title: Text(l10n.b2bUnassignedInvoices),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.b2bUnassignedInvoicesHint),
+                _statsLine(context, stats),
+              ],
+            ),
+            onTap: () => onOpenInvoices(B2bRepository.unassignedBranch),
+          ),
+      ],
+    );
+  }
+
+  Widget _branchTile(
+    BuildContext context,
+    B2bBranch branch,
+    String Function(String id) territoryName,
+  ) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final location = [
+      if (branch.territory case final id?) territoryName(id),
+      if (branch.addressText.isNotEmpty) branch.addressText,
+    ].where((s) => s.isNotEmpty).join(' · ');
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.storefront_outlined),
+      title: Wrap(
+        spacing: 6,
+        runSpacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(branch.displayName),
+          if (branch.isPrimaryAddress)
+            _chip(context, l10n.b2bPrimaryBranch, theme.colorScheme.primary),
+          if (branch.territoryMissing)
+            _chip(
+              context,
+              l10n.b2bTerritoryMissing,
+              theme.colorScheme.error,
+              icon: Icons.warning_amber_rounded,
+            ),
+        ],
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (location.isNotEmpty) Text(location),
+          _statsLine(context, branch.stats),
+        ],
+      ),
+      trailing: branch.hasLocation
+          ? IconButton(
+              tooltip: l10n.b2bOpenBranchMap,
+              icon: const Icon(Icons.map_outlined),
+              onPressed: () =>
+                  LeadActions.mapsAt(branch.latitude!, branch.longitude!),
+            )
+          : null,
+      onTap: branch.key.isEmpty ? null : () => onOpenInvoices(branch.key),
+    );
+  }
+
+  Widget _statsLine(BuildContext context, B2bBranchStats stats) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final base = theme.textTheme.bodySmall;
+    final billed = l10n.b2bBilledAmount(
+      formatCurrency(context, stats.totalBilled),
+    );
+    final owed = l10n.b2bOutstandingAmount(
+      formatCurrency(context, stats.outstanding),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text.rich(
+          TextSpan(
+            style: base,
+            children: [
+              TextSpan(text: l10n.b2bBranchInvoiceCount(stats.invoiceCount)),
+              TextSpan(text: ' · $billed'),
+              if (stats.outstanding > 0.005)
+                TextSpan(
+                  text: ' · $owed',
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Text(
+          stats.lastOrderDate != null
+              ? l10n.b2bLastOrderOn(stats.lastOrderDate!)
+              : l10n.b2bNoOrdersYet,
+          style: base,
+        ),
+      ],
+    );
+  }
+
+  Widget _chip(
+    BuildContext context,
+    String text,
+    Color color, {
+    IconData? icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 2),
+          ],
+          Text(
+            text,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );

@@ -561,6 +561,13 @@ abstract final class ApiEndpoints {
   static const getLeadSources = '/api/method/jarz_pos.api.crm.get_lead_sources';
   static const completeFollowup =
       '/api/method/jarz_pos.api.crm.complete_followup';
+  static const getB2bAccountInvoices =
+      '/api/method/jarz_pos.api.crm.get_account_invoices';
+  static const b2bSearchMergeTargets =
+      '/api/method/jarz_pos.api.crm.search_merge_targets';
+  static const b2bPreviewMergeAsBranch =
+      '/api/method/jarz_pos.api.crm.preview_merge_as_branch';
+  static const b2bMergeAsBranch = '/api/method/jarz_pos.api.crm.merge_as_branch';
 
   // ── Pricing (Price Lists) ─────────────────────────────────────────────
   static const getPriceLists =

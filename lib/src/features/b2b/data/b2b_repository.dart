@@ -247,6 +247,101 @@ class B2bRepository {
     };
   }
 
+  /// The `branch` filter value selecting invoices that match no branch.
+  static const unassignedBranch = '__unassigned__';
+
+  /// An account's invoices, all order purposes included. [branch] is a
+  /// branch's `address_name`, [unassignedBranch], or null for every invoice.
+  Future<B2bAccountInvoices> getAccountInvoices({
+    required String doctype,
+    required String name,
+    String? branch,
+    int limit = 100,
+  }) async {
+    final response = await _dio.get(
+      ApiEndpoints.getB2bAccountInvoices,
+      queryParameters: {
+        'doctype': doctype,
+        'name': name,
+        if (branch != null && branch.trim().isNotEmpty) 'branch': branch.trim(),
+        'limit': limit,
+      },
+    );
+    return B2bAccountInvoices.fromJson(_asMap(_unwrap(response)));
+  }
+
+  /// Accounts [name] could be merged with as a branch (Leads and Customers).
+  Future<List<B2bMergeCandidate>> searchMergeTargets({
+    required String doctype,
+    required String name,
+    String? query,
+    int limit = 20,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.b2bSearchMergeTargets,
+      data: {
+        'doctype': doctype,
+        'name': name,
+        if (query != null && query.trim().isNotEmpty) 'query': query.trim(),
+        'limit': limit,
+      },
+    );
+    final raw = _unwrap(response);
+    final list = raw is Map ? raw['candidates'] : raw;
+    return (list as List? ?? const [])
+        .whereType<Map>()
+        .map((e) => B2bMergeCandidate.fromJson(Map<String, dynamic>.from(e)))
+        .where((c) => c.name.isNotEmpty)
+        .toList();
+  }
+
+  /// Dry run of [mergeAsBranch]: what would move, and whether this user may.
+  Future<B2bMergePreview> previewMergeAsBranch({
+    required String sourceDoctype,
+    required String sourceName,
+    required String targetDoctype,
+    required String targetName,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.b2bPreviewMergeAsBranch,
+      data: {
+        'source_doctype': sourceDoctype,
+        'source_name': sourceName,
+        'target_doctype': targetDoctype,
+        'target_name': targetName,
+      },
+    );
+    return B2bMergePreview.fromJson(_asMap(_unwrap(response)));
+  }
+
+  /// Folds the source account into the target as one of its branches.
+  /// A Customer-into-Customer merge is irreversible and manager-only.
+  Future<B2bMergeResult> mergeAsBranch({
+    required String sourceDoctype,
+    required String sourceName,
+    required String targetDoctype,
+    required String targetName,
+    String? branchName,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.b2bMergeAsBranch,
+      data: {
+        'source_doctype': sourceDoctype,
+        'source_name': sourceName,
+        'target_doctype': targetDoctype,
+        'target_name': targetName,
+        if (branchName != null && branchName.trim().isNotEmpty)
+          'branch_name': branchName.trim(),
+      },
+    );
+    final raw = _unwrap(response);
+    return B2bMergeResult.fromJson(
+      raw is Map ? Map<String, dynamic>.from(raw) : const <String, dynamic>{},
+      fallbackDoctype: targetDoctype,
+      fallbackName: targetName,
+    );
+  }
+
   /// Searches every enabled Customer type/group that may legitimately back a
   /// B2B account. Linking never mutates the Customer classification.
   Future<List<Map<String, dynamic>>> searchLinkableCustomers(

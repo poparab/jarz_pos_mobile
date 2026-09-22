@@ -21832,6 +21832,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Menu: {count, plural, =1{1 item needs} other{{count} items need}} your action'**
   String approvalsMenuBadgeSemantics(int count);
+
+  /// No description provided for @b2bBranchesTitleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Branches ({count})'**
+  String b2bBranchesTitleCount(int count);
+
+  /// No description provided for @b2bAddBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Add branch'**
+  String get b2bAddBranch;
+
+  /// No description provided for @b2bNoBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'No branches yet.'**
+  String get b2bNoBranches;
+
+  /// No description provided for @b2bBranchInvoiceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No invoices} =1{1 invoice} other{{count} invoices}}'**
+  String b2bBranchInvoiceCount(int count);
+
+  /// No description provided for @b2bBilledAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'billed {amount}'**
+  String b2bBilledAmount(String amount);
+
+  /// No description provided for @b2bOutstandingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'outstanding {amount}'**
+  String b2bOutstandingAmount(String amount);
+
+  /// No description provided for @b2bLastOrderOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Last order {date}'**
+  String b2bLastOrderOn(String date);
+
+  /// No description provided for @b2bNoOrdersYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders yet'**
+  String get b2bNoOrdersYet;
+
+  /// No description provided for @b2bOpenBranchMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Open on map'**
+  String get b2bOpenBranchMap;
+
+  /// No description provided for @b2bPrimaryBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary'**
+  String get b2bPrimaryBranch;
+
+  /// No description provided for @b2bTerritoryMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'No delivery area'**
+  String get b2bTerritoryMissing;
+
+  /// No description provided for @b2bUnassignedInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned invoices'**
+  String get b2bUnassignedInvoices;
+
+  /// No description provided for @b2bUnassignedInvoicesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices that match no branch address'**
+  String get b2bUnassignedInvoicesHint;
+
+  /// No description provided for @b2bUnassignedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get b2bUnassignedShort;
+
+  /// No description provided for @b2bViewAllInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'All invoices'**
+  String get b2bViewAllInvoices;
+
+  /// No description provided for @b2bInvoicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices'**
+  String get b2bInvoicesTitle;
+
+  /// No description provided for @b2bFilterAllBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'All branches'**
+  String get b2bFilterAllBranches;
+
+  /// No description provided for @b2bSummaryInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices'**
+  String get b2bSummaryInvoices;
+
+  /// No description provided for @b2bSummaryBilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Total billed'**
+  String get b2bSummaryBilled;
+
+  /// No description provided for @b2bSummaryOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get b2bSummaryOutstanding;
+
+  /// No description provided for @b2bNoInvoicesForSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'No invoices for this selection.'**
+  String get b2bNoInvoicesForSelection;
+
+  /// No description provided for @b2bInvoicesTruncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the first {count} invoices only.'**
+  String b2bInvoicesTruncated(int count);
+
+  /// No description provided for @b2bInvoiceReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get b2bInvoiceReturn;
+
+  /// No description provided for @b2bMergeMenuItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add another account as a branch…'**
+  String get b2bMergeMenuItem;
+
+  /// No description provided for @b2bMergeSearchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an account as a branch'**
+  String get b2bMergeSearchTitle;
+
+  /// No description provided for @b2bMergeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search accounts by name or phone'**
+  String get b2bMergeSearchHint;
+
+  /// No description provided for @b2bMergeNoCandidates.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching accounts.'**
+  String get b2bMergeNoCandidates;
+
+  /// No description provided for @b2bMergeDoctypeLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead'**
+  String get b2bMergeDoctypeLead;
+
+  /// No description provided for @b2bMergeDoctypeCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get b2bMergeDoctypeCustomer;
+
+  /// No description provided for @b2bMergeLinkedCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked customer: {customer}'**
+  String b2bMergeLinkedCustomer(String customer);
+
+  /// No description provided for @b2bMergeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge as a branch'**
+  String get b2bMergeConfirmTitle;
+
+  /// No description provided for @b2bMergeBecomesBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'{source} will become a branch of {target}.'**
+  String b2bMergeBecomesBranch(String source, String target);
+
+  /// No description provided for @b2bMergeSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep {name} instead'**
+  String b2bMergeSwap(String name);
+
+  /// No description provided for @b2bMergeSourceCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged customer: {name}'**
+  String b2bMergeSourceCustomer(String name);
+
+  /// No description provided for @b2bMergeTargetCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept customer: {name}'**
+  String b2bMergeTargetCustomer(String name);
+
+  /// No description provided for @b2bMergeWarningsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you merge'**
+  String get b2bMergeWarningsTitle;
+
+  /// No description provided for @b2bMergeWarningIrreversible.
+  ///
+  /// In en, this message translates to:
+  /// **'Merging two customer accounts cannot be undone. All invoices and payments move to the kept customer.'**
+  String get b2bMergeWarningIrreversible;
+
+  /// No description provided for @b2bMergeWarningCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'The merged account’s credit terms are carried over.'**
+  String get b2bMergeWarningCredit;
+
+  /// No description provided for @b2bMergeBlockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This merge can’t be done'**
+  String get b2bMergeBlockedTitle;
+
+  /// No description provided for @b2bMergeBranchNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch name'**
+  String get b2bMergeBranchNameLabel;
+
+  /// No description provided for @b2bMergeManagerOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a manager can merge two customer accounts.'**
+  String get b2bMergeManagerOnly;
+
+  /// No description provided for @b2bMergeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get b2bMergeConfirm;
+
+  /// No description provided for @b2bMergeSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'{source} is now a branch of {target}.'**
+  String b2bMergeSuccess(String source, String target);
 }
 
 class _AppLocalizationsDelegate

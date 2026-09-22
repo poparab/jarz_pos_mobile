@@ -13310,4 +13310,168 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return 'Menu: $_temp0 your action';
   }
+
+  @override
+  String b2bBranchesTitleCount(int count) {
+    return 'Branches ($count)';
+  }
+
+  @override
+  String get b2bAddBranch => 'Add branch';
+
+  @override
+  String get b2bNoBranches => 'No branches yet.';
+
+  @override
+  String b2bBranchInvoiceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count invoices',
+      one: '1 invoice',
+      zero: 'No invoices',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String b2bBilledAmount(String amount) {
+    return 'billed $amount';
+  }
+
+  @override
+  String b2bOutstandingAmount(String amount) {
+    return 'outstanding $amount';
+  }
+
+  @override
+  String b2bLastOrderOn(String date) {
+    return 'Last order $date';
+  }
+
+  @override
+  String get b2bNoOrdersYet => 'No orders yet';
+
+  @override
+  String get b2bOpenBranchMap => 'Open on map';
+
+  @override
+  String get b2bPrimaryBranch => 'Primary';
+
+  @override
+  String get b2bTerritoryMissing => 'No delivery area';
+
+  @override
+  String get b2bUnassignedInvoices => 'Unassigned invoices';
+
+  @override
+  String get b2bUnassignedInvoicesHint =>
+      'Invoices that match no branch address';
+
+  @override
+  String get b2bUnassignedShort => 'Unassigned';
+
+  @override
+  String get b2bViewAllInvoices => 'All invoices';
+
+  @override
+  String get b2bInvoicesTitle => 'Invoices';
+
+  @override
+  String get b2bFilterAllBranches => 'All branches';
+
+  @override
+  String get b2bSummaryInvoices => 'Invoices';
+
+  @override
+  String get b2bSummaryBilled => 'Total billed';
+
+  @override
+  String get b2bSummaryOutstanding => 'Outstanding';
+
+  @override
+  String get b2bNoInvoicesForSelection => 'No invoices for this selection.';
+
+  @override
+  String b2bInvoicesTruncated(int count) {
+    return 'Showing the first $count invoices only.';
+  }
+
+  @override
+  String get b2bInvoiceReturn => 'Return';
+
+  @override
+  String get b2bMergeMenuItem => 'Add another account as a branch…';
+
+  @override
+  String get b2bMergeSearchTitle => 'Add an account as a branch';
+
+  @override
+  String get b2bMergeSearchHint => 'Search accounts by name or phone';
+
+  @override
+  String get b2bMergeNoCandidates => 'No matching accounts.';
+
+  @override
+  String get b2bMergeDoctypeLead => 'Lead';
+
+  @override
+  String get b2bMergeDoctypeCustomer => 'Customer';
+
+  @override
+  String b2bMergeLinkedCustomer(String customer) {
+    return 'Linked customer: $customer';
+  }
+
+  @override
+  String get b2bMergeConfirmTitle => 'Merge as a branch';
+
+  @override
+  String b2bMergeBecomesBranch(String source, String target) {
+    return '$source will become a branch of $target.';
+  }
+
+  @override
+  String b2bMergeSwap(String name) {
+    return 'Keep $name instead';
+  }
+
+  @override
+  String b2bMergeSourceCustomer(String name) {
+    return 'Merged customer: $name';
+  }
+
+  @override
+  String b2bMergeTargetCustomer(String name) {
+    return 'Kept customer: $name';
+  }
+
+  @override
+  String get b2bMergeWarningsTitle => 'Before you merge';
+
+  @override
+  String get b2bMergeWarningIrreversible =>
+      'Merging two customer accounts cannot be undone. All invoices and payments move to the kept customer.';
+
+  @override
+  String get b2bMergeWarningCredit =>
+      'The merged account’s credit terms are carried over.';
+
+  @override
+  String get b2bMergeBlockedTitle => 'This merge can’t be done';
+
+  @override
+  String get b2bMergeBranchNameLabel => 'Branch name';
+
+  @override
+  String get b2bMergeManagerOnly =>
+      'Only a manager can merge two customer accounts.';
+
+  @override
+  String get b2bMergeConfirm => 'Merge';
+
+  @override
+  String b2bMergeSuccess(String source, String target) {
+    return '$source is now a branch of $target.';
+  }
 }

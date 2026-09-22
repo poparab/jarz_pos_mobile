@@ -931,14 +931,31 @@ B2bRecentInvoice _$B2bRecentInvoiceFromJson(Map<String, dynamic> json) {
 mixin _$B2bRecentInvoice {
   String get name => throw _privateConstructorUsedError;
   @JsonKey(name: 'woo_order_id')
+  @_NullableIntConverter()
   int? get wooOrderId => throw _privateConstructorUsedError;
   @JsonKey(name: 'posting_date')
   String? get postingDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'grand_total')
+  @_NullableDoubleConverter()
   double? get grandTotal => throw _privateConstructorUsedError;
+  @JsonKey(name: 'outstanding_amount')
+  @_NullableDoubleConverter()
+  double? get outstandingAmount => throw _privateConstructorUsedError;
   @JsonKey(name: 'custom_order_purpose')
   String? get orderPurpose => throw _privateConstructorUsedError;
+  @JsonKey(name: 'custom_payment_method')
+  @_NullableStringConverter()
+  String? get paymentMethod => throw _privateConstructorUsedError;
   String? get status => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_return')
+  @_BoolConverter()
+  bool get isReturn => throw _privateConstructorUsedError;
+  @JsonKey(name: 'branch_address')
+  @_NullableStringConverter()
+  String? get branchAddress => throw _privateConstructorUsedError;
+  @JsonKey(name: 'branch_name')
+  @_NullableStringConverter()
+  String? get branchName => throw _privateConstructorUsedError;
 
   /// Serializes this B2bRecentInvoice to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -959,11 +976,26 @@ abstract class $B2bRecentInvoiceCopyWith<$Res> {
   @useResult
   $Res call({
     String name,
-    @JsonKey(name: 'woo_order_id') int? wooOrderId,
+    @JsonKey(name: 'woo_order_id') @_NullableIntConverter() int? wooOrderId,
     @JsonKey(name: 'posting_date') String? postingDate,
-    @JsonKey(name: 'grand_total') double? grandTotal,
+    @JsonKey(name: 'grand_total')
+    @_NullableDoubleConverter()
+    double? grandTotal,
+    @JsonKey(name: 'outstanding_amount')
+    @_NullableDoubleConverter()
+    double? outstandingAmount,
     @JsonKey(name: 'custom_order_purpose') String? orderPurpose,
+    @JsonKey(name: 'custom_payment_method')
+    @_NullableStringConverter()
+    String? paymentMethod,
     String? status,
+    @JsonKey(name: 'is_return') @_BoolConverter() bool isReturn,
+    @JsonKey(name: 'branch_address')
+    @_NullableStringConverter()
+    String? branchAddress,
+    @JsonKey(name: 'branch_name')
+    @_NullableStringConverter()
+    String? branchName,
   });
 }
 
@@ -986,8 +1018,13 @@ class _$B2bRecentInvoiceCopyWithImpl<$Res, $Val extends B2bRecentInvoice>
     Object? wooOrderId = freezed,
     Object? postingDate = freezed,
     Object? grandTotal = freezed,
+    Object? outstandingAmount = freezed,
     Object? orderPurpose = freezed,
+    Object? paymentMethod = freezed,
     Object? status = freezed,
+    Object? isReturn = null,
+    Object? branchAddress = freezed,
+    Object? branchName = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -1007,13 +1044,33 @@ class _$B2bRecentInvoiceCopyWithImpl<$Res, $Val extends B2bRecentInvoice>
                 ? _value.grandTotal
                 : grandTotal // ignore: cast_nullable_to_non_nullable
                       as double?,
+            outstandingAmount: freezed == outstandingAmount
+                ? _value.outstandingAmount
+                : outstandingAmount // ignore: cast_nullable_to_non_nullable
+                      as double?,
             orderPurpose: freezed == orderPurpose
                 ? _value.orderPurpose
                 : orderPurpose // ignore: cast_nullable_to_non_nullable
                       as String?,
+            paymentMethod: freezed == paymentMethod
+                ? _value.paymentMethod
+                : paymentMethod // ignore: cast_nullable_to_non_nullable
+                      as String?,
             status: freezed == status
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            isReturn: null == isReturn
+                ? _value.isReturn
+                : isReturn // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            branchAddress: freezed == branchAddress
+                ? _value.branchAddress
+                : branchAddress // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            branchName: freezed == branchName
+                ? _value.branchName
+                : branchName // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -1032,11 +1089,26 @@ abstract class _$$B2bRecentInvoiceImplCopyWith<$Res>
   @useResult
   $Res call({
     String name,
-    @JsonKey(name: 'woo_order_id') int? wooOrderId,
+    @JsonKey(name: 'woo_order_id') @_NullableIntConverter() int? wooOrderId,
     @JsonKey(name: 'posting_date') String? postingDate,
-    @JsonKey(name: 'grand_total') double? grandTotal,
+    @JsonKey(name: 'grand_total')
+    @_NullableDoubleConverter()
+    double? grandTotal,
+    @JsonKey(name: 'outstanding_amount')
+    @_NullableDoubleConverter()
+    double? outstandingAmount,
     @JsonKey(name: 'custom_order_purpose') String? orderPurpose,
+    @JsonKey(name: 'custom_payment_method')
+    @_NullableStringConverter()
+    String? paymentMethod,
     String? status,
+    @JsonKey(name: 'is_return') @_BoolConverter() bool isReturn,
+    @JsonKey(name: 'branch_address')
+    @_NullableStringConverter()
+    String? branchAddress,
+    @JsonKey(name: 'branch_name')
+    @_NullableStringConverter()
+    String? branchName,
   });
 }
 
@@ -1058,8 +1130,13 @@ class __$$B2bRecentInvoiceImplCopyWithImpl<$Res>
     Object? wooOrderId = freezed,
     Object? postingDate = freezed,
     Object? grandTotal = freezed,
+    Object? outstandingAmount = freezed,
     Object? orderPurpose = freezed,
+    Object? paymentMethod = freezed,
     Object? status = freezed,
+    Object? isReturn = null,
+    Object? branchAddress = freezed,
+    Object? branchName = freezed,
   }) {
     return _then(
       _$B2bRecentInvoiceImpl(
@@ -1079,13 +1156,33 @@ class __$$B2bRecentInvoiceImplCopyWithImpl<$Res>
             ? _value.grandTotal
             : grandTotal // ignore: cast_nullable_to_non_nullable
                   as double?,
+        outstandingAmount: freezed == outstandingAmount
+            ? _value.outstandingAmount
+            : outstandingAmount // ignore: cast_nullable_to_non_nullable
+                  as double?,
         orderPurpose: freezed == orderPurpose
             ? _value.orderPurpose
             : orderPurpose // ignore: cast_nullable_to_non_nullable
                   as String?,
+        paymentMethod: freezed == paymentMethod
+            ? _value.paymentMethod
+            : paymentMethod // ignore: cast_nullable_to_non_nullable
+                  as String?,
         status: freezed == status
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        isReturn: null == isReturn
+            ? _value.isReturn
+            : isReturn // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        branchAddress: freezed == branchAddress
+            ? _value.branchAddress
+            : branchAddress // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        branchName: freezed == branchName
+            ? _value.branchName
+            : branchName // ignore: cast_nullable_to_non_nullable
                   as String?,
       ),
     );
@@ -1097,11 +1194,22 @@ class __$$B2bRecentInvoiceImplCopyWithImpl<$Res>
 class _$B2bRecentInvoiceImpl extends _B2bRecentInvoice {
   const _$B2bRecentInvoiceImpl({
     required this.name,
-    @JsonKey(name: 'woo_order_id') this.wooOrderId,
+    @JsonKey(name: 'woo_order_id') @_NullableIntConverter() this.wooOrderId,
     @JsonKey(name: 'posting_date') this.postingDate,
-    @JsonKey(name: 'grand_total') this.grandTotal,
+    @JsonKey(name: 'grand_total') @_NullableDoubleConverter() this.grandTotal,
+    @JsonKey(name: 'outstanding_amount')
+    @_NullableDoubleConverter()
+    this.outstandingAmount,
     @JsonKey(name: 'custom_order_purpose') this.orderPurpose,
+    @JsonKey(name: 'custom_payment_method')
+    @_NullableStringConverter()
+    this.paymentMethod,
     this.status,
+    @JsonKey(name: 'is_return') @_BoolConverter() this.isReturn = false,
+    @JsonKey(name: 'branch_address')
+    @_NullableStringConverter()
+    this.branchAddress,
+    @JsonKey(name: 'branch_name') @_NullableStringConverter() this.branchName,
   }) : super._();
 
   factory _$B2bRecentInvoiceImpl.fromJson(Map<String, dynamic> json) =>
@@ -1111,22 +1219,44 @@ class _$B2bRecentInvoiceImpl extends _B2bRecentInvoice {
   final String name;
   @override
   @JsonKey(name: 'woo_order_id')
+  @_NullableIntConverter()
   final int? wooOrderId;
   @override
   @JsonKey(name: 'posting_date')
   final String? postingDate;
   @override
   @JsonKey(name: 'grand_total')
+  @_NullableDoubleConverter()
   final double? grandTotal;
+  @override
+  @JsonKey(name: 'outstanding_amount')
+  @_NullableDoubleConverter()
+  final double? outstandingAmount;
   @override
   @JsonKey(name: 'custom_order_purpose')
   final String? orderPurpose;
   @override
+  @JsonKey(name: 'custom_payment_method')
+  @_NullableStringConverter()
+  final String? paymentMethod;
+  @override
   final String? status;
+  @override
+  @JsonKey(name: 'is_return')
+  @_BoolConverter()
+  final bool isReturn;
+  @override
+  @JsonKey(name: 'branch_address')
+  @_NullableStringConverter()
+  final String? branchAddress;
+  @override
+  @JsonKey(name: 'branch_name')
+  @_NullableStringConverter()
+  final String? branchName;
 
   @override
   String toString() {
-    return 'B2bRecentInvoice(name: $name, wooOrderId: $wooOrderId, postingDate: $postingDate, grandTotal: $grandTotal, orderPurpose: $orderPurpose, status: $status)';
+    return 'B2bRecentInvoice(name: $name, wooOrderId: $wooOrderId, postingDate: $postingDate, grandTotal: $grandTotal, outstandingAmount: $outstandingAmount, orderPurpose: $orderPurpose, paymentMethod: $paymentMethod, status: $status, isReturn: $isReturn, branchAddress: $branchAddress, branchName: $branchName)';
   }
 
   @override
@@ -1141,9 +1271,19 @@ class _$B2bRecentInvoiceImpl extends _B2bRecentInvoice {
                 other.postingDate == postingDate) &&
             (identical(other.grandTotal, grandTotal) ||
                 other.grandTotal == grandTotal) &&
+            (identical(other.outstandingAmount, outstandingAmount) ||
+                other.outstandingAmount == outstandingAmount) &&
             (identical(other.orderPurpose, orderPurpose) ||
                 other.orderPurpose == orderPurpose) &&
-            (identical(other.status, status) || other.status == status));
+            (identical(other.paymentMethod, paymentMethod) ||
+                other.paymentMethod == paymentMethod) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.isReturn, isReturn) ||
+                other.isReturn == isReturn) &&
+            (identical(other.branchAddress, branchAddress) ||
+                other.branchAddress == branchAddress) &&
+            (identical(other.branchName, branchName) ||
+                other.branchName == branchName));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1154,8 +1294,13 @@ class _$B2bRecentInvoiceImpl extends _B2bRecentInvoice {
     wooOrderId,
     postingDate,
     grandTotal,
+    outstandingAmount,
     orderPurpose,
+    paymentMethod,
     status,
+    isReturn,
+    branchAddress,
+    branchName,
   );
 
   /// Create a copy of B2bRecentInvoice
@@ -1178,11 +1323,28 @@ class _$B2bRecentInvoiceImpl extends _B2bRecentInvoice {
 abstract class _B2bRecentInvoice extends B2bRecentInvoice {
   const factory _B2bRecentInvoice({
     required final String name,
-    @JsonKey(name: 'woo_order_id') final int? wooOrderId,
+    @JsonKey(name: 'woo_order_id')
+    @_NullableIntConverter()
+    final int? wooOrderId,
     @JsonKey(name: 'posting_date') final String? postingDate,
-    @JsonKey(name: 'grand_total') final double? grandTotal,
+    @JsonKey(name: 'grand_total')
+    @_NullableDoubleConverter()
+    final double? grandTotal,
+    @JsonKey(name: 'outstanding_amount')
+    @_NullableDoubleConverter()
+    final double? outstandingAmount,
     @JsonKey(name: 'custom_order_purpose') final String? orderPurpose,
+    @JsonKey(name: 'custom_payment_method')
+    @_NullableStringConverter()
+    final String? paymentMethod,
     final String? status,
+    @JsonKey(name: 'is_return') @_BoolConverter() final bool isReturn,
+    @JsonKey(name: 'branch_address')
+    @_NullableStringConverter()
+    final String? branchAddress,
+    @JsonKey(name: 'branch_name')
+    @_NullableStringConverter()
+    final String? branchName,
   }) = _$B2bRecentInvoiceImpl;
   const _B2bRecentInvoice._() : super._();
 
@@ -1193,24 +1355,2935 @@ abstract class _B2bRecentInvoice extends B2bRecentInvoice {
   String get name;
   @override
   @JsonKey(name: 'woo_order_id')
+  @_NullableIntConverter()
   int? get wooOrderId;
   @override
   @JsonKey(name: 'posting_date')
   String? get postingDate;
   @override
   @JsonKey(name: 'grand_total')
+  @_NullableDoubleConverter()
   double? get grandTotal;
+  @override
+  @JsonKey(name: 'outstanding_amount')
+  @_NullableDoubleConverter()
+  double? get outstandingAmount;
   @override
   @JsonKey(name: 'custom_order_purpose')
   String? get orderPurpose;
   @override
+  @JsonKey(name: 'custom_payment_method')
+  @_NullableStringConverter()
+  String? get paymentMethod;
+  @override
   String? get status;
+  @override
+  @JsonKey(name: 'is_return')
+  @_BoolConverter()
+  bool get isReturn;
+  @override
+  @JsonKey(name: 'branch_address')
+  @_NullableStringConverter()
+  String? get branchAddress;
+  @override
+  @JsonKey(name: 'branch_name')
+  @_NullableStringConverter()
+  String? get branchName;
 
   /// Create a copy of B2bRecentInvoice
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$B2bRecentInvoiceImplCopyWith<_$B2bRecentInvoiceImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+B2bBranchStats _$B2bBranchStatsFromJson(Map<String, dynamic> json) {
+  return _B2bBranchStats.fromJson(json);
+}
+
+/// @nodoc
+mixin _$B2bBranchStats {
+  @JsonKey(name: 'invoice_count')
+  @_IntConverter()
+  int get invoiceCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_billed')
+  @_DoubleConverter()
+  double get totalBilled => throw _privateConstructorUsedError;
+  @_DoubleConverter()
+  double get outstanding => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_order_date')
+  @_NullableStringConverter()
+  String? get lastOrderDate => throw _privateConstructorUsedError;
+
+  /// Serializes this B2bBranchStats to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of B2bBranchStats
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $B2bBranchStatsCopyWith<B2bBranchStats> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $B2bBranchStatsCopyWith<$Res> {
+  factory $B2bBranchStatsCopyWith(
+    B2bBranchStats value,
+    $Res Function(B2bBranchStats) then,
+  ) = _$B2bBranchStatsCopyWithImpl<$Res, B2bBranchStats>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'invoice_count') @_IntConverter() int invoiceCount,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() double totalBilled,
+    @_DoubleConverter() double outstanding,
+    @JsonKey(name: 'last_order_date')
+    @_NullableStringConverter()
+    String? lastOrderDate,
+  });
+}
+
+/// @nodoc
+class _$B2bBranchStatsCopyWithImpl<$Res, $Val extends B2bBranchStats>
+    implements $B2bBranchStatsCopyWith<$Res> {
+  _$B2bBranchStatsCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of B2bBranchStats
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? invoiceCount = null,
+    Object? totalBilled = null,
+    Object? outstanding = null,
+    Object? lastOrderDate = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            invoiceCount: null == invoiceCount
+                ? _value.invoiceCount
+                : invoiceCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            totalBilled: null == totalBilled
+                ? _value.totalBilled
+                : totalBilled // ignore: cast_nullable_to_non_nullable
+                      as double,
+            outstanding: null == outstanding
+                ? _value.outstanding
+                : outstanding // ignore: cast_nullable_to_non_nullable
+                      as double,
+            lastOrderDate: freezed == lastOrderDate
+                ? _value.lastOrderDate
+                : lastOrderDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$B2bBranchStatsImplCopyWith<$Res>
+    implements $B2bBranchStatsCopyWith<$Res> {
+  factory _$$B2bBranchStatsImplCopyWith(
+    _$B2bBranchStatsImpl value,
+    $Res Function(_$B2bBranchStatsImpl) then,
+  ) = __$$B2bBranchStatsImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'invoice_count') @_IntConverter() int invoiceCount,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() double totalBilled,
+    @_DoubleConverter() double outstanding,
+    @JsonKey(name: 'last_order_date')
+    @_NullableStringConverter()
+    String? lastOrderDate,
+  });
+}
+
+/// @nodoc
+class __$$B2bBranchStatsImplCopyWithImpl<$Res>
+    extends _$B2bBranchStatsCopyWithImpl<$Res, _$B2bBranchStatsImpl>
+    implements _$$B2bBranchStatsImplCopyWith<$Res> {
+  __$$B2bBranchStatsImplCopyWithImpl(
+    _$B2bBranchStatsImpl _value,
+    $Res Function(_$B2bBranchStatsImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of B2bBranchStats
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? invoiceCount = null,
+    Object? totalBilled = null,
+    Object? outstanding = null,
+    Object? lastOrderDate = freezed,
+  }) {
+    return _then(
+      _$B2bBranchStatsImpl(
+        invoiceCount: null == invoiceCount
+            ? _value.invoiceCount
+            : invoiceCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        totalBilled: null == totalBilled
+            ? _value.totalBilled
+            : totalBilled // ignore: cast_nullable_to_non_nullable
+                  as double,
+        outstanding: null == outstanding
+            ? _value.outstanding
+            : outstanding // ignore: cast_nullable_to_non_nullable
+                  as double,
+        lastOrderDate: freezed == lastOrderDate
+            ? _value.lastOrderDate
+            : lastOrderDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$B2bBranchStatsImpl implements _B2bBranchStats {
+  const _$B2bBranchStatsImpl({
+    @JsonKey(name: 'invoice_count') @_IntConverter() this.invoiceCount = 0,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() this.totalBilled = 0.0,
+    @_DoubleConverter() this.outstanding = 0.0,
+    @JsonKey(name: 'last_order_date')
+    @_NullableStringConverter()
+    this.lastOrderDate,
+  });
+
+  factory _$B2bBranchStatsImpl.fromJson(Map<String, dynamic> json) =>
+      _$$B2bBranchStatsImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'invoice_count')
+  @_IntConverter()
+  final int invoiceCount;
+  @override
+  @JsonKey(name: 'total_billed')
+  @_DoubleConverter()
+  final double totalBilled;
+  @override
+  @JsonKey()
+  @_DoubleConverter()
+  final double outstanding;
+  @override
+  @JsonKey(name: 'last_order_date')
+  @_NullableStringConverter()
+  final String? lastOrderDate;
+
+  @override
+  String toString() {
+    return 'B2bBranchStats(invoiceCount: $invoiceCount, totalBilled: $totalBilled, outstanding: $outstanding, lastOrderDate: $lastOrderDate)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$B2bBranchStatsImpl &&
+            (identical(other.invoiceCount, invoiceCount) ||
+                other.invoiceCount == invoiceCount) &&
+            (identical(other.totalBilled, totalBilled) ||
+                other.totalBilled == totalBilled) &&
+            (identical(other.outstanding, outstanding) ||
+                other.outstanding == outstanding) &&
+            (identical(other.lastOrderDate, lastOrderDate) ||
+                other.lastOrderDate == lastOrderDate));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    invoiceCount,
+    totalBilled,
+    outstanding,
+    lastOrderDate,
+  );
+
+  /// Create a copy of B2bBranchStats
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$B2bBranchStatsImplCopyWith<_$B2bBranchStatsImpl> get copyWith =>
+      __$$B2bBranchStatsImplCopyWithImpl<_$B2bBranchStatsImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$B2bBranchStatsImplToJson(this);
+  }
+}
+
+abstract class _B2bBranchStats implements B2bBranchStats {
+  const factory _B2bBranchStats({
+    @JsonKey(name: 'invoice_count') @_IntConverter() final int invoiceCount,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() final double totalBilled,
+    @_DoubleConverter() final double outstanding,
+    @JsonKey(name: 'last_order_date')
+    @_NullableStringConverter()
+    final String? lastOrderDate,
+  }) = _$B2bBranchStatsImpl;
+
+  factory _B2bBranchStats.fromJson(Map<String, dynamic> json) =
+      _$B2bBranchStatsImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'invoice_count')
+  @_IntConverter()
+  int get invoiceCount;
+  @override
+  @JsonKey(name: 'total_billed')
+  @_DoubleConverter()
+  double get totalBilled;
+  @override
+  @_DoubleConverter()
+  double get outstanding;
+  @override
+  @JsonKey(name: 'last_order_date')
+  @_NullableStringConverter()
+  String? get lastOrderDate;
+
+  /// Create a copy of B2bBranchStats
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$B2bBranchStatsImplCopyWith<_$B2bBranchStatsImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+B2bBranch _$B2bBranchFromJson(Map<String, dynamic> json) {
+  return _B2bBranch.fromJson(json);
+}
+
+/// @nodoc
+mixin _$B2bBranch {
+  @JsonKey(name: 'address_name')
+  @_NullableStringConverter()
+  String? get addressName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'branch_name')
+  @_NullableStringConverter()
+  String? get branchName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'address_line1')
+  @_NullableStringConverter()
+  String? get addressLine1 => throw _privateConstructorUsedError;
+  @JsonKey(name: 'address_line2')
+  @_NullableStringConverter()
+  String? get addressLine2 => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get city => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get phone => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get territory => throw _privateConstructorUsedError;
+  @JsonKey(name: 'territory_missing')
+  @_BoolConverter()
+  bool get territoryMissing => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_primary_address')
+  @_BoolConverter()
+  bool get isPrimaryAddress => throw _privateConstructorUsedError;
+  @_NullableDoubleConverter()
+  double? get latitude => throw _privateConstructorUsedError;
+  @_NullableDoubleConverter()
+  double? get longitude => throw _privateConstructorUsedError;
+  @JsonKey(name: 'member_address_names')
+  @_StringListConverter()
+  List<String> get memberAddressNames => throw _privateConstructorUsedError;
+  @JsonKey(name: 'invoice_count')
+  @_IntConverter()
+  int get invoiceCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_billed')
+  @_DoubleConverter()
+  double get totalBilled => throw _privateConstructorUsedError;
+  @_DoubleConverter()
+  double get outstanding => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_order_date')
+  @_NullableStringConverter()
+  String? get lastOrderDate => throw _privateConstructorUsedError;
+
+  /// Serializes this B2bBranch to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of B2bBranch
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $B2bBranchCopyWith<B2bBranch> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $B2bBranchCopyWith<$Res> {
+  factory $B2bBranchCopyWith(B2bBranch value, $Res Function(B2bBranch) then) =
+      _$B2bBranchCopyWithImpl<$Res, B2bBranch>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'address_name')
+    @_NullableStringConverter()
+    String? addressName,
+    @JsonKey(name: 'branch_name')
+    @_NullableStringConverter()
+    String? branchName,
+    @JsonKey(name: 'address_line1')
+    @_NullableStringConverter()
+    String? addressLine1,
+    @JsonKey(name: 'address_line2')
+    @_NullableStringConverter()
+    String? addressLine2,
+    @_NullableStringConverter() String? city,
+    @_NullableStringConverter() String? phone,
+    @_NullableStringConverter() String? territory,
+    @JsonKey(name: 'territory_missing') @_BoolConverter() bool territoryMissing,
+    @JsonKey(name: 'is_primary_address')
+    @_BoolConverter()
+    bool isPrimaryAddress,
+    @_NullableDoubleConverter() double? latitude,
+    @_NullableDoubleConverter() double? longitude,
+    @JsonKey(name: 'member_address_names')
+    @_StringListConverter()
+    List<String> memberAddressNames,
+    @JsonKey(name: 'invoice_count') @_IntConverter() int invoiceCount,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() double totalBilled,
+    @_DoubleConverter() double outstanding,
+    @JsonKey(name: 'last_order_date')
+    @_NullableStringConverter()
+    String? lastOrderDate,
+  });
+}
+
+/// @nodoc
+class _$B2bBranchCopyWithImpl<$Res, $Val extends B2bBranch>
+    implements $B2bBranchCopyWith<$Res> {
+  _$B2bBranchCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of B2bBranch
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? addressName = freezed,
+    Object? branchName = freezed,
+    Object? addressLine1 = freezed,
+    Object? addressLine2 = freezed,
+    Object? city = freezed,
+    Object? phone = freezed,
+    Object? territory = freezed,
+    Object? territoryMissing = null,
+    Object? isPrimaryAddress = null,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? memberAddressNames = null,
+    Object? invoiceCount = null,
+    Object? totalBilled = null,
+    Object? outstanding = null,
+    Object? lastOrderDate = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            addressName: freezed == addressName
+                ? _value.addressName
+                : addressName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            branchName: freezed == branchName
+                ? _value.branchName
+                : branchName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            addressLine1: freezed == addressLine1
+                ? _value.addressLine1
+                : addressLine1 // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            addressLine2: freezed == addressLine2
+                ? _value.addressLine2
+                : addressLine2 // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            city: freezed == city
+                ? _value.city
+                : city // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            phone: freezed == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            territory: freezed == territory
+                ? _value.territory
+                : territory // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            territoryMissing: null == territoryMissing
+                ? _value.territoryMissing
+                : territoryMissing // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isPrimaryAddress: null == isPrimaryAddress
+                ? _value.isPrimaryAddress
+                : isPrimaryAddress // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            latitude: freezed == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            longitude: freezed == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            memberAddressNames: null == memberAddressNames
+                ? _value.memberAddressNames
+                : memberAddressNames // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            invoiceCount: null == invoiceCount
+                ? _value.invoiceCount
+                : invoiceCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            totalBilled: null == totalBilled
+                ? _value.totalBilled
+                : totalBilled // ignore: cast_nullable_to_non_nullable
+                      as double,
+            outstanding: null == outstanding
+                ? _value.outstanding
+                : outstanding // ignore: cast_nullable_to_non_nullable
+                      as double,
+            lastOrderDate: freezed == lastOrderDate
+                ? _value.lastOrderDate
+                : lastOrderDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$B2bBranchImplCopyWith<$Res>
+    implements $B2bBranchCopyWith<$Res> {
+  factory _$$B2bBranchImplCopyWith(
+    _$B2bBranchImpl value,
+    $Res Function(_$B2bBranchImpl) then,
+  ) = __$$B2bBranchImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'address_name')
+    @_NullableStringConverter()
+    String? addressName,
+    @JsonKey(name: 'branch_name')
+    @_NullableStringConverter()
+    String? branchName,
+    @JsonKey(name: 'address_line1')
+    @_NullableStringConverter()
+    String? addressLine1,
+    @JsonKey(name: 'address_line2')
+    @_NullableStringConverter()
+    String? addressLine2,
+    @_NullableStringConverter() String? city,
+    @_NullableStringConverter() String? phone,
+    @_NullableStringConverter() String? territory,
+    @JsonKey(name: 'territory_missing') @_BoolConverter() bool territoryMissing,
+    @JsonKey(name: 'is_primary_address')
+    @_BoolConverter()
+    bool isPrimaryAddress,
+    @_NullableDoubleConverter() double? latitude,
+    @_NullableDoubleConverter() double? longitude,
+    @JsonKey(name: 'member_address_names')
+    @_StringListConverter()
+    List<String> memberAddressNames,
+    @JsonKey(name: 'invoice_count') @_IntConverter() int invoiceCount,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() double totalBilled,
+    @_DoubleConverter() double outstanding,
+    @JsonKey(name: 'last_order_date')
+    @_NullableStringConverter()
+    String? lastOrderDate,
+  });
+}
+
+/// @nodoc
+class __$$B2bBranchImplCopyWithImpl<$Res>
+    extends _$B2bBranchCopyWithImpl<$Res, _$B2bBranchImpl>
+    implements _$$B2bBranchImplCopyWith<$Res> {
+  __$$B2bBranchImplCopyWithImpl(
+    _$B2bBranchImpl _value,
+    $Res Function(_$B2bBranchImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of B2bBranch
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? addressName = freezed,
+    Object? branchName = freezed,
+    Object? addressLine1 = freezed,
+    Object? addressLine2 = freezed,
+    Object? city = freezed,
+    Object? phone = freezed,
+    Object? territory = freezed,
+    Object? territoryMissing = null,
+    Object? isPrimaryAddress = null,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? memberAddressNames = null,
+    Object? invoiceCount = null,
+    Object? totalBilled = null,
+    Object? outstanding = null,
+    Object? lastOrderDate = freezed,
+  }) {
+    return _then(
+      _$B2bBranchImpl(
+        addressName: freezed == addressName
+            ? _value.addressName
+            : addressName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        branchName: freezed == branchName
+            ? _value.branchName
+            : branchName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        addressLine1: freezed == addressLine1
+            ? _value.addressLine1
+            : addressLine1 // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        addressLine2: freezed == addressLine2
+            ? _value.addressLine2
+            : addressLine2 // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        city: freezed == city
+            ? _value.city
+            : city // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        phone: freezed == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        territory: freezed == territory
+            ? _value.territory
+            : territory // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        territoryMissing: null == territoryMissing
+            ? _value.territoryMissing
+            : territoryMissing // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isPrimaryAddress: null == isPrimaryAddress
+            ? _value.isPrimaryAddress
+            : isPrimaryAddress // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        latitude: freezed == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        longitude: freezed == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        memberAddressNames: null == memberAddressNames
+            ? _value._memberAddressNames
+            : memberAddressNames // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        invoiceCount: null == invoiceCount
+            ? _value.invoiceCount
+            : invoiceCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        totalBilled: null == totalBilled
+            ? _value.totalBilled
+            : totalBilled // ignore: cast_nullable_to_non_nullable
+                  as double,
+        outstanding: null == outstanding
+            ? _value.outstanding
+            : outstanding // ignore: cast_nullable_to_non_nullable
+                  as double,
+        lastOrderDate: freezed == lastOrderDate
+            ? _value.lastOrderDate
+            : lastOrderDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$B2bBranchImpl extends _B2bBranch {
+  const _$B2bBranchImpl({
+    @JsonKey(name: 'address_name') @_NullableStringConverter() this.addressName,
+    @JsonKey(name: 'branch_name') @_NullableStringConverter() this.branchName,
+    @JsonKey(name: 'address_line1')
+    @_NullableStringConverter()
+    this.addressLine1,
+    @JsonKey(name: 'address_line2')
+    @_NullableStringConverter()
+    this.addressLine2,
+    @_NullableStringConverter() this.city,
+    @_NullableStringConverter() this.phone,
+    @_NullableStringConverter() this.territory,
+    @JsonKey(name: 'territory_missing')
+    @_BoolConverter()
+    this.territoryMissing = false,
+    @JsonKey(name: 'is_primary_address')
+    @_BoolConverter()
+    this.isPrimaryAddress = false,
+    @_NullableDoubleConverter() this.latitude,
+    @_NullableDoubleConverter() this.longitude,
+    @JsonKey(name: 'member_address_names')
+    @_StringListConverter()
+    final List<String> memberAddressNames = const <String>[],
+    @JsonKey(name: 'invoice_count') @_IntConverter() this.invoiceCount = 0,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() this.totalBilled = 0.0,
+    @_DoubleConverter() this.outstanding = 0.0,
+    @JsonKey(name: 'last_order_date')
+    @_NullableStringConverter()
+    this.lastOrderDate,
+  }) : _memberAddressNames = memberAddressNames,
+       super._();
+
+  factory _$B2bBranchImpl.fromJson(Map<String, dynamic> json) =>
+      _$$B2bBranchImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'address_name')
+  @_NullableStringConverter()
+  final String? addressName;
+  @override
+  @JsonKey(name: 'branch_name')
+  @_NullableStringConverter()
+  final String? branchName;
+  @override
+  @JsonKey(name: 'address_line1')
+  @_NullableStringConverter()
+  final String? addressLine1;
+  @override
+  @JsonKey(name: 'address_line2')
+  @_NullableStringConverter()
+  final String? addressLine2;
+  @override
+  @_NullableStringConverter()
+  final String? city;
+  @override
+  @_NullableStringConverter()
+  final String? phone;
+  @override
+  @_NullableStringConverter()
+  final String? territory;
+  @override
+  @JsonKey(name: 'territory_missing')
+  @_BoolConverter()
+  final bool territoryMissing;
+  @override
+  @JsonKey(name: 'is_primary_address')
+  @_BoolConverter()
+  final bool isPrimaryAddress;
+  @override
+  @_NullableDoubleConverter()
+  final double? latitude;
+  @override
+  @_NullableDoubleConverter()
+  final double? longitude;
+  final List<String> _memberAddressNames;
+  @override
+  @JsonKey(name: 'member_address_names')
+  @_StringListConverter()
+  List<String> get memberAddressNames {
+    if (_memberAddressNames is EqualUnmodifiableListView)
+      return _memberAddressNames;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_memberAddressNames);
+  }
+
+  @override
+  @JsonKey(name: 'invoice_count')
+  @_IntConverter()
+  final int invoiceCount;
+  @override
+  @JsonKey(name: 'total_billed')
+  @_DoubleConverter()
+  final double totalBilled;
+  @override
+  @JsonKey()
+  @_DoubleConverter()
+  final double outstanding;
+  @override
+  @JsonKey(name: 'last_order_date')
+  @_NullableStringConverter()
+  final String? lastOrderDate;
+
+  @override
+  String toString() {
+    return 'B2bBranch(addressName: $addressName, branchName: $branchName, addressLine1: $addressLine1, addressLine2: $addressLine2, city: $city, phone: $phone, territory: $territory, territoryMissing: $territoryMissing, isPrimaryAddress: $isPrimaryAddress, latitude: $latitude, longitude: $longitude, memberAddressNames: $memberAddressNames, invoiceCount: $invoiceCount, totalBilled: $totalBilled, outstanding: $outstanding, lastOrderDate: $lastOrderDate)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$B2bBranchImpl &&
+            (identical(other.addressName, addressName) ||
+                other.addressName == addressName) &&
+            (identical(other.branchName, branchName) ||
+                other.branchName == branchName) &&
+            (identical(other.addressLine1, addressLine1) ||
+                other.addressLine1 == addressLine1) &&
+            (identical(other.addressLine2, addressLine2) ||
+                other.addressLine2 == addressLine2) &&
+            (identical(other.city, city) || other.city == city) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.territory, territory) ||
+                other.territory == territory) &&
+            (identical(other.territoryMissing, territoryMissing) ||
+                other.territoryMissing == territoryMissing) &&
+            (identical(other.isPrimaryAddress, isPrimaryAddress) ||
+                other.isPrimaryAddress == isPrimaryAddress) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            const DeepCollectionEquality().equals(
+              other._memberAddressNames,
+              _memberAddressNames,
+            ) &&
+            (identical(other.invoiceCount, invoiceCount) ||
+                other.invoiceCount == invoiceCount) &&
+            (identical(other.totalBilled, totalBilled) ||
+                other.totalBilled == totalBilled) &&
+            (identical(other.outstanding, outstanding) ||
+                other.outstanding == outstanding) &&
+            (identical(other.lastOrderDate, lastOrderDate) ||
+                other.lastOrderDate == lastOrderDate));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    addressName,
+    branchName,
+    addressLine1,
+    addressLine2,
+    city,
+    phone,
+    territory,
+    territoryMissing,
+    isPrimaryAddress,
+    latitude,
+    longitude,
+    const DeepCollectionEquality().hash(_memberAddressNames),
+    invoiceCount,
+    totalBilled,
+    outstanding,
+    lastOrderDate,
+  );
+
+  /// Create a copy of B2bBranch
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$B2bBranchImplCopyWith<_$B2bBranchImpl> get copyWith =>
+      __$$B2bBranchImplCopyWithImpl<_$B2bBranchImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$B2bBranchImplToJson(this);
+  }
+}
+
+abstract class _B2bBranch extends B2bBranch {
+  const factory _B2bBranch({
+    @JsonKey(name: 'address_name')
+    @_NullableStringConverter()
+    final String? addressName,
+    @JsonKey(name: 'branch_name')
+    @_NullableStringConverter()
+    final String? branchName,
+    @JsonKey(name: 'address_line1')
+    @_NullableStringConverter()
+    final String? addressLine1,
+    @JsonKey(name: 'address_line2')
+    @_NullableStringConverter()
+    final String? addressLine2,
+    @_NullableStringConverter() final String? city,
+    @_NullableStringConverter() final String? phone,
+    @_NullableStringConverter() final String? territory,
+    @JsonKey(name: 'territory_missing')
+    @_BoolConverter()
+    final bool territoryMissing,
+    @JsonKey(name: 'is_primary_address')
+    @_BoolConverter()
+    final bool isPrimaryAddress,
+    @_NullableDoubleConverter() final double? latitude,
+    @_NullableDoubleConverter() final double? longitude,
+    @JsonKey(name: 'member_address_names')
+    @_StringListConverter()
+    final List<String> memberAddressNames,
+    @JsonKey(name: 'invoice_count') @_IntConverter() final int invoiceCount,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() final double totalBilled,
+    @_DoubleConverter() final double outstanding,
+    @JsonKey(name: 'last_order_date')
+    @_NullableStringConverter()
+    final String? lastOrderDate,
+  }) = _$B2bBranchImpl;
+  const _B2bBranch._() : super._();
+
+  factory _B2bBranch.fromJson(Map<String, dynamic> json) =
+      _$B2bBranchImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'address_name')
+  @_NullableStringConverter()
+  String? get addressName;
+  @override
+  @JsonKey(name: 'branch_name')
+  @_NullableStringConverter()
+  String? get branchName;
+  @override
+  @JsonKey(name: 'address_line1')
+  @_NullableStringConverter()
+  String? get addressLine1;
+  @override
+  @JsonKey(name: 'address_line2')
+  @_NullableStringConverter()
+  String? get addressLine2;
+  @override
+  @_NullableStringConverter()
+  String? get city;
+  @override
+  @_NullableStringConverter()
+  String? get phone;
+  @override
+  @_NullableStringConverter()
+  String? get territory;
+  @override
+  @JsonKey(name: 'territory_missing')
+  @_BoolConverter()
+  bool get territoryMissing;
+  @override
+  @JsonKey(name: 'is_primary_address')
+  @_BoolConverter()
+  bool get isPrimaryAddress;
+  @override
+  @_NullableDoubleConverter()
+  double? get latitude;
+  @override
+  @_NullableDoubleConverter()
+  double? get longitude;
+  @override
+  @JsonKey(name: 'member_address_names')
+  @_StringListConverter()
+  List<String> get memberAddressNames;
+  @override
+  @JsonKey(name: 'invoice_count')
+  @_IntConverter()
+  int get invoiceCount;
+  @override
+  @JsonKey(name: 'total_billed')
+  @_DoubleConverter()
+  double get totalBilled;
+  @override
+  @_DoubleConverter()
+  double get outstanding;
+  @override
+  @JsonKey(name: 'last_order_date')
+  @_NullableStringConverter()
+  String? get lastOrderDate;
+
+  /// Create a copy of B2bBranch
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$B2bBranchImplCopyWith<_$B2bBranchImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+B2bAccountInvoices _$B2bAccountInvoicesFromJson(Map<String, dynamic> json) {
+  return _B2bAccountInvoices.fromJson(json);
+}
+
+/// @nodoc
+mixin _$B2bAccountInvoices {
+  @_NullableStringConverter()
+  String? get customer => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get branch => throw _privateConstructorUsedError;
+  List<B2bRecentInvoice> get invoices => throw _privateConstructorUsedError;
+  B2bBranchStats get summary => throw _privateConstructorUsedError;
+  @_BoolConverter()
+  bool get truncated => throw _privateConstructorUsedError;
+
+  /// Serializes this B2bAccountInvoices to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of B2bAccountInvoices
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $B2bAccountInvoicesCopyWith<B2bAccountInvoices> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $B2bAccountInvoicesCopyWith<$Res> {
+  factory $B2bAccountInvoicesCopyWith(
+    B2bAccountInvoices value,
+    $Res Function(B2bAccountInvoices) then,
+  ) = _$B2bAccountInvoicesCopyWithImpl<$Res, B2bAccountInvoices>;
+  @useResult
+  $Res call({
+    @_NullableStringConverter() String? customer,
+    @_NullableStringConverter() String? branch,
+    List<B2bRecentInvoice> invoices,
+    B2bBranchStats summary,
+    @_BoolConverter() bool truncated,
+  });
+
+  $B2bBranchStatsCopyWith<$Res> get summary;
+}
+
+/// @nodoc
+class _$B2bAccountInvoicesCopyWithImpl<$Res, $Val extends B2bAccountInvoices>
+    implements $B2bAccountInvoicesCopyWith<$Res> {
+  _$B2bAccountInvoicesCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of B2bAccountInvoices
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? customer = freezed,
+    Object? branch = freezed,
+    Object? invoices = null,
+    Object? summary = null,
+    Object? truncated = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            customer: freezed == customer
+                ? _value.customer
+                : customer // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            branch: freezed == branch
+                ? _value.branch
+                : branch // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            invoices: null == invoices
+                ? _value.invoices
+                : invoices // ignore: cast_nullable_to_non_nullable
+                      as List<B2bRecentInvoice>,
+            summary: null == summary
+                ? _value.summary
+                : summary // ignore: cast_nullable_to_non_nullable
+                      as B2bBranchStats,
+            truncated: null == truncated
+                ? _value.truncated
+                : truncated // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of B2bAccountInvoices
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $B2bBranchStatsCopyWith<$Res> get summary {
+    return $B2bBranchStatsCopyWith<$Res>(_value.summary, (value) {
+      return _then(_value.copyWith(summary: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$B2bAccountInvoicesImplCopyWith<$Res>
+    implements $B2bAccountInvoicesCopyWith<$Res> {
+  factory _$$B2bAccountInvoicesImplCopyWith(
+    _$B2bAccountInvoicesImpl value,
+    $Res Function(_$B2bAccountInvoicesImpl) then,
+  ) = __$$B2bAccountInvoicesImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @_NullableStringConverter() String? customer,
+    @_NullableStringConverter() String? branch,
+    List<B2bRecentInvoice> invoices,
+    B2bBranchStats summary,
+    @_BoolConverter() bool truncated,
+  });
+
+  @override
+  $B2bBranchStatsCopyWith<$Res> get summary;
+}
+
+/// @nodoc
+class __$$B2bAccountInvoicesImplCopyWithImpl<$Res>
+    extends _$B2bAccountInvoicesCopyWithImpl<$Res, _$B2bAccountInvoicesImpl>
+    implements _$$B2bAccountInvoicesImplCopyWith<$Res> {
+  __$$B2bAccountInvoicesImplCopyWithImpl(
+    _$B2bAccountInvoicesImpl _value,
+    $Res Function(_$B2bAccountInvoicesImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of B2bAccountInvoices
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? customer = freezed,
+    Object? branch = freezed,
+    Object? invoices = null,
+    Object? summary = null,
+    Object? truncated = null,
+  }) {
+    return _then(
+      _$B2bAccountInvoicesImpl(
+        customer: freezed == customer
+            ? _value.customer
+            : customer // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        branch: freezed == branch
+            ? _value.branch
+            : branch // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        invoices: null == invoices
+            ? _value._invoices
+            : invoices // ignore: cast_nullable_to_non_nullable
+                  as List<B2bRecentInvoice>,
+        summary: null == summary
+            ? _value.summary
+            : summary // ignore: cast_nullable_to_non_nullable
+                  as B2bBranchStats,
+        truncated: null == truncated
+            ? _value.truncated
+            : truncated // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$B2bAccountInvoicesImpl implements _B2bAccountInvoices {
+  const _$B2bAccountInvoicesImpl({
+    @_NullableStringConverter() this.customer,
+    @_NullableStringConverter() this.branch,
+    final List<B2bRecentInvoice> invoices = const <B2bRecentInvoice>[],
+    this.summary = const B2bBranchStats(),
+    @_BoolConverter() this.truncated = false,
+  }) : _invoices = invoices;
+
+  factory _$B2bAccountInvoicesImpl.fromJson(Map<String, dynamic> json) =>
+      _$$B2bAccountInvoicesImplFromJson(json);
+
+  @override
+  @_NullableStringConverter()
+  final String? customer;
+  @override
+  @_NullableStringConverter()
+  final String? branch;
+  final List<B2bRecentInvoice> _invoices;
+  @override
+  @JsonKey()
+  List<B2bRecentInvoice> get invoices {
+    if (_invoices is EqualUnmodifiableListView) return _invoices;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_invoices);
+  }
+
+  @override
+  @JsonKey()
+  final B2bBranchStats summary;
+  @override
+  @JsonKey()
+  @_BoolConverter()
+  final bool truncated;
+
+  @override
+  String toString() {
+    return 'B2bAccountInvoices(customer: $customer, branch: $branch, invoices: $invoices, summary: $summary, truncated: $truncated)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$B2bAccountInvoicesImpl &&
+            (identical(other.customer, customer) ||
+                other.customer == customer) &&
+            (identical(other.branch, branch) || other.branch == branch) &&
+            const DeepCollectionEquality().equals(other._invoices, _invoices) &&
+            (identical(other.summary, summary) || other.summary == summary) &&
+            (identical(other.truncated, truncated) ||
+                other.truncated == truncated));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    customer,
+    branch,
+    const DeepCollectionEquality().hash(_invoices),
+    summary,
+    truncated,
+  );
+
+  /// Create a copy of B2bAccountInvoices
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$B2bAccountInvoicesImplCopyWith<_$B2bAccountInvoicesImpl> get copyWith =>
+      __$$B2bAccountInvoicesImplCopyWithImpl<_$B2bAccountInvoicesImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$B2bAccountInvoicesImplToJson(this);
+  }
+}
+
+abstract class _B2bAccountInvoices implements B2bAccountInvoices {
+  const factory _B2bAccountInvoices({
+    @_NullableStringConverter() final String? customer,
+    @_NullableStringConverter() final String? branch,
+    final List<B2bRecentInvoice> invoices,
+    final B2bBranchStats summary,
+    @_BoolConverter() final bool truncated,
+  }) = _$B2bAccountInvoicesImpl;
+
+  factory _B2bAccountInvoices.fromJson(Map<String, dynamic> json) =
+      _$B2bAccountInvoicesImpl.fromJson;
+
+  @override
+  @_NullableStringConverter()
+  String? get customer;
+  @override
+  @_NullableStringConverter()
+  String? get branch;
+  @override
+  List<B2bRecentInvoice> get invoices;
+  @override
+  B2bBranchStats get summary;
+  @override
+  @_BoolConverter()
+  bool get truncated;
+
+  /// Create a copy of B2bAccountInvoices
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$B2bAccountInvoicesImplCopyWith<_$B2bAccountInvoicesImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+B2bMergeCandidate _$B2bMergeCandidateFromJson(Map<String, dynamic> json) {
+  return _B2bMergeCandidate.fromJson(json);
+}
+
+/// @nodoc
+mixin _$B2bMergeCandidate {
+  String get doctype => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get title => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get customer => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get stage => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get area => throw _privateConstructorUsedError;
+  @JsonKey(name: 'mobile_no')
+  @_NullableStringConverter()
+  String? get mobileNo => throw _privateConstructorUsedError;
+  @JsonKey(name: 'branch_count')
+  @_IntConverter()
+  int get branchCount => throw _privateConstructorUsedError;
+
+  /// Serializes this B2bMergeCandidate to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of B2bMergeCandidate
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $B2bMergeCandidateCopyWith<B2bMergeCandidate> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $B2bMergeCandidateCopyWith<$Res> {
+  factory $B2bMergeCandidateCopyWith(
+    B2bMergeCandidate value,
+    $Res Function(B2bMergeCandidate) then,
+  ) = _$B2bMergeCandidateCopyWithImpl<$Res, B2bMergeCandidate>;
+  @useResult
+  $Res call({
+    String doctype,
+    String name,
+    @_NullableStringConverter() String? title,
+    @_NullableStringConverter() String? customer,
+    @_NullableStringConverter() String? stage,
+    @_NullableStringConverter() String? area,
+    @JsonKey(name: 'mobile_no') @_NullableStringConverter() String? mobileNo,
+    @JsonKey(name: 'branch_count') @_IntConverter() int branchCount,
+  });
+}
+
+/// @nodoc
+class _$B2bMergeCandidateCopyWithImpl<$Res, $Val extends B2bMergeCandidate>
+    implements $B2bMergeCandidateCopyWith<$Res> {
+  _$B2bMergeCandidateCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of B2bMergeCandidate
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? doctype = null,
+    Object? name = null,
+    Object? title = freezed,
+    Object? customer = freezed,
+    Object? stage = freezed,
+    Object? area = freezed,
+    Object? mobileNo = freezed,
+    Object? branchCount = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            doctype: null == doctype
+                ? _value.doctype
+                : doctype // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            title: freezed == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            customer: freezed == customer
+                ? _value.customer
+                : customer // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            stage: freezed == stage
+                ? _value.stage
+                : stage // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            area: freezed == area
+                ? _value.area
+                : area // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            mobileNo: freezed == mobileNo
+                ? _value.mobileNo
+                : mobileNo // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            branchCount: null == branchCount
+                ? _value.branchCount
+                : branchCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$B2bMergeCandidateImplCopyWith<$Res>
+    implements $B2bMergeCandidateCopyWith<$Res> {
+  factory _$$B2bMergeCandidateImplCopyWith(
+    _$B2bMergeCandidateImpl value,
+    $Res Function(_$B2bMergeCandidateImpl) then,
+  ) = __$$B2bMergeCandidateImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String doctype,
+    String name,
+    @_NullableStringConverter() String? title,
+    @_NullableStringConverter() String? customer,
+    @_NullableStringConverter() String? stage,
+    @_NullableStringConverter() String? area,
+    @JsonKey(name: 'mobile_no') @_NullableStringConverter() String? mobileNo,
+    @JsonKey(name: 'branch_count') @_IntConverter() int branchCount,
+  });
+}
+
+/// @nodoc
+class __$$B2bMergeCandidateImplCopyWithImpl<$Res>
+    extends _$B2bMergeCandidateCopyWithImpl<$Res, _$B2bMergeCandidateImpl>
+    implements _$$B2bMergeCandidateImplCopyWith<$Res> {
+  __$$B2bMergeCandidateImplCopyWithImpl(
+    _$B2bMergeCandidateImpl _value,
+    $Res Function(_$B2bMergeCandidateImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of B2bMergeCandidate
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? doctype = null,
+    Object? name = null,
+    Object? title = freezed,
+    Object? customer = freezed,
+    Object? stage = freezed,
+    Object? area = freezed,
+    Object? mobileNo = freezed,
+    Object? branchCount = null,
+  }) {
+    return _then(
+      _$B2bMergeCandidateImpl(
+        doctype: null == doctype
+            ? _value.doctype
+            : doctype // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        title: freezed == title
+            ? _value.title
+            : title // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        customer: freezed == customer
+            ? _value.customer
+            : customer // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        stage: freezed == stage
+            ? _value.stage
+            : stage // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        area: freezed == area
+            ? _value.area
+            : area // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        mobileNo: freezed == mobileNo
+            ? _value.mobileNo
+            : mobileNo // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        branchCount: null == branchCount
+            ? _value.branchCount
+            : branchCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$B2bMergeCandidateImpl extends _B2bMergeCandidate {
+  const _$B2bMergeCandidateImpl({
+    this.doctype = 'Lead',
+    required this.name,
+    @_NullableStringConverter() this.title,
+    @_NullableStringConverter() this.customer,
+    @_NullableStringConverter() this.stage,
+    @_NullableStringConverter() this.area,
+    @JsonKey(name: 'mobile_no') @_NullableStringConverter() this.mobileNo,
+    @JsonKey(name: 'branch_count') @_IntConverter() this.branchCount = 0,
+  }) : super._();
+
+  factory _$B2bMergeCandidateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$B2bMergeCandidateImplFromJson(json);
+
+  @override
+  @JsonKey()
+  final String doctype;
+  @override
+  final String name;
+  @override
+  @_NullableStringConverter()
+  final String? title;
+  @override
+  @_NullableStringConverter()
+  final String? customer;
+  @override
+  @_NullableStringConverter()
+  final String? stage;
+  @override
+  @_NullableStringConverter()
+  final String? area;
+  @override
+  @JsonKey(name: 'mobile_no')
+  @_NullableStringConverter()
+  final String? mobileNo;
+  @override
+  @JsonKey(name: 'branch_count')
+  @_IntConverter()
+  final int branchCount;
+
+  @override
+  String toString() {
+    return 'B2bMergeCandidate(doctype: $doctype, name: $name, title: $title, customer: $customer, stage: $stage, area: $area, mobileNo: $mobileNo, branchCount: $branchCount)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$B2bMergeCandidateImpl &&
+            (identical(other.doctype, doctype) || other.doctype == doctype) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.customer, customer) ||
+                other.customer == customer) &&
+            (identical(other.stage, stage) || other.stage == stage) &&
+            (identical(other.area, area) || other.area == area) &&
+            (identical(other.mobileNo, mobileNo) ||
+                other.mobileNo == mobileNo) &&
+            (identical(other.branchCount, branchCount) ||
+                other.branchCount == branchCount));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    doctype,
+    name,
+    title,
+    customer,
+    stage,
+    area,
+    mobileNo,
+    branchCount,
+  );
+
+  /// Create a copy of B2bMergeCandidate
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$B2bMergeCandidateImplCopyWith<_$B2bMergeCandidateImpl> get copyWith =>
+      __$$B2bMergeCandidateImplCopyWithImpl<_$B2bMergeCandidateImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$B2bMergeCandidateImplToJson(this);
+  }
+}
+
+abstract class _B2bMergeCandidate extends B2bMergeCandidate {
+  const factory _B2bMergeCandidate({
+    final String doctype,
+    required final String name,
+    @_NullableStringConverter() final String? title,
+    @_NullableStringConverter() final String? customer,
+    @_NullableStringConverter() final String? stage,
+    @_NullableStringConverter() final String? area,
+    @JsonKey(name: 'mobile_no')
+    @_NullableStringConverter()
+    final String? mobileNo,
+    @JsonKey(name: 'branch_count') @_IntConverter() final int branchCount,
+  }) = _$B2bMergeCandidateImpl;
+  const _B2bMergeCandidate._() : super._();
+
+  factory _B2bMergeCandidate.fromJson(Map<String, dynamic> json) =
+      _$B2bMergeCandidateImpl.fromJson;
+
+  @override
+  String get doctype;
+  @override
+  String get name;
+  @override
+  @_NullableStringConverter()
+  String? get title;
+  @override
+  @_NullableStringConverter()
+  String? get customer;
+  @override
+  @_NullableStringConverter()
+  String? get stage;
+  @override
+  @_NullableStringConverter()
+  String? get area;
+  @override
+  @JsonKey(name: 'mobile_no')
+  @_NullableStringConverter()
+  String? get mobileNo;
+  @override
+  @JsonKey(name: 'branch_count')
+  @_IntConverter()
+  int get branchCount;
+
+  /// Create a copy of B2bMergeCandidate
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$B2bMergeCandidateImplCopyWith<_$B2bMergeCandidateImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+B2bMergeParty _$B2bMergePartyFromJson(Map<String, dynamic> json) {
+  return _B2bMergeParty.fromJson(json);
+}
+
+/// @nodoc
+mixin _$B2bMergeParty {
+  @_NullableStringConverter()
+  String? get doctype => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get name => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get title => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get lead => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get customer => throw _privateConstructorUsedError;
+
+  /// Serializes this B2bMergeParty to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of B2bMergeParty
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $B2bMergePartyCopyWith<B2bMergeParty> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $B2bMergePartyCopyWith<$Res> {
+  factory $B2bMergePartyCopyWith(
+    B2bMergeParty value,
+    $Res Function(B2bMergeParty) then,
+  ) = _$B2bMergePartyCopyWithImpl<$Res, B2bMergeParty>;
+  @useResult
+  $Res call({
+    @_NullableStringConverter() String? doctype,
+    @_NullableStringConverter() String? name,
+    @_NullableStringConverter() String? title,
+    @_NullableStringConverter() String? lead,
+    @_NullableStringConverter() String? customer,
+  });
+}
+
+/// @nodoc
+class _$B2bMergePartyCopyWithImpl<$Res, $Val extends B2bMergeParty>
+    implements $B2bMergePartyCopyWith<$Res> {
+  _$B2bMergePartyCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of B2bMergeParty
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? doctype = freezed,
+    Object? name = freezed,
+    Object? title = freezed,
+    Object? lead = freezed,
+    Object? customer = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            doctype: freezed == doctype
+                ? _value.doctype
+                : doctype // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            name: freezed == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            title: freezed == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lead: freezed == lead
+                ? _value.lead
+                : lead // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            customer: freezed == customer
+                ? _value.customer
+                : customer // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$B2bMergePartyImplCopyWith<$Res>
+    implements $B2bMergePartyCopyWith<$Res> {
+  factory _$$B2bMergePartyImplCopyWith(
+    _$B2bMergePartyImpl value,
+    $Res Function(_$B2bMergePartyImpl) then,
+  ) = __$$B2bMergePartyImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @_NullableStringConverter() String? doctype,
+    @_NullableStringConverter() String? name,
+    @_NullableStringConverter() String? title,
+    @_NullableStringConverter() String? lead,
+    @_NullableStringConverter() String? customer,
+  });
+}
+
+/// @nodoc
+class __$$B2bMergePartyImplCopyWithImpl<$Res>
+    extends _$B2bMergePartyCopyWithImpl<$Res, _$B2bMergePartyImpl>
+    implements _$$B2bMergePartyImplCopyWith<$Res> {
+  __$$B2bMergePartyImplCopyWithImpl(
+    _$B2bMergePartyImpl _value,
+    $Res Function(_$B2bMergePartyImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of B2bMergeParty
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? doctype = freezed,
+    Object? name = freezed,
+    Object? title = freezed,
+    Object? lead = freezed,
+    Object? customer = freezed,
+  }) {
+    return _then(
+      _$B2bMergePartyImpl(
+        doctype: freezed == doctype
+            ? _value.doctype
+            : doctype // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        name: freezed == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        title: freezed == title
+            ? _value.title
+            : title // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lead: freezed == lead
+            ? _value.lead
+            : lead // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        customer: freezed == customer
+            ? _value.customer
+            : customer // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$B2bMergePartyImpl extends _B2bMergeParty {
+  const _$B2bMergePartyImpl({
+    @_NullableStringConverter() this.doctype,
+    @_NullableStringConverter() this.name,
+    @_NullableStringConverter() this.title,
+    @_NullableStringConverter() this.lead,
+    @_NullableStringConverter() this.customer,
+  }) : super._();
+
+  factory _$B2bMergePartyImpl.fromJson(Map<String, dynamic> json) =>
+      _$$B2bMergePartyImplFromJson(json);
+
+  @override
+  @_NullableStringConverter()
+  final String? doctype;
+  @override
+  @_NullableStringConverter()
+  final String? name;
+  @override
+  @_NullableStringConverter()
+  final String? title;
+  @override
+  @_NullableStringConverter()
+  final String? lead;
+  @override
+  @_NullableStringConverter()
+  final String? customer;
+
+  @override
+  String toString() {
+    return 'B2bMergeParty(doctype: $doctype, name: $name, title: $title, lead: $lead, customer: $customer)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$B2bMergePartyImpl &&
+            (identical(other.doctype, doctype) || other.doctype == doctype) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.lead, lead) || other.lead == lead) &&
+            (identical(other.customer, customer) ||
+                other.customer == customer));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, doctype, name, title, lead, customer);
+
+  /// Create a copy of B2bMergeParty
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$B2bMergePartyImplCopyWith<_$B2bMergePartyImpl> get copyWith =>
+      __$$B2bMergePartyImplCopyWithImpl<_$B2bMergePartyImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$B2bMergePartyImplToJson(this);
+  }
+}
+
+abstract class _B2bMergeParty extends B2bMergeParty {
+  const factory _B2bMergeParty({
+    @_NullableStringConverter() final String? doctype,
+    @_NullableStringConverter() final String? name,
+    @_NullableStringConverter() final String? title,
+    @_NullableStringConverter() final String? lead,
+    @_NullableStringConverter() final String? customer,
+  }) = _$B2bMergePartyImpl;
+  const _B2bMergeParty._() : super._();
+
+  factory _B2bMergeParty.fromJson(Map<String, dynamic> json) =
+      _$B2bMergePartyImpl.fromJson;
+
+  @override
+  @_NullableStringConverter()
+  String? get doctype;
+  @override
+  @_NullableStringConverter()
+  String? get name;
+  @override
+  @_NullableStringConverter()
+  String? get title;
+  @override
+  @_NullableStringConverter()
+  String? get lead;
+  @override
+  @_NullableStringConverter()
+  String? get customer;
+
+  /// Create a copy of B2bMergeParty
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$B2bMergePartyImplCopyWith<_$B2bMergePartyImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+B2bMergePlan _$B2bMergePlanFromJson(Map<String, dynamic> json) {
+  return _B2bMergePlan.fromJson(json);
+}
+
+/// @nodoc
+mixin _$B2bMergePlan {
+  @JsonKey(name: 'customer_action')
+  @_NullableStringConverter()
+  String? get customerAction => throw _privateConstructorUsedError;
+  @JsonKey(name: 'lead_action')
+  @_NullableStringConverter()
+  String? get leadAction => throw _privateConstructorUsedError;
+  @JsonKey(name: 'requires_manager')
+  @_BoolConverter()
+  bool get requiresManager => throw _privateConstructorUsedError;
+  @JsonKey(name: 'final_customer')
+  @_NullableStringConverter()
+  String? get finalCustomer => throw _privateConstructorUsedError;
+
+  /// Serializes this B2bMergePlan to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of B2bMergePlan
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $B2bMergePlanCopyWith<B2bMergePlan> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $B2bMergePlanCopyWith<$Res> {
+  factory $B2bMergePlanCopyWith(
+    B2bMergePlan value,
+    $Res Function(B2bMergePlan) then,
+  ) = _$B2bMergePlanCopyWithImpl<$Res, B2bMergePlan>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'customer_action')
+    @_NullableStringConverter()
+    String? customerAction,
+    @JsonKey(name: 'lead_action')
+    @_NullableStringConverter()
+    String? leadAction,
+    @JsonKey(name: 'requires_manager') @_BoolConverter() bool requiresManager,
+    @JsonKey(name: 'final_customer')
+    @_NullableStringConverter()
+    String? finalCustomer,
+  });
+}
+
+/// @nodoc
+class _$B2bMergePlanCopyWithImpl<$Res, $Val extends B2bMergePlan>
+    implements $B2bMergePlanCopyWith<$Res> {
+  _$B2bMergePlanCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of B2bMergePlan
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? customerAction = freezed,
+    Object? leadAction = freezed,
+    Object? requiresManager = null,
+    Object? finalCustomer = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            customerAction: freezed == customerAction
+                ? _value.customerAction
+                : customerAction // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            leadAction: freezed == leadAction
+                ? _value.leadAction
+                : leadAction // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            requiresManager: null == requiresManager
+                ? _value.requiresManager
+                : requiresManager // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            finalCustomer: freezed == finalCustomer
+                ? _value.finalCustomer
+                : finalCustomer // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$B2bMergePlanImplCopyWith<$Res>
+    implements $B2bMergePlanCopyWith<$Res> {
+  factory _$$B2bMergePlanImplCopyWith(
+    _$B2bMergePlanImpl value,
+    $Res Function(_$B2bMergePlanImpl) then,
+  ) = __$$B2bMergePlanImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'customer_action')
+    @_NullableStringConverter()
+    String? customerAction,
+    @JsonKey(name: 'lead_action')
+    @_NullableStringConverter()
+    String? leadAction,
+    @JsonKey(name: 'requires_manager') @_BoolConverter() bool requiresManager,
+    @JsonKey(name: 'final_customer')
+    @_NullableStringConverter()
+    String? finalCustomer,
+  });
+}
+
+/// @nodoc
+class __$$B2bMergePlanImplCopyWithImpl<$Res>
+    extends _$B2bMergePlanCopyWithImpl<$Res, _$B2bMergePlanImpl>
+    implements _$$B2bMergePlanImplCopyWith<$Res> {
+  __$$B2bMergePlanImplCopyWithImpl(
+    _$B2bMergePlanImpl _value,
+    $Res Function(_$B2bMergePlanImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of B2bMergePlan
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? customerAction = freezed,
+    Object? leadAction = freezed,
+    Object? requiresManager = null,
+    Object? finalCustomer = freezed,
+  }) {
+    return _then(
+      _$B2bMergePlanImpl(
+        customerAction: freezed == customerAction
+            ? _value.customerAction
+            : customerAction // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        leadAction: freezed == leadAction
+            ? _value.leadAction
+            : leadAction // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        requiresManager: null == requiresManager
+            ? _value.requiresManager
+            : requiresManager // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        finalCustomer: freezed == finalCustomer
+            ? _value.finalCustomer
+            : finalCustomer // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$B2bMergePlanImpl implements _B2bMergePlan {
+  const _$B2bMergePlanImpl({
+    @JsonKey(name: 'customer_action')
+    @_NullableStringConverter()
+    this.customerAction,
+    @JsonKey(name: 'lead_action') @_NullableStringConverter() this.leadAction,
+    @JsonKey(name: 'requires_manager')
+    @_BoolConverter()
+    this.requiresManager = false,
+    @JsonKey(name: 'final_customer')
+    @_NullableStringConverter()
+    this.finalCustomer,
+  });
+
+  factory _$B2bMergePlanImpl.fromJson(Map<String, dynamic> json) =>
+      _$$B2bMergePlanImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'customer_action')
+  @_NullableStringConverter()
+  final String? customerAction;
+  @override
+  @JsonKey(name: 'lead_action')
+  @_NullableStringConverter()
+  final String? leadAction;
+  @override
+  @JsonKey(name: 'requires_manager')
+  @_BoolConverter()
+  final bool requiresManager;
+  @override
+  @JsonKey(name: 'final_customer')
+  @_NullableStringConverter()
+  final String? finalCustomer;
+
+  @override
+  String toString() {
+    return 'B2bMergePlan(customerAction: $customerAction, leadAction: $leadAction, requiresManager: $requiresManager, finalCustomer: $finalCustomer)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$B2bMergePlanImpl &&
+            (identical(other.customerAction, customerAction) ||
+                other.customerAction == customerAction) &&
+            (identical(other.leadAction, leadAction) ||
+                other.leadAction == leadAction) &&
+            (identical(other.requiresManager, requiresManager) ||
+                other.requiresManager == requiresManager) &&
+            (identical(other.finalCustomer, finalCustomer) ||
+                other.finalCustomer == finalCustomer));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    customerAction,
+    leadAction,
+    requiresManager,
+    finalCustomer,
+  );
+
+  /// Create a copy of B2bMergePlan
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$B2bMergePlanImplCopyWith<_$B2bMergePlanImpl> get copyWith =>
+      __$$B2bMergePlanImplCopyWithImpl<_$B2bMergePlanImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$B2bMergePlanImplToJson(this);
+  }
+}
+
+abstract class _B2bMergePlan implements B2bMergePlan {
+  const factory _B2bMergePlan({
+    @JsonKey(name: 'customer_action')
+    @_NullableStringConverter()
+    final String? customerAction,
+    @JsonKey(name: 'lead_action')
+    @_NullableStringConverter()
+    final String? leadAction,
+    @JsonKey(name: 'requires_manager')
+    @_BoolConverter()
+    final bool requiresManager,
+    @JsonKey(name: 'final_customer')
+    @_NullableStringConverter()
+    final String? finalCustomer,
+  }) = _$B2bMergePlanImpl;
+
+  factory _B2bMergePlan.fromJson(Map<String, dynamic> json) =
+      _$B2bMergePlanImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'customer_action')
+  @_NullableStringConverter()
+  String? get customerAction;
+  @override
+  @JsonKey(name: 'lead_action')
+  @_NullableStringConverter()
+  String? get leadAction;
+  @override
+  @JsonKey(name: 'requires_manager')
+  @_BoolConverter()
+  bool get requiresManager;
+  @override
+  @JsonKey(name: 'final_customer')
+  @_NullableStringConverter()
+  String? get finalCustomer;
+
+  /// Create a copy of B2bMergePlan
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$B2bMergePlanImplCopyWith<_$B2bMergePlanImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+B2bMergeCustomerSummary _$B2bMergeCustomerSummaryFromJson(
+  Map<String, dynamic> json,
+) {
+  return _B2bMergeCustomerSummary.fromJson(json);
+}
+
+/// @nodoc
+mixin _$B2bMergeCustomerSummary {
+  @_NullableStringConverter()
+  String? get name => throw _privateConstructorUsedError;
+  @JsonKey(name: 'customer_name')
+  @_NullableStringConverter()
+  String? get customerName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'invoice_count')
+  @_IntConverter()
+  int get invoiceCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_billed')
+  @_DoubleConverter()
+  double get totalBilled => throw _privateConstructorUsedError;
+  @_DoubleConverter()
+  double get outstanding => throw _privateConstructorUsedError;
+  @JsonKey(name: 'address_count')
+  @_IntConverter()
+  int get addressCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'credit_allowed')
+  @_BoolConverter()
+  bool get creditAllowed => throw _privateConstructorUsedError;
+
+  /// Serializes this B2bMergeCustomerSummary to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of B2bMergeCustomerSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $B2bMergeCustomerSummaryCopyWith<B2bMergeCustomerSummary> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $B2bMergeCustomerSummaryCopyWith<$Res> {
+  factory $B2bMergeCustomerSummaryCopyWith(
+    B2bMergeCustomerSummary value,
+    $Res Function(B2bMergeCustomerSummary) then,
+  ) = _$B2bMergeCustomerSummaryCopyWithImpl<$Res, B2bMergeCustomerSummary>;
+  @useResult
+  $Res call({
+    @_NullableStringConverter() String? name,
+    @JsonKey(name: 'customer_name')
+    @_NullableStringConverter()
+    String? customerName,
+    @JsonKey(name: 'invoice_count') @_IntConverter() int invoiceCount,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() double totalBilled,
+    @_DoubleConverter() double outstanding,
+    @JsonKey(name: 'address_count') @_IntConverter() int addressCount,
+    @JsonKey(name: 'credit_allowed') @_BoolConverter() bool creditAllowed,
+  });
+}
+
+/// @nodoc
+class _$B2bMergeCustomerSummaryCopyWithImpl<
+  $Res,
+  $Val extends B2bMergeCustomerSummary
+>
+    implements $B2bMergeCustomerSummaryCopyWith<$Res> {
+  _$B2bMergeCustomerSummaryCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of B2bMergeCustomerSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = freezed,
+    Object? customerName = freezed,
+    Object? invoiceCount = null,
+    Object? totalBilled = null,
+    Object? outstanding = null,
+    Object? addressCount = null,
+    Object? creditAllowed = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            name: freezed == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            customerName: freezed == customerName
+                ? _value.customerName
+                : customerName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            invoiceCount: null == invoiceCount
+                ? _value.invoiceCount
+                : invoiceCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            totalBilled: null == totalBilled
+                ? _value.totalBilled
+                : totalBilled // ignore: cast_nullable_to_non_nullable
+                      as double,
+            outstanding: null == outstanding
+                ? _value.outstanding
+                : outstanding // ignore: cast_nullable_to_non_nullable
+                      as double,
+            addressCount: null == addressCount
+                ? _value.addressCount
+                : addressCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            creditAllowed: null == creditAllowed
+                ? _value.creditAllowed
+                : creditAllowed // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$B2bMergeCustomerSummaryImplCopyWith<$Res>
+    implements $B2bMergeCustomerSummaryCopyWith<$Res> {
+  factory _$$B2bMergeCustomerSummaryImplCopyWith(
+    _$B2bMergeCustomerSummaryImpl value,
+    $Res Function(_$B2bMergeCustomerSummaryImpl) then,
+  ) = __$$B2bMergeCustomerSummaryImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @_NullableStringConverter() String? name,
+    @JsonKey(name: 'customer_name')
+    @_NullableStringConverter()
+    String? customerName,
+    @JsonKey(name: 'invoice_count') @_IntConverter() int invoiceCount,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() double totalBilled,
+    @_DoubleConverter() double outstanding,
+    @JsonKey(name: 'address_count') @_IntConverter() int addressCount,
+    @JsonKey(name: 'credit_allowed') @_BoolConverter() bool creditAllowed,
+  });
+}
+
+/// @nodoc
+class __$$B2bMergeCustomerSummaryImplCopyWithImpl<$Res>
+    extends
+        _$B2bMergeCustomerSummaryCopyWithImpl<
+          $Res,
+          _$B2bMergeCustomerSummaryImpl
+        >
+    implements _$$B2bMergeCustomerSummaryImplCopyWith<$Res> {
+  __$$B2bMergeCustomerSummaryImplCopyWithImpl(
+    _$B2bMergeCustomerSummaryImpl _value,
+    $Res Function(_$B2bMergeCustomerSummaryImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of B2bMergeCustomerSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = freezed,
+    Object? customerName = freezed,
+    Object? invoiceCount = null,
+    Object? totalBilled = null,
+    Object? outstanding = null,
+    Object? addressCount = null,
+    Object? creditAllowed = null,
+  }) {
+    return _then(
+      _$B2bMergeCustomerSummaryImpl(
+        name: freezed == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        customerName: freezed == customerName
+            ? _value.customerName
+            : customerName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        invoiceCount: null == invoiceCount
+            ? _value.invoiceCount
+            : invoiceCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        totalBilled: null == totalBilled
+            ? _value.totalBilled
+            : totalBilled // ignore: cast_nullable_to_non_nullable
+                  as double,
+        outstanding: null == outstanding
+            ? _value.outstanding
+            : outstanding // ignore: cast_nullable_to_non_nullable
+                  as double,
+        addressCount: null == addressCount
+            ? _value.addressCount
+            : addressCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        creditAllowed: null == creditAllowed
+            ? _value.creditAllowed
+            : creditAllowed // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$B2bMergeCustomerSummaryImpl implements _B2bMergeCustomerSummary {
+  const _$B2bMergeCustomerSummaryImpl({
+    @_NullableStringConverter() this.name,
+    @JsonKey(name: 'customer_name')
+    @_NullableStringConverter()
+    this.customerName,
+    @JsonKey(name: 'invoice_count') @_IntConverter() this.invoiceCount = 0,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() this.totalBilled = 0.0,
+    @_DoubleConverter() this.outstanding = 0.0,
+    @JsonKey(name: 'address_count') @_IntConverter() this.addressCount = 0,
+    @JsonKey(name: 'credit_allowed')
+    @_BoolConverter()
+    this.creditAllowed = false,
+  });
+
+  factory _$B2bMergeCustomerSummaryImpl.fromJson(Map<String, dynamic> json) =>
+      _$$B2bMergeCustomerSummaryImplFromJson(json);
+
+  @override
+  @_NullableStringConverter()
+  final String? name;
+  @override
+  @JsonKey(name: 'customer_name')
+  @_NullableStringConverter()
+  final String? customerName;
+  @override
+  @JsonKey(name: 'invoice_count')
+  @_IntConverter()
+  final int invoiceCount;
+  @override
+  @JsonKey(name: 'total_billed')
+  @_DoubleConverter()
+  final double totalBilled;
+  @override
+  @JsonKey()
+  @_DoubleConverter()
+  final double outstanding;
+  @override
+  @JsonKey(name: 'address_count')
+  @_IntConverter()
+  final int addressCount;
+  @override
+  @JsonKey(name: 'credit_allowed')
+  @_BoolConverter()
+  final bool creditAllowed;
+
+  @override
+  String toString() {
+    return 'B2bMergeCustomerSummary(name: $name, customerName: $customerName, invoiceCount: $invoiceCount, totalBilled: $totalBilled, outstanding: $outstanding, addressCount: $addressCount, creditAllowed: $creditAllowed)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$B2bMergeCustomerSummaryImpl &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.customerName, customerName) ||
+                other.customerName == customerName) &&
+            (identical(other.invoiceCount, invoiceCount) ||
+                other.invoiceCount == invoiceCount) &&
+            (identical(other.totalBilled, totalBilled) ||
+                other.totalBilled == totalBilled) &&
+            (identical(other.outstanding, outstanding) ||
+                other.outstanding == outstanding) &&
+            (identical(other.addressCount, addressCount) ||
+                other.addressCount == addressCount) &&
+            (identical(other.creditAllowed, creditAllowed) ||
+                other.creditAllowed == creditAllowed));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    name,
+    customerName,
+    invoiceCount,
+    totalBilled,
+    outstanding,
+    addressCount,
+    creditAllowed,
+  );
+
+  /// Create a copy of B2bMergeCustomerSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$B2bMergeCustomerSummaryImplCopyWith<_$B2bMergeCustomerSummaryImpl>
+  get copyWith =>
+      __$$B2bMergeCustomerSummaryImplCopyWithImpl<
+        _$B2bMergeCustomerSummaryImpl
+      >(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$B2bMergeCustomerSummaryImplToJson(this);
+  }
+}
+
+abstract class _B2bMergeCustomerSummary implements B2bMergeCustomerSummary {
+  const factory _B2bMergeCustomerSummary({
+    @_NullableStringConverter() final String? name,
+    @JsonKey(name: 'customer_name')
+    @_NullableStringConverter()
+    final String? customerName,
+    @JsonKey(name: 'invoice_count') @_IntConverter() final int invoiceCount,
+    @JsonKey(name: 'total_billed') @_DoubleConverter() final double totalBilled,
+    @_DoubleConverter() final double outstanding,
+    @JsonKey(name: 'address_count') @_IntConverter() final int addressCount,
+    @JsonKey(name: 'credit_allowed') @_BoolConverter() final bool creditAllowed,
+  }) = _$B2bMergeCustomerSummaryImpl;
+
+  factory _B2bMergeCustomerSummary.fromJson(Map<String, dynamic> json) =
+      _$B2bMergeCustomerSummaryImpl.fromJson;
+
+  @override
+  @_NullableStringConverter()
+  String? get name;
+  @override
+  @JsonKey(name: 'customer_name')
+  @_NullableStringConverter()
+  String? get customerName;
+  @override
+  @JsonKey(name: 'invoice_count')
+  @_IntConverter()
+  int get invoiceCount;
+  @override
+  @JsonKey(name: 'total_billed')
+  @_DoubleConverter()
+  double get totalBilled;
+  @override
+  @_DoubleConverter()
+  double get outstanding;
+  @override
+  @JsonKey(name: 'address_count')
+  @_IntConverter()
+  int get addressCount;
+  @override
+  @JsonKey(name: 'credit_allowed')
+  @_BoolConverter()
+  bool get creditAllowed;
+
+  /// Create a copy of B2bMergeCustomerSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$B2bMergeCustomerSummaryImplCopyWith<_$B2bMergeCustomerSummaryImpl>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+B2bMergePreview _$B2bMergePreviewFromJson(Map<String, dynamic> json) {
+  return _B2bMergePreview.fromJson(json);
+}
+
+/// @nodoc
+mixin _$B2bMergePreview {
+  B2bMergeParty get source => throw _privateConstructorUsedError;
+  B2bMergeParty get target => throw _privateConstructorUsedError;
+  B2bMergePlan get plan => throw _privateConstructorUsedError;
+  @JsonKey(name: 'source_customer')
+  B2bMergeCustomerSummary? get sourceCustomer =>
+      throw _privateConstructorUsedError;
+  @JsonKey(name: 'target_customer')
+  B2bMergeCustomerSummary? get targetCustomer =>
+      throw _privateConstructorUsedError;
+  @JsonKey(name: 'can_execute')
+  @_BoolConverter()
+  bool get canExecute => throw _privateConstructorUsedError;
+  @_StringListConverter()
+  List<String> get warnings => throw _privateConstructorUsedError;
+
+  /// Server-written sentences explaining why the merge cannot run at all
+  /// (not a permission issue). Non-empty implies `can_execute == false`.
+  @_StringListConverter()
+  List<String> get blockers => throw _privateConstructorUsedError;
+
+  /// Serializes this B2bMergePreview to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of B2bMergePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $B2bMergePreviewCopyWith<B2bMergePreview> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $B2bMergePreviewCopyWith<$Res> {
+  factory $B2bMergePreviewCopyWith(
+    B2bMergePreview value,
+    $Res Function(B2bMergePreview) then,
+  ) = _$B2bMergePreviewCopyWithImpl<$Res, B2bMergePreview>;
+  @useResult
+  $Res call({
+    B2bMergeParty source,
+    B2bMergeParty target,
+    B2bMergePlan plan,
+    @JsonKey(name: 'source_customer') B2bMergeCustomerSummary? sourceCustomer,
+    @JsonKey(name: 'target_customer') B2bMergeCustomerSummary? targetCustomer,
+    @JsonKey(name: 'can_execute') @_BoolConverter() bool canExecute,
+    @_StringListConverter() List<String> warnings,
+    @_StringListConverter() List<String> blockers,
+  });
+
+  $B2bMergePartyCopyWith<$Res> get source;
+  $B2bMergePartyCopyWith<$Res> get target;
+  $B2bMergePlanCopyWith<$Res> get plan;
+  $B2bMergeCustomerSummaryCopyWith<$Res>? get sourceCustomer;
+  $B2bMergeCustomerSummaryCopyWith<$Res>? get targetCustomer;
+}
+
+/// @nodoc
+class _$B2bMergePreviewCopyWithImpl<$Res, $Val extends B2bMergePreview>
+    implements $B2bMergePreviewCopyWith<$Res> {
+  _$B2bMergePreviewCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of B2bMergePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? source = null,
+    Object? target = null,
+    Object? plan = null,
+    Object? sourceCustomer = freezed,
+    Object? targetCustomer = freezed,
+    Object? canExecute = null,
+    Object? warnings = null,
+    Object? blockers = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            source: null == source
+                ? _value.source
+                : source // ignore: cast_nullable_to_non_nullable
+                      as B2bMergeParty,
+            target: null == target
+                ? _value.target
+                : target // ignore: cast_nullable_to_non_nullable
+                      as B2bMergeParty,
+            plan: null == plan
+                ? _value.plan
+                : plan // ignore: cast_nullable_to_non_nullable
+                      as B2bMergePlan,
+            sourceCustomer: freezed == sourceCustomer
+                ? _value.sourceCustomer
+                : sourceCustomer // ignore: cast_nullable_to_non_nullable
+                      as B2bMergeCustomerSummary?,
+            targetCustomer: freezed == targetCustomer
+                ? _value.targetCustomer
+                : targetCustomer // ignore: cast_nullable_to_non_nullable
+                      as B2bMergeCustomerSummary?,
+            canExecute: null == canExecute
+                ? _value.canExecute
+                : canExecute // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            warnings: null == warnings
+                ? _value.warnings
+                : warnings // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            blockers: null == blockers
+                ? _value.blockers
+                : blockers // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of B2bMergePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $B2bMergePartyCopyWith<$Res> get source {
+    return $B2bMergePartyCopyWith<$Res>(_value.source, (value) {
+      return _then(_value.copyWith(source: value) as $Val);
+    });
+  }
+
+  /// Create a copy of B2bMergePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $B2bMergePartyCopyWith<$Res> get target {
+    return $B2bMergePartyCopyWith<$Res>(_value.target, (value) {
+      return _then(_value.copyWith(target: value) as $Val);
+    });
+  }
+
+  /// Create a copy of B2bMergePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $B2bMergePlanCopyWith<$Res> get plan {
+    return $B2bMergePlanCopyWith<$Res>(_value.plan, (value) {
+      return _then(_value.copyWith(plan: value) as $Val);
+    });
+  }
+
+  /// Create a copy of B2bMergePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $B2bMergeCustomerSummaryCopyWith<$Res>? get sourceCustomer {
+    if (_value.sourceCustomer == null) {
+      return null;
+    }
+
+    return $B2bMergeCustomerSummaryCopyWith<$Res>(_value.sourceCustomer!, (
+      value,
+    ) {
+      return _then(_value.copyWith(sourceCustomer: value) as $Val);
+    });
+  }
+
+  /// Create a copy of B2bMergePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $B2bMergeCustomerSummaryCopyWith<$Res>? get targetCustomer {
+    if (_value.targetCustomer == null) {
+      return null;
+    }
+
+    return $B2bMergeCustomerSummaryCopyWith<$Res>(_value.targetCustomer!, (
+      value,
+    ) {
+      return _then(_value.copyWith(targetCustomer: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$B2bMergePreviewImplCopyWith<$Res>
+    implements $B2bMergePreviewCopyWith<$Res> {
+  factory _$$B2bMergePreviewImplCopyWith(
+    _$B2bMergePreviewImpl value,
+    $Res Function(_$B2bMergePreviewImpl) then,
+  ) = __$$B2bMergePreviewImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    B2bMergeParty source,
+    B2bMergeParty target,
+    B2bMergePlan plan,
+    @JsonKey(name: 'source_customer') B2bMergeCustomerSummary? sourceCustomer,
+    @JsonKey(name: 'target_customer') B2bMergeCustomerSummary? targetCustomer,
+    @JsonKey(name: 'can_execute') @_BoolConverter() bool canExecute,
+    @_StringListConverter() List<String> warnings,
+    @_StringListConverter() List<String> blockers,
+  });
+
+  @override
+  $B2bMergePartyCopyWith<$Res> get source;
+  @override
+  $B2bMergePartyCopyWith<$Res> get target;
+  @override
+  $B2bMergePlanCopyWith<$Res> get plan;
+  @override
+  $B2bMergeCustomerSummaryCopyWith<$Res>? get sourceCustomer;
+  @override
+  $B2bMergeCustomerSummaryCopyWith<$Res>? get targetCustomer;
+}
+
+/// @nodoc
+class __$$B2bMergePreviewImplCopyWithImpl<$Res>
+    extends _$B2bMergePreviewCopyWithImpl<$Res, _$B2bMergePreviewImpl>
+    implements _$$B2bMergePreviewImplCopyWith<$Res> {
+  __$$B2bMergePreviewImplCopyWithImpl(
+    _$B2bMergePreviewImpl _value,
+    $Res Function(_$B2bMergePreviewImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of B2bMergePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? source = null,
+    Object? target = null,
+    Object? plan = null,
+    Object? sourceCustomer = freezed,
+    Object? targetCustomer = freezed,
+    Object? canExecute = null,
+    Object? warnings = null,
+    Object? blockers = null,
+  }) {
+    return _then(
+      _$B2bMergePreviewImpl(
+        source: null == source
+            ? _value.source
+            : source // ignore: cast_nullable_to_non_nullable
+                  as B2bMergeParty,
+        target: null == target
+            ? _value.target
+            : target // ignore: cast_nullable_to_non_nullable
+                  as B2bMergeParty,
+        plan: null == plan
+            ? _value.plan
+            : plan // ignore: cast_nullable_to_non_nullable
+                  as B2bMergePlan,
+        sourceCustomer: freezed == sourceCustomer
+            ? _value.sourceCustomer
+            : sourceCustomer // ignore: cast_nullable_to_non_nullable
+                  as B2bMergeCustomerSummary?,
+        targetCustomer: freezed == targetCustomer
+            ? _value.targetCustomer
+            : targetCustomer // ignore: cast_nullable_to_non_nullable
+                  as B2bMergeCustomerSummary?,
+        canExecute: null == canExecute
+            ? _value.canExecute
+            : canExecute // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        warnings: null == warnings
+            ? _value._warnings
+            : warnings // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        blockers: null == blockers
+            ? _value._blockers
+            : blockers // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$B2bMergePreviewImpl implements _B2bMergePreview {
+  const _$B2bMergePreviewImpl({
+    this.source = const B2bMergeParty(),
+    this.target = const B2bMergeParty(),
+    this.plan = const B2bMergePlan(),
+    @JsonKey(name: 'source_customer') this.sourceCustomer,
+    @JsonKey(name: 'target_customer') this.targetCustomer,
+    @JsonKey(name: 'can_execute') @_BoolConverter() this.canExecute = false,
+    @_StringListConverter() final List<String> warnings = const <String>[],
+    @_StringListConverter() final List<String> blockers = const <String>[],
+  }) : _warnings = warnings,
+       _blockers = blockers;
+
+  factory _$B2bMergePreviewImpl.fromJson(Map<String, dynamic> json) =>
+      _$$B2bMergePreviewImplFromJson(json);
+
+  @override
+  @JsonKey()
+  final B2bMergeParty source;
+  @override
+  @JsonKey()
+  final B2bMergeParty target;
+  @override
+  @JsonKey()
+  final B2bMergePlan plan;
+  @override
+  @JsonKey(name: 'source_customer')
+  final B2bMergeCustomerSummary? sourceCustomer;
+  @override
+  @JsonKey(name: 'target_customer')
+  final B2bMergeCustomerSummary? targetCustomer;
+  @override
+  @JsonKey(name: 'can_execute')
+  @_BoolConverter()
+  final bool canExecute;
+  final List<String> _warnings;
+  @override
+  @JsonKey()
+  @_StringListConverter()
+  List<String> get warnings {
+    if (_warnings is EqualUnmodifiableListView) return _warnings;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_warnings);
+  }
+
+  /// Server-written sentences explaining why the merge cannot run at all
+  /// (not a permission issue). Non-empty implies `can_execute == false`.
+  final List<String> _blockers;
+
+  /// Server-written sentences explaining why the merge cannot run at all
+  /// (not a permission issue). Non-empty implies `can_execute == false`.
+  @override
+  @JsonKey()
+  @_StringListConverter()
+  List<String> get blockers {
+    if (_blockers is EqualUnmodifiableListView) return _blockers;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_blockers);
+  }
+
+  @override
+  String toString() {
+    return 'B2bMergePreview(source: $source, target: $target, plan: $plan, sourceCustomer: $sourceCustomer, targetCustomer: $targetCustomer, canExecute: $canExecute, warnings: $warnings, blockers: $blockers)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$B2bMergePreviewImpl &&
+            (identical(other.source, source) || other.source == source) &&
+            (identical(other.target, target) || other.target == target) &&
+            (identical(other.plan, plan) || other.plan == plan) &&
+            (identical(other.sourceCustomer, sourceCustomer) ||
+                other.sourceCustomer == sourceCustomer) &&
+            (identical(other.targetCustomer, targetCustomer) ||
+                other.targetCustomer == targetCustomer) &&
+            (identical(other.canExecute, canExecute) ||
+                other.canExecute == canExecute) &&
+            const DeepCollectionEquality().equals(other._warnings, _warnings) &&
+            const DeepCollectionEquality().equals(other._blockers, _blockers));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    source,
+    target,
+    plan,
+    sourceCustomer,
+    targetCustomer,
+    canExecute,
+    const DeepCollectionEquality().hash(_warnings),
+    const DeepCollectionEquality().hash(_blockers),
+  );
+
+  /// Create a copy of B2bMergePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$B2bMergePreviewImplCopyWith<_$B2bMergePreviewImpl> get copyWith =>
+      __$$B2bMergePreviewImplCopyWithImpl<_$B2bMergePreviewImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$B2bMergePreviewImplToJson(this);
+  }
+}
+
+abstract class _B2bMergePreview implements B2bMergePreview {
+  const factory _B2bMergePreview({
+    final B2bMergeParty source,
+    final B2bMergeParty target,
+    final B2bMergePlan plan,
+    @JsonKey(name: 'source_customer')
+    final B2bMergeCustomerSummary? sourceCustomer,
+    @JsonKey(name: 'target_customer')
+    final B2bMergeCustomerSummary? targetCustomer,
+    @JsonKey(name: 'can_execute') @_BoolConverter() final bool canExecute,
+    @_StringListConverter() final List<String> warnings,
+    @_StringListConverter() final List<String> blockers,
+  }) = _$B2bMergePreviewImpl;
+
+  factory _B2bMergePreview.fromJson(Map<String, dynamic> json) =
+      _$B2bMergePreviewImpl.fromJson;
+
+  @override
+  B2bMergeParty get source;
+  @override
+  B2bMergeParty get target;
+  @override
+  B2bMergePlan get plan;
+  @override
+  @JsonKey(name: 'source_customer')
+  B2bMergeCustomerSummary? get sourceCustomer;
+  @override
+  @JsonKey(name: 'target_customer')
+  B2bMergeCustomerSummary? get targetCustomer;
+  @override
+  @JsonKey(name: 'can_execute')
+  @_BoolConverter()
+  bool get canExecute;
+  @override
+  @_StringListConverter()
+  List<String> get warnings;
+
+  /// Server-written sentences explaining why the merge cannot run at all
+  /// (not a permission issue). Non-empty implies `can_execute == false`.
+  @override
+  @_StringListConverter()
+  List<String> get blockers;
+
+  /// Create a copy of B2bMergePreview
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$B2bMergePreviewImplCopyWith<_$B2bMergePreviewImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -1424,6 +4497,14 @@ mixin _$B2bAccount {
   @JsonKey(name: 'open_todos')
   List<B2bTodo> get openTodos => throw _privateConstructorUsedError;
 
+  /// The linked Customer's branches (named shipping Addresses) with their
+  /// own invoice totals. Empty with no Customer or on an older server.
+  List<B2bBranch> get branches => throw _privateConstructorUsedError;
+
+  /// Totals for the invoices that match no branch; null when there are none.
+  @JsonKey(name: 'unassigned_invoices')
+  B2bBranchStats? get unassignedInvoices => throw _privateConstructorUsedError;
+
   /// The rep's dated field diary for this account, newest touch first. The
   /// account screen renders it through the shared journey timeline, which
   /// also owns the live (re-fetched) copy — this is the load-time snapshot.
@@ -1459,10 +4540,13 @@ abstract class $B2bAccountCopyWith<$Res> {
     @JsonKey(name: 'avg_order_cycle_days') double? avgOrderCycleDays,
     @JsonKey(name: 'recent_invoices') List<B2bRecentInvoice> recentInvoices,
     @JsonKey(name: 'open_todos') List<B2bTodo> openTodos,
+    List<B2bBranch> branches,
+    @JsonKey(name: 'unassigned_invoices') B2bBranchStats? unassignedInvoices,
     @JsonKey(name: 'journey_notes') List<JourneyNote> journeyNotes,
   });
 
   $B2bContactCopyWith<$Res> get contact;
+  $B2bBranchStatsCopyWith<$Res>? get unassignedInvoices;
 }
 
 /// @nodoc
@@ -1491,6 +4575,8 @@ class _$B2bAccountCopyWithImpl<$Res, $Val extends B2bAccount>
     Object? avgOrderCycleDays = freezed,
     Object? recentInvoices = null,
     Object? openTodos = null,
+    Object? branches = null,
+    Object? unassignedInvoices = freezed,
     Object? journeyNotes = null,
   }) {
     return _then(
@@ -1539,6 +4625,14 @@ class _$B2bAccountCopyWithImpl<$Res, $Val extends B2bAccount>
                 ? _value.openTodos
                 : openTodos // ignore: cast_nullable_to_non_nullable
                       as List<B2bTodo>,
+            branches: null == branches
+                ? _value.branches
+                : branches // ignore: cast_nullable_to_non_nullable
+                      as List<B2bBranch>,
+            unassignedInvoices: freezed == unassignedInvoices
+                ? _value.unassignedInvoices
+                : unassignedInvoices // ignore: cast_nullable_to_non_nullable
+                      as B2bBranchStats?,
             journeyNotes: null == journeyNotes
                 ? _value.journeyNotes
                 : journeyNotes // ignore: cast_nullable_to_non_nullable
@@ -1555,6 +4649,20 @@ class _$B2bAccountCopyWithImpl<$Res, $Val extends B2bAccount>
   $B2bContactCopyWith<$Res> get contact {
     return $B2bContactCopyWith<$Res>(_value.contact, (value) {
       return _then(_value.copyWith(contact: value) as $Val);
+    });
+  }
+
+  /// Create a copy of B2bAccount
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $B2bBranchStatsCopyWith<$Res>? get unassignedInvoices {
+    if (_value.unassignedInvoices == null) {
+      return null;
+    }
+
+    return $B2bBranchStatsCopyWith<$Res>(_value.unassignedInvoices!, (value) {
+      return _then(_value.copyWith(unassignedInvoices: value) as $Val);
     });
   }
 }
@@ -1580,11 +4688,15 @@ abstract class _$$B2bAccountImplCopyWith<$Res>
     @JsonKey(name: 'avg_order_cycle_days') double? avgOrderCycleDays,
     @JsonKey(name: 'recent_invoices') List<B2bRecentInvoice> recentInvoices,
     @JsonKey(name: 'open_todos') List<B2bTodo> openTodos,
+    List<B2bBranch> branches,
+    @JsonKey(name: 'unassigned_invoices') B2bBranchStats? unassignedInvoices,
     @JsonKey(name: 'journey_notes') List<JourneyNote> journeyNotes,
   });
 
   @override
   $B2bContactCopyWith<$Res> get contact;
+  @override
+  $B2bBranchStatsCopyWith<$Res>? get unassignedInvoices;
 }
 
 /// @nodoc
@@ -1612,6 +4724,8 @@ class __$$B2bAccountImplCopyWithImpl<$Res>
     Object? avgOrderCycleDays = freezed,
     Object? recentInvoices = null,
     Object? openTodos = null,
+    Object? branches = null,
+    Object? unassignedInvoices = freezed,
     Object? journeyNotes = null,
   }) {
     return _then(
@@ -1660,6 +4774,14 @@ class __$$B2bAccountImplCopyWithImpl<$Res>
             ? _value._openTodos
             : openTodos // ignore: cast_nullable_to_non_nullable
                   as List<B2bTodo>,
+        branches: null == branches
+            ? _value._branches
+            : branches // ignore: cast_nullable_to_non_nullable
+                  as List<B2bBranch>,
+        unassignedInvoices: freezed == unassignedInvoices
+            ? _value.unassignedInvoices
+            : unassignedInvoices // ignore: cast_nullable_to_non_nullable
+                  as B2bBranchStats?,
         journeyNotes: null == journeyNotes
             ? _value._journeyNotes
             : journeyNotes // ignore: cast_nullable_to_non_nullable
@@ -1686,10 +4808,13 @@ class _$B2bAccountImpl implements _B2bAccount {
     final List<B2bRecentInvoice> recentInvoices = const <B2bRecentInvoice>[],
     @JsonKey(name: 'open_todos')
     final List<B2bTodo> openTodos = const <B2bTodo>[],
+    final List<B2bBranch> branches = const <B2bBranch>[],
+    @JsonKey(name: 'unassigned_invoices') this.unassignedInvoices,
     @JsonKey(name: 'journey_notes')
     final List<JourneyNote> journeyNotes = const <JourneyNote>[],
   }) : _recentInvoices = recentInvoices,
        _openTodos = openTodos,
+       _branches = branches,
        _journeyNotes = journeyNotes;
 
   factory _$B2bAccountImpl.fromJson(Map<String, dynamic> json) =>
@@ -1735,6 +4860,25 @@ class _$B2bAccountImpl implements _B2bAccount {
     return EqualUnmodifiableListView(_openTodos);
   }
 
+  /// The linked Customer's branches (named shipping Addresses) with their
+  /// own invoice totals. Empty with no Customer or on an older server.
+  final List<B2bBranch> _branches;
+
+  /// The linked Customer's branches (named shipping Addresses) with their
+  /// own invoice totals. Empty with no Customer or on an older server.
+  @override
+  @JsonKey()
+  List<B2bBranch> get branches {
+    if (_branches is EqualUnmodifiableListView) return _branches;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_branches);
+  }
+
+  /// Totals for the invoices that match no branch; null when there are none.
+  @override
+  @JsonKey(name: 'unassigned_invoices')
+  final B2bBranchStats? unassignedInvoices;
+
   /// The rep's dated field diary for this account, newest touch first. The
   /// account screen renders it through the shared journey timeline, which
   /// also owns the live (re-fetched) copy — this is the load-time snapshot.
@@ -1753,7 +4897,7 @@ class _$B2bAccountImpl implements _B2bAccount {
 
   @override
   String toString() {
-    return 'B2bAccount(doctype: $doctype, name: $name, title: $title, stage: $stage, owner: $owner, contact: $contact, customer: $customer, predictedNextOrder: $predictedNextOrder, avgOrderCycleDays: $avgOrderCycleDays, recentInvoices: $recentInvoices, openTodos: $openTodos, journeyNotes: $journeyNotes)';
+    return 'B2bAccount(doctype: $doctype, name: $name, title: $title, stage: $stage, owner: $owner, contact: $contact, customer: $customer, predictedNextOrder: $predictedNextOrder, avgOrderCycleDays: $avgOrderCycleDays, recentInvoices: $recentInvoices, openTodos: $openTodos, branches: $branches, unassignedInvoices: $unassignedInvoices, journeyNotes: $journeyNotes)';
   }
 
   @override
@@ -1781,6 +4925,9 @@ class _$B2bAccountImpl implements _B2bAccount {
               other._openTodos,
               _openTodos,
             ) &&
+            const DeepCollectionEquality().equals(other._branches, _branches) &&
+            (identical(other.unassignedInvoices, unassignedInvoices) ||
+                other.unassignedInvoices == unassignedInvoices) &&
             const DeepCollectionEquality().equals(
               other._journeyNotes,
               _journeyNotes,
@@ -1802,6 +4949,8 @@ class _$B2bAccountImpl implements _B2bAccount {
     avgOrderCycleDays,
     const DeepCollectionEquality().hash(_recentInvoices),
     const DeepCollectionEquality().hash(_openTodos),
+    const DeepCollectionEquality().hash(_branches),
+    unassignedInvoices,
     const DeepCollectionEquality().hash(_journeyNotes),
   );
 
@@ -1833,6 +4982,9 @@ abstract class _B2bAccount implements B2bAccount {
     @JsonKey(name: 'recent_invoices')
     final List<B2bRecentInvoice> recentInvoices,
     @JsonKey(name: 'open_todos') final List<B2bTodo> openTodos,
+    final List<B2bBranch> branches,
+    @JsonKey(name: 'unassigned_invoices')
+    final B2bBranchStats? unassignedInvoices,
     @JsonKey(name: 'journey_notes') final List<JourneyNote> journeyNotes,
   }) = _$B2bAccountImpl;
 
@@ -1865,6 +5017,16 @@ abstract class _B2bAccount implements B2bAccount {
   @override
   @JsonKey(name: 'open_todos')
   List<B2bTodo> get openTodos;
+
+  /// The linked Customer's branches (named shipping Addresses) with their
+  /// own invoice totals. Empty with no Customer or on an older server.
+  @override
+  List<B2bBranch> get branches;
+
+  /// Totals for the invoices that match no branch; null when there are none.
+  @override
+  @JsonKey(name: 'unassigned_invoices')
+  B2bBranchStats? get unassignedInvoices;
 
   /// The rep's dated field diary for this account, newest touch first. The
   /// account screen renders it through the shared journey timeline, which
