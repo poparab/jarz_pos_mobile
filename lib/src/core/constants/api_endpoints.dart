@@ -251,6 +251,10 @@ abstract final class ApiEndpoints {
   static const getItemRequestCounts =
       '/api/method/jarz_pos.api.purchase_request.get_request_counts';
 
+  // ── Approvals (side-menu indicator) ───────────────────────────────────
+  static const getPendingApprovals =
+      '/api/method/jarz_pos.api.approvals.get_pending_approvals';
+
   // ── Manager ───────────────────────────────────────────────────────────
   static const getManagerDashboardSummary =
       '/api/method/jarz_pos.api.manager.get_manager_dashboard_summary';

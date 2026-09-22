@@ -13281,4 +13281,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get managerStaffCustomersSyncFailed =>
       'Could not create staff customers';
+
+  @override
+  String get approvalsNeedsYourAction => 'Needs your action';
+
+  @override
+  String get approvalsQueueExpenses => 'Expense requests to approve';
+
+  @override
+  String get approvalsQueueEmployeeAdvances => 'Salary advances to approve';
+
+  @override
+  String get approvalsQueueItemRequests => 'Item requests to accept';
+
+  @override
+  String get approvalsQueuePaymentReceipts => 'Payment receipts to confirm';
+
+  @override
+  String get approvalsQueueCustomShipping => 'Custom shipping to approve';
+
+  @override
+  String approvalsMenuBadgeSemantics(int count) {
+    return 'Menu: $count items need your action';
+  }
 }

@@ -27,6 +27,7 @@ import 'vapid_subscription_service.dart';
 import 'web_push_registration_result.dart';
 import 'web_push_registration_service.dart';
 import '../../../core/constants/timing_config.dart';
+import '../../approvals/state/pending_approvals_provider.dart';
 
 /// Ceiling for the alert poll's backoff.
 ///
@@ -530,6 +531,8 @@ class OrderAlertBridge {
   /// this the manager is taken to a list that provably does not contain the
   /// request they were just told about.
   Future<void> _refreshPendingExpenses({String? expenseMonth}) async {
+    // The menu badge moves whether or not the expenses screen is open.
+    _ref.invalidate(pendingApprovalsProvider);
     try {
       if (!_ref.read(expensesNotifierProvider).initialized) {
         return;

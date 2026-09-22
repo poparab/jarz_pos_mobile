@@ -482,7 +482,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.expenses,
         name: 'expenses',
-        builder: (context, state) => const ExpensesScreen(),
+        builder: (context, state) => ExpensesScreen(
+          initialTab: state.uri.queryParameters['tab'],
+          initialMonth: state.uri.queryParameters['month'],
+        ),
       ),
       // Ungated in the router, like every other manager screen here: the
       // drawer decides who is offered the entry (see

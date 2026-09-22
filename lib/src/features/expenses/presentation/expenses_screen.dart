@@ -25,7 +25,15 @@ import 'widgets/expenses_summary_header.dart';
 ///   * **Employee Advances** — cash advances a line manager requests for an
 ///     employee and a JARZ Manager approves.
 class ExpensesScreen extends ConsumerStatefulWidget {
-  const ExpensesScreen({super.key});
+  const ExpensesScreen({super.key, this.initialTab, this.initialMonth});
+
+  /// `advances` opens on the Advances tab; anything else on Expenses.
+  final String? initialTab;
+
+  /// `YYYY-MM` to open that tab on instead of the current month. The side
+  /// menu's approvals entry passes the oldest pending month, because a request
+  /// filed last month is otherwise counted in the menu and absent here.
+  final String? initialMonth;
 
   @override
   ConsumerState<ExpensesScreen> createState() => _ExpensesScreenState();
@@ -47,7 +55,12 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: _requestedTab(widget.initialTab),
+    );
+    _activeTab = _tabController.index;
     _tabController.addListener(_handleTabChange);
 
     _errorListener = ref.listenManual<ExpensesState>(
@@ -89,8 +102,50 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(expensesNotifierProvider.notifier).load();
+      if (!mounted) return;
+      if (_activeTab == _advancesTab) {
+        // Opened straight on Advances: the tab listener never fires for the
+        // initial index, so the first-visit load has to happen here.
+        ref.read(expensesNotifierProvider.notifier).load();
+        _loadAdvances(month: _requestedMonth(widget.initialMonth));
+      } else {
+        ref
+            .read(expensesNotifierProvider.notifier)
+            .load(month: _requestedMonth(widget.initialMonth));
+      }
     });
+  }
+
+  static int _requestedTab(String? tab) =>
+      tab == 'advances' ? _advancesTab : _expensesTab;
+
+  static String? _requestedMonth(String? month) {
+    final value = month?.trim() ?? '';
+    return RegExp(r'^\d{4}-\d{2}$').hasMatch(value) ? value : null;
+  }
+
+  void _loadAdvances({String? month}) {
+    _advancesRequested = true;
+    ref.read(employeeAdvancesNotifierProvider.notifier).load(month: month);
+  }
+
+  /// The same screen re-targeted by a new link (the side menu while already on
+  /// Expenses): GoRouter keeps this State, so initState does not run again.
+  @override
+  void didUpdateWidget(covariant ExpensesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialTab == widget.initialTab &&
+        oldWidget.initialMonth == widget.initialMonth) {
+      return;
+    }
+    final tab = _requestedTab(widget.initialTab);
+    final month = _requestedMonth(widget.initialMonth);
+    if (tab == _advancesTab) {
+      _loadAdvances(month: month);
+    } else if (month != null) {
+      ref.read(expensesNotifierProvider.notifier).load(month: month);
+    }
+    if (_tabController.index != tab) _tabController.animateTo(tab);
   }
 
   @override

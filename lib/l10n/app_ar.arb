@@ -5168,5 +5168,12 @@
   "managerStaffCustomersSyncConflictsHint": "أكتر من عميل مطابق للموظفين دول، فمفيش ربط اتعمل. اربط العميل الصح من الـ Desk.",
   "managerStaffCustomersSyncMatchingCustomers": "العملاء المطابقين: {customers}",
   "managerStaffCustomersSyncNothingToDo": "مفيش حاجة تتعمل: كل الموظفين ليهم حسابات عملاء مربوطة.",
-  "managerStaffCustomersSyncFailed": "تعذّر إنشاء حسابات العملاء للموظفين"
+  "managerStaffCustomersSyncFailed": "تعذّر إنشاء حسابات العملاء للموظفين",
+  "approvalsNeedsYourAction": "مستني تصرفك",
+  "approvalsQueueExpenses": "طلبات مصروفات مستنية موافقة",
+  "approvalsQueueEmployeeAdvances": "سُلف موظفين مستنية موافقة",
+  "approvalsQueueItemRequests": "طلبات أصناف مستنية قبول",
+  "approvalsQueuePaymentReceipts": "إيصالات دفع مستنية تأكيد",
+  "approvalsQueueCustomShipping": "شحن مخصص مستني موافقة",
+  "approvalsMenuBadgeSemantics": "القائمة: {count} حاجة مستنية تصرفك"
 }

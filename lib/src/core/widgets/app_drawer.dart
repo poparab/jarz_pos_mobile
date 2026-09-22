@@ -13,6 +13,7 @@ import '../../features/pos/state/pos_notifier.dart';
 import '../../features/shift/state/shift_notifier.dart';
 import '../../features/labels/state/labels_notifier.dart';
 import '../../features/purchase_request/state/purchase_request_notifier.dart';
+import '../../features/approvals/presentation/pending_approvals_widgets.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -519,6 +520,10 @@ class AppDrawer extends ConsumerWidget {
               children: [_DrawerHeaderTitle()],
             ),
           ),
+          // Everything awaiting this user's approval, above the groups so it
+          // is never hidden inside a collapsed one. Renders nothing when there
+          // is nothing to do or the user approves nothing.
+          const PendingApprovalsDrawerSection(),
           ...groups,
           const Divider(),
           ListTile(

@@ -7700,5 +7700,19 @@
     }
   },
   "managerStaffCustomersSyncNothingToDo": "Nothing to create: every employee already has a linked customer.",
-  "managerStaffCustomersSyncFailed": "Could not create staff customers"
+  "managerStaffCustomersSyncFailed": "Could not create staff customers",
+  "approvalsNeedsYourAction": "Needs your action",
+  "approvalsQueueExpenses": "Expense requests to approve",
+  "approvalsQueueEmployeeAdvances": "Salary advances to approve",
+  "approvalsQueueItemRequests": "Item requests to accept",
+  "approvalsQueuePaymentReceipts": "Payment receipts to confirm",
+  "approvalsQueueCustomShipping": "Custom shipping to approve",
+  "approvalsMenuBadgeSemantics": "Menu: {count} items need your action",
+  "@approvalsMenuBadgeSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

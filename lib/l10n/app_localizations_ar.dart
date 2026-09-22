@@ -13262,4 +13262,27 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get managerStaffCustomersSyncFailed =>
       'تعذّر إنشاء حسابات العملاء للموظفين';
+
+  @override
+  String get approvalsNeedsYourAction => 'مستني تصرفك';
+
+  @override
+  String get approvalsQueueExpenses => 'طلبات مصروفات مستنية موافقة';
+
+  @override
+  String get approvalsQueueEmployeeAdvances => 'سُلف موظفين مستنية موافقة';
+
+  @override
+  String get approvalsQueueItemRequests => 'طلبات أصناف مستنية قبول';
+
+  @override
+  String get approvalsQueuePaymentReceipts => 'إيصالات دفع مستنية تأكيد';
+
+  @override
+  String get approvalsQueueCustomShipping => 'شحن مخصص مستني موافقة';
+
+  @override
+  String approvalsMenuBadgeSemantics(int count) {
+    return 'القائمة: $count حاجة مستنية تصرفك';
+  }
 }

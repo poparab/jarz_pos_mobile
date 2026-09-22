@@ -21790,6 +21790,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not create staff customers'**
   String get managerStaffCustomersSyncFailed;
+
+  /// No description provided for @approvalsNeedsYourAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs your action'**
+  String get approvalsNeedsYourAction;
+
+  /// No description provided for @approvalsQueueExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense requests to approve'**
+  String get approvalsQueueExpenses;
+
+  /// No description provided for @approvalsQueueEmployeeAdvances.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary advances to approve'**
+  String get approvalsQueueEmployeeAdvances;
+
+  /// No description provided for @approvalsQueueItemRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Item requests to accept'**
+  String get approvalsQueueItemRequests;
+
+  /// No description provided for @approvalsQueuePaymentReceipts.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment receipts to confirm'**
+  String get approvalsQueuePaymentReceipts;
+
+  /// No description provided for @approvalsQueueCustomShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom shipping to approve'**
+  String get approvalsQueueCustomShipping;
+
+  /// No description provided for @approvalsMenuBadgeSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu: {count} items need your action'**
+  String approvalsMenuBadgeSemantics(int count);
 }
 
 class _AppLocalizationsDelegate

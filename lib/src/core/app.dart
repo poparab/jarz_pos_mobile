@@ -22,6 +22,7 @@ import '../features/about/state/shorebird_update_provider.dart';
 import '../features/app_update/presentation/app_update_gate.dart';
 import '../features/auth/presentation/session_expired_gate.dart';
 import '../features/app_update/state/app_update_provider.dart';
+import '../features/approvals/presentation/pending_approvals_widgets.dart';
 
 class JarzPosApp extends ConsumerWidget {
   const JarzPosApp({super.key});
@@ -58,6 +59,12 @@ class JarzPosApp extends ConsumerWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         appBarTheme: const AppBarTheme(centerTitle: true, elevation: 1),
+        // Every app bar's menu button carries the pending-approvals badge, so
+        // a manager sees that something needs them from any screen without
+        // opening the side menu. Set here once instead of on 31 screens.
+        actionIconTheme: ActionIconThemeData(
+          drawerButtonIconBuilder: (_) => const PendingApprovalsMenuIcon(),
+        ),
         cardTheme: const CardThemeData(
           elevation: 2,
           shape: RoundedRectangleBorder(
