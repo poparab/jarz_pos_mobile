@@ -140,12 +140,19 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen>
     }
     final tab = _requestedTab(widget.initialTab);
     final month = _requestedMonth(widget.initialMonth);
-    if (tab == _advancesTab) {
-      _loadAdvances(month: month);
-    } else if (month != null) {
-      ref.read(expensesNotifierProvider.notifier).load(month: month);
-    }
+    // Set before animateTo so the tab listener does not fire a second load.
+    if (tab == _advancesTab) _advancesRequested = true;
     if (_tabController.index != tab) _tabController.animateTo(tab);
+    // didUpdateWidget runs during build, and both loads set provider state
+    // synchronously — so they wait for the frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (tab == _advancesTab) {
+        _loadAdvances(month: month);
+      } else if (month != null) {
+        ref.read(expensesNotifierProvider.notifier).load(month: month);
+      }
+    });
   }
 
   @override

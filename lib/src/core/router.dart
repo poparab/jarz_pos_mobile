@@ -359,7 +359,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.kanban,
         name: 'kanban',
-        builder: (context, state) => const KanbanBoardScreen(),
+        builder: (context, state) => KanbanBoardScreen(
+          openReceipts: state.uri.queryParameters['receipts'] == '1',
+        ),
       ),
       GoRoute(
         path: AppRoutes.courierBalances,

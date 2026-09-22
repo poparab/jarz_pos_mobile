@@ -24,8 +24,15 @@ final pendingApprovalsProvider = FutureProvider.autoDispose<PendingApprovals>((
   ref,
 ) async {
   Timer? next;
-  ref.onDispose(() => next?.cancel());
+  var disposed = false;
+  ref.onDispose(() {
+    disposed = true;
+    next?.cancel();
+  });
+  // A fetch that finishes after the provider was disposed (logout, or an
+  // invalidate mid-request) must not leave a timer nobody will cancel.
   void scheduleNext() {
+    if (disposed) return;
     next = Timer(pendingApprovalsPollInterval, ref.invalidateSelf);
   }
 

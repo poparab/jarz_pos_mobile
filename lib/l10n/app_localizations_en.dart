@@ -13289,7 +13289,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get approvalsQueueExpenses => 'Expense requests to approve';
 
   @override
-  String get approvalsQueueEmployeeAdvances => 'Salary advances to approve';
+  String get approvalsQueueEmployeeAdvances => 'Employee advances to approve';
 
   @override
   String get approvalsQueueItemRequests => 'Item requests to accept';
@@ -13302,6 +13302,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String approvalsMenuBadgeSemantics(int count) {
-    return 'Menu: $count items need your action';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items need',
+      one: '1 item needs',
+    );
+    return 'Menu: $_temp0 your action';
   }
 }

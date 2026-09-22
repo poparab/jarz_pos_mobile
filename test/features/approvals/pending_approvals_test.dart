@@ -110,7 +110,7 @@ void main() {
     expect(find.text('Expense requests to approve'), findsOneWidget);
     expect(find.text('Payment receipts to confirm'), findsOneWidget);
     // A zero queue is not a row.
-    expect(find.text('Salary advances to approve'), findsNothing);
+    expect(find.text('Employee advances to approve'), findsNothing);
     expect(find.text('28'), findsOneWidget);
     await _dispose(tester);
   });

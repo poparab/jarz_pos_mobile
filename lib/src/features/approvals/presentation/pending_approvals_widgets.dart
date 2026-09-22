@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
-import '../../kanban/widgets/payment_receipt_list_dialog.dart';
 import '../models/pending_approvals.dart';
 import '../state/pending_approvals_provider.dart';
 
@@ -92,15 +91,16 @@ class _PendingApprovalsDrawerSectionState
       case PendingApprovalKeys.customShipping:
         _go(AppRoutes.manager);
       case PendingApprovalKeys.paymentReceipts:
-        // Receipts are confirmed in this dialog (the same one the Kanban's
-        // receipts button opens), not on a screen of their own.
-        final navigator = Navigator.of(context);
-        final container = ProviderScope.containerOf(context);
-        navigator.pop();
-        showDialog<void>(
-          context: navigator.context,
-          builder: (_) => const PaymentReceiptListDialog(),
-        ).then((_) => container.invalidate(pendingApprovalsProvider));
+        // Receipts are confirmed in the Kanban's receipts dialog, which runs on
+        // the board's provider — so it is opened there, not over any screen
+        // (that would start the whole board, realtime and polling included,
+        // for the rest of the session).
+        _go(
+          Uri(
+            path: AppRoutes.kanban,
+            queryParameters: const {'receipts': '1'},
+          ).toString(),
+        );
     }
   }
 

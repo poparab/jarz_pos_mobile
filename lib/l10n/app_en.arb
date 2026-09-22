@@ -7703,11 +7703,11 @@
   "managerStaffCustomersSyncFailed": "Could not create staff customers",
   "approvalsNeedsYourAction": "Needs your action",
   "approvalsQueueExpenses": "Expense requests to approve",
-  "approvalsQueueEmployeeAdvances": "Salary advances to approve",
+  "approvalsQueueEmployeeAdvances": "Employee advances to approve",
   "approvalsQueueItemRequests": "Item requests to accept",
   "approvalsQueuePaymentReceipts": "Payment receipts to confirm",
   "approvalsQueueCustomShipping": "Custom shipping to approve",
-  "approvalsMenuBadgeSemantics": "Menu: {count} items need your action",
+  "approvalsMenuBadgeSemantics": "Menu: {count, plural, =1{1 item needs} other{{count} items need}} your action",
   "@approvalsMenuBadgeSemantics": {
     "placeholders": {
       "count": {

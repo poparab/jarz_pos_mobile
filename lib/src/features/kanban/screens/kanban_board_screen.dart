@@ -30,11 +30,21 @@ import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/user_error_message.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/utils/territory_label.dart';
+import '../../approvals/state/pending_approvals_provider.dart';
 
 class KanbanBoardScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
-  
-  const KanbanBoardScreen({super.key, this.showAppBar = true});
+
+  /// Open the payment-receipts dialog on arrival — the side menu's
+  /// "receipts to confirm" row links here (`/kanban?receipts=1`) because the
+  /// dialog runs on this screen's board provider.
+  final bool openReceipts;
+
+  const KanbanBoardScreen({
+    super.key,
+    this.showAppBar = true,
+    this.openReceipts = false,
+  });
 
   @override
   ConsumerState<KanbanBoardScreen> createState() => _KanbanBoardScreenState();
@@ -134,7 +144,32 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       _handlePosStateChange(posState);
       // Auto-refresh unconfirmed receipts badge
       ref.invalidate(unconfirmedReceiptsCountProvider);
+      if (widget.openReceipts) _openReceiptsFromLink();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant KanbanBoardScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.openReceipts && !oldWidget.openReceipts) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _openReceiptsFromLink();
+      });
+    }
+  }
+
+  /// The dialog, opened by link. On close the link is dropped from the URL so
+  /// the same menu row opens it again next time, and both receipt counts
+  /// (this screen's badge and the side menu's) are re-asked.
+  Future<void> _openReceiptsFromLink() async {
+    await showDialog<void>(
+      context: context,
+      builder: (_) => const PaymentReceiptListDialog(),
+    );
+    if (!mounted) return;
+    ref.invalidate(unconfirmedReceiptsCountProvider);
+    ref.invalidate(pendingApprovalsProvider);
+    context.go(AppRoutes.kanban);
   }
 
   @override

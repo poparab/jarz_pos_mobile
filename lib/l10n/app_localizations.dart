@@ -21806,7 +21806,7 @@ abstract class AppLocalizations {
   /// No description provided for @approvalsQueueEmployeeAdvances.
   ///
   /// In en, this message translates to:
-  /// **'Salary advances to approve'**
+  /// **'Employee advances to approve'**
   String get approvalsQueueEmployeeAdvances;
 
   /// No description provided for @approvalsQueueItemRequests.
@@ -21830,7 +21830,7 @@ abstract class AppLocalizations {
   /// No description provided for @approvalsMenuBadgeSemantics.
   ///
   /// In en, this message translates to:
-  /// **'Menu: {count} items need your action'**
+  /// **'Menu: {count, plural, =1{1 item needs} other{{count} items need}} your action'**
   String approvalsMenuBadgeSemantics(int count);
 }
 
