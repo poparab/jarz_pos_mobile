@@ -20759,6 +20759,432 @@ abstract class AppLocalizations {
   /// **'Refresh'**
   String get replenishmentRefresh;
 
+  /// No description provided for @menuProductionRound.
+  ///
+  /// In en, this message translates to:
+  /// **'Production Round'**
+  String get menuProductionRound;
+
+  /// No description provided for @productionRoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Production Round'**
+  String get productionRoundTitle;
+
+  /// No description provided for @productionRoundRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get productionRoundRefresh;
+
+  /// No description provided for @productionRoundTune.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning settings'**
+  String get productionRoundTune;
+
+  /// No description provided for @productionRoundOpenFromSend.
+  ///
+  /// In en, this message translates to:
+  /// **'What to make'**
+  String get productionRoundOpenFromSend;
+
+  /// No description provided for @productionRoundNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have access to production planning.'**
+  String get productionRoundNotAllowed;
+
+  /// No description provided for @productionRoundLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t load the production round'**
+  String get productionRoundLoadFailed;
+
+  /// No description provided for @productionRoundRefreshFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t refresh — these are the last figures.'**
+  String get productionRoundRefreshFailed;
+
+  /// No description provided for @productionRoundSizeMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get productionRoundSizeMedium;
+
+  /// No description provided for @productionRoundSizeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get productionRoundSizeLarge;
+
+  /// No description provided for @productionRoundBatchOne.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} batch'**
+  String productionRoundBatchOne(String value);
+
+  /// No description provided for @productionRoundBatches.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} batches'**
+  String productionRoundBatches(String value);
+
+  /// No description provided for @productionRoundJars.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 jar} other{{count} jars}}'**
+  String productionRoundJars(int count);
+
+  /// No description provided for @productionRoundNeededNow.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 needed now} other{{count} needed now}}'**
+  String productionRoundNeededNow(int count);
+
+  /// No description provided for @productionRoundMissingMaterials.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 material missing} other{{count} materials missing}}'**
+  String productionRoundMissingMaterials(int count);
+
+  /// No description provided for @productionRoundBlockedItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item blocked} other{{count} items blocked}}'**
+  String productionRoundBlockedItems(int count);
+
+  /// No description provided for @productionRoundCoverDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Covers 1 day} other{Covers {count} days}}'**
+  String productionRoundCoverDays(int count);
+
+  /// No description provided for @productionRoundBackupDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{+ 1 day backup} other{+ {count} days backup}}'**
+  String productionRoundBackupDays(int count);
+
+  /// No description provided for @productionRoundSalesWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{last week of sales} other{last {count} weeks of sales}}'**
+  String productionRoundSalesWeeks(int count);
+
+  /// No description provided for @productionRoundUpdatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'updated {time}'**
+  String productionRoundUpdatedAt(String time);
+
+  /// No description provided for @productionRoundNotices.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 note} other{{count} notes}}'**
+  String productionRoundNotices(int count);
+
+  /// No description provided for @productionRoundNoticesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get productionRoundNoticesTitle;
+
+  /// No description provided for @productionRoundTabMake.
+  ///
+  /// In en, this message translates to:
+  /// **'Make'**
+  String get productionRoundTabMake;
+
+  /// No description provided for @productionRoundTabMaterials.
+  ///
+  /// In en, this message translates to:
+  /// **'Materials'**
+  String get productionRoundTabMaterials;
+
+  /// No description provided for @productionRoundTabBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Branches'**
+  String get productionRoundTabBranches;
+
+  /// No description provided for @productionRoundEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to make'**
+  String get productionRoundEmptyTitle;
+
+  /// No description provided for @productionRoundEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every branch holds enough for the full cycle and its backup.'**
+  String get productionRoundEmptyBody;
+
+  /// No description provided for @productionRoundNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no jars with sales or stock to plan from yet.'**
+  String get productionRoundNoItems;
+
+  /// No description provided for @productionRoundNothingInSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to make in this size.'**
+  String get productionRoundNothingInSize;
+
+  /// No description provided for @productionRoundCoveredGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Covered ({count})'**
+  String productionRoundCoveredGroup(int count);
+
+  /// No description provided for @productionRoundStatusNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed now'**
+  String get productionRoundStatusNow;
+
+  /// No description provided for @productionRoundStatusRound.
+  ///
+  /// In en, this message translates to:
+  /// **'This round'**
+  String get productionRoundStatusRound;
+
+  /// No description provided for @productionRoundStatusCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Covered'**
+  String get productionRoundStatusCovered;
+
+  /// No description provided for @productionRoundStatusNoSales.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales'**
+  String get productionRoundStatusNoSales;
+
+  /// No description provided for @productionRoundBlockedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting on a missing material'**
+  String get productionRoundBlockedTooltip;
+
+  /// No description provided for @productionRoundBlockedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked by:'**
+  String get productionRoundBlockedBy;
+
+  /// No description provided for @productionRoundMissingQty.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (missing {qty})'**
+  String productionRoundMissingQty(String name, String qty);
+
+  /// No description provided for @productionRoundSellsPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Sells {rate}/wk'**
+  String productionRoundSellsPerWeek(String rate);
+
+  /// No description provided for @productionRoundBranchesNeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Branches need {qty}'**
+  String productionRoundBranchesNeed(String qty);
+
+  /// No description provided for @productionRoundFactoryHas.
+  ///
+  /// In en, this message translates to:
+  /// **'Factory has {qty}'**
+  String productionRoundFactoryHas(String qty);
+
+  /// No description provided for @productionRoundNetNeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Net need {qty}'**
+  String productionRoundNetNeed(String qty);
+
+  /// No description provided for @productionRoundNoBranchRows.
+  ///
+  /// In en, this message translates to:
+  /// **'No branch figures for this item.'**
+  String get productionRoundNoBranchRows;
+
+  /// No description provided for @productionRoundColBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get productionRoundColBranch;
+
+  /// No description provided for @productionRoundColSells.
+  ///
+  /// In en, this message translates to:
+  /// **'Sells/wk'**
+  String get productionRoundColSells;
+
+  /// No description provided for @productionRoundColTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get productionRoundColTarget;
+
+  /// No description provided for @productionRoundColHas.
+  ///
+  /// In en, this message translates to:
+  /// **'Has'**
+  String get productionRoundColHas;
+
+  /// No description provided for @productionRoundColNeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs'**
+  String get productionRoundColNeeds;
+
+  /// No description provided for @productionRoundDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days left'**
+  String productionRoundDaysLeft(String days);
+
+  /// No description provided for @productionRoundCountFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Negative — count first'**
+  String get productionRoundCountFirst;
+
+  /// No description provided for @productionRoundMakeFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Make first'**
+  String get productionRoundMakeFirst;
+
+  /// No description provided for @productionRoundPrepStored.
+  ///
+  /// In en, this message translates to:
+  /// **'{batches} ({qty})'**
+  String productionRoundPrepStored(String batches, String qty);
+
+  /// No description provided for @productionRoundPrepFresh.
+  ///
+  /// In en, this message translates to:
+  /// **'fresh, {batches}'**
+  String productionRoundPrepFresh(String batches);
+
+  /// No description provided for @productionRoundFilterMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing ({count})'**
+  String productionRoundFilterMissing(int count);
+
+  /// No description provided for @productionRoundFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All ({count})'**
+  String productionRoundFilterAll(int count);
+
+  /// No description provided for @productionRoundNeedHave.
+  ///
+  /// In en, this message translates to:
+  /// **'need {need} · have {have}'**
+  String productionRoundNeedHave(String need, String have);
+
+  /// No description provided for @productionRoundShort.
+  ///
+  /// In en, this message translates to:
+  /// **'short {qty}'**
+  String productionRoundShort(String qty);
+
+  /// No description provided for @productionRoundAlternative.
+  ///
+  /// In en, this message translates to:
+  /// **'+{qty} in alternatives'**
+  String productionRoundAlternative(String qty);
+
+  /// No description provided for @productionRoundNothingMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Every material is in stock.'**
+  String get productionRoundNothingMissing;
+
+  /// No description provided for @productionRoundNoMaterials.
+  ///
+  /// In en, this message translates to:
+  /// **'No materials to check.'**
+  String get productionRoundNoMaterials;
+
+  /// No description provided for @productionRoundNoBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'No selling branches yet.'**
+  String get productionRoundNoBranches;
+
+  /// No description provided for @productionRoundBranchHolds.
+  ///
+  /// In en, this message translates to:
+  /// **'holds {has} of {target} target'**
+  String productionRoundBranchHolds(String has, String target);
+
+  /// No description provided for @productionRoundBranchNeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'needs {qty}'**
+  String productionRoundBranchNeeds(String qty);
+
+  /// No description provided for @productionRoundBelowBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item below backup} other{{count} items below backup}}'**
+  String productionRoundBelowBackup(int count);
+
+  /// No description provided for @productionRoundTuneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning settings'**
+  String get productionRoundTuneTitle;
+
+  /// No description provided for @productionRoundTuneCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Days between deliveries'**
+  String get productionRoundTuneCycle;
+
+  /// No description provided for @productionRoundTuneBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup days'**
+  String get productionRoundTuneBackup;
+
+  /// No description provided for @productionRoundTuneSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales history'**
+  String get productionRoundTuneSales;
+
+  /// No description provided for @productionRoundDaysValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None} =1{1 day} other{{count} days}}'**
+  String productionRoundDaysValue(int count);
+
+  /// No description provided for @productionRoundWeeksValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 week} other{{count} weeks}}'**
+  String productionRoundWeeksValue(int count);
+
+  /// No description provided for @productionRoundTuneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch sizes come from the recipes and are not changed here.'**
+  String get productionRoundTuneHint;
+
+  /// No description provided for @productionRoundTuneReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Use defaults'**
+  String get productionRoundTuneReset;
+
   /// No description provided for @settingsBackgroundDeliveryTitle.
   ///
   /// In en, this message translates to:

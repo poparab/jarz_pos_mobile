@@ -303,6 +303,12 @@ abstract final class ApiEndpoints {
   static const getBranchReplenishment =
       '/api/method/jarz_pos.api.replenishment.get_branch_replenishment';
 
+  /// What the factory should MAKE this round (batches per size, the prep to do
+  /// first, the materials that are short). Read only; gated server-side on
+  /// the production view roles.
+  static const getProductionRound =
+      '/api/method/jarz_pos.api.replenishment.get_production_round';
+
   // ── Cash Transfer ─────────────────────────────────────────────────────
   static const cashTransferListAccounts =
       '/api/method/jarz_pos.api.cash_transfer.list_accounts';

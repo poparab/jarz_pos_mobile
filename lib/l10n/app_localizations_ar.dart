@@ -12688,6 +12688,373 @@ class AppLocalizationsAr extends AppLocalizations {
   String get replenishmentRefresh => 'تحديث';
 
   @override
+  String get menuProductionRound => 'دورة الإنتاج';
+
+  @override
+  String get productionRoundTitle => 'دورة الإنتاج';
+
+  @override
+  String get productionRoundRefresh => 'تحديث';
+
+  @override
+  String get productionRoundTune => 'إعدادات الحساب';
+
+  @override
+  String get productionRoundOpenFromSend => 'المطلوب إنتاجه';
+
+  @override
+  String get productionRoundNotAllowed => 'مش عندك صلاحية تخطيط الإنتاج.';
+
+  @override
+  String get productionRoundLoadFailed => 'مقدرناش نحمّل دورة الإنتاج';
+
+  @override
+  String get productionRoundRefreshFailed =>
+      'مقدرناش نحدّث — دي آخر أرقام اتحسبت.';
+
+  @override
+  String get productionRoundSizeMedium => 'وسط';
+
+  @override
+  String get productionRoundSizeLarge => 'كبير';
+
+  @override
+  String productionRoundBatchOne(String value) {
+    return '$value تشغيلة';
+  }
+
+  @override
+  String productionRoundBatches(String value) {
+    return '$value تشغيلة';
+  }
+
+  @override
+  String productionRoundJars(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count برطمان',
+      few: '$count برطمانات',
+      two: 'برطمانين',
+      one: 'برطمان واحد',
+      zero: '0 برطمان',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundNeededNow(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صنف مطلوب حالًا',
+      few: '$count أصناف مطلوبة حالًا',
+      two: 'صنفين مطلوبين حالًا',
+      one: 'صنف مطلوب حالًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundMissingMaterials(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count خامة ناقصة',
+      few: '$count خامات ناقصة',
+      two: 'خامتين ناقصين',
+      one: 'خامة واحدة ناقصة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundBlockedItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صنف واقف على خامات',
+      few: '$count أصناف واقفة على خامات',
+      two: 'صنفين واقفين على خامات',
+      one: 'صنف واقف على خامات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundCoverDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'يغطي $count يوم',
+      few: 'يغطي $count أيام',
+      two: 'يغطي يومين',
+      one: 'يغطي يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundBackupDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '+ $count يوم احتياطي',
+      few: '+ $count أيام احتياطي',
+      two: '+ يومين احتياطي',
+      one: '+ يوم احتياطي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundSalesWeeks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مبيعات آخر $count أسبوع',
+      few: 'مبيعات آخر $count أسابيع',
+      two: 'مبيعات آخر أسبوعين',
+      one: 'مبيعات آخر أسبوع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundUpdatedAt(String time) {
+    return 'اتحدّث $time';
+  }
+
+  @override
+  String productionRoundNotices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملاحظة',
+      few: '$count ملاحظات',
+      two: 'ملاحظتين',
+      one: 'ملاحظة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get productionRoundNoticesTitle => 'ملاحظات';
+
+  @override
+  String get productionRoundTabMake => 'الإنتاج';
+
+  @override
+  String get productionRoundTabMaterials => 'الخامات';
+
+  @override
+  String get productionRoundTabBranches => 'الفروع';
+
+  @override
+  String get productionRoundEmptyTitle => 'مفيش إنتاج مطلوب';
+
+  @override
+  String get productionRoundEmptyBody =>
+      'كل الفروع عندها كفاية للدورة كلها والاحتياطي.';
+
+  @override
+  String get productionRoundNoItems =>
+      'مفيش أصناف ليها مبيعات أو رصيد نخطط على أساسها لسه.';
+
+  @override
+  String get productionRoundNothingInSize => 'مفيش حاجة تتعمل في الحجم ده.';
+
+  @override
+  String productionRoundCoveredGroup(int count) {
+    return 'متغطي ($count)';
+  }
+
+  @override
+  String get productionRoundStatusNow => 'مطلوب حالًا';
+
+  @override
+  String get productionRoundStatusRound => 'في الدورة دي';
+
+  @override
+  String get productionRoundStatusCovered => 'متغطي';
+
+  @override
+  String get productionRoundStatusNoSales => 'مفيش مبيعات';
+
+  @override
+  String get productionRoundBlockedTooltip => 'مستني خامة ناقصة';
+
+  @override
+  String get productionRoundBlockedBy => 'واقف على:';
+
+  @override
+  String productionRoundMissingQty(String name, String qty) {
+    return '$name (ناقص $qty)';
+  }
+
+  @override
+  String productionRoundSellsPerWeek(String rate) {
+    return 'بيبيع $rate في الأسبوع';
+  }
+
+  @override
+  String productionRoundBranchesNeed(String qty) {
+    return 'الفروع محتاجة $qty';
+  }
+
+  @override
+  String productionRoundFactoryHas(String qty) {
+    return 'المصنع عنده $qty';
+  }
+
+  @override
+  String productionRoundNetNeed(String qty) {
+    return 'الصافي المطلوب $qty';
+  }
+
+  @override
+  String get productionRoundNoBranchRows => 'مفيش أرقام فروع للصنف ده.';
+
+  @override
+  String get productionRoundColBranch => 'الفرع';
+
+  @override
+  String get productionRoundColSells => 'بيع/أسبوع';
+
+  @override
+  String get productionRoundColTarget => 'المستهدف';
+
+  @override
+  String get productionRoundColHas => 'عنده';
+
+  @override
+  String get productionRoundColNeeds => 'محتاج';
+
+  @override
+  String productionRoundDaysLeft(String days) {
+    return 'يكفي $days يوم';
+  }
+
+  @override
+  String get productionRoundCountFirst => 'بالسالب — اعمل جرد الأول';
+
+  @override
+  String get productionRoundMakeFirst => 'اعمل الأول';
+
+  @override
+  String productionRoundPrepStored(String batches, String qty) {
+    return '$batches ($qty)';
+  }
+
+  @override
+  String productionRoundPrepFresh(String batches) {
+    return 'طازة، $batches';
+  }
+
+  @override
+  String productionRoundFilterMissing(int count) {
+    return 'الناقص ($count)';
+  }
+
+  @override
+  String productionRoundFilterAll(int count) {
+    return 'الكل ($count)';
+  }
+
+  @override
+  String productionRoundNeedHave(String need, String have) {
+    return 'محتاج $need · موجود $have';
+  }
+
+  @override
+  String productionRoundShort(String qty) {
+    return 'ناقص $qty';
+  }
+
+  @override
+  String productionRoundAlternative(String qty) {
+    return '+$qty في البدائل';
+  }
+
+  @override
+  String get productionRoundNothingMissing => 'كل الخامات موجودة.';
+
+  @override
+  String get productionRoundNoMaterials => 'مفيش خامات للمراجعة.';
+
+  @override
+  String get productionRoundNoBranches => 'مفيش فروع بيع لسه.';
+
+  @override
+  String productionRoundBranchHolds(String has, String target) {
+    return 'عنده $has من $target مستهدف';
+  }
+
+  @override
+  String productionRoundBranchNeeds(String qty) {
+    return 'محتاج $qty';
+  }
+
+  @override
+  String productionRoundBelowBackup(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صنف تحت الاحتياطي',
+      few: '$count أصناف تحت الاحتياطي',
+      two: 'صنفين تحت الاحتياطي',
+      one: 'صنف تحت الاحتياطي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get productionRoundTuneTitle => 'إعدادات الحساب';
+
+  @override
+  String get productionRoundTuneCycle => 'الأيام بين كل توريدة';
+
+  @override
+  String get productionRoundTuneBackup => 'أيام الاحتياطي';
+
+  @override
+  String get productionRoundTuneSales => 'فترة المبيعات';
+
+  @override
+  String productionRoundDaysValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      few: '$count أيام',
+      two: 'يومين',
+      one: 'يوم',
+      zero: 'من غير',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundWeeksValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسبوع',
+      few: '$count أسابيع',
+      two: 'أسبوعين',
+      one: 'أسبوع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get productionRoundTuneHint =>
+      'أحجام التشغيلة جاية من الوصفات ومش بتتغير من هنا.';
+
+  @override
+  String get productionRoundTuneReset => 'رجّع الافتراضي';
+
+  @override
   String get settingsBackgroundDeliveryTitle => 'استقبال الطلبات في الخلفية';
 
   @override

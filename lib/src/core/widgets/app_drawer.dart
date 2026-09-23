@@ -306,6 +306,15 @@ class AppDrawer extends ConsumerWidget {
           // front of somebody every call on it answers "Not permitted" to.
           onTap: () => navigate(AppRoutes.replenishment),
         ),
+      // The other half of Send to Branches: what to MAKE so there is enough
+      // to send. Read only, and gated on the production view set because
+      // that is what its endpoint accepts.
+      if (canAccessProductionBoard)
+        navTile(
+          icon: Icons.event_repeat,
+          title: l10n.menuProductionRound,
+          onTap: () => navigate(AppRoutes.productionRound),
+        ),
       if (canAccessStockTransfer)
         navTile(
           icon: Icons.swap_horiz,

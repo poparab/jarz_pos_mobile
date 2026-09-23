@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/user_error_message.dart';
 import '../../../core/network/user_service.dart';
@@ -24,11 +26,21 @@ class ReplenishmentScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final roles = ref.watch(userRolesFutureProvider);
+    final canPlanProduction = ref.watch(canAccessProductionBoardProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.replenishmentTitle),
         actions: [
+          // The sibling screen: this one says what to SEND, Production Round
+          // says what to MAKE so there is something to send. Offered only to
+          // the roles its endpoint accepts.
+          if (canPlanProduction)
+            IconButton(
+              tooltip: l10n.productionRoundOpenFromSend,
+              icon: const Icon(Icons.event_repeat),
+              onPressed: () => context.go(AppRoutes.productionRound),
+            ),
           IconButton(
             tooltip: l10n.replenishmentRefresh,
             icon: const Icon(Icons.refresh),

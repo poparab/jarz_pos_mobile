@@ -45,7 +45,13 @@ abstract final class AppRoutes {
   /// [stockTransfer], which is the manual "move these items from A to B" form:
   /// this one answers WHAT to move, and only then moves it.
   static const replenishment = '/replenishment';
+
+  /// What the factory should MAKE this round so every branch holds a full
+  /// cycle plus backup. The sibling of [replenishment], which says what to
+  /// SEND out of what already exists.
+  static const productionRound = '/production-round';
   static const cashTransfer = '/cash-transfer';
+
   /// Company cash held by named employees (العُهد).
   static const cashCustody = '/cash-custody';
   static const inventoryCount = '/inventory-count';

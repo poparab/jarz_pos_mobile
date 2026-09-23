@@ -12708,6 +12708,351 @@ class AppLocalizationsEn extends AppLocalizations {
   String get replenishmentRefresh => 'Refresh';
 
   @override
+  String get menuProductionRound => 'Production Round';
+
+  @override
+  String get productionRoundTitle => 'Production Round';
+
+  @override
+  String get productionRoundRefresh => 'Refresh';
+
+  @override
+  String get productionRoundTune => 'Planning settings';
+
+  @override
+  String get productionRoundOpenFromSend => 'What to make';
+
+  @override
+  String get productionRoundNotAllowed =>
+      'You do not have access to production planning.';
+
+  @override
+  String get productionRoundLoadFailed => 'Couldn\'t load the production round';
+
+  @override
+  String get productionRoundRefreshFailed =>
+      'Couldn\'t refresh — these are the last figures.';
+
+  @override
+  String get productionRoundSizeMedium => 'Medium';
+
+  @override
+  String get productionRoundSizeLarge => 'Large';
+
+  @override
+  String productionRoundBatchOne(String value) {
+    return '$value batch';
+  }
+
+  @override
+  String productionRoundBatches(String value) {
+    return '$value batches';
+  }
+
+  @override
+  String productionRoundJars(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jars',
+      one: '1 jar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundNeededNow(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count needed now',
+      one: '1 needed now',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundMissingMaterials(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count materials missing',
+      one: '1 material missing',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundBlockedItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items blocked',
+      one: '1 item blocked',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundCoverDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Covers $count days',
+      one: 'Covers 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundBackupDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '+ $count days backup',
+      one: '+ 1 day backup',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundSalesWeeks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'last $count weeks of sales',
+      one: 'last week of sales',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundUpdatedAt(String time) {
+    return 'updated $time';
+  }
+
+  @override
+  String productionRoundNotices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes',
+      one: '1 note',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get productionRoundNoticesTitle => 'Notes';
+
+  @override
+  String get productionRoundTabMake => 'Make';
+
+  @override
+  String get productionRoundTabMaterials => 'Materials';
+
+  @override
+  String get productionRoundTabBranches => 'Branches';
+
+  @override
+  String get productionRoundEmptyTitle => 'Nothing to make';
+
+  @override
+  String get productionRoundEmptyBody =>
+      'Every branch holds enough for the full cycle and its backup.';
+
+  @override
+  String get productionRoundNoItems =>
+      'There are no jars with sales or stock to plan from yet.';
+
+  @override
+  String get productionRoundNothingInSize => 'Nothing to make in this size.';
+
+  @override
+  String productionRoundCoveredGroup(int count) {
+    return 'Covered ($count)';
+  }
+
+  @override
+  String get productionRoundStatusNow => 'Needed now';
+
+  @override
+  String get productionRoundStatusRound => 'This round';
+
+  @override
+  String get productionRoundStatusCovered => 'Covered';
+
+  @override
+  String get productionRoundStatusNoSales => 'No sales';
+
+  @override
+  String get productionRoundBlockedTooltip => 'Waiting on a missing material';
+
+  @override
+  String get productionRoundBlockedBy => 'Blocked by:';
+
+  @override
+  String productionRoundMissingQty(String name, String qty) {
+    return '$name (missing $qty)';
+  }
+
+  @override
+  String productionRoundSellsPerWeek(String rate) {
+    return 'Sells $rate/wk';
+  }
+
+  @override
+  String productionRoundBranchesNeed(String qty) {
+    return 'Branches need $qty';
+  }
+
+  @override
+  String productionRoundFactoryHas(String qty) {
+    return 'Factory has $qty';
+  }
+
+  @override
+  String productionRoundNetNeed(String qty) {
+    return 'Net need $qty';
+  }
+
+  @override
+  String get productionRoundNoBranchRows => 'No branch figures for this item.';
+
+  @override
+  String get productionRoundColBranch => 'Branch';
+
+  @override
+  String get productionRoundColSells => 'Sells/wk';
+
+  @override
+  String get productionRoundColTarget => 'Target';
+
+  @override
+  String get productionRoundColHas => 'Has';
+
+  @override
+  String get productionRoundColNeeds => 'Needs';
+
+  @override
+  String productionRoundDaysLeft(String days) {
+    return '$days days left';
+  }
+
+  @override
+  String get productionRoundCountFirst => 'Negative — count first';
+
+  @override
+  String get productionRoundMakeFirst => 'Make first';
+
+  @override
+  String productionRoundPrepStored(String batches, String qty) {
+    return '$batches ($qty)';
+  }
+
+  @override
+  String productionRoundPrepFresh(String batches) {
+    return 'fresh, $batches';
+  }
+
+  @override
+  String productionRoundFilterMissing(int count) {
+    return 'Missing ($count)';
+  }
+
+  @override
+  String productionRoundFilterAll(int count) {
+    return 'All ($count)';
+  }
+
+  @override
+  String productionRoundNeedHave(String need, String have) {
+    return 'need $need · have $have';
+  }
+
+  @override
+  String productionRoundShort(String qty) {
+    return 'short $qty';
+  }
+
+  @override
+  String productionRoundAlternative(String qty) {
+    return '+$qty in alternatives';
+  }
+
+  @override
+  String get productionRoundNothingMissing => 'Every material is in stock.';
+
+  @override
+  String get productionRoundNoMaterials => 'No materials to check.';
+
+  @override
+  String get productionRoundNoBranches => 'No selling branches yet.';
+
+  @override
+  String productionRoundBranchHolds(String has, String target) {
+    return 'holds $has of $target target';
+  }
+
+  @override
+  String productionRoundBranchNeeds(String qty) {
+    return 'needs $qty';
+  }
+
+  @override
+  String productionRoundBelowBackup(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items below backup',
+      one: '1 item below backup',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get productionRoundTuneTitle => 'Planning settings';
+
+  @override
+  String get productionRoundTuneCycle => 'Days between deliveries';
+
+  @override
+  String get productionRoundTuneBackup => 'Backup days';
+
+  @override
+  String get productionRoundTuneSales => 'Sales history';
+
+  @override
+  String productionRoundDaysValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+      zero: 'None',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String productionRoundWeeksValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weeks',
+      one: '1 week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get productionRoundTuneHint =>
+      'Batch sizes come from the recipes and are not changed here.';
+
+  @override
+  String get productionRoundTuneReset => 'Use defaults';
+
+  @override
   String get settingsBackgroundDeliveryTitle => 'Background delivery';
 
   @override

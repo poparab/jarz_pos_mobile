@@ -22,7 +22,8 @@ class ReplenishmentService {
   final Dio _dio;
 
   /// [coverDays] and [salesDays] are left null by the screen so the server's
-  /// own defaults (14 and 30) stay the single definition of the owner's model.
+  /// own defaults stay the single definition of the owner's model; the screen
+  /// reads the values actually used back off the payload.
   Future<ReplenishmentPlan> getPlan({
     int? coverDays,
     int? salesDays,
