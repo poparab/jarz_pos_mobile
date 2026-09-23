@@ -46,6 +46,12 @@ class JarzFirebaseMessagingService : FlutterFirebaseMessagingService() {
                 "expense_approval_required" -> {
                     OrderAlertNative.showApprovalNotification(applicationContext, data)
                 }
+                // Task Board: same foreground gap as the expense branch above,
+                // on the same quiet approvals channel. The tap carries task_id
+                // so _handleLaunchPayload opens the task itself.
+                "task_notification" -> {
+                    OrderAlertNative.showApprovalNotification(applicationContext, data)
+                }
             }
         }
         super.onMessageReceived(remoteMessage)

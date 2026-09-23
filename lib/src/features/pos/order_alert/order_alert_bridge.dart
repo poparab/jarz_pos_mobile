@@ -29,6 +29,7 @@ import 'web_push_registration_result.dart';
 import 'web_push_registration_service.dart';
 import '../../../core/constants/timing_config.dart';
 import '../../approvals/state/pending_approvals_provider.dart';
+import '../../tasks/state/tasks_providers.dart';
 
 /// Ceiling for the alert poll's backoff.
 ///
@@ -525,6 +526,19 @@ class OrderAlertBridge {
           _navigateTo(AppRoutes.labels);
         }
         break;
+      case 'task_notification':
+        _logger.info(
+          'FCM task notification: ${data['event']} on ${data['task_id']}',
+        );
+        // Assigned / submitted / approved / mentioned / due / overdue. The
+        // tray entry is drawn by the SDK (or natively in the foreground);
+        // here an open board or detail screen and the menu badge catch up,
+        // and a tap lands on the task itself.
+        _refreshTasks(data['task_id']?.toString());
+        if (openedApp) {
+          _navigateToTask(data['task_id']?.toString());
+        }
+        break;
       default:
         _logger.debug('Ignored push message of type $type');
     }
@@ -573,6 +587,20 @@ class OrderAlertBridge {
     } catch (error, stackTrace) {
       _logger.error('Failed to refresh labels after stock push', error, stackTrace);
     }
+  }
+
+  /// Pending counts + any task screen already open. Never starts one.
+  void _refreshTasks(String? taskId) {
+    try {
+      refreshTasksAfterPush(_ref, taskId: taskId);
+    } catch (error, stackTrace) {
+      _logger.error('Failed to refresh tasks after push', error, stackTrace);
+    }
+  }
+
+  void _navigateToTask(String? taskId) {
+    final id = taskId?.trim() ?? '';
+    _navigateTo(id.isEmpty ? AppRoutes.tasks : AppRoutes.taskDetailFor(id));
   }
 
   void _navigateTo(String route) {
@@ -624,6 +652,9 @@ class OrderAlertBridge {
     } else if (type == 'label_stock_alert') {
       unawaited(_refreshLabels());
       _navigateTo(AppRoutes.labels);
+    } else if (type == 'task_notification') {
+      _refreshTasks(payload['task_id']);
+      _navigateToTask(payload['task_id']);
     }
   }
 

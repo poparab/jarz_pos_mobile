@@ -909,4 +909,26 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.attendance.get_employee';
   static const attendanceSummary =
       '/api/method/jarz_pos.api.attendance.get_summary';
+
+  // ── Task Board ────────────────────────────────────────────────────────
+  // The line-manager tier's task cards. Every mutation answers with the
+  // whole `get_task` shape, so the detail screen never re-fetches after one.
+  static const _tasks = '/api/method/jarz_pos.api.tasks';
+  static const tasksBoardContext = '$_tasks.get_board_context';
+  static const tasksBoard = '$_tasks.get_board';
+  static const tasksGetTask = '$_tasks.get_task';
+  static const tasksCreateTask = '$_tasks.create_task';
+  static const tasksUpdateTask = '$_tasks.update_task';
+  static const tasksSetStatus = '$_tasks.set_status';
+  static const tasksAddSubtask = '$_tasks.add_subtask';
+  static const tasksUpdateSubtask = '$_tasks.update_subtask';
+  static const tasksDeleteSubtask = '$_tasks.delete_subtask';
+  static const tasksSetSubtaskDone = '$_tasks.set_subtask_done';
+  static const tasksAddEntry = '$_tasks.add_entry';
+  static const tasksUploadAttachment = '$_tasks.upload_attachment';
+  static const tasksRemoveAttachment = '$_tasks.remove_attachment';
+  static const tasksDownloadAttachment = '$_tasks.download_attachment';
+  static const tasksArchiveTask = '$_tasks.archive_task';
+  static const tasksOverview = '$_tasks.get_overview';
+  static const tasksCounts = '$_tasks.get_task_counts';
 }

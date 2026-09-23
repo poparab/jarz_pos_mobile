@@ -22444,6 +22444,930 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A custody with a balance cannot be disabled. Return the cash first.'**
   String get userErrorCustodyDisableWithBalance;
+
+  /// No description provided for @tasksMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks'**
+  String get tasksMenuTitle;
+
+  /// No description provided for @tasksBoardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Task Board'**
+  String get tasksBoardTitle;
+
+  /// No description provided for @tasksOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team overview'**
+  String get tasksOverviewTitle;
+
+  /// No description provided for @tasksNoAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'The task board is for managers and line managers only.'**
+  String get tasksNoAccess;
+
+  /// No description provided for @tasksNewTask.
+  ///
+  /// In en, this message translates to:
+  /// **'New task'**
+  String get tasksNewTask;
+
+  /// No description provided for @tasksEmptyColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks here'**
+  String get tasksEmptyColumn;
+
+  /// No description provided for @tasksViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get tasksViewAll;
+
+  /// No description provided for @tasksViewMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get tasksViewMine;
+
+  /// No description provided for @tasksViewCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created by me'**
+  String get tasksViewCreated;
+
+  /// No description provided for @tasksViewReview.
+  ///
+  /// In en, this message translates to:
+  /// **'To review'**
+  String get tasksViewReview;
+
+  /// No description provided for @tasksStatusToDo.
+  ///
+  /// In en, this message translates to:
+  /// **'To Do'**
+  String get tasksStatusToDo;
+
+  /// No description provided for @tasksStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get tasksStatusInProgress;
+
+  /// No description provided for @tasksStatusInReview.
+  ///
+  /// In en, this message translates to:
+  /// **'In Review'**
+  String get tasksStatusInReview;
+
+  /// No description provided for @tasksStatusDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get tasksStatusDone;
+
+  /// No description provided for @tasksPriorityNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get tasksPriorityNormal;
+
+  /// No description provided for @tasksPriorityHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get tasksPriorityHigh;
+
+  /// No description provided for @tasksPriorityUrgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get tasksPriorityUrgent;
+
+  /// No description provided for @tasksFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get tasksFilters;
+
+  /// No description provided for @tasksFilterAssignee.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignee'**
+  String get tasksFilterAssignee;
+
+  /// No description provided for @tasksFilterCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'Created by'**
+  String get tasksFilterCreator;
+
+  /// No description provided for @tasksFilterBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get tasksFilterBranch;
+
+  /// No description provided for @tasksFilterPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority'**
+  String get tasksFilterPriority;
+
+  /// No description provided for @tasksFilterAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get tasksFilterAny;
+
+  /// No description provided for @tasksFilterOverdueOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue only'**
+  String get tasksFilterOverdueOnly;
+
+  /// No description provided for @tasksFilterShowArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Show archived'**
+  String get tasksFilterShowArchived;
+
+  /// No description provided for @tasksFilterDoneWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Done column shows'**
+  String get tasksFilterDoneWindow;
+
+  /// No description provided for @tasksDoneWindowDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {days} days'**
+  String tasksDoneWindowDays(int days);
+
+  /// No description provided for @tasksDoneWindowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get tasksDoneWindowAll;
+
+  /// No description provided for @tasksFilterClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get tasksFilterClear;
+
+  /// No description provided for @tasksFilterApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get tasksFilterApply;
+
+  /// No description provided for @tasksSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search tasks'**
+  String get tasksSearchHint;
+
+  /// No description provided for @tasksDueOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String tasksDueOn(String date);
+
+  /// No description provided for @tasksOverdueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get tasksOverdueLabel;
+
+  /// No description provided for @tasksArchivedTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get tasksArchivedTag;
+
+  /// No description provided for @tasksUnassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get tasksUnassigned;
+
+  /// No description provided for @tasksMoveTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to'**
+  String get tasksMoveTo;
+
+  /// No description provided for @tasksMoveToStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to {status}'**
+  String tasksMoveToStatus(String status);
+
+  /// No description provided for @tasksStatusChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Task moved to {status}'**
+  String tasksStatusChanged(String status);
+
+  /// No description provided for @tasksAssignee.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignee'**
+  String get tasksAssignee;
+
+  /// No description provided for @tasksCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'Created by'**
+  String get tasksCreator;
+
+  /// No description provided for @tasksDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get tasksDueDate;
+
+  /// No description provided for @tasksNoDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No due date'**
+  String get tasksNoDueDate;
+
+  /// No description provided for @tasksBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get tasksBranch;
+
+  /// No description provided for @tasksNoBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'No branch'**
+  String get tasksNoBranch;
+
+  /// No description provided for @tasksDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get tasksDescription;
+
+  /// No description provided for @tasksNoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No description'**
+  String get tasksNoDescription;
+
+  /// No description provided for @tasksStartedOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Started'**
+  String get tasksStartedOnLabel;
+
+  /// No description provided for @tasksCompletedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get tasksCompletedLabel;
+
+  /// No description provided for @tasksCompletedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} on {date}'**
+  String tasksCompletedBy(String name, String date);
+
+  /// No description provided for @tasksArchivedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'This task is archived and read-only.'**
+  String get tasksArchivedBanner;
+
+  /// No description provided for @tasksActionStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get tasksActionStart;
+
+  /// No description provided for @tasksActionSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit for review'**
+  String get tasksActionSubmit;
+
+  /// No description provided for @tasksActionApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get tasksActionApprove;
+
+  /// No description provided for @tasksActionSendBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Send back'**
+  String get tasksActionSendBack;
+
+  /// No description provided for @tasksActionReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get tasksActionReopen;
+
+  /// No description provided for @tasksActionMarkDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark done'**
+  String get tasksActionMarkDone;
+
+  /// No description provided for @tasksActionMoveToDo.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to To Do'**
+  String get tasksActionMoveToDo;
+
+  /// No description provided for @tasksActionEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit task'**
+  String get tasksActionEdit;
+
+  /// No description provided for @tasksActionArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get tasksActionArchive;
+
+  /// No description provided for @tasksActionUnarchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get tasksActionUnarchive;
+
+  /// No description provided for @tasksArchiveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive this task? It becomes read-only until it is unarchived.'**
+  String get tasksArchiveConfirm;
+
+  /// No description provided for @tasksReasonTitleSendBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you sending it back?'**
+  String get tasksReasonTitleSendBack;
+
+  /// No description provided for @tasksReasonTitleReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you reopening it?'**
+  String get tasksReasonTitleReopen;
+
+  /// No description provided for @tasksReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get tasksReasonHint;
+
+  /// No description provided for @tasksEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit task'**
+  String get tasksEditTitle;
+
+  /// No description provided for @tasksFieldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get tasksFieldTitle;
+
+  /// No description provided for @tasksFieldTitleRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a title'**
+  String get tasksFieldTitleRequired;
+
+  /// No description provided for @tasksFieldDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get tasksFieldDescription;
+
+  /// No description provided for @tasksFieldAssignee.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to'**
+  String get tasksFieldAssignee;
+
+  /// No description provided for @tasksFieldAssigneeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose who does it'**
+  String get tasksFieldAssigneeRequired;
+
+  /// No description provided for @tasksFieldDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get tasksFieldDueDate;
+
+  /// No description provided for @tasksFieldBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get tasksFieldBranch;
+
+  /// No description provided for @tasksFieldPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority'**
+  String get tasksFieldPriority;
+
+  /// No description provided for @tasksClearDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear date'**
+  String get tasksClearDate;
+
+  /// No description provided for @tasksNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get tasksNone;
+
+  /// No description provided for @tasksSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Task saved'**
+  String get tasksSaved;
+
+  /// No description provided for @tasksCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Task created'**
+  String get tasksCreated;
+
+  /// No description provided for @tasksInitialSubtasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtasks'**
+  String get tasksInitialSubtasks;
+
+  /// No description provided for @tasksAddSubtaskField.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a subtask'**
+  String get tasksAddSubtaskField;
+
+  /// No description provided for @tasksCreateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create task'**
+  String get tasksCreateButton;
+
+  /// No description provided for @tasksSubtasksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtasks ({done}/{total})'**
+  String tasksSubtasksTitle(int done, int total);
+
+  /// No description provided for @tasksNoSubtasks.
+  ///
+  /// In en, this message translates to:
+  /// **'No subtasks yet'**
+  String get tasksNoSubtasks;
+
+  /// No description provided for @tasksAddSubtask.
+  ///
+  /// In en, this message translates to:
+  /// **'Add subtask'**
+  String get tasksAddSubtask;
+
+  /// No description provided for @tasksEditSubtask.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit subtask'**
+  String get tasksEditSubtask;
+
+  /// No description provided for @tasksDeleteSubtask.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete subtask'**
+  String get tasksDeleteSubtask;
+
+  /// No description provided for @tasksDeleteSubtaskConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{title}\"?'**
+  String tasksDeleteSubtaskConfirm(String title);
+
+  /// No description provided for @tasksSubtaskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtask'**
+  String get tasksSubtaskTitle;
+
+  /// No description provided for @tasksSubtaskAssignee.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned to'**
+  String get tasksSubtaskAssignee;
+
+  /// No description provided for @tasksSubtaskDoneBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Done by {name}'**
+  String tasksSubtaskDoneBy(String name);
+
+  /// No description provided for @tasksAttachmentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments ({count})'**
+  String tasksAttachmentsTitle(int count);
+
+  /// No description provided for @tasksNoAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'No attachments'**
+  String get tasksNoAttachments;
+
+  /// No description provided for @tasksAddAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach'**
+  String get tasksAddAttachment;
+
+  /// No description provided for @tasksAttachCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get tasksAttachCamera;
+
+  /// No description provided for @tasksAttachGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a photo'**
+  String get tasksAttachGallery;
+
+  /// No description provided for @tasksAttachFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file'**
+  String get tasksAttachFile;
+
+  /// No description provided for @tasksRemoveAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove attachment'**
+  String get tasksRemoveAttachment;
+
+  /// No description provided for @tasksRemoveAttachmentConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove \"{file}\"?'**
+  String tasksRemoveAttachmentConfirm(String file);
+
+  /// No description provided for @tasksFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{file}\" is larger than 10 MB.'**
+  String tasksFileTooLarge(String file);
+
+  /// No description provided for @tasksFileEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be read. Pick it again.'**
+  String get tasksFileEmpty;
+
+  /// No description provided for @tasksUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment added'**
+  String get tasksUploaded;
+
+  /// No description provided for @tasksFileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to {path}'**
+  String tasksFileSaved(String path);
+
+  /// No description provided for @tasksDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get tasksDownload;
+
+  /// No description provided for @tasksAttachmentsPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'The entry was saved, but some files did not upload.'**
+  String get tasksAttachmentsPartial;
+
+  /// No description provided for @tasksUploadedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {date}'**
+  String tasksUploadedBy(String name, String date);
+
+  /// No description provided for @tasksActivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get tasksActivityTitle;
+
+  /// No description provided for @tasksTabLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'What I did'**
+  String get tasksTabLogs;
+
+  /// No description provided for @tasksTabComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments'**
+  String get tasksTabComments;
+
+  /// No description provided for @tasksTabHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get tasksTabHistory;
+
+  /// No description provided for @tasksNoLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'No logs yet'**
+  String get tasksNoLogs;
+
+  /// No description provided for @tasksNoComments.
+  ///
+  /// In en, this message translates to:
+  /// **'No comments yet'**
+  String get tasksNoComments;
+
+  /// No description provided for @tasksNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No history yet'**
+  String get tasksNoHistory;
+
+  /// No description provided for @tasksAddLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Add what I did'**
+  String get tasksAddLog;
+
+  /// No description provided for @tasksAddComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add comment'**
+  String get tasksAddComment;
+
+  /// No description provided for @tasksLogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What did you do?'**
+  String get tasksLogHint;
+
+  /// No description provided for @tasksCommentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a comment'**
+  String get tasksCommentHint;
+
+  /// No description provided for @tasksMention.
+  ///
+  /// In en, this message translates to:
+  /// **'Mention'**
+  String get tasksMention;
+
+  /// No description provided for @tasksMentionPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Mention someone'**
+  String get tasksMentionPick;
+
+  /// No description provided for @tasksNoMentionable.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody else can see this task.'**
+  String get tasksNoMentionable;
+
+  /// No description provided for @tasksContentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Write something first'**
+  String get tasksContentRequired;
+
+  /// No description provided for @tasksSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get tasksSend;
+
+  /// No description provided for @tasksMentioned.
+  ///
+  /// In en, this message translates to:
+  /// **'Mentioned: {names}'**
+  String tasksMentioned(String names);
+
+  /// No description provided for @tasksHistoryCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} created the task'**
+  String tasksHistoryCreated(String actor);
+
+  /// No description provided for @tasksHistoryReassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} reassigned the task'**
+  String tasksHistoryReassigned(String actor);
+
+  /// No description provided for @tasksHistoryStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} changed the status'**
+  String tasksHistoryStatus(String actor);
+
+  /// No description provided for @tasksHistoryDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} changed the due date'**
+  String tasksHistoryDueDate(String actor);
+
+  /// No description provided for @tasksHistoryPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} changed the priority'**
+  String tasksHistoryPriority(String actor);
+
+  /// No description provided for @tasksHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} renamed the task'**
+  String tasksHistoryTitle(String actor);
+
+  /// No description provided for @tasksHistoryBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} changed the branch'**
+  String tasksHistoryBranch(String actor);
+
+  /// No description provided for @tasksHistorySubtaskAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} added a subtask'**
+  String tasksHistorySubtaskAdded(String actor);
+
+  /// No description provided for @tasksHistorySubtaskDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} completed a subtask'**
+  String tasksHistorySubtaskDone(String actor);
+
+  /// No description provided for @tasksHistorySubtaskUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} reopened a subtask'**
+  String tasksHistorySubtaskUndone(String actor);
+
+  /// No description provided for @tasksHistorySubtaskRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} removed a subtask'**
+  String tasksHistorySubtaskRemoved(String actor);
+
+  /// No description provided for @tasksHistoryAttachmentAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} added an attachment'**
+  String tasksHistoryAttachmentAdded(String actor);
+
+  /// No description provided for @tasksHistoryAttachmentRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} removed an attachment'**
+  String tasksHistoryAttachmentRemoved(String actor);
+
+  /// No description provided for @tasksHistoryArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} archived the task'**
+  String tasksHistoryArchived(String actor);
+
+  /// No description provided for @tasksHistoryUnarchived.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} unarchived the task'**
+  String tasksHistoryUnarchived(String actor);
+
+  /// No description provided for @tasksHistoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} updated the task'**
+  String tasksHistoryOther(String actor);
+
+  /// No description provided for @tasksOverviewDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String tasksOverviewDays(int days);
+
+  /// No description provided for @tasksOverviewOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get tasksOverviewOpen;
+
+  /// No description provided for @tasksOverviewInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get tasksOverviewInProgress;
+
+  /// No description provided for @tasksOverviewInReview.
+  ///
+  /// In en, this message translates to:
+  /// **'In review'**
+  String get tasksOverviewInReview;
+
+  /// No description provided for @tasksOverviewOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get tasksOverviewOverdue;
+
+  /// No description provided for @tasksOverviewDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get tasksOverviewDone;
+
+  /// No description provided for @tasksOverviewOnTime.
+  ///
+  /// In en, this message translates to:
+  /// **'On time'**
+  String get tasksOverviewOnTime;
+
+  /// No description provided for @tasksOverviewNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks in this period'**
+  String get tasksOverviewNoData;
+
+  /// No description provided for @tasksOverviewManagerTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get tasksOverviewManagerTag;
+
+  /// No description provided for @tasksErrorOpenSubtasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish or remove the open subtasks first.'**
+  String get tasksErrorOpenSubtasks;
+
+  /// No description provided for @tasksErrorReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A reason is required.'**
+  String get tasksErrorReasonRequired;
+
+  /// No description provided for @tasksErrorArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'This task is archived. Unarchive it first.'**
+  String get tasksErrorArchived;
+
+  /// No description provided for @tasksErrorMentionNotVisible.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone you mentioned cannot see this task.'**
+  String get tasksErrorMentionNotVisible;
+
+  /// No description provided for @tasksErrorFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is larger than 10 MB.'**
+  String get tasksErrorFileTooLarge;
+
+  /// No description provided for @tasksQueueAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks assigned to you'**
+  String get tasksQueueAssigned;
+
+  /// No description provided for @tasksQueueReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks waiting for your review'**
+  String get tasksQueueReview;
+
+  /// No description provided for @tasksFileTypeBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{file}\" cannot be attached: this file type is not allowed.'**
+  String tasksFileTypeBlocked(String file);
 }
 
 class _AppLocalizationsDelegate

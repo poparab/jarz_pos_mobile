@@ -430,6 +430,8 @@ object OrderAlertNative {
             putExtra("type", data["type"] ?: "expense_approval_required")
             putExtra("expense_id", data["expense_id"] ?: "")
             putExtra("expense_month", data["expense_month"] ?: "")
+            // task_notification: which task to open on tap.
+            putExtra("task_id", data["task_id"] ?: "")
         }
 
         val pendingIntent = PendingIntent.getActivity(

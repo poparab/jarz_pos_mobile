@@ -28,6 +28,9 @@ import '../features/stock_transfer/presentation/stock_transfer_screen.dart';
 import '../features/replenishment/presentation/replenishment_screen.dart';
 import '../features/cash_transfer/presentation/cash_transfer_screen.dart';
 import '../features/cash_custody/presentation/cash_custody_screen.dart';
+import '../features/tasks/presentation/task_detail_screen.dart';
+import '../features/tasks/presentation/task_overview_screen.dart';
+import '../features/tasks/presentation/tasks_board_screen.dart';
 import '../features/geo/presentation/screens/address_pin_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
 import '../features/partner_settlements/presentation/partner_settlements_screen.dart';
@@ -457,6 +460,29 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.cashCustody,
         name: 'cash-custody',
         builder: (context, state) => const CashCustodyScreen(),
+      ),
+      // ── Task Board ────────────────────────────────────────────────────
+      // Open to anyone signed in: the board asks `get_board_context` and
+      // renders a refusal for a non-board user. `/tasks/overview` is declared
+      // before `/tasks/:id` so the static segment wins the match.
+      GoRoute(
+        path: AppRoutes.tasks,
+        name: 'tasks',
+        builder: (context, state) =>
+            TasksBoardScreen(initialView: state.uri.queryParameters['view']),
+      ),
+      GoRoute(
+        path: AppRoutes.tasksOverview,
+        name: 'tasks-overview',
+        builder: (context, state) => const TaskOverviewScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.taskDetail,
+        name: 'task-detail',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return TaskDetailScreen(taskName: Uri.decodeComponent(id));
+        },
       ),
       GoRoute(
         path: AppRoutes.partnerSettlements,

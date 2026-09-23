@@ -42,6 +42,11 @@ function notificationUrlFor(data) {
   if (data.type === 'label_stock_alert') {
     return `${appBasePath}#/labels`;
   }
+  if (data.type === 'task_notification') {
+    return data.task_id
+      ? `${appBasePath}#/tasks/${encodeURIComponent(data.task_id)}`
+      : `${appBasePath}#/tasks`;
+  }
   const invoiceId = data.invoice_id || '';
   return invoiceId
     ? `${appBasePath}?notification=${encodeURIComponent(invoiceId)}`

@@ -13674,4 +13674,535 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get userErrorCustodyDisableWithBalance =>
       'A custody with a balance cannot be disabled. Return the cash first.';
+
+  @override
+  String get tasksMenuTitle => 'Tasks';
+
+  @override
+  String get tasksBoardTitle => 'Task Board';
+
+  @override
+  String get tasksOverviewTitle => 'Team overview';
+
+  @override
+  String get tasksNoAccess =>
+      'The task board is for managers and line managers only.';
+
+  @override
+  String get tasksNewTask => 'New task';
+
+  @override
+  String get tasksEmptyColumn => 'No tasks here';
+
+  @override
+  String get tasksViewAll => 'All';
+
+  @override
+  String get tasksViewMine => 'Mine';
+
+  @override
+  String get tasksViewCreated => 'Created by me';
+
+  @override
+  String get tasksViewReview => 'To review';
+
+  @override
+  String get tasksStatusToDo => 'To Do';
+
+  @override
+  String get tasksStatusInProgress => 'In Progress';
+
+  @override
+  String get tasksStatusInReview => 'In Review';
+
+  @override
+  String get tasksStatusDone => 'Done';
+
+  @override
+  String get tasksPriorityNormal => 'Normal';
+
+  @override
+  String get tasksPriorityHigh => 'High';
+
+  @override
+  String get tasksPriorityUrgent => 'Urgent';
+
+  @override
+  String get tasksFilters => 'Filters';
+
+  @override
+  String get tasksFilterAssignee => 'Assignee';
+
+  @override
+  String get tasksFilterCreator => 'Created by';
+
+  @override
+  String get tasksFilterBranch => 'Branch';
+
+  @override
+  String get tasksFilterPriority => 'Priority';
+
+  @override
+  String get tasksFilterAny => 'Any';
+
+  @override
+  String get tasksFilterOverdueOnly => 'Overdue only';
+
+  @override
+  String get tasksFilterShowArchived => 'Show archived';
+
+  @override
+  String get tasksFilterDoneWindow => 'Done column shows';
+
+  @override
+  String tasksDoneWindowDays(int days) {
+    return 'Last $days days';
+  }
+
+  @override
+  String get tasksDoneWindowAll => 'All time';
+
+  @override
+  String get tasksFilterClear => 'Clear filters';
+
+  @override
+  String get tasksFilterApply => 'Apply';
+
+  @override
+  String get tasksSearchHint => 'Search tasks';
+
+  @override
+  String tasksDueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String get tasksOverdueLabel => 'Overdue';
+
+  @override
+  String get tasksArchivedTag => 'Archived';
+
+  @override
+  String get tasksUnassigned => 'Unassigned';
+
+  @override
+  String get tasksMoveTo => 'Move to';
+
+  @override
+  String tasksMoveToStatus(String status) {
+    return 'Move to $status';
+  }
+
+  @override
+  String tasksStatusChanged(String status) {
+    return 'Task moved to $status';
+  }
+
+  @override
+  String get tasksAssignee => 'Assignee';
+
+  @override
+  String get tasksCreator => 'Created by';
+
+  @override
+  String get tasksDueDate => 'Due date';
+
+  @override
+  String get tasksNoDueDate => 'No due date';
+
+  @override
+  String get tasksBranch => 'Branch';
+
+  @override
+  String get tasksNoBranch => 'No branch';
+
+  @override
+  String get tasksDescription => 'Description';
+
+  @override
+  String get tasksNoDescription => 'No description';
+
+  @override
+  String get tasksStartedOnLabel => 'Started';
+
+  @override
+  String get tasksCompletedLabel => 'Completed';
+
+  @override
+  String tasksCompletedBy(String name, String date) {
+    return '$name on $date';
+  }
+
+  @override
+  String get tasksArchivedBanner => 'This task is archived and read-only.';
+
+  @override
+  String get tasksActionStart => 'Start';
+
+  @override
+  String get tasksActionSubmit => 'Submit for review';
+
+  @override
+  String get tasksActionApprove => 'Approve';
+
+  @override
+  String get tasksActionSendBack => 'Send back';
+
+  @override
+  String get tasksActionReopen => 'Reopen';
+
+  @override
+  String get tasksActionMarkDone => 'Mark done';
+
+  @override
+  String get tasksActionMoveToDo => 'Move to To Do';
+
+  @override
+  String get tasksActionEdit => 'Edit task';
+
+  @override
+  String get tasksActionArchive => 'Archive';
+
+  @override
+  String get tasksActionUnarchive => 'Unarchive';
+
+  @override
+  String get tasksArchiveConfirm =>
+      'Archive this task? It becomes read-only until it is unarchived.';
+
+  @override
+  String get tasksReasonTitleSendBack => 'Why are you sending it back?';
+
+  @override
+  String get tasksReasonTitleReopen => 'Why are you reopening it?';
+
+  @override
+  String get tasksReasonHint => 'Reason';
+
+  @override
+  String get tasksEditTitle => 'Edit task';
+
+  @override
+  String get tasksFieldTitle => 'Title';
+
+  @override
+  String get tasksFieldTitleRequired => 'Enter a title';
+
+  @override
+  String get tasksFieldDescription => 'Description';
+
+  @override
+  String get tasksFieldAssignee => 'Assign to';
+
+  @override
+  String get tasksFieldAssigneeRequired => 'Choose who does it';
+
+  @override
+  String get tasksFieldDueDate => 'Due date';
+
+  @override
+  String get tasksFieldBranch => 'Branch';
+
+  @override
+  String get tasksFieldPriority => 'Priority';
+
+  @override
+  String get tasksClearDate => 'Clear date';
+
+  @override
+  String get tasksNone => 'None';
+
+  @override
+  String get tasksSaved => 'Task saved';
+
+  @override
+  String get tasksCreated => 'Task created';
+
+  @override
+  String get tasksInitialSubtasks => 'Subtasks';
+
+  @override
+  String get tasksAddSubtaskField => 'Add a subtask';
+
+  @override
+  String get tasksCreateButton => 'Create task';
+
+  @override
+  String tasksSubtasksTitle(int done, int total) {
+    return 'Subtasks ($done/$total)';
+  }
+
+  @override
+  String get tasksNoSubtasks => 'No subtasks yet';
+
+  @override
+  String get tasksAddSubtask => 'Add subtask';
+
+  @override
+  String get tasksEditSubtask => 'Edit subtask';
+
+  @override
+  String get tasksDeleteSubtask => 'Delete subtask';
+
+  @override
+  String tasksDeleteSubtaskConfirm(String title) {
+    return 'Delete \"$title\"?';
+  }
+
+  @override
+  String get tasksSubtaskTitle => 'Subtask';
+
+  @override
+  String get tasksSubtaskAssignee => 'Assigned to';
+
+  @override
+  String tasksSubtaskDoneBy(String name) {
+    return 'Done by $name';
+  }
+
+  @override
+  String tasksAttachmentsTitle(int count) {
+    return 'Attachments ($count)';
+  }
+
+  @override
+  String get tasksNoAttachments => 'No attachments';
+
+  @override
+  String get tasksAddAttachment => 'Attach';
+
+  @override
+  String get tasksAttachCamera => 'Take a photo';
+
+  @override
+  String get tasksAttachGallery => 'Choose a photo';
+
+  @override
+  String get tasksAttachFile => 'Choose a file';
+
+  @override
+  String get tasksRemoveAttachment => 'Remove attachment';
+
+  @override
+  String tasksRemoveAttachmentConfirm(String file) {
+    return 'Remove \"$file\"?';
+  }
+
+  @override
+  String tasksFileTooLarge(String file) {
+    return '\"$file\" is larger than 10 MB.';
+  }
+
+  @override
+  String get tasksFileEmpty => 'The file could not be read. Pick it again.';
+
+  @override
+  String get tasksUploaded => 'Attachment added';
+
+  @override
+  String tasksFileSaved(String path) {
+    return 'Saved to $path';
+  }
+
+  @override
+  String get tasksDownload => 'Download';
+
+  @override
+  String get tasksAttachmentsPartial =>
+      'The entry was saved, but some files did not upload.';
+
+  @override
+  String tasksUploadedBy(String name, String date) {
+    return '$name · $date';
+  }
+
+  @override
+  String get tasksActivityTitle => 'Activity';
+
+  @override
+  String get tasksTabLogs => 'What I did';
+
+  @override
+  String get tasksTabComments => 'Comments';
+
+  @override
+  String get tasksTabHistory => 'History';
+
+  @override
+  String get tasksNoLogs => 'No logs yet';
+
+  @override
+  String get tasksNoComments => 'No comments yet';
+
+  @override
+  String get tasksNoHistory => 'No history yet';
+
+  @override
+  String get tasksAddLog => 'Add what I did';
+
+  @override
+  String get tasksAddComment => 'Add comment';
+
+  @override
+  String get tasksLogHint => 'What did you do?';
+
+  @override
+  String get tasksCommentHint => 'Write a comment';
+
+  @override
+  String get tasksMention => 'Mention';
+
+  @override
+  String get tasksMentionPick => 'Mention someone';
+
+  @override
+  String get tasksNoMentionable => 'Nobody else can see this task.';
+
+  @override
+  String get tasksContentRequired => 'Write something first';
+
+  @override
+  String get tasksSend => 'Post';
+
+  @override
+  String tasksMentioned(String names) {
+    return 'Mentioned: $names';
+  }
+
+  @override
+  String tasksHistoryCreated(String actor) {
+    return '$actor created the task';
+  }
+
+  @override
+  String tasksHistoryReassigned(String actor) {
+    return '$actor reassigned the task';
+  }
+
+  @override
+  String tasksHistoryStatus(String actor) {
+    return '$actor changed the status';
+  }
+
+  @override
+  String tasksHistoryDueDate(String actor) {
+    return '$actor changed the due date';
+  }
+
+  @override
+  String tasksHistoryPriority(String actor) {
+    return '$actor changed the priority';
+  }
+
+  @override
+  String tasksHistoryTitle(String actor) {
+    return '$actor renamed the task';
+  }
+
+  @override
+  String tasksHistoryBranch(String actor) {
+    return '$actor changed the branch';
+  }
+
+  @override
+  String tasksHistorySubtaskAdded(String actor) {
+    return '$actor added a subtask';
+  }
+
+  @override
+  String tasksHistorySubtaskDone(String actor) {
+    return '$actor completed a subtask';
+  }
+
+  @override
+  String tasksHistorySubtaskUndone(String actor) {
+    return '$actor reopened a subtask';
+  }
+
+  @override
+  String tasksHistorySubtaskRemoved(String actor) {
+    return '$actor removed a subtask';
+  }
+
+  @override
+  String tasksHistoryAttachmentAdded(String actor) {
+    return '$actor added an attachment';
+  }
+
+  @override
+  String tasksHistoryAttachmentRemoved(String actor) {
+    return '$actor removed an attachment';
+  }
+
+  @override
+  String tasksHistoryArchived(String actor) {
+    return '$actor archived the task';
+  }
+
+  @override
+  String tasksHistoryUnarchived(String actor) {
+    return '$actor unarchived the task';
+  }
+
+  @override
+  String tasksHistoryOther(String actor) {
+    return '$actor updated the task';
+  }
+
+  @override
+  String tasksOverviewDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get tasksOverviewOpen => 'Open';
+
+  @override
+  String get tasksOverviewInProgress => 'In progress';
+
+  @override
+  String get tasksOverviewInReview => 'In review';
+
+  @override
+  String get tasksOverviewOverdue => 'Overdue';
+
+  @override
+  String get tasksOverviewDone => 'Done';
+
+  @override
+  String get tasksOverviewOnTime => 'On time';
+
+  @override
+  String get tasksOverviewNoData => 'No tasks in this period';
+
+  @override
+  String get tasksOverviewManagerTag => 'Manager';
+
+  @override
+  String get tasksErrorOpenSubtasks =>
+      'Finish or remove the open subtasks first.';
+
+  @override
+  String get tasksErrorReasonRequired => 'A reason is required.';
+
+  @override
+  String get tasksErrorArchived => 'This task is archived. Unarchive it first.';
+
+  @override
+  String get tasksErrorMentionNotVisible =>
+      'Someone you mentioned cannot see this task.';
+
+  @override
+  String get tasksErrorFileTooLarge => 'The file is larger than 10 MB.';
+
+  @override
+  String get tasksQueueAssigned => 'Tasks assigned to you';
+
+  @override
+  String get tasksQueueReview => 'Tasks waiting for your review';
+
+  @override
+  String tasksFileTypeBlocked(String file) {
+    return '\"$file\" cannot be attached: this file type is not allowed.';
+  }
 }

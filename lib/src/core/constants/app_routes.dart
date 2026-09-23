@@ -128,4 +128,19 @@ abstract final class AppRoutes {
   // The retry / review / breaker workflow that lived only in Desk.
   static const wooSync = '/woo-sync';
   static const wooDuplicates = '/woo-sync/duplicates';
+
+  // ── Task Board (line-manager tier) ────────────────────────────────────
+  // `/tasks?view=all|mine|created|review`. The literal `/tasks/overview`
+  // route is declared before `/tasks/:id` so the static segment wins.
+  static const tasks = '/tasks';
+  static const tasksOverview = '/tasks/overview';
+  static const taskDetail = '/tasks/:id';
+
+  /// The board opened on one view (`mine`, `review`, ...).
+  static String tasksView(String view) =>
+      Uri(path: tasks, queryParameters: {'view': view}).toString();
+
+  /// One task's detail screen.
+  static String taskDetailFor(String name) =>
+      '$tasks/${Uri.encodeComponent(name)}';
 }

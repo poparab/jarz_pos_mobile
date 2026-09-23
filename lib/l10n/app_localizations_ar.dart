@@ -13649,4 +13649,534 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get userErrorCustodyDisableWithBalance =>
       'مينفعش توقف عهدة فيها رصيد. رجّع النقدية الأول.';
+
+  @override
+  String get tasksMenuTitle => 'المهام';
+
+  @override
+  String get tasksBoardTitle => 'لوحة المهام';
+
+  @override
+  String get tasksOverviewTitle => 'متابعة الفريق';
+
+  @override
+  String get tasksNoAccess => 'لوحة المهام متاحة للمديرين ومديري الخطوط فقط.';
+
+  @override
+  String get tasksNewTask => 'مهمة جديدة';
+
+  @override
+  String get tasksEmptyColumn => 'مفيش مهام هنا';
+
+  @override
+  String get tasksViewAll => 'الكل';
+
+  @override
+  String get tasksViewMine => 'مهامي';
+
+  @override
+  String get tasksViewCreated => 'اللي أنا عملتها';
+
+  @override
+  String get tasksViewReview => 'مستنية مراجعتي';
+
+  @override
+  String get tasksStatusToDo => 'لسه';
+
+  @override
+  String get tasksStatusInProgress => 'شغّال عليها';
+
+  @override
+  String get tasksStatusInReview => 'في المراجعة';
+
+  @override
+  String get tasksStatusDone => 'خلصت';
+
+  @override
+  String get tasksPriorityNormal => 'عادية';
+
+  @override
+  String get tasksPriorityHigh => 'مهمة';
+
+  @override
+  String get tasksPriorityUrgent => 'عاجلة';
+
+  @override
+  String get tasksFilters => 'الفلاتر';
+
+  @override
+  String get tasksFilterAssignee => 'المسؤول عنها';
+
+  @override
+  String get tasksFilterCreator => 'عملها';
+
+  @override
+  String get tasksFilterBranch => 'الفرع';
+
+  @override
+  String get tasksFilterPriority => 'الأولوية';
+
+  @override
+  String get tasksFilterAny => 'أي';
+
+  @override
+  String get tasksFilterOverdueOnly => 'المتأخرة بس';
+
+  @override
+  String get tasksFilterShowArchived => 'اعرض المؤرشفة';
+
+  @override
+  String get tasksFilterDoneWindow => 'عمود \"خلصت\" يعرض';
+
+  @override
+  String tasksDoneWindowDays(int days) {
+    return 'آخر $days يوم';
+  }
+
+  @override
+  String get tasksDoneWindowAll => 'كل الفترات';
+
+  @override
+  String get tasksFilterClear => 'امسح الفلاتر';
+
+  @override
+  String get tasksFilterApply => 'تطبيق';
+
+  @override
+  String get tasksSearchHint => 'دوّر في المهام';
+
+  @override
+  String tasksDueOn(String date) {
+    return 'مطلوبة $date';
+  }
+
+  @override
+  String get tasksOverdueLabel => 'متأخرة';
+
+  @override
+  String get tasksArchivedTag => 'مؤرشفة';
+
+  @override
+  String get tasksUnassigned => 'مش متكلف بيها حد';
+
+  @override
+  String get tasksMoveTo => 'انقل إلى';
+
+  @override
+  String tasksMoveToStatus(String status) {
+    return 'انقل إلى $status';
+  }
+
+  @override
+  String tasksStatusChanged(String status) {
+    return 'المهمة اتنقلت إلى $status';
+  }
+
+  @override
+  String get tasksAssignee => 'المسؤول عنها';
+
+  @override
+  String get tasksCreator => 'عملها';
+
+  @override
+  String get tasksDueDate => 'ميعاد التسليم';
+
+  @override
+  String get tasksNoDueDate => 'من غير ميعاد';
+
+  @override
+  String get tasksBranch => 'الفرع';
+
+  @override
+  String get tasksNoBranch => 'من غير فرع';
+
+  @override
+  String get tasksDescription => 'التفاصيل';
+
+  @override
+  String get tasksNoDescription => 'مفيش تفاصيل';
+
+  @override
+  String get tasksStartedOnLabel => 'بدأت';
+
+  @override
+  String get tasksCompletedLabel => 'خلصت';
+
+  @override
+  String tasksCompletedBy(String name, String date) {
+    return '$name يوم $date';
+  }
+
+  @override
+  String get tasksArchivedBanner => 'المهمة دي مؤرشفة وللقراءة بس.';
+
+  @override
+  String get tasksActionStart => 'ابدأ';
+
+  @override
+  String get tasksActionSubmit => 'ابعتها للمراجعة';
+
+  @override
+  String get tasksActionApprove => 'موافقة';
+
+  @override
+  String get tasksActionSendBack => 'رجّعها';
+
+  @override
+  String get tasksActionReopen => 'افتحها تاني';
+
+  @override
+  String get tasksActionMarkDone => 'علّم إنها خلصت';
+
+  @override
+  String get tasksActionMoveToDo => 'رجّعها لـ\"لسه\"';
+
+  @override
+  String get tasksActionEdit => 'تعديل المهمة';
+
+  @override
+  String get tasksActionArchive => 'أرشفة';
+
+  @override
+  String get tasksActionUnarchive => 'إلغاء الأرشفة';
+
+  @override
+  String get tasksArchiveConfirm =>
+      'تأرشف المهمة دي؟ هتبقى للقراءة بس لحد ما تلغي الأرشفة.';
+
+  @override
+  String get tasksReasonTitleSendBack => 'بترجّعها ليه؟';
+
+  @override
+  String get tasksReasonTitleReopen => 'بتفتحها تاني ليه؟';
+
+  @override
+  String get tasksReasonHint => 'السبب';
+
+  @override
+  String get tasksEditTitle => 'تعديل المهمة';
+
+  @override
+  String get tasksFieldTitle => 'العنوان';
+
+  @override
+  String get tasksFieldTitleRequired => 'اكتب عنوان';
+
+  @override
+  String get tasksFieldDescription => 'التفاصيل';
+
+  @override
+  String get tasksFieldAssignee => 'كلّف';
+
+  @override
+  String get tasksFieldAssigneeRequired => 'اختار مين هيعملها';
+
+  @override
+  String get tasksFieldDueDate => 'ميعاد التسليم';
+
+  @override
+  String get tasksFieldBranch => 'الفرع';
+
+  @override
+  String get tasksFieldPriority => 'الأولوية';
+
+  @override
+  String get tasksClearDate => 'امسح التاريخ';
+
+  @override
+  String get tasksNone => 'ولا حاجة';
+
+  @override
+  String get tasksSaved => 'المهمة اتحفظت';
+
+  @override
+  String get tasksCreated => 'المهمة اتعملت';
+
+  @override
+  String get tasksInitialSubtasks => 'المهام الفرعية';
+
+  @override
+  String get tasksAddSubtaskField => 'ضيف مهمة فرعية';
+
+  @override
+  String get tasksCreateButton => 'اعمل المهمة';
+
+  @override
+  String tasksSubtasksTitle(int done, int total) {
+    return 'المهام الفرعية ($done/$total)';
+  }
+
+  @override
+  String get tasksNoSubtasks => 'مفيش مهام فرعية لسه';
+
+  @override
+  String get tasksAddSubtask => 'ضيف مهمة فرعية';
+
+  @override
+  String get tasksEditSubtask => 'تعديل المهمة الفرعية';
+
+  @override
+  String get tasksDeleteSubtask => 'امسح المهمة الفرعية';
+
+  @override
+  String tasksDeleteSubtaskConfirm(String title) {
+    return 'تمسح \"$title\"؟';
+  }
+
+  @override
+  String get tasksSubtaskTitle => 'المهمة الفرعية';
+
+  @override
+  String get tasksSubtaskAssignee => 'متكلف بيها';
+
+  @override
+  String tasksSubtaskDoneBy(String name) {
+    return 'خلّصها $name';
+  }
+
+  @override
+  String tasksAttachmentsTitle(int count) {
+    return 'المرفقات ($count)';
+  }
+
+  @override
+  String get tasksNoAttachments => 'مفيش مرفقات';
+
+  @override
+  String get tasksAddAttachment => 'إرفاق';
+
+  @override
+  String get tasksAttachCamera => 'صوّر';
+
+  @override
+  String get tasksAttachGallery => 'اختار صورة';
+
+  @override
+  String get tasksAttachFile => 'اختار ملف';
+
+  @override
+  String get tasksRemoveAttachment => 'شيل المرفق';
+
+  @override
+  String tasksRemoveAttachmentConfirm(String file) {
+    return 'تشيل \"$file\"؟';
+  }
+
+  @override
+  String tasksFileTooLarge(String file) {
+    return '\"$file\" أكبر من 10 ميجا.';
+  }
+
+  @override
+  String get tasksFileEmpty => 'الملف ماتقراش. اختاره تاني.';
+
+  @override
+  String get tasksUploaded => 'المرفق اتضاف';
+
+  @override
+  String tasksFileSaved(String path) {
+    return 'اتحفظ في $path';
+  }
+
+  @override
+  String get tasksDownload => 'تحميل';
+
+  @override
+  String get tasksAttachmentsPartial =>
+      'اللي كتبته اتحفظ، بس في ملفات مااترفعتش.';
+
+  @override
+  String tasksUploadedBy(String name, String date) {
+    return '$name · $date';
+  }
+
+  @override
+  String get tasksActivityTitle => 'النشاط';
+
+  @override
+  String get tasksTabLogs => 'اللي اتعمل';
+
+  @override
+  String get tasksTabComments => 'التعليقات';
+
+  @override
+  String get tasksTabHistory => 'السجل';
+
+  @override
+  String get tasksNoLogs => 'مفيش تحديثات لسه';
+
+  @override
+  String get tasksNoComments => 'مفيش تعليقات لسه';
+
+  @override
+  String get tasksNoHistory => 'مفيش سجل لسه';
+
+  @override
+  String get tasksAddLog => 'اكتب اللي عملته';
+
+  @override
+  String get tasksAddComment => 'اكتب تعليق';
+
+  @override
+  String get tasksLogHint => 'عملت إيه؟';
+
+  @override
+  String get tasksCommentHint => 'اكتب تعليقك';
+
+  @override
+  String get tasksMention => 'منشن';
+
+  @override
+  String get tasksMentionPick => 'اعمل منشن لحد';
+
+  @override
+  String get tasksNoMentionable => 'مفيش حد تاني يقدر يشوف المهمة دي.';
+
+  @override
+  String get tasksContentRequired => 'اكتب حاجة الأول';
+
+  @override
+  String get tasksSend => 'نشر';
+
+  @override
+  String tasksMentioned(String names) {
+    return 'منشن: $names';
+  }
+
+  @override
+  String tasksHistoryCreated(String actor) {
+    return '$actor عمل المهمة';
+  }
+
+  @override
+  String tasksHistoryReassigned(String actor) {
+    return '$actor غيّر المسؤول عن المهمة';
+  }
+
+  @override
+  String tasksHistoryStatus(String actor) {
+    return '$actor غيّر حالة المهمة';
+  }
+
+  @override
+  String tasksHistoryDueDate(String actor) {
+    return '$actor غيّر ميعاد التسليم';
+  }
+
+  @override
+  String tasksHistoryPriority(String actor) {
+    return '$actor غيّر الأولوية';
+  }
+
+  @override
+  String tasksHistoryTitle(String actor) {
+    return '$actor غيّر عنوان المهمة';
+  }
+
+  @override
+  String tasksHistoryBranch(String actor) {
+    return '$actor غيّر الفرع';
+  }
+
+  @override
+  String tasksHistorySubtaskAdded(String actor) {
+    return '$actor ضاف مهمة فرعية';
+  }
+
+  @override
+  String tasksHistorySubtaskDone(String actor) {
+    return '$actor خلّص مهمة فرعية';
+  }
+
+  @override
+  String tasksHistorySubtaskUndone(String actor) {
+    return '$actor فتح مهمة فرعية تاني';
+  }
+
+  @override
+  String tasksHistorySubtaskRemoved(String actor) {
+    return '$actor مسح مهمة فرعية';
+  }
+
+  @override
+  String tasksHistoryAttachmentAdded(String actor) {
+    return '$actor ضاف مرفق';
+  }
+
+  @override
+  String tasksHistoryAttachmentRemoved(String actor) {
+    return '$actor شال مرفق';
+  }
+
+  @override
+  String tasksHistoryArchived(String actor) {
+    return '$actor أرشف المهمة';
+  }
+
+  @override
+  String tasksHistoryUnarchived(String actor) {
+    return '$actor لغى أرشفة المهمة';
+  }
+
+  @override
+  String tasksHistoryOther(String actor) {
+    return '$actor عدّل المهمة';
+  }
+
+  @override
+  String tasksOverviewDays(int days) {
+    return '$days يوم';
+  }
+
+  @override
+  String get tasksOverviewOpen => 'مفتوحة';
+
+  @override
+  String get tasksOverviewInProgress => 'شغّال عليها';
+
+  @override
+  String get tasksOverviewInReview => 'في المراجعة';
+
+  @override
+  String get tasksOverviewOverdue => 'متأخرة';
+
+  @override
+  String get tasksOverviewDone => 'خلصت';
+
+  @override
+  String get tasksOverviewOnTime => 'في ميعادها';
+
+  @override
+  String get tasksOverviewNoData => 'مفيش مهام في الفترة دي';
+
+  @override
+  String get tasksOverviewManagerTag => 'مدير';
+
+  @override
+  String get tasksErrorOpenSubtasks =>
+      'خلّص أو امسح المهام الفرعية المفتوحة الأول.';
+
+  @override
+  String get tasksErrorReasonRequired => 'لازم تكتب السبب.';
+
+  @override
+  String get tasksErrorArchived => 'المهمة دي مؤرشفة. الغي الأرشفة الأول.';
+
+  @override
+  String get tasksErrorMentionNotVisible =>
+      'في حد عملتله منشن مش شايف المهمة دي.';
+
+  @override
+  String get tasksErrorFileTooLarge => 'الملف أكبر من 10 ميجا.';
+
+  @override
+  String get tasksQueueAssigned => 'مهام متكلف بيها';
+
+  @override
+  String get tasksQueueReview => 'مهام مستنية مراجعتك';
+
+  @override
+  String tasksFileTypeBlocked(String file) {
+    return 'مينفعش ترفق \"$file\": نوع الملف ده مش مسموح.';
+  }
 }

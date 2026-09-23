@@ -198,6 +198,69 @@ void main() {
     });
   });
 
+  // A Task Board mutation the user saw fail is retried by hand; a queued copy
+  // replayed later would create a second task. They must never be queued.
+  group('offline replay exclusion', () {
+    RequestOptions post(String method) =>
+        RequestOptions(path: '/api/method/$method', method: 'POST');
+
+    test('still queues an ordinary create POST', () {
+      expect(
+        shouldQueueForOfflineReplay(
+          post('jarz_pos.api.invoices.create_pos_invoice'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('never queues a task board call, create_task included', () {
+      for (final m in const [
+        'create_task',
+        'set_status',
+        'add_entry',
+        'upload_attachment',
+      ]) {
+        expect(
+          shouldQueueForOfflineReplay(post('jarz_pos.api.tasks.$m')),
+          isFalse,
+          reason: m,
+        );
+      }
+    });
+
+    test('never queues a GET', () {
+      expect(
+        shouldQueueForOfflineReplay(
+          RequestOptions(path: '/api/method/x.create_y', method: 'GET'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('the interceptor leaves the queue empty for a dropped create_task',
+        () async {
+      final queue = MockOfflineQueue();
+      final interceptor = SessionInterceptor(
+        MockSessionManager(),
+        queue,
+        '',
+        isWebOverride: true,
+      );
+      final options = post('jarz_pos.api.tasks.create_task');
+      final completer = Completer<void>();
+      interceptor.onError(
+        DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+        ),
+        _CapturingErrorHandler(completer),
+      );
+      await completer.future;
+
+      expect(await queue.getPendingTransactions(), isEmpty);
+    });
+  });
+
   group('SessionExpiredSignal', () {
     setUp(SessionExpiredSignal.instance.clear);
     tearDown(SessionExpiredSignal.instance.clear);

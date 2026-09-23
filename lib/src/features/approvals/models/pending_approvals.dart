@@ -8,12 +8,19 @@ class PendingApprovalKeys {
   static const paymentReceipts = 'payment_receipts';
   static const customShipping = 'custom_shipping';
 
+  /// Task Board: my open cards and open subtasks, and In Review cards I may
+  /// approve. Not approvals in the money sense, but work waiting on this user.
+  static const tasksAssigned = 'tasks_assigned';
+  static const tasksReview = 'tasks_review';
+
   static const known = {
     expenses,
     employeeAdvances,
     itemRequests,
     paymentReceipts,
     customShipping,
+    tasksAssigned,
+    tasksReview,
   };
 }
 

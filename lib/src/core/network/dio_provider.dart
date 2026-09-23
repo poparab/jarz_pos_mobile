@@ -22,6 +22,29 @@ const kPlatformHeader = 'X-Jarz-Platform';
 /// reads as a permission bug).
 const kUpgradeRequiredStatus = 426;
 
+/// Method-path prefixes that must NEVER be queued for offline replay.
+///
+/// The replay rule below is a blunt "POST whose path contains `create`". A
+/// Task Board mutation (`create_task`, and every other `jarz_pos.api.tasks.*`
+/// call) is one the user sees fail and simply retries; a queued copy replayed
+/// later would then create a second task (or re-apply a status move, entry or
+/// upload the user already redid). These calls must fail visibly, never
+/// replay. Keep this list narrow and explicit.
+const kOfflineReplayExcludedPrefixes = <String>[
+  '/api/method/jarz_pos.api.tasks.',
+];
+
+/// Whether a failed request may be parked in the offline queue for replay.
+@visibleForTesting
+bool shouldQueueForOfflineReplay(RequestOptions options) {
+  if (options.method.toUpperCase() != 'POST') return false;
+  final path = options.path;
+  for (final prefix in kOfflineReplayExcludedPrefixes) {
+    if (path.contains(prefix)) return false;
+  }
+  return path.contains('create');
+}
+
 class SessionInterceptor extends Interceptor {
   SessionInterceptor(
     this._sessionManager,
@@ -148,8 +171,7 @@ class SessionInterceptor extends Interceptor {
         err.type == DioExceptionType.connectionTimeout ||
         err.type == DioExceptionType.receiveTimeout) {
       
-      if (err.requestOptions.method.toUpperCase() == 'POST' && 
-          err.requestOptions.path.contains('create')) {
+      if (shouldQueueForOfflineReplay(err.requestOptions)) {
         
         await _offlineQueue.addTransaction({
           'endpoint': err.requestOptions.path,

@@ -65,6 +65,7 @@ class AppDrawer extends ConsumerWidget {
     final canAccessPartnerSettlements =
         ref.watch(canAccessPartnerSettlementsProvider);
     final canAccessWooSync = ref.watch(canAccessWooSyncProvider);
+    final canAccessTaskBoard = ref.watch(canAccessTaskBoardProvider);
     final canAccessStockTransfer = ref.watch(canAccessStockTransferProvider);
     final canAccessInventoryCount = ref.watch(canAccessInventoryCountProvider);
     final canAccessPurchaseInvoice =
@@ -320,6 +321,14 @@ class AppDrawer extends ConsumerWidget {
     ];
 
     final managementChildren = <Widget>[
+      // Mirrors `ROLES.LINE_MANAGER_TIER`, the board-user gate of
+      // `api/tasks.py`; the board itself trusts `get_board_context`.
+      if (canAccessTaskBoard)
+        navTile(
+          icon: Icons.task_alt,
+          title: l10n.tasksMenuTitle,
+          onTap: () => navigate(AppRoutes.tasks),
+        ),
       if (hasElevatedAccess)
         navTile(
           icon: Icons.list_alt,
@@ -417,6 +426,7 @@ class AppDrawer extends ConsumerWidget {
       AppRoutes.inventoryCount,
     ];
     const managementRoutes = [
+      AppRoutes.tasks,
       AppRoutes.masterOrders,
       AppRoutes.manager,
       AppRoutes.shiftMonitor,

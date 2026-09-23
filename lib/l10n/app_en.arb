@@ -7916,5 +7916,392 @@
   "custodyInsufficientBalance": "Not enough custody balance",
   "custodyPurchasePaymentSubtitle": "Paid from the holder custody",
   "userErrorCustodyInsufficient": "The custody balance is not enough for this amount.",
-  "userErrorCustodyDisableWithBalance": "A custody with a balance cannot be disabled. Return the cash first."
+  "userErrorCustodyDisableWithBalance": "A custody with a balance cannot be disabled. Return the cash first.",
+  "tasksMenuTitle": "Tasks",
+  "tasksBoardTitle": "Task Board",
+  "tasksOverviewTitle": "Team overview",
+  "tasksNoAccess": "The task board is for managers and line managers only.",
+  "tasksNewTask": "New task",
+  "tasksEmptyColumn": "No tasks here",
+  "tasksViewAll": "All",
+  "tasksViewMine": "Mine",
+  "tasksViewCreated": "Created by me",
+  "tasksViewReview": "To review",
+  "tasksStatusToDo": "To Do",
+  "tasksStatusInProgress": "In Progress",
+  "tasksStatusInReview": "In Review",
+  "tasksStatusDone": "Done",
+  "tasksPriorityNormal": "Normal",
+  "tasksPriorityHigh": "High",
+  "tasksPriorityUrgent": "Urgent",
+  "tasksFilters": "Filters",
+  "tasksFilterAssignee": "Assignee",
+  "tasksFilterCreator": "Created by",
+  "tasksFilterBranch": "Branch",
+  "tasksFilterPriority": "Priority",
+  "tasksFilterAny": "Any",
+  "tasksFilterOverdueOnly": "Overdue only",
+  "tasksFilterShowArchived": "Show archived",
+  "tasksFilterDoneWindow": "Done column shows",
+  "tasksDoneWindowDays": "Last {days} days",
+  "@tasksDoneWindowDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "tasksDoneWindowAll": "All time",
+  "tasksFilterClear": "Clear filters",
+  "tasksFilterApply": "Apply",
+  "tasksSearchHint": "Search tasks",
+  "tasksDueOn": "Due {date}",
+  "@tasksDueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksOverdueLabel": "Overdue",
+  "tasksArchivedTag": "Archived",
+  "tasksUnassigned": "Unassigned",
+  "tasksMoveTo": "Move to",
+  "tasksMoveToStatus": "Move to {status}",
+  "@tasksMoveToStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksStatusChanged": "Task moved to {status}",
+  "@tasksStatusChanged": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksAssignee": "Assignee",
+  "tasksCreator": "Created by",
+  "tasksDueDate": "Due date",
+  "tasksNoDueDate": "No due date",
+  "tasksBranch": "Branch",
+  "tasksNoBranch": "No branch",
+  "tasksDescription": "Description",
+  "tasksNoDescription": "No description",
+  "tasksStartedOnLabel": "Started",
+  "tasksCompletedLabel": "Completed",
+  "tasksCompletedBy": "{name} on {date}",
+  "@tasksCompletedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksArchivedBanner": "This task is archived and read-only.",
+  "tasksActionStart": "Start",
+  "tasksActionSubmit": "Submit for review",
+  "tasksActionApprove": "Approve",
+  "tasksActionSendBack": "Send back",
+  "tasksActionReopen": "Reopen",
+  "tasksActionMarkDone": "Mark done",
+  "tasksActionMoveToDo": "Move to To Do",
+  "tasksActionEdit": "Edit task",
+  "tasksActionArchive": "Archive",
+  "tasksActionUnarchive": "Unarchive",
+  "tasksArchiveConfirm": "Archive this task? It becomes read-only until it is unarchived.",
+  "tasksReasonTitleSendBack": "Why are you sending it back?",
+  "tasksReasonTitleReopen": "Why are you reopening it?",
+  "tasksReasonHint": "Reason",
+  "tasksEditTitle": "Edit task",
+  "tasksFieldTitle": "Title",
+  "tasksFieldTitleRequired": "Enter a title",
+  "tasksFieldDescription": "Description",
+  "tasksFieldAssignee": "Assign to",
+  "tasksFieldAssigneeRequired": "Choose who does it",
+  "tasksFieldDueDate": "Due date",
+  "tasksFieldBranch": "Branch",
+  "tasksFieldPriority": "Priority",
+  "tasksClearDate": "Clear date",
+  "tasksNone": "None",
+  "tasksSaved": "Task saved",
+  "tasksCreated": "Task created",
+  "tasksInitialSubtasks": "Subtasks",
+  "tasksAddSubtaskField": "Add a subtask",
+  "tasksCreateButton": "Create task",
+  "tasksSubtasksTitle": "Subtasks ({done}/{total})",
+  "@tasksSubtasksTitle": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tasksNoSubtasks": "No subtasks yet",
+  "tasksAddSubtask": "Add subtask",
+  "tasksEditSubtask": "Edit subtask",
+  "tasksDeleteSubtask": "Delete subtask",
+  "tasksDeleteSubtaskConfirm": "Delete \"{title}\"?",
+  "@tasksDeleteSubtaskConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksSubtaskTitle": "Subtask",
+  "tasksSubtaskAssignee": "Assigned to",
+  "tasksSubtaskDoneBy": "Done by {name}",
+  "@tasksSubtaskDoneBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksAttachmentsTitle": "Attachments ({count})",
+  "@tasksAttachmentsTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tasksNoAttachments": "No attachments",
+  "tasksAddAttachment": "Attach",
+  "tasksAttachCamera": "Take a photo",
+  "tasksAttachGallery": "Choose a photo",
+  "tasksAttachFile": "Choose a file",
+  "tasksRemoveAttachment": "Remove attachment",
+  "tasksRemoveAttachmentConfirm": "Remove \"{file}\"?",
+  "@tasksRemoveAttachmentConfirm": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksFileTooLarge": "\"{file}\" is larger than 10 MB.",
+  "@tasksFileTooLarge": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksFileEmpty": "The file could not be read. Pick it again.",
+  "tasksUploaded": "Attachment added",
+  "tasksFileSaved": "Saved to {path}",
+  "@tasksFileSaved": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksDownload": "Download",
+  "tasksAttachmentsPartial": "The entry was saved, but some files did not upload.",
+  "tasksUploadedBy": "{name} · {date}",
+  "@tasksUploadedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksActivityTitle": "Activity",
+  "tasksTabLogs": "What I did",
+  "tasksTabComments": "Comments",
+  "tasksTabHistory": "History",
+  "tasksNoLogs": "No logs yet",
+  "tasksNoComments": "No comments yet",
+  "tasksNoHistory": "No history yet",
+  "tasksAddLog": "Add what I did",
+  "tasksAddComment": "Add comment",
+  "tasksLogHint": "What did you do?",
+  "tasksCommentHint": "Write a comment",
+  "tasksMention": "Mention",
+  "tasksMentionPick": "Mention someone",
+  "tasksNoMentionable": "Nobody else can see this task.",
+  "tasksContentRequired": "Write something first",
+  "tasksSend": "Post",
+  "tasksMentioned": "Mentioned: {names}",
+  "@tasksMentioned": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryCreated": "{actor} created the task",
+  "@tasksHistoryCreated": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryReassigned": "{actor} reassigned the task",
+  "@tasksHistoryReassigned": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryStatus": "{actor} changed the status",
+  "@tasksHistoryStatus": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryDueDate": "{actor} changed the due date",
+  "@tasksHistoryDueDate": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryPriority": "{actor} changed the priority",
+  "@tasksHistoryPriority": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryTitle": "{actor} renamed the task",
+  "@tasksHistoryTitle": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryBranch": "{actor} changed the branch",
+  "@tasksHistoryBranch": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistorySubtaskAdded": "{actor} added a subtask",
+  "@tasksHistorySubtaskAdded": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistorySubtaskDone": "{actor} completed a subtask",
+  "@tasksHistorySubtaskDone": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistorySubtaskUndone": "{actor} reopened a subtask",
+  "@tasksHistorySubtaskUndone": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistorySubtaskRemoved": "{actor} removed a subtask",
+  "@tasksHistorySubtaskRemoved": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryAttachmentAdded": "{actor} added an attachment",
+  "@tasksHistoryAttachmentAdded": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryAttachmentRemoved": "{actor} removed an attachment",
+  "@tasksHistoryAttachmentRemoved": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryArchived": "{actor} archived the task",
+  "@tasksHistoryArchived": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryUnarchived": "{actor} unarchived the task",
+  "@tasksHistoryUnarchived": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksHistoryOther": "{actor} updated the task",
+  "@tasksHistoryOther": {
+    "placeholders": {
+      "actor": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksOverviewDays": "{days} days",
+  "@tasksOverviewDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "tasksOverviewOpen": "Open",
+  "tasksOverviewInProgress": "In progress",
+  "tasksOverviewInReview": "In review",
+  "tasksOverviewOverdue": "Overdue",
+  "tasksOverviewDone": "Done",
+  "tasksOverviewOnTime": "On time",
+  "tasksOverviewNoData": "No tasks in this period",
+  "tasksOverviewManagerTag": "Manager",
+  "tasksErrorOpenSubtasks": "Finish or remove the open subtasks first.",
+  "tasksErrorReasonRequired": "A reason is required.",
+  "tasksErrorArchived": "This task is archived. Unarchive it first.",
+  "tasksErrorMentionNotVisible": "Someone you mentioned cannot see this task.",
+  "tasksErrorFileTooLarge": "The file is larger than 10 MB.",
+  "tasksQueueAssigned": "Tasks assigned to you",
+  "tasksQueueReview": "Tasks waiting for your review",
+  "tasksFileTypeBlocked": "\"{file}\" cannot be attached: this file type is not allowed.",
+  "@tasksFileTypeBlocked": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  }
 }

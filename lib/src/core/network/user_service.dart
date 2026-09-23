@@ -198,6 +198,18 @@ class UserRoles {
       roles.contains(RoleNames.administrator) ||
       roles.contains(RoleNames.systemManager);
 
+  /// Whether the side menu offers the Task Board. Mirrors the backend's
+  /// board-user gate, `ROLES.LINE_MANAGER_TIER`: both line-manager spellings,
+  /// JARZ Manager, System Manager and Administrator — and deliberately NOT the
+  /// POS Manager that [canActAsLineManager] folds in. (A user granted access
+  /// only through Jarz Task Settings can still open `/tasks` by link; the
+  /// screen trusts `get_board_context.can_access`, not this getter.)
+  bool get canAccessTaskBoard =>
+      isLineManager ||
+      isJarzManager ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator);
+
   /// Whether the Reports hub has anything at all to show this user.
   ///
   /// The hub is kept rather than hidden for the line-manager tier because it
@@ -447,6 +459,16 @@ final canAccessProductionBoardProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canAccessProductionBoard,
+    orElse: () => false,
+  );
+});
+
+/// Whether the side menu offers the Task Board. See
+/// [UserRoles.canAccessTaskBoard].
+final canAccessTaskBoardProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessTaskBoard,
     orElse: () => false,
   );
 });
