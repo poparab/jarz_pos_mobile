@@ -32,6 +32,10 @@ const _statuses = [
   'Cancelled',
 ];
 
+/// Batches in these statuses have no Manufacture entry yet, so a stock-date
+/// range can never match them; picking one switches the basis to creation.
+const _unpostedStatuses = {'Not Started', 'In Process'};
+
 const _historyLimit = 300;
 
 class _RecentWorkOrdersDialog extends ConsumerStatefulWidget {
@@ -180,12 +184,15 @@ class _RecentWorkOrdersDialogState
       medium: 820,
       large: 960,
     );
+    // Never taller than what the keyboard leaves, so typing a search on a
+    // phone shrinks the list instead of overflowing the column.
+    final media = MediaQuery.of(context);
     final height = ResponsiveUtils.getDialogHeight(
       context,
       phoneFraction: 0.92,
       tabletFraction: 0.88,
       max: 900,
-    );
+    ).clamp(0.0, media.size.height - media.viewInsets.bottom - 32).toDouble();
 
     return Dialog(
       insetPadding: EdgeInsets.symmetric(
@@ -200,13 +207,16 @@ class _RecentWorkOrdersDialogState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildHeader(context),
-            _buildFilters(context),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: height * 0.35),
+              child: SingleChildScrollView(child: _buildFilters(context)),
+            ),
             const Divider(height: 1),
             _buildSummary(context),
             Expanded(child: _buildBody(context)),
             const Divider(height: 1),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 8, 4),
               child: Align(
                 alignment: AlignmentDirectional.centerEnd,
                 child: TextButton(
@@ -225,7 +235,7 @@ class _RecentWorkOrdersDialogState
   Widget _buildHeader(BuildContext context) {
     final l10n = context.l10n;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 8, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 8, 4),
       child: Row(
         children: [
           const Icon(Icons.history),
@@ -260,7 +270,7 @@ class _RecentWorkOrdersDialogState
   Widget _buildFilters(BuildContext context) {
     final l10n = context.l10n;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -273,7 +283,10 @@ class _RecentWorkOrdersDialogState
                 width: 320,
                 child: TextField(
                   controller: _searchController,
-                  onChanged: _onSearchChanged,
+                  onChanged: (value) {
+                    setState(() {});
+                    _onSearchChanged(value);
+                  },
                   decoration: InputDecoration(
                     isDense: true,
                     prefixIcon: const Icon(Icons.search),
@@ -285,6 +298,7 @@ class _RecentWorkOrdersDialogState
                             tooltip: l10n.commonClear,
                             icon: const Icon(Icons.clear),
                             onPressed: () {
+                              _debounce?.cancel();
                               _searchController.clear();
                               _load();
                             },
@@ -314,7 +328,12 @@ class _RecentWorkOrdersDialogState
                       ),
                   ],
                   onChanged: (value) {
-                    setState(() => _status = value);
+                    setState(() {
+                      _status = value;
+                      if (_unpostedStatuses.contains(value)) {
+                        _dateBasis = 'creation';
+                      }
+                    });
                     _load();
                   },
                 ),
@@ -366,18 +385,31 @@ class _RecentWorkOrdersDialogState
     if (_loading || _error != null || _rows.isEmpty) {
       return const SizedBox.shrink();
     }
-    final totalQty = _rows.fold<double>(
+    final l10n = context.l10n;
+    final made = _rows.fold<double>(
       0,
-      (sum, row) => sum + ((row['qty'] as num?)?.toDouble() ?? 0),
+      (sum, row) => sum + ((row['produced_qty'] as num?)?.toDouble() ?? 0),
     );
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-      child: Text(
-        context.l10n.manufacturingHistorySummary(
-          _rows.length,
-          formatCount(context, totalQty),
-        ),
-        style: Theme.of(context).textTheme.labelLarge,
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.manufacturingHistorySummary(
+              _rows.length,
+              formatCount(context, made),
+            ),
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          if (_rows.length >= _historyLimit)
+            Text(
+              l10n.manufacturingHistoryCapped(_historyLimit),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -455,6 +487,7 @@ class _WorkOrderHistoryTile extends StatelessWidget {
     final itemName = '${row['item_name'] ?? ''}'.trim();
     final status = '${row['status'] ?? ''}';
     final qty = (row['qty'] as num?)?.toDouble() ?? 0;
+    final made = (row['produced_qty'] as num?)?.toDouble() ?? 0;
     final created = _parseServerDate(row['creation']);
     final posted = _parseServerDate(row['posted_at']);
     final backdated =
@@ -487,7 +520,14 @@ class _WorkOrderHistoryTile extends StatelessWidget {
                 ),
               ),
               Text(
-                l10n.manufacturingHistoryQty(formatCount(context, qty)),
+                made > 0 && made != qty
+                    ? l10n.manufacturingHistoryMade(
+                        formatCount(context, made),
+                        formatCount(context, qty),
+                      )
+                    : l10n.manufacturingHistoryQty(
+                        formatCount(context, made > 0 ? made : qty),
+                      ),
                 style: theme.textTheme.titleSmall,
               ),
             ],

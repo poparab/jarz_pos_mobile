@@ -14799,9 +14799,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get manufacturingHistorySearchHint => 'دوّر بالصنف أو رقم أمر الشغل';
 
   @override
-  String get manufacturingHistoryDateBasis => 'التاريخ حسب';
-
-  @override
   String get manufacturingHistoryBasisPosted => 'تاريخ المخزون';
 
   @override
@@ -14850,12 +14847,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String manufacturingHistorySummary(int count, String qty) {
-    return '$count أمر شغل • إجمالي الكمية $qty';
+    return '$count أمر شغل • اتعمل $qty';
   }
 
   @override
   String manufacturingHistoryQty(String qty) {
     return 'الكمية $qty';
+  }
+
+  @override
+  String manufacturingHistoryMade(String made, String qty) {
+    return 'اتعمل $made من $qty';
+  }
+
+  @override
+  String manufacturingHistoryCapped(int count) {
+    return 'بيظهر آخر $count بس. ضيّق الفلاتر عشان تشوف الأقدم.';
   }
 
   @override

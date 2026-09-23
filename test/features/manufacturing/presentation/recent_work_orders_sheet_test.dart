@@ -18,6 +18,7 @@ MockDio _dio() {
         'production_item': 'SAV-01',
         'item_name': 'Savoiardi',
         'qty': 12.0,
+        'produced_qty': 10.0,
         'status': 'Completed',
         'creation': '2026-09-23 16:54:28.424887',
         'posted_at': '2026-09-22 23:59:00',
@@ -82,6 +83,7 @@ void main() {
           expect(find.textContaining('Stock: '), findsOneWidget);
           expect(find.textContaining('Created: '), findsWidgets);
           expect(find.text('Backdated'), findsOneWidget);
+          expect(find.text('Made 10 of 12'), findsOneWidget);
           await tester.scrollUntilVisible(
             find.text('Not in stock yet'),
             100,
@@ -92,6 +94,37 @@ void main() {
       });
     }
   }
+
+  testWidgets('phone with the keyboard open does not overflow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 320);
+    addTearDown(tester.view.reset);
+
+    await _open(tester, _dio(), const Locale('en'));
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('picking an in-progress status switches to created date', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final dio = _dio();
+
+    await _open(tester, dio, const Locale('en'));
+    await tester.tap(find.text('All statuses'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('In process').last);
+    await tester.pumpAndSettle();
+
+    expect(dio.requestLog.last['data']['status'], equals('In Process'));
+    expect(dio.requestLog.last['data']['date_basis'], equals('creation'));
+  });
 
   testWidgets('changing the date basis re-queries the server', (tester) async {
     tester.view.physicalSize = const Size(1280, 800);

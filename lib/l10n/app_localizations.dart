@@ -24209,12 +24209,6 @@ abstract class AppLocalizations {
   /// **'Search item or work order'**
   String get manufacturingHistorySearchHint;
 
-  /// No description provided for @manufacturingHistoryDateBasis.
-  ///
-  /// In en, this message translates to:
-  /// **'Dates by'**
-  String get manufacturingHistoryDateBasis;
-
   /// No description provided for @manufacturingHistoryBasisPosted.
   ///
   /// In en, this message translates to:
@@ -24302,7 +24296,7 @@ abstract class AppLocalizations {
   /// No description provided for @manufacturingHistorySummary.
   ///
   /// In en, this message translates to:
-  /// **'{count} work orders • total qty {qty}'**
+  /// **'{count} work orders • {qty} made'**
   String manufacturingHistorySummary(int count, String qty);
 
   /// No description provided for @manufacturingHistoryQty.
@@ -24310,6 +24304,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Qty {qty}'**
   String manufacturingHistoryQty(String qty);
+
+  /// No description provided for @manufacturingHistoryMade.
+  ///
+  /// In en, this message translates to:
+  /// **'Made {made} of {qty}'**
+  String manufacturingHistoryMade(String made, String qty);
+
+  /// No description provided for @manufacturingHistoryCapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the latest {count} only. Narrow the filters to see older ones.'**
+  String manufacturingHistoryCapped(int count);
 
   /// No description provided for @manufacturingWoStatusNotStarted.
   ///

@@ -14804,9 +14804,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manufacturingHistorySearchHint => 'Search item or work order';
 
   @override
-  String get manufacturingHistoryDateBasis => 'Dates by';
-
-  @override
   String get manufacturingHistoryBasisPosted => 'Stock date';
 
   @override
@@ -14855,12 +14852,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String manufacturingHistorySummary(int count, String qty) {
-    return '$count work orders • total qty $qty';
+    return '$count work orders • $qty made';
   }
 
   @override
   String manufacturingHistoryQty(String qty) {
     return 'Qty $qty';
+  }
+
+  @override
+  String manufacturingHistoryMade(String made, String qty) {
+    return 'Made $made of $qty';
+  }
+
+  @override
+  String manufacturingHistoryCapped(int count) {
+    return 'Showing the latest $count only. Narrow the filters to see older ones.';
   }
 
   @override
