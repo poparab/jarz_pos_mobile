@@ -15,6 +15,7 @@ import '../../../core/network/session_expired_signal.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/websocket/websocket_service.dart';
 import '../../expenses/state/expenses_notifier.dart';
+import '../../labels/state/labels_notifier.dart';
 import '../state/pos_notifier.dart';
 import 'data/order_alert_service.dart';
 import 'domain/invoice_alert.dart';
@@ -512,6 +513,18 @@ class OrderAlertBridge {
           _navigateToExpenses();
         }
         break;
+      case 'label_stock_alert':
+        _logger.info(
+          'FCM label stock alert: ${data['count']} label(s) need printing',
+        );
+        // The daily digest of B2B labels that must go to the print house.
+        // The tray entry is drawn by the SDK; here the side-menu badge and an
+        // open labels screen catch up, and a tap lands on the board.
+        unawaited(_refreshLabels());
+        if (openedApp) {
+          _navigateTo(AppRoutes.labels);
+        }
+        break;
       default:
         _logger.debug('Ignored push message of type $type');
     }
@@ -547,6 +560,27 @@ class OrderAlertBridge {
     } catch (error, stackTrace) {
       _logger.error('Failed to refresh expenses after approval push', error, stackTrace);
     }
+  }
+
+  /// Badge + (if it was ever opened) the labels board, after a label push.
+  Future<void> _refreshLabels() async {
+    _ref.invalidate(labelAlertCountProvider);
+    try {
+      if (!_ref.read(labelsNotifierProvider).initialized) {
+        return;
+      }
+      await _ref.read(labelsNotifierProvider.notifier).refresh();
+    } catch (error, stackTrace) {
+      _logger.error('Failed to refresh labels after stock push', error, stackTrace);
+    }
+  }
+
+  void _navigateTo(String route) {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null) {
+      return;
+    }
+    GoRouter.of(context).go(route);
   }
 
   void _navigateToExpenses() {
@@ -587,6 +621,9 @@ class OrderAlertBridge {
       _logger.info('Launch payload expense_approval_required: ${payload['expense_id']}');
       unawaited(_refreshPendingExpenses(expenseMonth: payload['expense_month']));
       _navigateToExpenses();
+    } else if (type == 'label_stock_alert') {
+      unawaited(_refreshLabels());
+      _navigateTo(AppRoutes.labels);
     }
   }
 

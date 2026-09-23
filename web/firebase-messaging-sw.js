@@ -39,6 +39,9 @@ function notificationUrlFor(data) {
   if (data.type === 'expense_approval_required') {
     return `${appBasePath}#/expenses`;
   }
+  if (data.type === 'label_stock_alert') {
+    return `${appBasePath}#/labels`;
+  }
   const invoiceId = data.invoice_id || '';
   return invoiceId
     ? `${appBasePath}?notification=${encodeURIComponent(invoiceId)}`

@@ -665,7 +665,10 @@ class _PrintOrders extends StatelessWidget {
                           value: 'bill',
                           child: Text(l10n.labelDetailRecordBill),
                         ),
-                      if (order.isOpen)
+                      // A billed batch is on the books: the server refuses to
+                      // cancel it until its Purchase Invoice is cancelled, so
+                      // the menu does not offer what would only fail.
+                      if (order.isOpen && !order.isBilled)
                         PopupMenuItem(
                             value: 'Cancelled',
                             child: Text(l10n.labelDetailCancelBatch)),
