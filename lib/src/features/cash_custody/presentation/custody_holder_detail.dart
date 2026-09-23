@@ -43,8 +43,9 @@ class CustodyHolderDetailView extends ConsumerWidget {
     final l10n = context.l10n;
     final overview = ref.watch(custodyOverviewProvider).valueOrNull;
     final statementState = ref.watch(custodyStatementProvider(holderName));
-    final statementNotifier =
-        ref.read(custodyStatementProvider(holderName).notifier);
+    final statementNotifier = ref.read(
+      custodyStatementProvider(holderName).notifier,
+    );
     final holder =
         overview?.holderNamed(holderName) ?? statementState.statement?.holder;
 
@@ -61,66 +62,74 @@ class CustodyHolderDetailView extends ConsumerWidget {
       children.add(const SizedBox(height: 16));
     }
 
-    children.add(_StatementHeader(
-      state: statementState,
-      onPickRange: () async {
-        final now = DateTime.now();
-        final initial = statementState.hasRange
-            ? DateTimeRange(
-                start: statementState.fromDate!,
-                end: statementState.toDate!,
-              )
-            : DateTimeRange(
-                start: now.subtract(const Duration(days: 30)),
-                end: now,
-              );
-        final picked = await showDateRangePicker(
-          context: context,
-          firstDate: DateTime(now.year - 3),
-          lastDate: now.add(const Duration(days: 1)),
-          initialDateRange: initial,
-        );
-        if (picked != null) {
-          await statementNotifier.setRange(picked.start, picked.end);
-        }
-      },
-      onClearRange: statementNotifier.clearRange,
-    ));
+    children.add(
+      _StatementHeader(
+        state: statementState,
+        onPickRange: () async {
+          final now = DateTime.now();
+          final initial = statementState.hasRange
+              ? DateTimeRange(
+                  start: statementState.fromDate!,
+                  end: statementState.toDate!,
+                )
+              : DateTimeRange(
+                  start: now.subtract(const Duration(days: 30)),
+                  end: now,
+                );
+          final picked = await showDateRangePicker(
+            context: context,
+            firstDate: DateTime(now.year - 3),
+            lastDate: now.add(const Duration(days: 1)),
+            initialDateRange: initial,
+          );
+          if (picked != null) {
+            await statementNotifier.setRange(picked.start, picked.end);
+          }
+        },
+        onClearRange: statementNotifier.clearRange,
+      ),
+    );
 
     final statement = statementState.statement;
     if (statementState.isLoading && statement == null) {
-      children.add(const Padding(
-        padding: EdgeInsets.all(32),
-        child: Center(child: CircularProgressIndicator()),
-      ));
-    } else if (statementState.error != null && statement == null) {
-      children.add(Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Text(
-              context.userErrorMessage(statementState.error),
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: statementNotifier.load,
-              child: Text(l10n.commonRetry),
-            ),
-          ],
+      children.add(
+        const Padding(
+          padding: EdgeInsets.all(32),
+          child: Center(child: CircularProgressIndicator()),
         ),
-      ));
+      );
+    } else if (statementState.error != null && statement == null) {
+      children.add(
+        Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Text(
+                context.userErrorMessage(statementState.error),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: statementNotifier.load,
+                child: Text(l10n.commonRetry),
+              ),
+            ],
+          ),
+        ),
+      );
     } else if (statement != null) {
       if (statementState.isLoading) {
         children.add(const LinearProgressIndicator(minHeight: 2));
       }
       children.add(_OpeningClosingRow(statement: statement));
       if (statement.entries.isEmpty) {
-        children.add(Padding(
-          padding: const EdgeInsets.all(24),
-          child: Center(child: Text(l10n.custodyStatementEmpty)),
-        ));
+        children.add(
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(child: Text(l10n.custodyStatementEmpty)),
+          ),
+        );
       } else {
         for (final entry in statement.entries) {
           children.add(_StatementEntryTile(entry: entry));
@@ -189,7 +198,8 @@ class _BalanceCard extends StatelessWidget {
               holder.lastMovement == null
                   ? l10n.custodyNoMovement
                   : l10n.custodyLastMovement(
-                      formatDateString(context, holder.lastMovement)),
+                      formatDateString(context, holder.lastMovement),
+                    ),
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -216,11 +226,12 @@ class _Actions extends ConsumerWidget {
       mode: mode,
       holder: holder,
       accounts: accounts,
+      allowDate: overview?.canManage ?? false,
     );
     if (result != null) {
-      messenger.showSnackBar(SnackBar(
-        content: Text(l10n.custodyPosted(result.journalEntry ?? '-')),
-      ));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.custodyPosted(result.journalEntry ?? '-'))),
+      );
     }
   }
 
@@ -230,7 +241,8 @@ class _Actions extends ConsumerWidget {
     final sources = overview?.sourceAccounts ?? const <CustodyAccountOption>[];
     final returns = overview?.returnAccounts ?? const <CustodyAccountOption>[];
     final canIssue = holder.enabled && sources.isNotEmpty;
-    final canReturn = holder.balance > custodyBalanceEpsilon && returns.isNotEmpty;
+    final canReturn =
+        holder.balance > custodyBalanceEpsilon && returns.isNotEmpty;
     return Row(
       children: [
         Expanded(
@@ -367,7 +379,8 @@ class _StatementEntryTile extends StatelessWidget {
       ].join(' • '),
       if ((entry.counterLabel ?? entry.counterAccount) != null)
         l10n.custodyCounterAccount(
-            (entry.counterLabel ?? entry.counterAccount)!),
+          (entry.counterLabel ?? entry.counterAccount)!,
+        ),
       if (entry.remark != null) entry.remark!,
     ]..removeWhere((line) => line.isEmpty);
 
@@ -407,7 +420,8 @@ class _StatementEntryTile extends StatelessWidget {
                 ),
                 Text(
                   l10n.custodyRunningBalance(
-                      formatCurrency(context, entry.balance)),
+                    formatCurrency(context, entry.balance),
+                  ),
                   style: theme.textTheme.bodySmall,
                 ),
               ],
