@@ -78,13 +78,19 @@ class RosterRepository {
   ///
   /// Passing [shiftLocation] moves them to another branch for the day, which
   /// also moves where their phone has to be to clock in.
-  Future<void> assignShift({
+  ///
+  /// [grantPosAccess] also gives them that branch's POS for the day. The grant
+  /// is best-effort server-side, so its outcome comes back rather than
+  /// throwing; null means the server did not report one (older backend, or
+  /// nothing was asked).
+  Future<PosAccessOutcome?> assignShift({
     required String employee,
     required String date,
     required String shiftType,
     String? shiftLocation,
+    bool grantPosAccess = false,
   }) async {
-    await _dio.post(
+    final response = await _dio.post(
       ApiEndpoints.rosterAssignShift,
       data: {
         'employee': employee,
@@ -92,8 +98,18 @@ class RosterRepository {
         'shift_type': shiftType,
         if (shiftLocation != null && shiftLocation.isNotEmpty)
           'shift_location': shiftLocation,
+        // Only sent when asked, so the request is exactly what an older
+        // backend already accepts.
+        if (grantPosAccess) 'grant_pos_access': 1,
       },
     );
+    return _posAccess(response);
+  }
+
+  PosAccessOutcome? _posAccess(Response response) {
+    final body = _unwrap(response);
+    if (body is! Map) return null;
+    return PosAccessOutcome.tryParse(body['pos_access']);
   }
 
   /// Mark somebody off and, in the same request, name who covers the day.
@@ -102,26 +118,33 @@ class RosterRepository {
   /// its overlapping shifts is not covered by shortening the rota — sending
   /// them separately would leave a window where the branch is rostered
   /// half-open.
-  Future<void> setDayOff({
+  ///
+  /// [grantPosAccess] gives the COVERING person ([coveredBy]) POS access at the
+  /// covered branch for the day; ignored without a cover.
+  Future<PosAccessOutcome?> setDayOff({
     required String employee,
     required String date,
     required String offType,
     String? coveredBy,
     String? coverShiftType,
     String? notes,
+    bool grantPosAccess = false,
   }) async {
-    await _dio.post(
+    final hasCover = coveredBy != null && coveredBy.isNotEmpty;
+    final response = await _dio.post(
       ApiEndpoints.rosterSetDayOff,
       data: {
         'employee': employee,
         'date': date,
         'off_type': offType,
-        if (coveredBy != null && coveredBy.isNotEmpty) 'covered_by': coveredBy,
+        if (hasCover) 'covered_by': coveredBy,
         if (coverShiftType != null && coverShiftType.isNotEmpty)
           'cover_shift_type': coverShiftType,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
+        if (grantPosAccess && hasCover) 'grant_pos_access': 1,
       },
     );
+    return _posAccess(response);
   }
 
   /// Undo a day off, restoring both the person and whoever covered them.

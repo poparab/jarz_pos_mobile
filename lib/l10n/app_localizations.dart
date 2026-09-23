@@ -23794,6 +23794,414 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\"{file}\" cannot be attached: this file type is not allowed.'**
   String tasksFileTypeBlocked(String file);
+
+  /// No description provided for @menuBranchAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch Access'**
+  String get menuBranchAccess;
+
+  /// No description provided for @branchAccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch Access'**
+  String get branchAccessTitle;
+
+  /// No description provided for @branchAccessTabPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get branchAccessTabPeople;
+
+  /// No description provided for @branchAccessTabHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get branchAccessTabHistory;
+
+  /// No description provided for @branchAccessAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Only managers and line managers can manage branch access.'**
+  String get branchAccessAccessDenied;
+
+  /// No description provided for @branchAccessSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search people'**
+  String get branchAccessSearchHint;
+
+  /// No description provided for @branchAccessNoUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody matches.'**
+  String get branchAccessNoUsers;
+
+  /// No description provided for @branchAccessNoBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'No branches to show.'**
+  String get branchAccessNoBranches;
+
+  /// No description provided for @branchAccessBranchClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get branchAccessBranchClosed;
+
+  /// No description provided for @branchAccessOpenSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Open since {time} by {name}'**
+  String branchAccessOpenSince(String time, String name);
+
+  /// No description provided for @branchAccessLockedOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'{branch} has been open since {time} by {name}. Access can change once that shift is closed.'**
+  String branchAccessLockedOpen(String branch, String time, String name);
+
+  /// No description provided for @branchAccessNotYourBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only manage branches you belong to.'**
+  String get branchAccessNotYourBranch;
+
+  /// No description provided for @branchAccessCannotEditSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot change your own access.'**
+  String get branchAccessCannotEditSelf;
+
+  /// No description provided for @branchAccessYouTag.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get branchAccessYouTag;
+
+  /// No description provided for @branchAccessDisabledTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get branchAccessDisabledTag;
+
+  /// No description provided for @branchAccessChipMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Has access'**
+  String get branchAccessChipMember;
+
+  /// No description provided for @branchAccessChipNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No access'**
+  String get branchAccessChipNone;
+
+  /// No description provided for @branchAccessChipDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{branch} · {date}'**
+  String branchAccessChipDay(String branch, String date);
+
+  /// No description provided for @branchAccessAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Give access to {branch}?'**
+  String branchAccessAddTitle(String branch);
+
+  /// No description provided for @branchAccessAddBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will be able to open the {branch} POS every day until the access is removed.'**
+  String branchAccessAddBody(String name, String branch);
+
+  /// No description provided for @branchAccessMakePermanentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has access to {branch} for one day only. Make it permanent?'**
+  String branchAccessMakePermanentBody(String name, String branch);
+
+  /// No description provided for @branchAccessRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove access to {branch}?'**
+  String branchAccessRemoveTitle(String branch);
+
+  /// No description provided for @branchAccessRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will no longer be able to open the {branch} POS.'**
+  String branchAccessRemoveBody(String name, String branch);
+
+  /// No description provided for @branchAccessNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get branchAccessNoteLabel;
+
+  /// No description provided for @branchAccessAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Give access'**
+  String get branchAccessAddAction;
+
+  /// No description provided for @branchAccessRemoveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove access'**
+  String get branchAccessRemoveAction;
+
+  /// No description provided for @branchAccessAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} now has access to {branch}.'**
+  String branchAccessAdded(String name, String branch);
+
+  /// No description provided for @branchAccessRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} no longer has access to {branch}.'**
+  String branchAccessRemoved(String name, String branch);
+
+  /// No description provided for @branchAccessUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing changed: the access was already like that.'**
+  String get branchAccessUnchanged;
+
+  /// No description provided for @branchAccessGiveDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Give access for one day'**
+  String get branchAccessGiveDay;
+
+  /// No description provided for @branchAccessDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One-day access for {name}'**
+  String branchAccessDayTitle(String name);
+
+  /// No description provided for @branchAccessDayBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get branchAccessDayBranch;
+
+  /// No description provided for @branchAccessDayDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get branchAccessDayDate;
+
+  /// No description provided for @branchAccessDayHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Access runs from the start of that day until 03:00 the next morning.'**
+  String get branchAccessDayHelper;
+
+  /// No description provided for @branchAccessDayNoBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'No branch left to give: they already have access to every branch you manage.'**
+  String get branchAccessDayNoBranch;
+
+  /// No description provided for @branchAccessDayGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Access given for {date}.'**
+  String branchAccessDayGranted(String date);
+
+  /// No description provided for @branchAccessDaySection.
+  ///
+  /// In en, this message translates to:
+  /// **'One-day access'**
+  String get branchAccessDaySection;
+
+  /// No description provided for @branchAccessDayStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get branchAccessDayStatusActive;
+
+  /// No description provided for @branchAccessDayStatusScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get branchAccessDayStatusScheduled;
+
+  /// No description provided for @branchAccessDayStatusEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get branchAccessDayStatusEnded;
+
+  /// No description provided for @branchAccessDayStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get branchAccessDayStatusCancelled;
+
+  /// No description provided for @branchAccessCancelDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel access'**
+  String get branchAccessCancelDay;
+
+  /// No description provided for @branchAccessCancelDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this one-day access?'**
+  String get branchAccessCancelDayTitle;
+
+  /// No description provided for @branchAccessCancelDayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will lose access to {branch} for {date}.'**
+  String branchAccessCancelDayBody(String name, String branch, String date);
+
+  /// No description provided for @branchAccessKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get branchAccessKeep;
+
+  /// No description provided for @branchAccessDayCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'One-day access cancelled.'**
+  String get branchAccessDayCancelled;
+
+  /// No description provided for @branchAccessHistoryAllBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'All branches'**
+  String get branchAccessHistoryAllBranches;
+
+  /// No description provided for @branchAccessHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes recorded yet.'**
+  String get branchAccessHistoryEmpty;
+
+  /// No description provided for @branchAccessHistoryBy.
+  ///
+  /// In en, this message translates to:
+  /// **'by {name}'**
+  String branchAccessHistoryBy(String name);
+
+  /// No description provided for @branchAccessActionAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Access given'**
+  String get branchAccessActionAdded;
+
+  /// No description provided for @branchAccessActionRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Access removed'**
+  String get branchAccessActionRemoved;
+
+  /// No description provided for @branchAccessActionDayScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'One-day access scheduled'**
+  String get branchAccessActionDayScheduled;
+
+  /// No description provided for @branchAccessActionDayStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'One-day access started'**
+  String get branchAccessActionDayStarted;
+
+  /// No description provided for @branchAccessActionDayEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'One-day access ended'**
+  String get branchAccessActionDayEnded;
+
+  /// No description provided for @branchAccessActionDayCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'One-day access cancelled'**
+  String get branchAccessActionDayCancelled;
+
+  /// No description provided for @branchAccessSourceScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch Access screen'**
+  String get branchAccessSourceScreen;
+
+  /// No description provided for @branchAccessSourceShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift assignment'**
+  String get branchAccessSourceShift;
+
+  /// No description provided for @branchAccessSourceCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Day-off cover'**
+  String get branchAccessSourceCover;
+
+  /// No description provided for @branchAccessSourceScheduler.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get branchAccessSourceScheduler;
+
+  /// No description provided for @rosterGrantPosAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Also give POS access for this day'**
+  String get rosterGrantPosAccess;
+
+  /// No description provided for @rosterGrantPosAccessHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Lets them open the {branch} POS on this day only.'**
+  String rosterGrantPosAccessHelper(String branch);
+
+  /// No description provided for @rosterPosAccessGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'POS access to {branch} given for this day.'**
+  String rosterPosAccessGranted(String branch);
+
+  /// No description provided for @rosterPosAccessScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'POS access to {branch} scheduled for this day.'**
+  String rosterPosAccessScheduled(String branch);
+
+  /// No description provided for @rosterPosAccessAlreadyMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Already has POS access to {branch}.'**
+  String rosterPosAccessAlreadyMember(String branch);
+
+  /// No description provided for @rosterPosAccessNotGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved, but POS access was not given: {reason}'**
+  String rosterPosAccessNotGranted(String reason);
+
+  /// No description provided for @rosterPosAccessNotConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved, but the server did not confirm the POS access.'**
+  String get rosterPosAccessNotConfirmed;
+
+  /// No description provided for @rosterPosAccessNoReason.
+  ///
+  /// In en, this message translates to:
+  /// **'no reason given'**
+  String get rosterPosAccessNoReason;
+
+  /// No description provided for @branchAccessUserNotEditable.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not allowed to change this person’s access.'**
+  String get branchAccessUserNotEditable;
 }
 
 class _AppLocalizationsDelegate

@@ -784,6 +784,20 @@ abstract final class ApiEndpoints {
   static const rosterBulkAssign =
       '/api/method/jarz_pos.api.roster.bulk_assign';
 
+  // ── Branch access (POS Profile membership + one-day access) ──────────
+  // Edits `POS Profile.applicable_for_users`. The server refuses any change
+  // while the branch has an open shift, and logs every change it makes.
+  static const branchAccessOverview =
+      '/api/method/jarz_pos.api.branch_access.get_branch_access';
+  static const branchAccessSet =
+      '/api/method/jarz_pos.api.branch_access.set_branch_access';
+  static const branchAccessGrantDay =
+      '/api/method/jarz_pos.api.branch_access.grant_day_access';
+  static const branchAccessCancelDay =
+      '/api/method/jarz_pos.api.branch_access.cancel_day_access';
+  static const branchAccessLog =
+      '/api/method/jarz_pos.api.branch_access.get_access_log';
+
   // ── Delivery partner settlement (the weekly bank transfer) ────────────
   // A delivery partner is a courier COMPANY. Its per-trip fees accrued at
   // dispatch; this clears the payable. Settling takes an explicit trip list

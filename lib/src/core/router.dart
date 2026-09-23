@@ -18,6 +18,7 @@ import '../features/printing/printer_selection_screen.dart'
 import '../features/manager/presentation/manager_dashboard_screen.dart';
 import '../features/roster/presentation/roster_screen.dart';
 import '../features/attendance/presentation/attendance_screen.dart';
+import '../features/branch_access/presentation/branch_access_screen.dart';
 import '../features/shift_monitor/presentation/shift_monitor_screen.dart';
 import '../features/purchase/presentation/purchase_screen.dart';
 import '../features/purchase_request/presentation/purchase_requests_screen.dart';
@@ -397,6 +398,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.attendance,
         name: 'attendance',
         builder: (context, state) => const AttendanceScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.branchAccess,
+        name: 'branch-access',
+        builder: (context, state) => const BranchAccessScreen(),
       ),
       GoRoute(
         path: AppRoutes.purchase,

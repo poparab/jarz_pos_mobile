@@ -14550,4 +14550,253 @@ class AppLocalizationsEn extends AppLocalizations {
   String tasksFileTypeBlocked(String file) {
     return '\"$file\" cannot be attached: this file type is not allowed.';
   }
+
+  @override
+  String get menuBranchAccess => 'Branch Access';
+
+  @override
+  String get branchAccessTitle => 'Branch Access';
+
+  @override
+  String get branchAccessTabPeople => 'People';
+
+  @override
+  String get branchAccessTabHistory => 'History';
+
+  @override
+  String get branchAccessAccessDenied =>
+      'Only managers and line managers can manage branch access.';
+
+  @override
+  String get branchAccessSearchHint => 'Search people';
+
+  @override
+  String get branchAccessNoUsers => 'Nobody matches.';
+
+  @override
+  String get branchAccessNoBranches => 'No branches to show.';
+
+  @override
+  String get branchAccessBranchClosed => 'Closed';
+
+  @override
+  String branchAccessOpenSince(String time, String name) {
+    return 'Open since $time by $name';
+  }
+
+  @override
+  String branchAccessLockedOpen(String branch, String time, String name) {
+    return '$branch has been open since $time by $name. Access can change once that shift is closed.';
+  }
+
+  @override
+  String get branchAccessNotYourBranch =>
+      'You can only manage branches you belong to.';
+
+  @override
+  String get branchAccessCannotEditSelf => 'You cannot change your own access.';
+
+  @override
+  String get branchAccessYouTag => 'You';
+
+  @override
+  String get branchAccessDisabledTag => 'Disabled';
+
+  @override
+  String get branchAccessChipMember => 'Has access';
+
+  @override
+  String get branchAccessChipNone => 'No access';
+
+  @override
+  String branchAccessChipDay(String branch, String date) {
+    return '$branch · $date';
+  }
+
+  @override
+  String branchAccessAddTitle(String branch) {
+    return 'Give access to $branch?';
+  }
+
+  @override
+  String branchAccessAddBody(String name, String branch) {
+    return '$name will be able to open the $branch POS every day until the access is removed.';
+  }
+
+  @override
+  String branchAccessMakePermanentBody(String name, String branch) {
+    return '$name has access to $branch for one day only. Make it permanent?';
+  }
+
+  @override
+  String branchAccessRemoveTitle(String branch) {
+    return 'Remove access to $branch?';
+  }
+
+  @override
+  String branchAccessRemoveBody(String name, String branch) {
+    return '$name will no longer be able to open the $branch POS.';
+  }
+
+  @override
+  String get branchAccessNoteLabel => 'Note (optional)';
+
+  @override
+  String get branchAccessAddAction => 'Give access';
+
+  @override
+  String get branchAccessRemoveAction => 'Remove access';
+
+  @override
+  String branchAccessAdded(String name, String branch) {
+    return '$name now has access to $branch.';
+  }
+
+  @override
+  String branchAccessRemoved(String name, String branch) {
+    return '$name no longer has access to $branch.';
+  }
+
+  @override
+  String get branchAccessUnchanged =>
+      'Nothing changed: the access was already like that.';
+
+  @override
+  String get branchAccessGiveDay => 'Give access for one day';
+
+  @override
+  String branchAccessDayTitle(String name) {
+    return 'One-day access for $name';
+  }
+
+  @override
+  String get branchAccessDayBranch => 'Branch';
+
+  @override
+  String get branchAccessDayDate => 'Day';
+
+  @override
+  String get branchAccessDayHelper =>
+      'Access runs from the start of that day until 03:00 the next morning.';
+
+  @override
+  String get branchAccessDayNoBranch =>
+      'No branch left to give: they already have access to every branch you manage.';
+
+  @override
+  String branchAccessDayGranted(String date) {
+    return 'Access given for $date.';
+  }
+
+  @override
+  String get branchAccessDaySection => 'One-day access';
+
+  @override
+  String get branchAccessDayStatusActive => 'Active';
+
+  @override
+  String get branchAccessDayStatusScheduled => 'Scheduled';
+
+  @override
+  String get branchAccessDayStatusEnded => 'Ended';
+
+  @override
+  String get branchAccessDayStatusCancelled => 'Cancelled';
+
+  @override
+  String get branchAccessCancelDay => 'Cancel access';
+
+  @override
+  String get branchAccessCancelDayTitle => 'Cancel this one-day access?';
+
+  @override
+  String branchAccessCancelDayBody(String name, String branch, String date) {
+    return '$name will lose access to $branch for $date.';
+  }
+
+  @override
+  String get branchAccessKeep => 'Keep';
+
+  @override
+  String get branchAccessDayCancelled => 'One-day access cancelled.';
+
+  @override
+  String get branchAccessHistoryAllBranches => 'All branches';
+
+  @override
+  String get branchAccessHistoryEmpty => 'No changes recorded yet.';
+
+  @override
+  String branchAccessHistoryBy(String name) {
+    return 'by $name';
+  }
+
+  @override
+  String get branchAccessActionAdded => 'Access given';
+
+  @override
+  String get branchAccessActionRemoved => 'Access removed';
+
+  @override
+  String get branchAccessActionDayScheduled => 'One-day access scheduled';
+
+  @override
+  String get branchAccessActionDayStarted => 'One-day access started';
+
+  @override
+  String get branchAccessActionDayEnded => 'One-day access ended';
+
+  @override
+  String get branchAccessActionDayCancelled => 'One-day access cancelled';
+
+  @override
+  String get branchAccessSourceScreen => 'Branch Access screen';
+
+  @override
+  String get branchAccessSourceShift => 'Shift assignment';
+
+  @override
+  String get branchAccessSourceCover => 'Day-off cover';
+
+  @override
+  String get branchAccessSourceScheduler => 'Automatic';
+
+  @override
+  String get rosterGrantPosAccess => 'Also give POS access for this day';
+
+  @override
+  String rosterGrantPosAccessHelper(String branch) {
+    return 'Lets them open the $branch POS on this day only.';
+  }
+
+  @override
+  String rosterPosAccessGranted(String branch) {
+    return 'POS access to $branch given for this day.';
+  }
+
+  @override
+  String rosterPosAccessScheduled(String branch) {
+    return 'POS access to $branch scheduled for this day.';
+  }
+
+  @override
+  String rosterPosAccessAlreadyMember(String branch) {
+    return 'Already has POS access to $branch.';
+  }
+
+  @override
+  String rosterPosAccessNotGranted(String reason) {
+    return 'Saved, but POS access was not given: $reason';
+  }
+
+  @override
+  String get rosterPosAccessNotConfirmed =>
+      'Saved, but the server did not confirm the POS access.';
+
+  @override
+  String get rosterPosAccessNoReason => 'no reason given';
+
+  @override
+  String get branchAccessUserNotEditable =>
+      'You are not allowed to change this person’s access.';
 }

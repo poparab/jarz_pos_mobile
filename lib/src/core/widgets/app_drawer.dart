@@ -384,6 +384,14 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuAttendance,
           onTap: () => navigate(AppRoutes.attendance),
         ),
+      // Same gate as the rota: `api/branch_access.py` accepts exactly the
+      // line-manager tier (a line manager sees only their own branches).
+      if (canActAsLineManager)
+        navTile(
+          icon: Icons.key_outlined,
+          title: l10n.menuBranchAccess,
+          onTap: () => navigate(AppRoutes.branchAccess),
+        ),
       // Kept for the line-manager tier: the hub still holds one report they may
       // read (Materials & Consumables), and the hub itself drops every tile
       // their role would be refused on, so the entry is never a dead end.
@@ -441,6 +449,7 @@ class AppDrawer extends ConsumerWidget {
       AppRoutes.shiftMonitor,
       AppRoutes.roster,
       AppRoutes.attendance,
+      AppRoutes.branchAccess,
       AppRoutes.reports,
       AppRoutes.reportsShipping,
       AppRoutes.reportsInventory,

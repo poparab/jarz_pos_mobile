@@ -57,15 +57,89 @@ class RosterShift {
 }
 
 class RosterLocation {
-  const RosterLocation({required this.shiftLocation, required this.radius});
+  const RosterLocation({
+    required this.shiftLocation,
+    required this.radius,
+    this.posProfile,
+    this.posManageable = false,
+  });
 
   final String shiftLocation;
   final int radius;
 
+  /// The enabled POS Profile this location maps to, when it has one (the
+  /// factory has none). Absent on an older backend - parsed as null, so the
+  /// POS-access tick box simply never shows.
+  final String? posProfile;
+
+  /// Whether the caller may give POS access on [posProfile].
+  final bool posManageable;
+
+  /// Whether the day sheet may offer "also give POS access for this day".
+  bool get canGrantPosAccess => posProfile != null && posManageable;
+
   factory RosterLocation.fromJson(Map<String, dynamic> json) => RosterLocation(
     shiftLocation: (json['shift_location'] ?? '').toString(),
     radius: _toInt(json['checkin_radius']),
+    posProfile: _nullIfBlank(json['pos_profile']),
+    posManageable:
+        json['pos_manageable'] == true || json['pos_manageable'] == 1,
   );
+}
+
+/// What happened to the "also give POS access for this day" request that rode
+/// along with a roster write (`pos_access` in the assign/day-off response).
+///
+/// The grant is best-effort server-side: the roster write stands whatever this
+/// says, so a refusal is reported, never thrown.
+class PosAccessOutcome {
+  const PosAccessOutcome({
+    required this.requested,
+    required this.granted,
+    this.status,
+    this.alreadyMember = false,
+    this.reason,
+    this.posProfile,
+    this.dayAccess,
+  });
+
+  final bool requested;
+  final bool granted;
+
+  /// `Active` | `Scheduled` | null.
+  final String? status;
+  final bool alreadyMember;
+
+  /// The server's own sentence for a refusal, shown verbatim.
+  final String? reason;
+  final String? posProfile;
+
+  /// Name of the `Jarz POS Day Access` created, when one was.
+  final String? dayAccess;
+
+  bool get isScheduled => status == 'Scheduled';
+
+  /// Null when [value] is not a map - an older backend that does not send the
+  /// key at all.
+  static PosAccessOutcome? tryParse(dynamic value) {
+    if (value is! Map) return null;
+    final json = Map<String, dynamic>.from(value);
+    final dayAccess = json['day_access'];
+    return PosAccessOutcome(
+      requested: json['requested'] == true || json['requested'] == 1,
+      granted: json['granted'] == true || json['granted'] == 1,
+      status: _nullIfBlank(json['status']),
+      alreadyMember:
+          json['already_member'] == true || json['already_member'] == 1,
+      reason: _nullIfBlank(json['reason']),
+      posProfile: _nullIfBlank(json['pos_profile']),
+      // The contract leaves the shape of `day_access` open: accept the grant's
+      // name or the grant object.
+      dayAccess: dayAccess is Map
+          ? _nullIfBlank(dayAccess['name'])
+          : _nullIfBlank(dayAccess),
+    );
+  }
 }
 
 /// A granted day off, and who absorbed it.
@@ -160,6 +234,7 @@ class RosterEmployee {
     this.designation,
     this.department,
     this.shiftLocations = const [],
+    this.scheduleLocation,
     this.standardHours = 0,
     this.isCourier = false,
     this.overtimeMultiplier = 1,
@@ -170,6 +245,10 @@ class RosterEmployee {
   final String? designation;
   final String? department;
   final List<String> shiftLocations;
+
+  /// The branch the server falls back to for a day with no assignment. Null
+  /// on an older backend; [fallbackLocation] then uses [primaryLocation].
+  final String? scheduleLocation;
   final double standardHours;
   final bool isCourier;
   final double overtimeMultiplier;
@@ -182,6 +261,9 @@ class RosterEmployee {
   String get primaryLocation =>
       shiftLocations.isEmpty ? '' : shiftLocations.first;
 
+  /// Where an unrostered day lands, as the server resolves it.
+  String get fallbackLocation => scheduleLocation ?? primaryLocation;
+
   factory RosterEmployee.fromJson(Map<String, dynamic> json) {
     final rawDays = Map<String, dynamic>.from(json['days'] as Map? ?? const {});
     return RosterEmployee(
@@ -192,6 +274,7 @@ class RosterEmployee {
       shiftLocations: (json['shift_locations'] as List<dynamic>? ?? const [])
           .map((e) => e.toString())
           .toList(),
+      scheduleLocation: _nullIfBlank(json['schedule_location']),
       standardHours: _toDouble(json['standard_hours']),
       isCourier: json['is_courier'] == true,
       overtimeMultiplier: _toDouble(json['overtime_multiplier']),

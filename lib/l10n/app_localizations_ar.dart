@@ -14546,4 +14546,252 @@ class AppLocalizationsAr extends AppLocalizations {
   String tasksFileTypeBlocked(String file) {
     return 'مينفعش ترفق \"$file\": نوع الملف ده مش مسموح.';
   }
+
+  @override
+  String get menuBranchAccess => 'صلاحيات الفروع';
+
+  @override
+  String get branchAccessTitle => 'صلاحيات الفروع';
+
+  @override
+  String get branchAccessTabPeople => 'الموظفين';
+
+  @override
+  String get branchAccessTabHistory => 'السجل';
+
+  @override
+  String get branchAccessAccessDenied =>
+      'إدارة صلاحيات الفروع للمديرين ومديري الخط بس.';
+
+  @override
+  String get branchAccessSearchHint => 'دوّر على موظف';
+
+  @override
+  String get branchAccessNoUsers => 'مفيش حد مطابق.';
+
+  @override
+  String get branchAccessNoBranches => 'مفيش فروع تتعرض.';
+
+  @override
+  String get branchAccessBranchClosed => 'مقفول';
+
+  @override
+  String branchAccessOpenSince(String time, String name) {
+    return 'مفتوح من $time مع $name';
+  }
+
+  @override
+  String branchAccessLockedOpen(String branch, String time, String name) {
+    return 'فرع $branch مفتوح من $time مع $name. الصلاحيات تتغير بعد ما الشيفت ده يتقفل.';
+  }
+
+  @override
+  String get branchAccessNotYourBranch => 'تقدر تدير الفروع اللي انت فيها بس.';
+
+  @override
+  String get branchAccessCannotEditSelf => 'مينفعش تغيّر صلاحياتك بنفسك.';
+
+  @override
+  String get branchAccessYouTag => 'انت';
+
+  @override
+  String get branchAccessDisabledTag => 'موقوف';
+
+  @override
+  String get branchAccessChipMember => 'معاه صلاحية';
+
+  @override
+  String get branchAccessChipNone => 'مفيش صلاحية';
+
+  @override
+  String branchAccessChipDay(String branch, String date) {
+    return '$branch · $date';
+  }
+
+  @override
+  String branchAccessAddTitle(String branch) {
+    return 'تدي صلاحية فرع $branch؟';
+  }
+
+  @override
+  String branchAccessAddBody(String name, String branch) {
+    return '$name هيقدر يفتح كاشير فرع $branch كل يوم لحد ما الصلاحية تتشال.';
+  }
+
+  @override
+  String branchAccessMakePermanentBody(String name, String branch) {
+    return '$name معاه صلاحية فرع $branch ليوم واحد بس. تخليها دايمة؟';
+  }
+
+  @override
+  String branchAccessRemoveTitle(String branch) {
+    return 'تشيل صلاحية فرع $branch؟';
+  }
+
+  @override
+  String branchAccessRemoveBody(String name, String branch) {
+    return '$name مش هيقدر يفتح كاشير فرع $branch تاني.';
+  }
+
+  @override
+  String get branchAccessNoteLabel => 'ملاحظة (اختياري)';
+
+  @override
+  String get branchAccessAddAction => 'ادي الصلاحية';
+
+  @override
+  String get branchAccessRemoveAction => 'شيل الصلاحية';
+
+  @override
+  String branchAccessAdded(String name, String branch) {
+    return '$name بقى معاه صلاحية فرع $branch.';
+  }
+
+  @override
+  String branchAccessRemoved(String name, String branch) {
+    return 'اتشالت صلاحية $name على فرع $branch.';
+  }
+
+  @override
+  String get branchAccessUnchanged =>
+      'مفيش حاجة اتغيرت: الصلاحية كانت كده أصلاً.';
+
+  @override
+  String get branchAccessGiveDay => 'ادي صلاحية ليوم واحد';
+
+  @override
+  String branchAccessDayTitle(String name) {
+    return 'صلاحية يوم واحد لـ $name';
+  }
+
+  @override
+  String get branchAccessDayBranch => 'الفرع';
+
+  @override
+  String get branchAccessDayDate => 'اليوم';
+
+  @override
+  String get branchAccessDayHelper =>
+      'الصلاحية من أول اليوم ده لحد الساعة 3 الفجر اليوم اللي بعده.';
+
+  @override
+  String get branchAccessDayNoBranch =>
+      'مفيش فرع تديه: معاه صلاحية كل الفروع اللي بتديرها.';
+
+  @override
+  String branchAccessDayGranted(String date) {
+    return 'اتدت الصلاحية ليوم $date.';
+  }
+
+  @override
+  String get branchAccessDaySection => 'صلاحيات اليوم الواحد';
+
+  @override
+  String get branchAccessDayStatusActive => 'شغالة';
+
+  @override
+  String get branchAccessDayStatusScheduled => 'مجدولة';
+
+  @override
+  String get branchAccessDayStatusEnded => 'خلصت';
+
+  @override
+  String get branchAccessDayStatusCancelled => 'اتلغت';
+
+  @override
+  String get branchAccessCancelDay => 'الغي الصلاحية';
+
+  @override
+  String get branchAccessCancelDayTitle => 'تلغي صلاحية اليوم ده؟';
+
+  @override
+  String branchAccessCancelDayBody(String name, String branch, String date) {
+    return '$name هيفقد صلاحية فرع $branch ليوم $date.';
+  }
+
+  @override
+  String get branchAccessKeep => 'سيبها';
+
+  @override
+  String get branchAccessDayCancelled => 'اتلغت صلاحية اليوم الواحد.';
+
+  @override
+  String get branchAccessHistoryAllBranches => 'كل الفروع';
+
+  @override
+  String get branchAccessHistoryEmpty => 'مفيش تغييرات متسجلة لسه.';
+
+  @override
+  String branchAccessHistoryBy(String name) {
+    return 'بواسطة $name';
+  }
+
+  @override
+  String get branchAccessActionAdded => 'اتدت صلاحية';
+
+  @override
+  String get branchAccessActionRemoved => 'اتشالت صلاحية';
+
+  @override
+  String get branchAccessActionDayScheduled => 'صلاحية يوم اتجدولت';
+
+  @override
+  String get branchAccessActionDayStarted => 'صلاحية يوم بدأت';
+
+  @override
+  String get branchAccessActionDayEnded => 'صلاحية يوم خلصت';
+
+  @override
+  String get branchAccessActionDayCancelled => 'صلاحية يوم اتلغت';
+
+  @override
+  String get branchAccessSourceScreen => 'شاشة صلاحيات الفروع';
+
+  @override
+  String get branchAccessSourceShift => 'توزيع الشيفتات';
+
+  @override
+  String get branchAccessSourceCover => 'تغطية إجازة';
+
+  @override
+  String get branchAccessSourceScheduler => 'تلقائي';
+
+  @override
+  String get rosterGrantPosAccess => 'ادي كمان صلاحية الكاشير لليوم ده';
+
+  @override
+  String rosterGrantPosAccessHelper(String branch) {
+    return 'يقدر يفتح كاشير فرع $branch في اليوم ده بس.';
+  }
+
+  @override
+  String rosterPosAccessGranted(String branch) {
+    return 'اتدت صلاحية كاشير فرع $branch لليوم ده.';
+  }
+
+  @override
+  String rosterPosAccessScheduled(String branch) {
+    return 'صلاحية كاشير فرع $branch اتجدولت لليوم ده.';
+  }
+
+  @override
+  String rosterPosAccessAlreadyMember(String branch) {
+    return 'معاه صلاحية كاشير فرع $branch أصلاً.';
+  }
+
+  @override
+  String rosterPosAccessNotGranted(String reason) {
+    return 'اتحفظ، بس صلاحية الكاشير متدتش: $reason';
+  }
+
+  @override
+  String get rosterPosAccessNotConfirmed =>
+      'اتحفظ، بس السيرفر مأكدش صلاحية الكاشير.';
+
+  @override
+  String get rosterPosAccessNoReason => 'من غير سبب';
+
+  @override
+  String get branchAccessUserNotEditable =>
+      'مش مسموحلك تغيّر صلاحيات الشخص ده.';
 }

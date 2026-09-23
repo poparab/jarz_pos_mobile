@@ -1,9 +1,10 @@
-import 'package:jarz_pos/src/core/localization/user_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
+import '../../../branch_access/presentation/server_error_text.dart';
 import '../../data/roster_repository.dart';
 import '../../models/roster_models.dart';
 import '../../state/roster_providers.dart';
@@ -68,6 +69,23 @@ class RosterDaySheet extends ConsumerStatefulWidget {
 class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
   bool _busy = false;
 
+  /// "Also give POS access for this day" for a shift assignment. Off by
+  /// default: access is a deliberate grant, never a side effect of rostering.
+  bool _grantPosAccess = false;
+
+  List<RosterLocation> get _locations =>
+      ref.read(rosterBootstrapProvider).asData?.value.shiftLocations ??
+      const <RosterLocation>[];
+
+  /// Where an assignment on this day lands: the day's own branch if it has
+  /// one, otherwise the person's schedule branch (`schedule_location`, or the
+  /// first shift location on an older backend) - the same order the server
+  /// resolves it in when no location is sent.
+  RosterLocation? get _assignTarget => findRosterLocation(
+    _locations,
+    widget.cell?.shiftLocation ?? widget.employee.fallbackLocation,
+  );
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -75,6 +93,13 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
     final cell = widget.cell;
     final isOff = cell?.isOff ?? false;
     final parsed = DateTime.tryParse(widget.date);
+    // Watched so the tick box appears once the bootstrap lands.
+    ref.watch(rosterBootstrapProvider);
+    final assignTarget = _assignTarget;
+    final offerPosAccess =
+        assignTarget != null &&
+        assignTarget.canGrantPosAccess &&
+        isWithinPosAccessWindow(widget.date);
 
     return SafeArea(
       child: Padding(
@@ -123,16 +148,23 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
                   label: Text(l10n.rosterClearDayOff),
                 )
               else ...[
-                Text(
-                  l10n.rosterChangeShift,
-                  style: theme.textTheme.labelLarge,
-                ),
+                Text(l10n.rosterChangeShift, style: theme.textTheme.labelLarge),
                 const SizedBox(height: 8),
+                if (offerPosAccess)
+                  PosAccessCheckbox(
+                    value: _grantPosAccess,
+                    branch: assignTarget.posProfile!,
+                    onChanged: (value) =>
+                        setState(() => _grantPosAccess = value),
+                  ),
                 _ShiftPicker(
                   catalog: widget.catalog,
                   palette: widget.palette,
                   selected: cell?.shiftType,
-                  onPick: _assignShift,
+                  onPick: (shift) => _assignShift(
+                    shift,
+                    grant: offerPosAccess && _grantPosAccess,
+                  ),
                 ),
                 const Divider(height: 28),
                 FilledButton.icon(
@@ -149,26 +181,46 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
     );
   }
 
-  Future<void> _run(Future<void> Function() action) async {
+  /// Run one roster write, then close the sheet.
+  ///
+  /// When [posAccessRequested] the write also asked for a day's POS access;
+  /// its outcome is reported in a snackbar after the sheet closes. The roster
+  /// write stands either way - the server never rolls it back over the grant.
+  Future<void> _run(
+    Future<PosAccessOutcome?> Function() action, {
+    bool posAccessRequested = false,
+    String? posAccessBranch,
+  }) async {
     setState(() => _busy = true);
+    // Captured before the pop: the sheet's context is gone afterwards.
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     try {
-      await action();
+      final outcome = await action();
       ref.invalidate(rosterMonthDataProvider);
       ref.invalidate(rosterHoursProvider);
       if (mounted) Navigator.of(context).pop();
+      if (posAccessRequested) {
+        final message = posAccessOutcomeMessage(
+          l10n,
+          outcome,
+          fallbackBranch: posAccessBranch ?? '',
+        );
+        messenger.showSnackBar(SnackBar(content: Text(message)));
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() => _busy = false);
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
-          content: Text(context.userErrorMessage(error)),
+          content: Text(serverErrorText(context, error)),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
   }
 
-  void _assignShift(RosterShift shift) {
+  void _assignShift(RosterShift shift, {bool grant = false}) {
     _run(
       () => ref
           .read(rosterRepositoryProvider)
@@ -176,19 +228,20 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
             employee: widget.employee.employee,
             date: widget.date,
             shiftType: shift.shiftType,
+            grantPosAccess: grant,
           ),
+      posAccessRequested: grant,
+      posAccessBranch: _assignTarget?.posProfile,
     );
   }
 
   void _clearDayOff() {
-    _run(
-      () => ref
+    _run(() async {
+      await ref
           .read(rosterRepositoryProvider)
-          .clearDayOff(
-            employee: widget.employee.employee,
-            date: widget.date,
-          ),
-    );
+          .clearDayOff(employee: widget.employee.employee, date: widget.date);
+      return null;
+    });
   }
 
   Future<void> _openDayOffFlow() async {
@@ -208,10 +261,13 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
         colleagues: colleagues,
         catalog: widget.catalog,
         date: widget.date,
+        locations: _locations,
+        absentLocation: widget.cell?.shiftLocation,
       ),
     );
     if (result == null) return;
 
+    final grant = result.grantPosAccess && result.coveredBy != null;
     await _run(
       () => ref
           .read(rosterRepositoryProvider)
@@ -222,7 +278,10 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
             coveredBy: result.coveredBy,
             coverShiftType: result.coverShiftType,
             notes: result.notes,
+            grantPosAccess: grant,
           ),
+      posAccessRequested: grant,
+      posAccessBranch: result.posAccessBranch,
     );
   }
 }
@@ -488,12 +547,18 @@ class _DayOffChoice {
     this.coveredBy,
     this.coverShiftType,
     this.notes,
+    this.grantPosAccess = false,
+    this.posAccessBranch,
   });
 
   final String offType;
   final String? coveredBy;
   final String? coverShiftType;
   final String? notes;
+
+  /// Give the covering person POS access at the covered branch for the day.
+  final bool grantPosAccess;
+  final String? posAccessBranch;
 }
 
 /// Grant a day off, and — in the same step — hand the day to a colleague.
@@ -509,12 +574,20 @@ class _DayOffForm extends StatefulWidget {
     required this.colleagues,
     required this.catalog,
     required this.date,
+    this.locations = const [],
+    this.absentLocation,
   });
 
   final List<String> offTypes;
   final List<RosterEmployee> colleagues;
   final List<RosterShift> catalog;
   final String date;
+
+  /// The bootstrap's branches, carrying which ones can take a POS grant.
+  final List<RosterLocation> locations;
+
+  /// The absent person's branch on this day, if rostered.
+  final String? absentLocation;
 
   @override
   State<_DayOffForm> createState() => _DayOffFormState();
@@ -526,7 +599,26 @@ class _DayOffFormState extends State<_DayOffForm> {
       : widget.offTypes.first;
   String? _coveredBy;
   String? _coverShiftType;
+  bool _grantPosAccess = false;
   final _notes = TextEditingController();
+
+  /// The branch the cover is rostered at, resolved in the server's order.
+  RosterLocation? get _coverTarget {
+    final coveredBy = _coveredBy;
+    if (coveredBy == null) return null;
+    RosterEmployee? coverer;
+    for (final e in widget.colleagues) {
+      if (e.employee == coveredBy) coverer = e;
+    }
+    return findRosterLocation(
+      widget.locations,
+      resolveCoverLocation(
+        absentLocation: widget.absentLocation,
+        covererLocationThatDay: coverer?.cellFor(widget.date)?.shiftLocation,
+        covererHomeLocation: coverer?.fallbackLocation,
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -539,6 +631,11 @@ class _DayOffFormState extends State<_DayOffForm> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final needsCoverShift = _coveredBy != null && _coverShiftType == null;
+    final coverTarget = _coverTarget;
+    final offerPosAccess =
+        coverTarget != null &&
+        coverTarget.canGrantPosAccess &&
+        isWithinPosAccessWindow(widget.date);
 
     return SafeArea(
       child: Padding(
@@ -599,6 +696,9 @@ class _DayOffFormState extends State<_DayOffForm> {
                 onChanged: (value) => setState(() {
                   _coveredBy = value;
                   if (value == null) _coverShiftType = null;
+                  // A different person may land at a different branch; a
+                  // tick given for the last choice must not carry over.
+                  _grantPosAccess = false;
                 }),
               ),
               if (_coveredBy != null) ...[
@@ -623,9 +723,17 @@ class _DayOffFormState extends State<_DayOffForm> {
                         ),
                       )
                       .toList(),
-                  onChanged: (value) =>
-                      setState(() => _coverShiftType = value),
+                  onChanged: (value) => setState(() => _coverShiftType = value),
                 ),
+                if (offerPosAccess) ...[
+                  const SizedBox(height: 8),
+                  PosAccessCheckbox(
+                    value: _grantPosAccess,
+                    branch: coverTarget.posProfile!,
+                    onChanged: (value) =>
+                        setState(() => _grantPosAccess = value),
+                  ),
+                ],
               ],
               const SizedBox(height: 16),
               TextField(
@@ -661,6 +769,9 @@ class _DayOffFormState extends State<_DayOffForm> {
                                 notes: _notes.text.trim().isEmpty
                                     ? null
                                     : _notes.text.trim(),
+                                grantPosAccess:
+                                    offerPosAccess && _grantPosAccess,
+                                posAccessBranch: coverTarget?.posProfile,
                               ),
                             ),
                       child: Text(l10n.commonSave),
@@ -697,5 +808,103 @@ String _localisedOffType(BuildContext context, String raw) {
       return l10n.rosterOffTypeOther;
     default:
       return raw;
+  }
+}
+
+/// The bootstrap entry for [shiftLocation], or null.
+RosterLocation? findRosterLocation(
+  List<RosterLocation> locations,
+  String? shiftLocation,
+) {
+  final name = (shiftLocation ?? '').trim();
+  if (name.isEmpty) return null;
+  for (final location in locations) {
+    if (location.shiftLocation == name) return location;
+  }
+  return null;
+}
+
+/// Where a cover is rostered, in the server's order: the ABSENT person's
+/// branch first (the branch that is short), then where the coverer was already
+/// rostered that day, then the coverer's home branch.
+String? resolveCoverLocation({
+  String? absentLocation,
+  String? covererLocationThatDay,
+  String? covererHomeLocation,
+}) {
+  for (final candidate in [
+    absentLocation,
+    covererLocationThatDay,
+    covererHomeLocation,
+  ]) {
+    final value = (candidate ?? '').trim();
+    if (value.isNotEmpty) return value;
+  }
+  return null;
+}
+
+/// Whether [date] is one the server will accept a day access for: today up to
+/// 14 days ahead. Outside it the tick box is not offered at all, rather than
+/// offered and then refused.
+bool isWithinPosAccessWindow(String date, {DateTime? now}) {
+  final parsed = DateTime.tryParse(date);
+  if (parsed == null) return false;
+  final clock = now ?? DateTime.now();
+  final today = DateTime(clock.year, clock.month, clock.day);
+  final day = DateTime(parsed.year, parsed.month, parsed.day);
+  final diff = day.difference(today).inDays;
+  return diff >= 0 && diff <= 14;
+}
+
+/// The snackbar line for a roster write that asked for POS access.
+String posAccessOutcomeMessage(
+  AppLocalizations l10n,
+  PosAccessOutcome? outcome, {
+  required String fallbackBranch,
+}) {
+  if (outcome == null || !outcome.requested) {
+    return l10n.rosterPosAccessNotConfirmed;
+  }
+  final branch = outcome.posProfile ?? fallbackBranch;
+  if (outcome.granted) {
+    return outcome.isScheduled
+        ? l10n.rosterPosAccessScheduled(branch)
+        : l10n.rosterPosAccessGranted(branch);
+  }
+  if (outcome.alreadyMember) return l10n.rosterPosAccessAlreadyMember(branch);
+  // The server's reason, verbatim - it names the open shift or the missing
+  // user, which a generic line would throw away.
+  return l10n.rosterPosAccessNotGranted(
+    outcome.reason ?? l10n.rosterPosAccessNoReason,
+  );
+}
+
+/// "Also give POS access for this day" - one tick box, used by both the
+/// assign and the day-off-with-cover flows.
+class PosAccessCheckbox extends StatelessWidget {
+  const PosAccessCheckbox({
+    super.key,
+    required this.value,
+    required this.branch,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final String branch;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return CheckboxListTile(
+      value: value,
+      onChanged: (checked) => onChanged(checked ?? false),
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      controlAffinity: ListTileControlAffinity.leading,
+      secondary: const Icon(Icons.point_of_sale_outlined),
+      title: Text(l10n.rosterGrantPosAccess),
+      subtitle: Text(l10n.rosterGrantPosAccessHelper(branch)),
+    );
   }
 }

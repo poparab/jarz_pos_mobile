@@ -23,6 +23,10 @@ abstract final class AppRoutes {
   /// screen that both plans and judges the same day invites editing the plan
   /// to match what happened.
   static const attendance = '/attendance';
+
+  /// Branch access — who may open which branch's POS, plus one-day access.
+  /// Same line-manager gate as [roster], which can also grant a day's access.
+  static const branchAccess = '/branch-access';
   static const purchase = '/purchase';
 
   /// Team item requests. Open to all floor staff, unlike [purchase] which is
