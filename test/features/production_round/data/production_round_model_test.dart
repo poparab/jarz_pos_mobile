@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/core/constants/api_endpoints.dart';
 import 'package:jarz_pos/src/features/production_round/data/models/production_round.dart';
 import 'package:jarz_pos/src/features/production_round/data/production_round_service.dart';
@@ -18,7 +20,11 @@ void main() {
       expect(round.backupDays, 7);
       expect(round.coverDays, 21);
       expect(round.salesWeeks, 8);
-      expect(round.batchSizes, {'Medium': 120.0, 'Large': 77.0});
+      expect(round.batchSizes, {
+        'Small': 180.0,
+        'Medium': 120.0,
+        'Large': 77.0,
+      });
       expect(round.summary.batches['Medium'], 2.5);
       expect(round.summary.batches['Large'], 5.25);
       expect(round.summary.jars['Large'], 404.0);
@@ -35,6 +41,38 @@ void main() {
         'Blueberry',
         'Date',
       ]);
+    });
+
+    test('a batch size alone does not invent an empty size section', () {
+      // batch_sizes lists every size the factory can run; a section appears
+      // only once the summary or an item actually carries that size.
+      expect(round.sizes, isNot(contains('Small')));
+    });
+
+    test('orders sizes Small, Medium, Large, then anything else', () {
+      final mixed = ProductionRound.fromJson({
+        'summary': {
+          'batches': {'Large': 1, 'Jumbo': 1, 'Medium': 1},
+          'jars': {'Small': 180},
+        },
+        'items': [
+          {'item_code': 'Mango Small', 'size': 'Small', 'flavour': 'Mango'},
+          {'item_code': 'Tiny Thing', 'size': 'Bite'},
+        ],
+      });
+      expect(mixed.sizes, ['Small', 'Medium', 'Large', 'Bite', 'Jumbo']);
+      expect(mixed.itemsOfSize('Small').single.flavour, 'Mango');
+    });
+
+    test('a Small-only round lists just Small', () {
+      final small = ProductionRound.fromJson({
+        'summary': {
+          'batches': {'Small': 0.75},
+          'jars': {'Small': 135},
+        },
+      });
+      expect(small.sizes, ['Small']);
+      expect(small.summary.batches['Small'], 0.75);
     });
 
     test('parses items, statuses and the per-branch rows', () {
@@ -126,6 +164,20 @@ void main() {
       expect(fmtMaterialQty(12.43, 'Kg'), '12.43 Kg');
       expect(fmtMaterialQty(18.456, 'Kg'), '18.46 Kg');
       expect(fmtMaterialQty(40, 'Kg'), '40 Kg');
+    });
+
+    test('size labels translate all three jar sizes', () {
+      final en = lookupAppLocalizations(const Locale('en'));
+      final ar = lookupAppLocalizations(const Locale('ar'));
+      expect(sizeLabel(en, 'Small'), 'Small');
+      expect(sizeLabel(en, ' small '), 'Small');
+      expect(sizeLabel(en, 'Medium'), 'Medium');
+      expect(sizeLabel(en, 'Large'), 'Large');
+      expect(sizeLabel(ar, 'Small'), 'صغير');
+      expect(sizeLabel(ar, 'Medium'), 'وسط');
+      expect(sizeLabel(ar, 'Large'), 'كبير');
+      // Anything the server adds later shows as it arrives.
+      expect(sizeLabel(en, 'Jumbo'), 'Jumbo');
     });
   });
 

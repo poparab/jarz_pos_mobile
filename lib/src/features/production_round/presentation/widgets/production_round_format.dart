@@ -69,10 +69,12 @@ String batchesLabel(AppLocalizations l10n, double batches) {
 String jarsLabel(AppLocalizations l10n, double jars) =>
     l10n.productionRoundJars(jars.round());
 
-/// The size group's display name. The two groups the factory runs today are
+/// The size group's display name. The three groups the factory runs today are
 /// translated; anything new the server adds is shown as it arrives.
 String sizeLabel(AppLocalizations l10n, String size) {
   switch (size.trim().toLowerCase()) {
+    case 'small':
+      return l10n.productionRoundSizeSmall;
     case 'medium':
       return l10n.productionRoundSizeMedium;
     case 'large':

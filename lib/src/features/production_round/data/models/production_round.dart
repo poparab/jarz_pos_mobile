@@ -324,9 +324,9 @@ class ProductionRound with _$ProductionRound {
 
   const ProductionRound._();
 
-  /// Size groups in display order: Medium, Large, then anything else the
-  /// server adds, alphabetically. Drawn from the summary and the items so a
-  /// size never disappears because one side of the payload omitted it.
+  /// Size groups in display order: Small, Medium, Large, then anything else
+  /// the server adds, alphabetically. Drawn from the summary and the items so
+  /// a size never disappears because one side of the payload omitted it.
   List<String> get sizes {
     final all = <String>{
       ...summary.batches.keys,
@@ -334,7 +334,7 @@ class ProductionRound with _$ProductionRound {
       for (final item in items)
         if (item.size.trim().isNotEmpty) item.size.trim(),
     };
-    const preferred = ['Medium', 'Large'];
+    const preferred = ['Small', 'Medium', 'Large'];
     final rest = all.where((s) => !preferred.contains(s)).toList()..sort();
     return [
       for (final s in preferred)

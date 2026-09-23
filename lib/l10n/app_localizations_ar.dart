@@ -6112,7 +6112,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportsFinalProductsDesc =>
-      'جرد المخزون حسب المستودع للأصناف المتوسطة والكبيرة';
+      'جرد المخزون حسب المستودع للأصناف الصغيرة والمتوسطة والكبيرة';
 
   @override
   String get reportsMaterials => 'المواد والمستهلكات';
@@ -7394,8 +7394,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'كل نكهة ليها تصميم ليبل خاص بيها، فكل واحدة بتتتابع في سطر لوحدها. الليبلات بتتخصم من المخزن لوحدها أول ما فاتورة تتعمل لعميل إحنا اللي بنطبعله. العملاء اللي بيجيبوا ليبلاتهم بنفسهم بيتعلّموا \"العميل بيطبع\" وعمرهم ما بيتحسبوا.';
 
   @override
-  String labelsHelpSheets(Object medium, Object large) {
-    return 'الطباعة بتتطلب بالفرخ — $medium ليبل ميديم أو $large ليبل لارج في الفرخ.';
+  String labelsHelpSheets(Object small, Object medium, Object large) {
+    return 'الطباعة بتتطلب بالفرخ — $small ليبل سمول أو $medium ليبل ميديم أو $large ليبل لارج في الفرخ.';
   }
 
   @override
@@ -8050,7 +8050,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get labelSheetLabelsPerSheetHelper =>
-      'سيبها 0 عشان تاخد الافتراضي حسب المقاس: 21 ميديم، 18 لارج.';
+      'سيبها 0 عشان تاخد الافتراضي حسب المقاس: 21 سمول، 21 ميديم، 18 لارج.';
 
   @override
   String get labelSheetLabelsPerJarHelper => 'عادةً 1.';
@@ -12711,6 +12711,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get productionRoundRefreshFailed =>
       'مقدرناش نحدّث — دي آخر أرقام اتحسبت.';
+
+  @override
+  String get productionRoundSizeSmall => 'صغير';
 
   @override
   String get productionRoundSizeMedium => 'وسط';

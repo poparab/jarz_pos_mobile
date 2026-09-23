@@ -3105,7 +3105,7 @@
   "segmentReportOverrideError": "Couldn''t update segment. Please try again.",
   "reportsTitle": "Reports",
   "reportsFinalProducts": "Final Products",
-  "reportsFinalProductsDesc": "Stock count by warehouse for Medium & Large items",
+  "reportsFinalProductsDesc": "Stock count by warehouse for Small, Medium & Large items",
   "reportsMaterials": "Materials & Consumables",
   "reportsMaterialsDesc": "Raw materials, sub assemblies, and consumables stock",
   "reportsRawMaterials": "Raw Materials",
@@ -4080,9 +4080,12 @@
   },
   "labelsHelpTitle": "How label tracking works",
   "labelsHelpRows": "Every flavour has its own label design, so each is tracked on its own row. Labels come off stock automatically when an invoice is submitted for a customer whose labels we print. Customers who bring their own are marked \"Customer prints\" and are never counted.",
-  "labelsHelpSheets": "Printing is ordered in sheets — {medium} Medium or {large} Large labels per sheet.",
+  "labelsHelpSheets": "Printing is ordered in sheets — {small} Small, {medium} Medium or {large} Large labels per sheet.",
   "@labelsHelpSheets": {
     "placeholders": {
+      "small": {
+        "type": "Object"
+      },
       "medium": {
         "type": "Object"
       },
@@ -4596,7 +4599,7 @@
   "labelSheetActiveHelp": "Turn off to retire a design that is no longer used.",
   "labelSheetStoredAtHelper": "The branch or factory where this label physically lives.",
   "labelSheetUsualBatchSheets": "Usual batch (sheets)",
-  "labelSheetLabelsPerSheetHelper": "Leave 0 for the size default: 21 Medium, 18 Large.",
+  "labelSheetLabelsPerSheetHelper": "Leave 0 for the size default: 21 Small, 21 Medium, 18 Large.",
   "labelSheetLabelsPerJarHelper": "Usually 1.",
   "labelWizardTitle": "Set up customer labels",
   "labelWizardStartTracking": "Start tracking",
@@ -7471,6 +7474,7 @@
   "productionRoundNotAllowed": "You do not have access to production planning.",
   "productionRoundLoadFailed": "Couldn''t load the production round",
   "productionRoundRefreshFailed": "Couldn''t refresh — these are the last figures.",
+  "productionRoundSizeSmall": "Small",
   "productionRoundSizeMedium": "Medium",
   "productionRoundSizeLarge": "Large",
   "productionRoundBatchOne": "{value} batch",

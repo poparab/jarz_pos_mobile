@@ -75,7 +75,7 @@ class LabelPolicyRequest {
   final String storageLocation;
   final double labelsPerUnit;
 
-  /// Zero means "use the size default" (21 Medium / 18 Large).
+  /// Zero means "use the size default" (21 Small / 21 Medium / 18 Large).
   final int labelsPerSheet;
   final int defaultPrintSheets;
   final int minStockQty;

@@ -13,7 +13,7 @@ Map<String, dynamic> productionRoundFixture() => {
   'sales_weeks': 8,
   'sales_from': '2026-07-29',
   'sales_to': '2026-09-22',
-  'batch_sizes': {'Medium': 120, 'Large': 77},
+  'batch_sizes': {'Small': 180, 'Medium': 120, 'Large': 77},
   'summary': {
     'batches': {'Medium': 2.5, 'Large': 5.25},
     'jars': {'Medium': 300, 'Large': 404},

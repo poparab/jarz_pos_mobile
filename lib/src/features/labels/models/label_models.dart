@@ -5,8 +5,9 @@
 /// and the number in the daily alert cannot drift apart.
 ///
 /// v2: one label per (customer, flavour item). Ordering happens in SHEETS
-/// (21 Medium / 18 Large per sheet), each label has a home storage location,
-/// and print batches carry real money (supplier, net cost, purchase invoice).
+/// (21 Small / 21 Medium / 18 Large per sheet), each label has a home storage
+/// location, and print batches carry real money (supplier, net cost, purchase
+/// invoice).
 library;
 
 int _toInt(dynamic value) {
@@ -262,7 +263,7 @@ class CustomerLabel {
   /// The flavour Item this label belongs to. Every flavour has its own artwork.
   final String? item;
 
-  /// The jar size (Item Group: Medium/Large) — it decides the sheet layout.
+  /// The jar size (Item Group: Small/Medium/Large) — it decides the sheet layout.
   final String? size;
 
   /// The warehouse (branch or factory) where this label physically lives.
@@ -549,7 +550,8 @@ class LabelSettings {
   final bool autoConsume;
   final bool alertsEnabled;
 
-  /// Labels on one Medium sheet / one Large sheet at the print house.
+  /// Labels on one Small / Medium / Large sheet at the print house.
+  final int sheetSmall;
   final int sheetMedium;
   final int sheetLarge;
 
@@ -570,6 +572,7 @@ class LabelSettings {
     required this.bufferDays,
     required this.autoConsume,
     required this.alertsEnabled,
+    required this.sheetSmall,
     required this.sheetMedium,
     required this.sheetLarge,
     required this.defaultPrintSheets,
@@ -585,6 +588,7 @@ class LabelSettings {
         bufferDays = 3,
         autoConsume = true,
         alertsEnabled = true,
+        sheetSmall = 21,
         sheetMedium = 21,
         sheetLarge = 18,
         defaultPrintSheets = 2,
@@ -618,6 +622,8 @@ class LabelSettings {
           ? _toBool(json['alerts_enabled'])
           : fallback.alertsEnabled,
       // Zero labels on a sheet is nonsense, so these fall back like lead time.
+      // An older backend omits sheet_small entirely; that falls back too.
+      sheetSmall: intOr('sheet_small', fallback.sheetSmall),
       sheetMedium: intOr('sheet_medium', fallback.sheetMedium),
       sheetLarge: intOr('sheet_large', fallback.sheetLarge),
       defaultPrintSheets:

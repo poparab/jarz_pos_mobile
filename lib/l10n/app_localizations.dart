@@ -10160,7 +10160,7 @@ abstract class AppLocalizations {
   /// No description provided for @reportsFinalProductsDesc.
   ///
   /// In en, this message translates to:
-  /// **'Stock count by warehouse for Medium & Large items'**
+  /// **'Stock count by warehouse for Small, Medium & Large items'**
   String get reportsFinalProductsDesc;
 
   /// No description provided for @reportsMaterials.
@@ -12290,8 +12290,8 @@ abstract class AppLocalizations {
   /// No description provided for @labelsHelpSheets.
   ///
   /// In en, this message translates to:
-  /// **'Printing is ordered in sheets — {medium} Medium or {large} Large labels per sheet.'**
-  String labelsHelpSheets(Object medium, Object large);
+  /// **'Printing is ordered in sheets — {small} Small, {medium} Medium or {large} Large labels per sheet.'**
+  String labelsHelpSheets(Object small, Object medium, Object large);
 
   /// No description provided for @labelsHelpLeadTime.
   ///
@@ -13272,7 +13272,7 @@ abstract class AppLocalizations {
   /// No description provided for @labelSheetLabelsPerSheetHelper.
   ///
   /// In en, this message translates to:
-  /// **'Leave 0 for the size default: 21 Medium, 18 Large.'**
+  /// **'Leave 0 for the size default: 21 Small, 21 Medium, 18 Large.'**
   String get labelSheetLabelsPerSheetHelper;
 
   /// No description provided for @labelSheetLabelsPerJarHelper.
@@ -20806,6 +20806,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'\'t refresh — these are the last figures.'**
   String get productionRoundRefreshFailed;
+
+  /// No description provided for @productionRoundSizeSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get productionRoundSizeSmall;
 
   /// No description provided for @productionRoundSizeMedium.
   ///

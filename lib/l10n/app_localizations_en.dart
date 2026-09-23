@@ -6142,7 +6142,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportsFinalProductsDesc =>
-      'Stock count by warehouse for Medium & Large items';
+      'Stock count by warehouse for Small, Medium & Large items';
 
   @override
   String get reportsMaterials => 'Materials & Consumables';
@@ -7431,8 +7431,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Every flavour has its own label design, so each is tracked on its own row. Labels come off stock automatically when an invoice is submitted for a customer whose labels we print. Customers who bring their own are marked \"Customer prints\" and are never counted.';
 
   @override
-  String labelsHelpSheets(Object medium, Object large) {
-    return 'Printing is ordered in sheets — $medium Medium or $large Large labels per sheet.';
+  String labelsHelpSheets(Object small, Object medium, Object large) {
+    return 'Printing is ordered in sheets — $small Small, $medium Medium or $large Large labels per sheet.';
   }
 
   @override
@@ -8089,7 +8089,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labelSheetLabelsPerSheetHelper =>
-      'Leave 0 for the size default: 21 Medium, 18 Large.';
+      'Leave 0 for the size default: 21 Small, 21 Medium, 18 Large.';
 
   @override
   String get labelSheetLabelsPerJarHelper => 'Usually 1.';
@@ -12732,6 +12732,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get productionRoundRefreshFailed =>
       'Couldn\'t refresh — these are the last figures.';
+
+  @override
+  String get productionRoundSizeSmall => 'Small';
 
   @override
   String get productionRoundSizeMedium => 'Medium';

@@ -239,6 +239,7 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
               const SizedBox(height: 12),
               Text(
                 l10n.labelsHelpSheets(
+                  settings.sheetSmall,
                   settings.sheetMedium,
                   settings.sheetLarge,
                 ),

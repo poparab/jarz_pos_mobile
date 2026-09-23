@@ -630,6 +630,7 @@ void main() {
       expect(parsed.leadDaysMax, s.leadDaysMax);
       expect(parsed.restDay, s.restDay);
       expect(parsed.bufferDays, s.bufferDays);
+      expect(parsed.sheetSmall, 21);
       expect(parsed.sheetMedium, 21);
       expect(parsed.sheetLarge, 18);
       expect(parsed.defaultPrintSheets, 2);
@@ -652,15 +653,38 @@ void main() {
 
     test('sheet geometry from the server wins over the fallback', () {
       final parsed = LabelSettings.fromJson(const {
+        'sheet_small': 28,
         'sheet_medium': 24,
         'sheet_large': 15,
         'default_print_sheets': 4,
         'accounting_ready': 1,
       });
+      expect(parsed.sheetSmall, 28);
       expect(parsed.sheetMedium, 24);
       expect(parsed.sheetLarge, 15);
       expect(parsed.defaultPrintSheets, 4);
       expect(parsed.accountingReady, isTrue);
+    });
+
+    test('an older backend without sheet_small still gets the Small default',
+        () {
+      // Servers that predate the Small jar send only Medium/Large geometry.
+      final parsed = LabelSettings.fromJson(const {
+        'sheet_medium': 24,
+        'sheet_large': 15,
+      });
+      expect(parsed.sheetSmall, 21);
+      expect(parsed.sheetMedium, 24);
+      expect(parsed.sheetLarge, 15);
+    });
+
+    test('a zero or junk sheet_small falls back like the other sizes', () {
+      expect(LabelSettings.fromJson(const {'sheet_small': 0}).sheetSmall, 21);
+      expect(
+        LabelSettings.fromJson(const {'sheet_small': 'n/a'}).sheetSmall,
+        21,
+      );
+      expect(LabelSettings.fromJson(const {'sheet_small': '30'}).sheetSmall, 30);
     });
   });
 }
