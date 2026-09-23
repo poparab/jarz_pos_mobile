@@ -14794,4 +14794,82 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get branchAccessUserNotEditable =>
       'مش مسموحلك تغيّر صلاحيات الشخص ده.';
+
+  @override
+  String get manufacturingHistorySearchHint => 'دوّر بالصنف أو رقم أمر الشغل';
+
+  @override
+  String get manufacturingHistoryDateBasis => 'التاريخ حسب';
+
+  @override
+  String get manufacturingHistoryBasisPosted => 'تاريخ المخزون';
+
+  @override
+  String get manufacturingHistoryBasisCreated => 'تاريخ الإنشاء';
+
+  @override
+  String get manufacturingHistoryDateHelp =>
+      'تاريخ المخزون هو اليوم اللي الإنتاج اتحسب فيه في المخزون. تاريخ الإنشاء هو وقت ما الأمر اتسجل على الأبلكيشن.';
+
+  @override
+  String manufacturingHistoryPostedAt(String date) {
+    return 'المخزون: $date';
+  }
+
+  @override
+  String manufacturingHistoryCreatedAt(String date) {
+    return 'الإنشاء: $date';
+  }
+
+  @override
+  String get manufacturingHistoryNotPosted => 'لسه متسجلش في المخزون';
+
+  @override
+  String get manufacturingHistoryBackdated => 'بتاريخ قديم';
+
+  @override
+  String get manufacturingHistoryAllStatuses => 'كل الحالات';
+
+  @override
+  String get manufacturingHistoryAnyDate => 'أي تاريخ';
+
+  @override
+  String get manufacturingHistoryToday => 'النهارده';
+
+  @override
+  String get manufacturingHistoryYesterday => 'امبارح';
+
+  @override
+  String get manufacturingHistoryLast7 => 'آخر ٧ أيام';
+
+  @override
+  String get manufacturingHistoryLast30 => 'آخر ٣٠ يوم';
+
+  @override
+  String get manufacturingHistoryCustomRange => 'فترة مخصصة';
+
+  @override
+  String manufacturingHistorySummary(int count, String qty) {
+    return '$count أمر شغل • إجمالي الكمية $qty';
+  }
+
+  @override
+  String manufacturingHistoryQty(String qty) {
+    return 'الكمية $qty';
+  }
+
+  @override
+  String get manufacturingWoStatusNotStarted => 'لسه مبدأش';
+
+  @override
+  String get manufacturingWoStatusInProcess => 'شغال';
+
+  @override
+  String get manufacturingWoStatusCompleted => 'خلص';
+
+  @override
+  String get manufacturingWoStatusStopped => 'متوقف';
+
+  @override
+  String get manufacturingWoStatusCancelled => 'ملغي';
 }

@@ -14799,4 +14799,82 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get branchAccessUserNotEditable =>
       'You are not allowed to change this person’s access.';
+
+  @override
+  String get manufacturingHistorySearchHint => 'Search item or work order';
+
+  @override
+  String get manufacturingHistoryDateBasis => 'Dates by';
+
+  @override
+  String get manufacturingHistoryBasisPosted => 'Stock date';
+
+  @override
+  String get manufacturingHistoryBasisCreated => 'Created date';
+
+  @override
+  String get manufacturingHistoryDateHelp =>
+      'Stock date is when the batch counted in inventory. Created date is when the order was entered in the app.';
+
+  @override
+  String manufacturingHistoryPostedAt(String date) {
+    return 'Stock: $date';
+  }
+
+  @override
+  String manufacturingHistoryCreatedAt(String date) {
+    return 'Created: $date';
+  }
+
+  @override
+  String get manufacturingHistoryNotPosted => 'Not in stock yet';
+
+  @override
+  String get manufacturingHistoryBackdated => 'Backdated';
+
+  @override
+  String get manufacturingHistoryAllStatuses => 'All statuses';
+
+  @override
+  String get manufacturingHistoryAnyDate => 'Any date';
+
+  @override
+  String get manufacturingHistoryToday => 'Today';
+
+  @override
+  String get manufacturingHistoryYesterday => 'Yesterday';
+
+  @override
+  String get manufacturingHistoryLast7 => 'Last 7 days';
+
+  @override
+  String get manufacturingHistoryLast30 => 'Last 30 days';
+
+  @override
+  String get manufacturingHistoryCustomRange => 'Custom range';
+
+  @override
+  String manufacturingHistorySummary(int count, String qty) {
+    return '$count work orders • total qty $qty';
+  }
+
+  @override
+  String manufacturingHistoryQty(String qty) {
+    return 'Qty $qty';
+  }
+
+  @override
+  String get manufacturingWoStatusNotStarted => 'Not started';
+
+  @override
+  String get manufacturingWoStatusInProcess => 'In process';
+
+  @override
+  String get manufacturingWoStatusCompleted => 'Completed';
+
+  @override
+  String get manufacturingWoStatusStopped => 'Stopped';
+
+  @override
+  String get manufacturingWoStatusCancelled => 'Cancelled';
 }

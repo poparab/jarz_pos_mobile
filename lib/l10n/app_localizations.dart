@@ -24202,6 +24202,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You are not allowed to change this person’s access.'**
   String get branchAccessUserNotEditable;
+
+  /// No description provided for @manufacturingHistorySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search item or work order'**
+  String get manufacturingHistorySearchHint;
+
+  /// No description provided for @manufacturingHistoryDateBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates by'**
+  String get manufacturingHistoryDateBasis;
+
+  /// No description provided for @manufacturingHistoryBasisPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock date'**
+  String get manufacturingHistoryBasisPosted;
+
+  /// No description provided for @manufacturingHistoryBasisCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created date'**
+  String get manufacturingHistoryBasisCreated;
+
+  /// No description provided for @manufacturingHistoryDateHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock date is when the batch counted in inventory. Created date is when the order was entered in the app.'**
+  String get manufacturingHistoryDateHelp;
+
+  /// No description provided for @manufacturingHistoryPostedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock: {date}'**
+  String manufacturingHistoryPostedAt(String date);
+
+  /// No description provided for @manufacturingHistoryCreatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Created: {date}'**
+  String manufacturingHistoryCreatedAt(String date);
+
+  /// No description provided for @manufacturingHistoryNotPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in stock yet'**
+  String get manufacturingHistoryNotPosted;
+
+  /// No description provided for @manufacturingHistoryBackdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Backdated'**
+  String get manufacturingHistoryBackdated;
+
+  /// No description provided for @manufacturingHistoryAllStatuses.
+  ///
+  /// In en, this message translates to:
+  /// **'All statuses'**
+  String get manufacturingHistoryAllStatuses;
+
+  /// No description provided for @manufacturingHistoryAnyDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Any date'**
+  String get manufacturingHistoryAnyDate;
+
+  /// No description provided for @manufacturingHistoryToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get manufacturingHistoryToday;
+
+  /// No description provided for @manufacturingHistoryYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get manufacturingHistoryYesterday;
+
+  /// No description provided for @manufacturingHistoryLast7.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get manufacturingHistoryLast7;
+
+  /// No description provided for @manufacturingHistoryLast30.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get manufacturingHistoryLast30;
+
+  /// No description provided for @manufacturingHistoryCustomRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom range'**
+  String get manufacturingHistoryCustomRange;
+
+  /// No description provided for @manufacturingHistorySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} work orders • total qty {qty}'**
+  String manufacturingHistorySummary(int count, String qty);
+
+  /// No description provided for @manufacturingHistoryQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Qty {qty}'**
+  String manufacturingHistoryQty(String qty);
+
+  /// No description provided for @manufacturingWoStatusNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started'**
+  String get manufacturingWoStatusNotStarted;
+
+  /// No description provided for @manufacturingWoStatusInProcess.
+  ///
+  /// In en, this message translates to:
+  /// **'In process'**
+  String get manufacturingWoStatusInProcess;
+
+  /// No description provided for @manufacturingWoStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get manufacturingWoStatusCompleted;
+
+  /// No description provided for @manufacturingWoStatusStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get manufacturingWoStatusStopped;
+
+  /// No description provided for @manufacturingWoStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get manufacturingWoStatusCancelled;
 }
 
 class _AppLocalizationsDelegate

@@ -614,13 +614,34 @@ class ManufacturingService {
     throw Exception('Unexpected response shape');
   }
 
+  /// Work Orders newest first. Each row carries `creation` (when the order was
+  /// entered) and `posted_at` (when its Manufacture entry hit stock, or null).
+  /// [dateBasis] is `posting` or `creation`: which of the two [fromDate] and
+  /// [toDate] filter on and the list sorts by.
   Future<List<Map<String, dynamic>>> listRecentWorkOrders({
     int limit = 50,
+    String? search,
+    String? status,
+    DateTime? fromDate,
+    DateTime? toDate,
+    String dateBasis = 'creation',
   }) async {
+    String day(DateTime d) =>
+        '${d.year.toString().padLeft(4, '0')}-'
+        '${d.month.toString().padLeft(2, '0')}-'
+        '${d.day.toString().padLeft(2, '0')}';
     try {
       final resp = await _dio.post(
         ApiEndpoints.listRecentWorkOrders,
-        data: {"limit": limit},
+        data: {
+          "limit": limit,
+          "date_basis": dateBasis,
+          if (search != null && search.trim().isNotEmpty)
+            "search": search.trim(),
+          if (status != null && status.isNotEmpty) "status": status,
+          if (fromDate != null) "from_date": day(fromDate),
+          if (toDate != null) "to_date": day(toDate),
+        },
       );
       final payload = resp.data;
       if (payload is Map && payload['message'] is List) {

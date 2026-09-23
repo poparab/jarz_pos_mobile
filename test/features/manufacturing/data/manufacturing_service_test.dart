@@ -408,6 +408,42 @@ void main() {
         expect(requests.first['data']['limit'], equals(50));
       });
 
+      test('sends history filters as server-side date strings', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manufacturing.list_recent_work_orders',
+          {'message': []},
+        );
+
+        await service.listRecentWorkOrders(
+          search: '  Fudge ',
+          status: 'Completed',
+          fromDate: DateTime(2026, 9, 1, 15, 30),
+          toDate: DateTime(2026, 9, 22),
+          dateBasis: 'posting',
+        );
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data['search'], equals('Fudge'));
+        expect(data['status'], equals('Completed'));
+        expect(data['from_date'], equals('2026-09-01'));
+        expect(data['to_date'], equals('2026-09-22'));
+        expect(data['date_basis'], equals('posting'));
+      });
+
+      test('omits empty filters', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manufacturing.list_recent_work_orders',
+          {'message': []},
+        );
+
+        await service.listRecentWorkOrders(search: '   ', status: '');
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data.containsKey('search'), isFalse);
+        expect(data.containsKey('status'), isFalse);
+        expect(data.containsKey('from_date'), isFalse);
+      });
+
       test('returns empty list on unexpected format', () async {
         mockDio.setResponse(
           '/api/method/jarz_pos.api.manufacturing.list_recent_work_orders',
