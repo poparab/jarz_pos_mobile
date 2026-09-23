@@ -22090,6 +22090,360 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{source} is now a branch of {target}.'**
   String b2bMergeSuccess(String source, String target);
+
+  /// No description provided for @menuCashCustody.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Custody'**
+  String get menuCashCustody;
+
+  /// No description provided for @custodyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Custody'**
+  String get custodyTitle;
+
+  /// No description provided for @custodyMyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Custody'**
+  String get custodyMyTitle;
+
+  /// No description provided for @custodyMine.
+  ///
+  /// In en, this message translates to:
+  /// **'My custody'**
+  String get custodyMine;
+
+  /// No description provided for @custodyOfHolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Custody - {name}'**
+  String custodyOfHolder(String name);
+
+  /// No description provided for @custodyTotalHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'Total held'**
+  String get custodyTotalHeld;
+
+  /// No description provided for @custodyHoldersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Holders: {count}'**
+  String custodyHoldersCount(String count);
+
+  /// No description provided for @custodyNoHolders.
+  ///
+  /// In en, this message translates to:
+  /// **'No custody holders yet.'**
+  String get custodyNoHolders;
+
+  /// No description provided for @custodyNotAHolder.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not hold a cash custody.'**
+  String get custodyNotAHolder;
+
+  /// No description provided for @custodyAddHolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add holder'**
+  String get custodyAddHolder;
+
+  /// No description provided for @custodySearchEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'Search employees'**
+  String get custodySearchEmployee;
+
+  /// No description provided for @custodyNoCandidates.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching employees.'**
+  String get custodyNoCandidates;
+
+  /// No description provided for @custodyHolderAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} can now hold custody.'**
+  String custodyHolderAdded(String name);
+
+  /// No description provided for @custodyDisabledBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get custodyDisabledBadge;
+
+  /// No description provided for @custodyEnableTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable or disable this custody'**
+  String get custodyEnableTooltip;
+
+  /// No description provided for @custodyDisableHasBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Return the remaining balance before disabling this custody.'**
+  String get custodyDisableHasBalance;
+
+  /// No description provided for @custodyHolderEnabledMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Custody enabled.'**
+  String get custodyHolderEnabledMsg;
+
+  /// No description provided for @custodyHolderDisabledMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Custody disabled.'**
+  String get custodyHolderDisabledMsg;
+
+  /// No description provided for @custodyLastMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Last movement: {date}'**
+  String custodyLastMovement(String date);
+
+  /// No description provided for @custodyNoMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'No movements yet'**
+  String get custodyNoMovement;
+
+  /// No description provided for @custodyCurrentBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Current balance'**
+  String get custodyCurrentBalance;
+
+  /// No description provided for @custodyIssueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw into custody'**
+  String get custodyIssueAction;
+
+  /// No description provided for @custodyReturnAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Return cash'**
+  String get custodyReturnAction;
+
+  /// No description provided for @custodyIssueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw into custody'**
+  String get custodyIssueTitle;
+
+  /// No description provided for @custodyReturnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return cash from custody'**
+  String get custodyReturnTitle;
+
+  /// No description provided for @custodySourceAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Take from'**
+  String get custodySourceAccount;
+
+  /// No description provided for @custodyReturnAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to'**
+  String get custodyReturnAccount;
+
+  /// No description provided for @custodySelectAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an account'**
+  String get custodySelectAccount;
+
+  /// No description provided for @custodyAccountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an account.'**
+  String get custodyAccountRequired;
+
+  /// No description provided for @custodyAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get custodyAmountLabel;
+
+  /// No description provided for @custodyAmountInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount greater than zero.'**
+  String get custodyAmountInvalid;
+
+  /// No description provided for @custodyAmountExceedsBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount cannot exceed the custody balance ({balance}).'**
+  String custodyAmountExceedsBalance(String balance);
+
+  /// No description provided for @custodyDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date and time'**
+  String get custodyDateLabel;
+
+  /// No description provided for @custodyDateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get custodyDateNow;
+
+  /// No description provided for @custodyRemarkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remark (optional)'**
+  String get custodyRemarkLabel;
+
+  /// No description provided for @custodySubmitIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get custodySubmitIssue;
+
+  /// No description provided for @custodySubmitReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get custodySubmitReturn;
+
+  /// No description provided for @custodyPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'Posted: {entry}'**
+  String custodyPosted(String entry);
+
+  /// No description provided for @custodyNoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts available.'**
+  String get custodyNoAccounts;
+
+  /// No description provided for @custodyStatementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement'**
+  String get custodyStatementTitle;
+
+  /// No description provided for @custodyStatementEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No movements in this period.'**
+  String get custodyStatementEmpty;
+
+  /// No description provided for @custodyPickDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick dates'**
+  String get custodyPickDates;
+
+  /// No description provided for @custodyRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String custodyRangeLabel(String from, String to);
+
+  /// No description provided for @custodyOpeningBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening balance'**
+  String get custodyOpeningBalance;
+
+  /// No description provided for @custodyClosingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing balance'**
+  String get custodyClosingBalance;
+
+  /// No description provided for @custodyKindIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawal'**
+  String get custodyKindIssue;
+
+  /// No description provided for @custodyKindReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get custodyKindReturn;
+
+  /// No description provided for @custodyKindExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get custodyKindExpense;
+
+  /// No description provided for @custodyKindPurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase'**
+  String get custodyKindPurchase;
+
+  /// No description provided for @custodyKindTransferIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer in'**
+  String get custodyKindTransferIn;
+
+  /// No description provided for @custodyKindTransferOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer out'**
+  String get custodyKindTransferOut;
+
+  /// No description provided for @custodyKindOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get custodyKindOther;
+
+  /// No description provided for @custodyRunningBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance: {balance}'**
+  String custodyRunningBalance(String balance);
+
+  /// No description provided for @custodyCounterAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Against: {account}'**
+  String custodyCounterAccount(String account);
+
+  /// No description provided for @custodyAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available: {balance}'**
+  String custodyAvailable(String balance);
+
+  /// No description provided for @custodyInsufficientBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough custody balance'**
+  String get custodyInsufficientBalance;
+
+  /// No description provided for @custodyPurchasePaymentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from the holder custody'**
+  String get custodyPurchasePaymentSubtitle;
+
+  /// No description provided for @userErrorCustodyInsufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'The custody balance is not enough for this amount.'**
+  String get userErrorCustodyInsufficient;
+
+  /// No description provided for @userErrorCustodyDisableWithBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'A custody with a balance cannot be disabled. Return the cash first.'**
+  String get userErrorCustodyDisableWithBalance;
 }
 
 class _AppLocalizationsDelegate

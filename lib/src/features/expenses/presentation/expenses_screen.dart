@@ -277,6 +277,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen>
                     isManager: state.isManager,
                     reasons: state.reasons,
                     paymentSources: state.paymentSources,
+                    custodyAccount: state.custodyAccount,
                   ),
                 );
                 if (record != null && mounted) {

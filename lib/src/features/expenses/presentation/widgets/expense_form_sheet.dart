@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/widgets/posting_date_confirmation_dialog.dart';
+import '../../../cash_custody/models/cash_custody_models.dart'
+    show custodyBalanceEpsilon;
+import '../../../cash_custody/presentation/custody_labels.dart';
 import '../../models/expense_models.dart';
 import '../../state/expenses_notifier.dart';
 
@@ -12,11 +15,16 @@ class ExpenseFormSheet extends ConsumerStatefulWidget {
   final List<ExpenseReason> reasons;
   final List<ExpensePaymentSource> paymentSources;
 
+  /// The caller's own custody account, so it reads "My custody" rather than
+  /// the holder's name.
+  final String? custodyAccount;
+
   const ExpenseFormSheet({
     super.key,
     required this.isManager,
     required this.reasons,
     required this.paymentSources,
+    this.custodyAccount,
   });
 
   @override
@@ -106,6 +114,16 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
                   if (amount == null || amount <= 0) {
                     return l10n.expensesAmountInvalid;
                   }
+                  // A custody can never go negative. The server enforces it;
+                  // this only saves the round trip and says why.
+                  final source = _selectedSource;
+                  if (source != null &&
+                      source.isCustody &&
+                      amount > source.balance + custodyBalanceEpsilon) {
+                    return l10n.custodyAmountExceedsBalance(
+                      formatCurrency(context, source.balance),
+                    );
+                  }
                   return null;
                 },
               ),
@@ -155,16 +173,32 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
               DropdownButtonFormField<ExpensePaymentSource>(
                 key: ValueKey<String?>(_selectedSource?.account ?? _selectedSource?.label),
                 initialValue: _selectedSource,
+                isExpanded: true,
                 items: widget.paymentSources
                     .map((source) {
+                      if (source.isCustody) {
+                        return DropdownMenuItem(
+                          value: source,
+                          child: _custodyItem(context, source, languageCode),
+                        );
+                      }
                       final sourceLabel = source.localizedLabel(languageCode);
                       return DropdownMenuItem(
                         value: source,
-                        child: Text('$sourceLabel${_extraLabel(source)}'),
+                        child: Text(
+                          '$sourceLabel${_extraLabel(source)}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     })
                     .toList(),
-                onChanged: (value) => setState(() => _selectedSource = value),
+                onChanged: (value) {
+                  setState(() => _selectedSource = value);
+                  // Re-check the amount against the newly chosen balance.
+                  if (_amountController.text.trim().isNotEmpty) {
+                    _formKey.currentState?.validate();
+                  }
+                },
                 decoration: InputDecoration(
                   labelText: l10n.expensesPayFromLabel,
                   border: const OutlineInputBorder(),
@@ -216,15 +250,22 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
         : formatPostingDateForApi(_selectedDate);
 
     setState(() => _submitting = true);
+    // A custody is paid by account, never through a POS profile: both a
+    // holder and a manager send its account with source type "custody".
+    // Every other source keeps its original request shape.
+    final isCustody = source.isCustody;
     final record = await notifier.createExpense(
       amount: amount,
       reasonAccount: reason.account,
       expenseDate: isoDate,
       remarks: _remarksController.text.trim().isEmpty ? null : _remarksController.text.trim(),
-      posProfile: widget.isManager ? source.posProfile : source.posProfile ?? source.label,
-      payingAccount: widget.isManager ? source.account : null,
-      paymentSourceType:
-          widget.isManager ? _typeLabel(context, source) : null,
+      posProfile: isCustody
+          ? null
+          : (widget.isManager ? source.posProfile : source.posProfile ?? source.label),
+      payingAccount: isCustody || widget.isManager ? source.account : null,
+      paymentSourceType: isCustody
+          ? 'custody'
+          : (widget.isManager ? _typeLabel(context, source) : null),
       paymentLabel: source.label,
     );
     if (!mounted) return;
@@ -232,6 +273,28 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
     if (record != null) {
       Navigator.of(context).pop(record);
     }
+  }
+
+  Widget _custodyItem(
+    BuildContext context,
+    ExpensePaymentSource source,
+    String languageCode,
+  ) {
+    final l10n = context.l10n;
+    final isMine = widget.custodyAccount != null &&
+        source.account == widget.custodyAccount;
+    final label = isMine
+        ? l10n.custodyMine
+        : custodyDisplayLabel(l10n, source.localizedLabel(languageCode));
+    return Row(
+      children: [
+        Icon(custodyIcon, size: 18, color: custodyColor(context)),
+        const SizedBox(width: 8),
+        Expanded(child: Text(label, overflow: TextOverflow.ellipsis)),
+        const SizedBox(width: 8),
+        Text(formatCurrency(context, source.balance)),
+      ],
+    );
   }
 
   String _extraLabel(ExpensePaymentSource source) {

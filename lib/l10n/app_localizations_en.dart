@@ -13474,4 +13474,204 @@ class AppLocalizationsEn extends AppLocalizations {
   String b2bMergeSuccess(String source, String target) {
     return '$source is now a branch of $target.';
   }
+
+  @override
+  String get menuCashCustody => 'Cash Custody';
+
+  @override
+  String get custodyTitle => 'Cash Custody';
+
+  @override
+  String get custodyMyTitle => 'My Custody';
+
+  @override
+  String get custodyMine => 'My custody';
+
+  @override
+  String custodyOfHolder(String name) {
+    return 'Custody - $name';
+  }
+
+  @override
+  String get custodyTotalHeld => 'Total held';
+
+  @override
+  String custodyHoldersCount(String count) {
+    return 'Holders: $count';
+  }
+
+  @override
+  String get custodyNoHolders => 'No custody holders yet.';
+
+  @override
+  String get custodyNotAHolder => 'You do not hold a cash custody.';
+
+  @override
+  String get custodyAddHolder => 'Add holder';
+
+  @override
+  String get custodySearchEmployee => 'Search employees';
+
+  @override
+  String get custodyNoCandidates => 'No matching employees.';
+
+  @override
+  String custodyHolderAdded(String name) {
+    return '$name can now hold custody.';
+  }
+
+  @override
+  String get custodyDisabledBadge => 'Disabled';
+
+  @override
+  String get custodyEnableTooltip => 'Enable or disable this custody';
+
+  @override
+  String get custodyDisableHasBalance =>
+      'Return the remaining balance before disabling this custody.';
+
+  @override
+  String get custodyHolderEnabledMsg => 'Custody enabled.';
+
+  @override
+  String get custodyHolderDisabledMsg => 'Custody disabled.';
+
+  @override
+  String custodyLastMovement(String date) {
+    return 'Last movement: $date';
+  }
+
+  @override
+  String get custodyNoMovement => 'No movements yet';
+
+  @override
+  String get custodyCurrentBalance => 'Current balance';
+
+  @override
+  String get custodyIssueAction => 'Withdraw into custody';
+
+  @override
+  String get custodyReturnAction => 'Return cash';
+
+  @override
+  String get custodyIssueTitle => 'Withdraw into custody';
+
+  @override
+  String get custodyReturnTitle => 'Return cash from custody';
+
+  @override
+  String get custodySourceAccount => 'Take from';
+
+  @override
+  String get custodyReturnAccount => 'Return to';
+
+  @override
+  String get custodySelectAccount => 'Select an account';
+
+  @override
+  String get custodyAccountRequired => 'Choose an account.';
+
+  @override
+  String get custodyAmountLabel => 'Amount';
+
+  @override
+  String get custodyAmountInvalid => 'Enter an amount greater than zero.';
+
+  @override
+  String custodyAmountExceedsBalance(String balance) {
+    return 'Amount cannot exceed the custody balance ($balance).';
+  }
+
+  @override
+  String get custodyDateLabel => 'Date and time';
+
+  @override
+  String get custodyDateNow => 'Now';
+
+  @override
+  String get custodyRemarkLabel => 'Remark (optional)';
+
+  @override
+  String get custodySubmitIssue => 'Withdraw';
+
+  @override
+  String get custodySubmitReturn => 'Return';
+
+  @override
+  String custodyPosted(String entry) {
+    return 'Posted: $entry';
+  }
+
+  @override
+  String get custodyNoAccounts => 'No accounts available.';
+
+  @override
+  String get custodyStatementTitle => 'Statement';
+
+  @override
+  String get custodyStatementEmpty => 'No movements in this period.';
+
+  @override
+  String get custodyPickDates => 'Pick dates';
+
+  @override
+  String custodyRangeLabel(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String get custodyOpeningBalance => 'Opening balance';
+
+  @override
+  String get custodyClosingBalance => 'Closing balance';
+
+  @override
+  String get custodyKindIssue => 'Withdrawal';
+
+  @override
+  String get custodyKindReturn => 'Return';
+
+  @override
+  String get custodyKindExpense => 'Expense';
+
+  @override
+  String get custodyKindPurchase => 'Purchase';
+
+  @override
+  String get custodyKindTransferIn => 'Transfer in';
+
+  @override
+  String get custodyKindTransferOut => 'Transfer out';
+
+  @override
+  String get custodyKindOther => 'Other';
+
+  @override
+  String custodyRunningBalance(String balance) {
+    return 'Balance: $balance';
+  }
+
+  @override
+  String custodyCounterAccount(String account) {
+    return 'Against: $account';
+  }
+
+  @override
+  String custodyAvailable(String balance) {
+    return 'Available: $balance';
+  }
+
+  @override
+  String get custodyInsufficientBalance => 'Not enough custody balance';
+
+  @override
+  String get custodyPurchasePaymentSubtitle => 'Paid from the holder custody';
+
+  @override
+  String get userErrorCustodyInsufficient =>
+      'The custody balance is not enough for this amount.';
+
+  @override
+  String get userErrorCustodyDisableWithBalance =>
+      'A custody with a balance cannot be disabled. Return the cash first.';
 }

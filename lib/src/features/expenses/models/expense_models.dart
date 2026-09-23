@@ -57,6 +57,10 @@ class ExpensePaymentSource {
   bool get isBank => category == 'bank';
   bool get isMobile => category == 'mobile';
 
+  /// Cash held by an employee (Cash Custody). A holder sees only their own;
+  /// a manager sees every custody account.
+  bool get isCustody => category == 'custody';
+
   String get displayBalance => NumberFormat.currency(symbol: '').format(balance);
 
   String localizedLabel(String languageCode) {
@@ -403,6 +407,10 @@ class ExpenseBootstrap {
   final ExpenseSummary summary;
   final List<String> appliedPaymentIds;
 
+  /// The caller's own custody account, if they hold one. Lets the form tell
+  /// "My custody" apart from somebody else's in a manager's source list.
+  final String? custodyAccount;
+
   const ExpenseBootstrap({
     required this.isManager,
     required this.currentMonth,
@@ -413,6 +421,7 @@ class ExpenseBootstrap {
     required this.expenses,
     required this.summary,
     required this.appliedPaymentIds,
+    this.custodyAccount,
   });
 
   factory ExpenseBootstrap.fromJson(Map<String, dynamic> json) {
@@ -440,6 +449,9 @@ class ExpenseBootstrap {
           .toList(),
       summary: ExpenseSummary.fromJson(json['summary'] as Map<String, dynamic>?),
       appliedPaymentIds: applied.map((e) => e.toString()).toList(),
+      custodyAccount: (json['custody_account'] ?? '').toString().trim().isEmpty
+          ? null
+          : json['custody_account'].toString().trim(),
     );
   }
 }

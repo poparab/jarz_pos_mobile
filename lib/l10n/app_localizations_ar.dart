@@ -13450,4 +13450,203 @@ class AppLocalizationsAr extends AppLocalizations {
   String b2bMergeSuccess(String source, String target) {
     return '$source بقى فرع من $target.';
   }
+
+  @override
+  String get menuCashCustody => 'العُهد';
+
+  @override
+  String get custodyTitle => 'العُهد';
+
+  @override
+  String get custodyMyTitle => 'عهدتي';
+
+  @override
+  String get custodyMine => 'عهدتي';
+
+  @override
+  String custodyOfHolder(String name) {
+    return 'عهدة - $name';
+  }
+
+  @override
+  String get custodyTotalHeld => 'إجمالي العُهد';
+
+  @override
+  String custodyHoldersCount(String count) {
+    return 'أصحاب العُهد: $count';
+  }
+
+  @override
+  String get custodyNoHolders => 'مفيش أصحاب عُهد لسه.';
+
+  @override
+  String get custodyNotAHolder => 'إنت مش ماسك عهدة نقدية.';
+
+  @override
+  String get custodyAddHolder => 'إضافة صاحب عهدة';
+
+  @override
+  String get custodySearchEmployee => 'ابحث عن موظف';
+
+  @override
+  String get custodyNoCandidates => 'مفيش موظفين مطابقين.';
+
+  @override
+  String custodyHolderAdded(String name) {
+    return '$name بقى يقدر يمسك عهدة.';
+  }
+
+  @override
+  String get custodyDisabledBadge => 'موقوفة';
+
+  @override
+  String get custodyEnableTooltip => 'تفعيل أو إيقاف العهدة دي';
+
+  @override
+  String get custodyDisableHasBalance =>
+      'لازم ترجّع الرصيد المتبقي قبل ما توقف العهدة دي.';
+
+  @override
+  String get custodyHolderEnabledMsg => 'تم تفعيل العهدة.';
+
+  @override
+  String get custodyHolderDisabledMsg => 'تم إيقاف العهدة.';
+
+  @override
+  String custodyLastMovement(String date) {
+    return 'آخر حركة: $date';
+  }
+
+  @override
+  String get custodyNoMovement => 'مفيش حركات لسه';
+
+  @override
+  String get custodyCurrentBalance => 'الرصيد الحالي';
+
+  @override
+  String get custodyIssueAction => 'سحب للعهدة';
+
+  @override
+  String get custodyReturnAction => 'رد نقدية';
+
+  @override
+  String get custodyIssueTitle => 'سحب نقدية للعهدة';
+
+  @override
+  String get custodyReturnTitle => 'رد نقدية من العهدة';
+
+  @override
+  String get custodySourceAccount => 'السحب من';
+
+  @override
+  String get custodyReturnAccount => 'الرد إلى';
+
+  @override
+  String get custodySelectAccount => 'اختار حساب';
+
+  @override
+  String get custodyAccountRequired => 'اختار حساب.';
+
+  @override
+  String get custodyAmountLabel => 'المبلغ';
+
+  @override
+  String get custodyAmountInvalid => 'اكتب مبلغ أكبر من صفر.';
+
+  @override
+  String custodyAmountExceedsBalance(String balance) {
+    return 'المبلغ مينفعش يزيد عن رصيد العهدة ($balance).';
+  }
+
+  @override
+  String get custodyDateLabel => 'التاريخ والوقت';
+
+  @override
+  String get custodyDateNow => 'دلوقتي';
+
+  @override
+  String get custodyRemarkLabel => 'ملاحظة (اختياري)';
+
+  @override
+  String get custodySubmitIssue => 'اسحب';
+
+  @override
+  String get custodySubmitReturn => 'رجّع';
+
+  @override
+  String custodyPosted(String entry) {
+    return 'اتسجل: $entry';
+  }
+
+  @override
+  String get custodyNoAccounts => 'مفيش حسابات متاحة.';
+
+  @override
+  String get custodyStatementTitle => 'كشف الحساب';
+
+  @override
+  String get custodyStatementEmpty => 'مفيش حركات في الفترة دي.';
+
+  @override
+  String get custodyPickDates => 'اختار الفترة';
+
+  @override
+  String custodyRangeLabel(String from, String to) {
+    return 'من $from إلى $to';
+  }
+
+  @override
+  String get custodyOpeningBalance => 'رصيد أول الفترة';
+
+  @override
+  String get custodyClosingBalance => 'رصيد آخر الفترة';
+
+  @override
+  String get custodyKindIssue => 'سحب للعهدة';
+
+  @override
+  String get custodyKindReturn => 'رد';
+
+  @override
+  String get custodyKindExpense => 'مصروف';
+
+  @override
+  String get custodyKindPurchase => 'مشتريات';
+
+  @override
+  String get custodyKindTransferIn => 'تحويل وارد';
+
+  @override
+  String get custodyKindTransferOut => 'تحويل صادر';
+
+  @override
+  String get custodyKindOther => 'أخرى';
+
+  @override
+  String custodyRunningBalance(String balance) {
+    return 'الرصيد: $balance';
+  }
+
+  @override
+  String custodyCounterAccount(String account) {
+    return 'مقابل: $account';
+  }
+
+  @override
+  String custodyAvailable(String balance) {
+    return 'المتاح: $balance';
+  }
+
+  @override
+  String get custodyInsufficientBalance => 'رصيد العهدة مش كفاية';
+
+  @override
+  String get custodyPurchasePaymentSubtitle => 'الدفع من عهدة الموظف';
+
+  @override
+  String get userErrorCustodyInsufficient => 'رصيد العهدة مش كفاية للمبلغ ده.';
+
+  @override
+  String get userErrorCustodyDisableWithBalance =>
+      'مينفعش توقف عهدة فيها رصيد. رجّع النقدية الأول.';
 }

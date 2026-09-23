@@ -27,6 +27,7 @@ import '../features/manufacturing/presentation/screens/sop_execute_screen.dart';
 import '../features/stock_transfer/presentation/stock_transfer_screen.dart';
 import '../features/replenishment/presentation/replenishment_screen.dart';
 import '../features/cash_transfer/presentation/cash_transfer_screen.dart';
+import '../features/cash_custody/presentation/cash_custody_screen.dart';
 import '../features/geo/presentation/screens/address_pin_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
 import '../features/partner_settlements/presentation/partner_settlements_screen.dart';
@@ -449,6 +450,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.cashTransfer,
         name: 'cash-transfer',
         builder: (context, state) => const CashTransferScreen(),
+      ),
+      // Open to anyone signed in: the screen itself asks the server whether
+      // the caller manages custodies or holds one, and says so if neither.
+      GoRoute(
+        path: AppRoutes.cashCustody,
+        name: 'cash-custody',
+        builder: (context, state) => const CashCustodyScreen(),
       ),
       GoRoute(
         path: AppRoutes.partnerSettlements,

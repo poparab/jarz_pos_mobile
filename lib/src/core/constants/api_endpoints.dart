@@ -311,6 +311,25 @@ abstract final class ApiEndpoints {
   static const cashTransferListHistory =
       '/api/method/jarz_pos.api.cash_transfer.list_transfers';
 
+  // ── Cash Custody (العُهد) ─────────────────────────────────────────────
+  // Company cash held by named employees. Issue/return post journal entries
+  // between a till/cash/bank account and the holder's custody account; the
+  // server refuses anything that would take a custody balance below zero.
+  static const custodyOverview =
+      '/api/method/jarz_pos.api.cash_custody.get_custody_overview';
+  static const custodyListCandidates =
+      '/api/method/jarz_pos.api.cash_custody.list_custody_candidates';
+  static const custodyAddHolder =
+      '/api/method/jarz_pos.api.cash_custody.add_custody_holder';
+  static const custodySetHolderEnabled =
+      '/api/method/jarz_pos.api.cash_custody.set_custody_holder_enabled';
+  static const custodyIssue =
+      '/api/method/jarz_pos.api.cash_custody.issue_custody';
+  static const custodyReturn =
+      '/api/method/jarz_pos.api.cash_custody.return_custody';
+  static const custodyStatement =
+      '/api/method/jarz_pos.api.cash_custody.get_custody_statement';
+
   // ── Manufacturing / Production ────────────────────────────────────────
   static const getProductionSuggestions =
       '/api/method/jarz_pos.api.production.get_production_suggestions';

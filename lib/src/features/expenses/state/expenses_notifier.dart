@@ -17,6 +17,9 @@ class ExpensesState {
   final ExpenseSummary summary;
   final Set<String> paymentFilters;
 
+  /// The caller's own custody account (null when they hold none).
+  final String? custodyAccount;
+
   const ExpensesState({
     required this.isLoading,
     required this.isSubmitting,
@@ -30,6 +33,7 @@ class ExpensesState {
     required this.expenses,
     required this.summary,
     required this.paymentFilters,
+    this.custodyAccount,
   });
 
   factory ExpensesState.initial() => ExpensesState(
@@ -66,6 +70,8 @@ class ExpensesState {
     List<ExpenseRecord>? expenses,
     ExpenseSummary? summary,
     Set<String>? paymentFilters,
+    String? custodyAccount,
+    bool clearCustodyAccount = false,
   }) {
     return ExpensesState(
       isLoading: isLoading ?? this.isLoading,
@@ -80,6 +86,9 @@ class ExpensesState {
       expenses: expenses ?? this.expenses,
       summary: summary ?? this.summary,
       paymentFilters: paymentFilters ?? this.paymentFilters,
+      custodyAccount: clearCustodyAccount
+          ? null
+          : custodyAccount ?? this.custodyAccount,
     );
   }
 }
@@ -118,6 +127,8 @@ class ExpensesNotifier extends StateNotifier<ExpensesState> {
         expenses: bootstrap.expenses,
         summary: bootstrap.summary,
         paymentFilters: bootstrap.appliedPaymentIds.toSet(),
+        custodyAccount: bootstrap.custodyAccount,
+        clearCustodyAccount: bootstrap.custodyAccount == null,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

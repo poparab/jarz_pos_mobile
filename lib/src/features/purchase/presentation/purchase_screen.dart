@@ -20,6 +20,9 @@ import '../domain/request_allocation.dart';
 import 'widgets/line_rate_field.dart';
 import '../../purchase_request/presentation/widgets/buy_from_requests_sheet.dart';
 import '../../../core/constants/business_constants.dart';
+import '../../cash_custody/models/cash_custody_models.dart'
+    show custodyParseDouble;
+import '../../cash_custody/presentation/widgets/custody_payment_options.dart';
 
 class PurchaseScreen extends ConsumerStatefulWidget {
   const PurchaseScreen({super.key});
@@ -1982,6 +1985,11 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     final profiles = posState.profiles;
     // Default to first profile if exists, else 'instapay' or 'cash'
     String selected = profiles.isNotEmpty ? (profiles.first['name'] as String) : 'instapay';
+    // Custody options: the buyer's own custody, or every enabled one for a
+    // manager. Pre-checked against the purchase total; the server enforces it.
+    final custody = await CustodyPaymentChoices.load(ref);
+    final amount = _cartGrandTotal();
+    if (!mounted) return null;
     return showDialog<String>(
       context: context,
       builder: (ctx) {
@@ -2018,6 +2026,10 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                         subtitle: Text(dialogL10n.purchasePaymentCashSubtitle),
                         dense: true,
                       ),
+                      if (!custody.isEmpty) ...[
+                        const Divider(),
+                        ...custody.radioTiles(ctx, amount: amount),
+                      ],
                       const Divider(),
                       // Buying on supplier terms. Previously impossible from
                       // the app: is_paid was hardcoded true, so every purchase
@@ -2034,7 +2046,12 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
               ),
               actions: [
                 TextButton(onPressed: () => Navigator.pop(ctx), child: Text(dialogL10n.commonCancel)),
-                ElevatedButton(onPressed: () => Navigator.pop(ctx, selected), child: Text(dialogL10n.commonContinue)),
+                ElevatedButton(
+                  onPressed: custody.isShort(selected, amount)
+                      ? null
+                      : () => Navigator.pop(ctx, selected),
+                  child: Text(dialogL10n.commonContinue),
+                ),
               ],
             );
           },
@@ -2096,7 +2113,9 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
   Future<void> _pay(Map<String, dynamic> invoice) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    final option = await _pickPaymentAccount();
+    final option = await _pickPaymentAccount(
+      custodyParseDouble(invoice['outstanding_amount']),
+    );
     if (option == null || !mounted) return;
     try {
       final result = await ref.read(purchaseServiceProvider).payPurchaseInvoice(
@@ -2116,11 +2135,13 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
     }
   }
 
-  Future<String?> _pickPaymentAccount() async {
+  Future<String?> _pickPaymentAccount(double amount) async {
     final profiles = ref.read(posNotifierProvider).profiles;
     String selected = profiles.isNotEmpty
         ? (profiles.first['name'] as String)
         : PaymentModes.cashLower;
+    final custody = await CustodyPaymentChoices.load(ref);
+    if (!mounted) return null;
     return showDialog<String>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -2151,6 +2172,10 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
                       title: Text(dialogL10n.purchasePaymentCashTitle),
                       dense: true,
                     ),
+                    if (!custody.isEmpty) ...[
+                      const Divider(),
+                      ...custody.radioTiles(ctx, amount: amount),
+                    ],
                   ],
                 ),
               ),
@@ -2161,7 +2186,9 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
                 child: Text(dialogL10n.commonCancel),
               ),
               ElevatedButton(
-                onPressed: () => Navigator.pop(ctx, selected),
+                onPressed: custody.isShort(selected, amount)
+                    ? null
+                    : () => Navigator.pop(ctx, selected),
                 child: Text(dialogL10n.commonContinue),
               ),
             ],

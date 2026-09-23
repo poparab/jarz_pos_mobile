@@ -55,6 +55,8 @@ String userErrorMessageFor(
     l10n.manufacturingQuantityMustBePositive,
     l10n.checkoutSelectProfileFirst,
     l10n.posCartEmptyBody,
+    l10n.userErrorCustodyInsufficient,
+    l10n.userErrorCustodyDisableWithBalance,
   };
   if (error is String && knownMessages.contains(error)) return error;
   final category = _classify(error);
@@ -320,6 +322,24 @@ String? _businessMessage(AppLocalizations l10n, String? candidate) {
   if (text == 'no profile selected' || text.contains('select a pos profile'))
     return l10n.checkoutSelectProfileFirst;
   if (text == 'draft_limit_reached') return l10n.userErrorDraftLimit;
+  // Cash Custody refusals (`jarz_pos.api.cash_custody`, and the custody
+  // branch of expenses / purchase payment). Arabic only: an English UI keeps
+  // the server's own sentence, which names the balance and the holder, while
+  // an Arabic UI would otherwise drop it for the generic fallback.
+  if (_isArabic(l10n) && (text.contains('custody') || text.contains('عهدة'))) {
+    if (text.contains('disabl') && text.contains('balance')) {
+      return l10n.userErrorCustodyDisableWithBalance;
+    }
+    if (_hasAny(text, const [
+      'insufficient',
+      'not enough',
+      'exceed',
+      'negative',
+      'more than',
+    ])) {
+      return l10n.userErrorCustodyInsufficient;
+    }
+  }
   // `PosNotifier.staffEmployeeRequiredError`: an Employee order with nobody
   // chosen to deduct it from.
   if (text == 'staff_employee_required') return l10n.posStaffMemberRequired;

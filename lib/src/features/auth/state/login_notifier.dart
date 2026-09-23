@@ -20,6 +20,7 @@ import '../../manufacturing/state/production_today_providers.dart';
 import '../../shift/state/shift_notifier.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../pos/data/repositories/draft_cart_repository.dart';
+import '../../cash_custody/state/cash_custody_notifier.dart';
 
 class LoginNotifier extends AsyncNotifier<bool> {
   @override
@@ -183,6 +184,10 @@ class LoginNotifier extends AsyncNotifier<bool> {
     ref.invalidate(managerAccessProvider);
     ref.invalidate(selectedBranchProvider);
     ref.invalidate(selectedStateProvider);
+    // Cash Custody overview: keep-alive, and it answers "is this user a
+    // holder / a manager" -- a previous user's answer would show or hide the
+    // side-menu entry and offer their custody in Expenses and Purchase.
+    ref.invalidate(custodyOverviewProvider);
     // Per-user Hive caches (async; non-fatal on failure).
     unawaited(_clearUserScopedCaches());
   }

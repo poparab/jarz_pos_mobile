@@ -93,6 +93,8 @@ class ExpenseFiltersBar extends StatelessWidget {
         return Icons.phone_android;
       case 'pos_profile':
         return Icons.storefront;
+      case 'custody':
+        return Icons.wallet;
       default:
         return Icons.account_balance_wallet;
     }

@@ -14,6 +14,7 @@ import '../../features/shift/state/shift_notifier.dart';
 import '../../features/labels/state/labels_notifier.dart';
 import '../../features/purchase_request/state/purchase_request_notifier.dart';
 import '../../features/approvals/presentation/pending_approvals_widgets.dart';
+import '../../features/cash_custody/state/cash_custody_notifier.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -58,6 +59,9 @@ class AppDrawer extends ConsumerWidget {
     // line-manager tier — so gating these five on it showed a line manager tiles
     // that answered "Not permitted" on every call.
     final canAccessCashTransfer = ref.watch(canAccessCashTransferProvider);
+    // A manager or a custody holder, as the server says; the Cash Transfer
+    // tier stands in until that answer arrives (see the provider).
+    final canAccessCashCustody = ref.watch(custodyMenuVisibleProvider);
     final canAccessPartnerSettlements =
         ref.watch(canAccessPartnerSettlementsProvider);
     final canAccessWooSync = ref.watch(canAccessWooSyncProvider);
@@ -242,6 +246,12 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuCashTransfer,
           onTap: () => navigate(AppRoutes.cashTransfer),
         ),
+      if (canAccessCashCustody)
+        navTile(
+          icon: Icons.wallet,
+          title: l10n.menuCashCustody,
+          onTap: () => navigate(AppRoutes.cashCustody),
+        ),
       // Same tier as Cash Transfer, and for the same reason: settling a
       // delivery partner posts the weekly bank transfer and settling a sales
       // partner posts a commission entry. Gating this on manager-dashboard
@@ -392,6 +402,7 @@ class AppDrawer extends ConsumerWidget {
       AppRoutes.expenses,
       AppRoutes.monthlyExpenses,
       AppRoutes.cashTransfer,
+      AppRoutes.cashCustody,
     ];
     const purchasingRoutes = [
       AppRoutes.purchase,

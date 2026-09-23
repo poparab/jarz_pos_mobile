@@ -46,6 +46,8 @@ abstract final class AppRoutes {
   /// this one answers WHAT to move, and only then moves it.
   static const replenishment = '/replenishment';
   static const cashTransfer = '/cash-transfer';
+  /// Company cash held by named employees (العُهد).
+  static const cashCustody = '/cash-custody';
   static const inventoryCount = '/inventory-count';
   static const expenses = '/expenses';
 
