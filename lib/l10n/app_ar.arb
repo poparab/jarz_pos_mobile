@@ -5605,5 +5605,20 @@
   "manufacturingWoStatusInProcess": "شغال",
   "manufacturingWoStatusCompleted": "خلص",
   "manufacturingWoStatusStopped": "متوقف",
-  "manufacturingWoStatusCancelled": "ملغي"
+  "manufacturingWoStatusCancelled": "ملغي",
+  "b2bBranchMapsLinked": "مربوط بخرائط جوجل",
+  "b2bBranchMapsAutoMatched": "اتربط تلقائي",
+  "b2bBranchMapsOnlySubtitle": "على خرائط جوجل — لسه مش فرع توصيل",
+  "b2bBranchActions": "إجراءات الفرع",
+  "b2bBranchLinkMaps": "اربطه بفرع على خرائط جوجل",
+  "b2bBranchUnlinkMaps": "افصله عن فرع خرائط جوجل",
+  "b2bBranchMakeDelivery": "خليه فرع توصيل",
+  "b2bBranchSameAsExisting": "هو نفس فرع موجود…",
+  "b2bBranchPickMapsTitle": "أنهي فرع على خرائط جوجل؟",
+  "b2bBranchPickDeliveryTitle": "أنهي فرع توصيل ده؟",
+  "b2bBranchNoFreeDelivery": "كل فروع التوصيل مربوطة بالفعل بفرع على خرائط جوجل.",
+  "b2bBranchLinkedDone": "الفرعين اتدمجوا",
+  "b2bBranchUnlinkedDone": "فرع خرائط جوجل اتفصل",
+  "b2bBranchPromotedDone": "{name} بقى فرع توصيل",
+  "b2bBranchOnTalabat": "على طلبات"
 }

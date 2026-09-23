@@ -147,8 +147,9 @@ class _B2bBranchInvoicesScreenState
         selected: _branch == null,
         onSelected: (_) => _select(null),
       ),
+      // Google Maps-only entries have no invoices to filter on.
       for (final branch in widget.branches)
-        if (branch.key.isNotEmpty)
+        if (branch.isDeliveryBranch && branch.key.isNotEmpty)
           ChoiceChip(
             label: Text(branch.displayName),
             selected: _branch == branch.key,

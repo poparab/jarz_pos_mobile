@@ -202,4 +202,101 @@ void main() {
     expect(captured!.containsKey('location_link'), isFalse);
     expect(geo.calls, isEmpty);
   });
+
+  testWidgets(
+    'prefill opens the new-address tab and a prefilled pin is sent',
+    (tester) async {
+      // Promoting a Google Maps branch to a delivery branch opens this dialog
+      // prefilled from the listing — even when saved addresses exist — and the
+      // listing's pin must be saved without staff re-pasting it.
+      tester.view.physicalSize = const Size(900, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final geo = _FakeGeoRepository();
+      Map<String, String>? captured;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            geoRepositoryProvider.overrideWithValue(geo),
+            locationTileProviderProvider.overrideWithValue(FakeTileProvider()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () async {
+                    captured = await CustomerShippingAddressDialog.show(
+                      context,
+                      customerName: 'ILO',
+                      customer: 'ILO-1',
+                      addresses: const [
+                        {
+                          'name': 'ILO-MADINATY',
+                          'branch_name': 'All Seasons Park',
+                        },
+                      ],
+                      territories: const [
+                        {'name': 'EGMAADI', 'territory_name': 'Maadi'},
+                      ],
+                      initialSelectedAddressName: '',
+                      initialPhone: '0100',
+                      repository: _FakeAddressRepository(),
+                      requireBranchName: true,
+                      initialBranchName: 'ILO Maadi',
+                      initialNewAddress: 'Road 9, Maadi',
+                      initialNewLocation: const LocationLinkValue(
+                        link: 'https://maps.google.com/?cid=1',
+                        latitude: 29.96,
+                        longitude: 31.25,
+                      ),
+                    );
+                  },
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(CustomerShippingAddressDialog.branchNameFieldKey),
+        findsOneWidget,
+      );
+      expect(find.text('ILO Maadi'), findsOneWidget);
+      expect(find.text('Road 9, Maadi'), findsOneWidget);
+
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Maadi').last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.save));
+      await tester.pumpAndSettle();
+
+      expect(captured, isNotNull);
+      expect(captured!['branch_name'], 'ILO Maadi');
+      expect(captured!['address'], 'Road 9, Maadi');
+      expect(captured!['territory'], 'EGMAADI');
+      expect(captured!['latitude'], '29.96');
+      expect(captured!['longitude'], '31.25');
+      expect(captured!['location_link'], 'https://maps.google.com/?cid=1');
+      // The pin was given, not pasted: nothing had to be resolved.
+      expect(geo.calls, isEmpty);
+    },
+  );
 }

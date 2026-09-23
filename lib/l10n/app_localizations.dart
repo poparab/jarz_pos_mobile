@@ -24352,6 +24352,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancelled'**
   String get manufacturingWoStatusCancelled;
+
+  /// No description provided for @b2bBranchMapsLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to Google Maps'**
+  String get b2bBranchMapsLinked;
+
+  /// No description provided for @b2bBranchMapsAutoMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Matched automatically'**
+  String get b2bBranchMapsAutoMatched;
+
+  /// No description provided for @b2bBranchMapsOnlySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'On Google Maps — not a delivery branch yet'**
+  String get b2bBranchMapsOnlySubtitle;
+
+  /// No description provided for @b2bBranchActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch actions'**
+  String get b2bBranchActions;
+
+  /// No description provided for @b2bBranchLinkMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a Google Maps branch'**
+  String get b2bBranchLinkMaps;
+
+  /// No description provided for @b2bBranchUnlinkMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink Google Maps branch'**
+  String get b2bBranchUnlinkMaps;
+
+  /// No description provided for @b2bBranchMakeDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it a delivery branch'**
+  String get b2bBranchMakeDelivery;
+
+  /// No description provided for @b2bBranchSameAsExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as an existing branch…'**
+  String get b2bBranchSameAsExisting;
+
+  /// No description provided for @b2bBranchPickMapsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which Google Maps branch is this?'**
+  String get b2bBranchPickMapsTitle;
+
+  /// No description provided for @b2bBranchPickDeliveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which delivery branch is this?'**
+  String get b2bBranchPickDeliveryTitle;
+
+  /// No description provided for @b2bBranchNoFreeDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Every delivery branch already has a Google Maps branch.'**
+  String get b2bBranchNoFreeDelivery;
+
+  /// No description provided for @b2bBranchLinkedDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Branches combined'**
+  String get b2bBranchLinkedDone;
+
+  /// No description provided for @b2bBranchUnlinkedDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Maps branch unlinked'**
+  String get b2bBranchUnlinkedDone;
+
+  /// No description provided for @b2bBranchPromotedDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is now a delivery branch'**
+  String b2bBranchPromotedDone(String name);
+
+  /// No description provided for @b2bBranchOnTalabat.
+  ///
+  /// In en, this message translates to:
+  /// **'On Talabat'**
+  String get b2bBranchOnTalabat;
 }
 
 class _AppLocalizationsDelegate

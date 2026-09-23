@@ -14882,4 +14882,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get manufacturingWoStatusCancelled => 'ملغي';
+
+  @override
+  String get b2bBranchMapsLinked => 'مربوط بخرائط جوجل';
+
+  @override
+  String get b2bBranchMapsAutoMatched => 'اتربط تلقائي';
+
+  @override
+  String get b2bBranchMapsOnlySubtitle => 'على خرائط جوجل — لسه مش فرع توصيل';
+
+  @override
+  String get b2bBranchActions => 'إجراءات الفرع';
+
+  @override
+  String get b2bBranchLinkMaps => 'اربطه بفرع على خرائط جوجل';
+
+  @override
+  String get b2bBranchUnlinkMaps => 'افصله عن فرع خرائط جوجل';
+
+  @override
+  String get b2bBranchMakeDelivery => 'خليه فرع توصيل';
+
+  @override
+  String get b2bBranchSameAsExisting => 'هو نفس فرع موجود…';
+
+  @override
+  String get b2bBranchPickMapsTitle => 'أنهي فرع على خرائط جوجل؟';
+
+  @override
+  String get b2bBranchPickDeliveryTitle => 'أنهي فرع توصيل ده؟';
+
+  @override
+  String get b2bBranchNoFreeDelivery =>
+      'كل فروع التوصيل مربوطة بالفعل بفرع على خرائط جوجل.';
+
+  @override
+  String get b2bBranchLinkedDone => 'الفرعين اتدمجوا';
+
+  @override
+  String get b2bBranchUnlinkedDone => 'فرع خرائط جوجل اتفصل';
+
+  @override
+  String b2bBranchPromotedDone(String name) {
+    return '$name بقى فرع توصيل';
+  }
+
+  @override
+  String get b2bBranchOnTalabat => 'على طلبات';
 }

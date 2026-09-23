@@ -342,6 +342,32 @@ class B2bRepository {
     );
   }
 
+  /// Pairs the Google Maps branch [mapsRow] of the account's Lead with the
+  /// delivery branch [addressName]. A null / blank [addressName] unlinks the
+  /// row, which also stops the server auto-matching it. Returns the account's
+  /// unified branch list after the change.
+  Future<B2bBranchLinkResult> linkBranch({
+    required String doctype,
+    required String name,
+    required String mapsRow,
+    String? addressName,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.b2bLinkBranch,
+      data: {
+        'doctype': doctype,
+        'name': name,
+        'maps_row': mapsRow,
+        if (addressName != null && addressName.trim().isNotEmpty)
+          'address_name': addressName.trim(),
+      },
+    );
+    final raw = _unwrap(response);
+    return B2bBranchLinkResult.fromJson(
+      raw is Map ? Map<String, dynamic>.from(raw) : const <String, dynamic>{},
+    );
+  }
+
   /// Searches every enabled Customer type/group that may legitimately back a
   /// B2B account. Linking never mutates the Customer classification.
   Future<List<Map<String, dynamic>>> searchLinkableCustomers(

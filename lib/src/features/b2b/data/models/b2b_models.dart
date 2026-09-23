@@ -249,8 +249,77 @@ class B2bBranchStats with _$B2bBranchStats {
       _$B2bBranchStatsFromJson(json);
 }
 
-/// One branch of a B2B shop: a named shipping Address on the account's
-/// Customer, with that branch's invoice totals.
+/// Reads `maps` leniently: anything that is not an object becomes null.
+class _MapsInfoConverter implements JsonConverter<B2bMapsInfo?, Object?> {
+  const _MapsInfoConverter();
+  @override
+  B2bMapsInfo? fromJson(Object? json) => json is Map
+      ? B2bMapsInfo.fromJson(Map<String, dynamic>.from(json))
+      : null;
+  @override
+  Object? toJson(B2bMapsInfo? object) => object?.toJson();
+}
+
+/// Reads a branch `source`, treating a missing / blank value as "address"
+/// (what every branch was before the Google Maps branches were folded in).
+class _BranchSourceConverter implements JsonConverter<String, Object?> {
+  const _BranchSourceConverter();
+  @override
+  String fromJson(Object? json) =>
+      _looseString(json)?.toLowerCase() ?? B2bBranch.sourceAddress;
+  @override
+  Object? toJson(String object) => object;
+}
+
+/// The Google Maps side of a branch: one row of the Lead's scraped branch
+/// table (or `__self__`, the Lead's own listing).
+@freezed
+class B2bMapsInfo with _$B2bMapsInfo {
+  const B2bMapsInfo._();
+
+  const factory B2bMapsInfo({
+    /// The Lead branch-table row id the link endpoint is keyed on.
+    @_NullableStringConverter() String? row,
+    @JsonKey(name: 'branch_name')
+    @_NullableStringConverter()
+    String? branchName,
+    @_NullableStringConverter() String? area,
+    @_NullableStringConverter() String? region,
+    @_NullableStringConverter() String? governorate,
+    @_NullableDoubleConverter() double? rating,
+    @_NullableIntConverter() int? reviews,
+    @JsonKey(name: 'maps_url') @_NullableStringConverter() String? mapsUrl,
+    @_NullableStringConverter() String? phone,
+    @_NullableStringConverter() String? address,
+    @_NullableDoubleConverter() double? latitude,
+    @_NullableDoubleConverter() double? longitude,
+    @JsonKey(name: 'on_talabat')
+    @_BoolConverter()
+    @Default(false)
+    bool onTalabat,
+  }) = _B2bMapsInfo;
+
+  factory B2bMapsInfo.fromJson(Map<String, dynamic> json) =>
+      _$B2bMapsInfoFromJson(json);
+
+  bool get hasLocation => latitude != null && longitude != null;
+
+  /// Area, region and governorate on one line (may be empty).
+  String get areaText => [
+    area,
+    region,
+    governorate,
+  ].whereType<String>().toSet().join(' · ');
+
+  /// The listing's name, falling back to where it is.
+  String get displayName => branchName ?? area ?? region ?? address ?? '';
+}
+
+/// One door of a B2B shop. Either a delivery branch (a named shipping Address
+/// on the account's Customer, with its invoice totals — `source == "address"`,
+/// optionally carrying the matched Google Maps listing in [maps]) or a Google
+/// Maps branch of the Lead that is not a delivery branch yet
+/// (`source == "maps"`: no address, zero stats).
 @freezed
 class B2bBranch with _$B2bBranch {
   const B2bBranch._();
@@ -297,17 +366,53 @@ class B2bBranch with _$B2bBranch {
     @JsonKey(name: 'last_order_date')
     @_NullableStringConverter()
     String? lastOrderDate,
+
+    /// `"address"` (a delivery branch) or `"maps"` (Google Maps only).
+    @_BranchSourceConverter() @Default('address') String source,
+
+    /// The Google Maps listing for this door, when one is known.
+    @_MapsInfoConverter() B2bMapsInfo? maps,
+
+    /// How [maps] got attached to a delivery branch: `"linked"` (a rep chose
+    /// it) or `"auto"` (matched by name / pin). Null for maps-only entries.
+    @JsonKey(name: 'maps_match')
+    @_NullableStringConverter()
+    String? mapsMatch,
   }) = _B2bBranch;
 
   factory B2bBranch.fromJson(Map<String, dynamic> json) =>
       _$B2bBranchFromJson(json);
 
-  /// The Address record the branch filter is keyed on.
-  String get key => addressName ?? '';
+  static const sourceAddress = 'address';
+  static const sourceMaps = 'maps';
 
-  /// The name a rep knows the branch by, falling back to its street.
+  /// A Google Maps branch that is not a delivery branch (yet).
+  bool get isMapsOnly => source == sourceMaps;
+
+  /// A delivery branch (shipping Address), with or without a Maps listing.
+  bool get isDeliveryBranch => !isMapsOnly;
+
+  bool get hasMaps => maps != null;
+
+  /// The Lead branch-table row of [maps], or null.
+  String? get mapsRow => maps?.row;
+
+  /// True when [maps] was matched by the server rather than chosen by a rep.
+  bool get isMapsAutoMatched => hasMaps && mapsMatch == 'auto';
+
+  /// The Address record the branch filter is keyed on. Empty for a maps-only
+  /// entry, which has no invoices to filter.
+  String get key => isMapsOnly ? '' : (addressName ?? '');
+
+  /// The name a rep knows the branch by, falling back to its street (or, for
+  /// a maps-only entry, to the listing's own name / area).
   String get displayName =>
-      branchName ?? addressLine1 ?? city ?? addressName ?? '';
+      branchName ??
+      addressLine1 ??
+      city ??
+      addressName ??
+      maps?.displayName ??
+      '';
 
   /// Street, second line and city on one line (may be empty).
   String get addressText =>
@@ -508,6 +613,8 @@ class B2bTodo with _$B2bTodo {
 /// Full account detail for a Lead or Opportunity.
 @freezed
 class B2bAccount with _$B2bAccount {
+  const B2bAccount._();
+
   const factory B2bAccount({
     required String doctype,
     required String name,
@@ -523,12 +630,19 @@ class B2bAccount with _$B2bAccount {
     List<B2bRecentInvoice> recentInvoices,
     @JsonKey(name: 'open_todos') @Default(<B2bTodo>[]) List<B2bTodo> openTodos,
 
-    /// The linked Customer's branches (named shipping Addresses) with their
-    /// own invoice totals. Empty with no Customer or on an older server.
+    /// Every door of the shop, once each: the linked Customer's branches
+    /// (named shipping Addresses, with their own invoice totals and any matched
+    /// Google Maps listing) first, then the Lead's Google Maps branches that
+    /// are not delivery branches yet. Empty on an older server.
     @Default(<B2bBranch>[]) List<B2bBranch> branches,
 
     /// Totals for the invoices that match no branch; null when there are none.
     @JsonKey(name: 'unassigned_invoices') B2bBranchStats? unassignedInvoices,
+
+    /// The Lead whose Google Maps branches were folded into [branches] (the
+    /// account itself for a Lead, the linked Lead for a Customer). Null when
+    /// there is none or on an older server.
+    @JsonKey(name: 'branch_lead') String? branchLead,
 
     /// The rep's dated field diary for this account, newest touch first. The
     /// account screen renders it through the shared journey timeline, which
@@ -540,6 +654,36 @@ class B2bAccount with _$B2bAccount {
 
   factory B2bAccount.fromJson(Map<String, dynamic> json) =>
       _$B2bAccountFromJson(json);
+
+  /// Only the delivery branches (shipping Addresses) — what invoice filters
+  /// and order flows key on.
+  List<B2bBranch> get deliveryBranches =>
+      branches.where((b) => b.isDeliveryBranch).toList();
+}
+
+/// `crm.link_branch` result: the account's unified branch list after the
+/// link / unlink, and the refreshed unassigned-invoice totals.
+class B2bBranchLinkResult {
+  final List<B2bBranch> branches;
+  final B2bBranchStats? unassigned;
+
+  const B2bBranchLinkResult({required this.branches, this.unassigned});
+
+  factory B2bBranchLinkResult.fromJson(Map<String, dynamic> json) {
+    final raw = json['branches'];
+    final unassigned = json['unassigned'] ?? json['unassigned_invoices'];
+    return B2bBranchLinkResult(
+      branches: raw is List
+          ? raw
+                .whereType<Map>()
+                .map((e) => B2bBranch.fromJson(Map<String, dynamic>.from(e)))
+                .toList()
+          : const <B2bBranch>[],
+      unassigned: unassigned is Map
+          ? B2bBranchStats.fromJson(Map<String, dynamic>.from(unassigned))
+          : null,
+    );
+  }
 }
 
 /// A follow-up ToDo on the Today screen.

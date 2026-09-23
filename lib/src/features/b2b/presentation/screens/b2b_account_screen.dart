@@ -10,6 +10,8 @@ import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/repositories/customer_address_repository.dart';
 import '../../../../core/widgets/customer_shipping_address_flow.dart';
+import '../../../geo/presentation/widgets/location_link_field.dart'
+    show LocationLinkValue;
 import '../../../journey/presentation/widgets/journey_notes_section.dart';
 import '../../../labels/models/label_models.dart' show LabelStatus;
 import '../../../labels/presentation/widgets/label_status_chip.dart';
@@ -56,6 +58,11 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
   late Future<B2bAccountDetail> _future;
   bool _busy = false;
 
+  /// The loaded account with in-place edits applied (a branch link / unlink
+  /// returns the new branch list, so there is no need to refetch everything).
+  /// Cleared on every reload.
+  B2bAccountDetail? _current;
+
   @override
   void initState() {
     super.initState();
@@ -70,6 +77,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
 
   void _reload() {
     setState(() {
+      _current = null;
       _future = _load();
     });
   }
@@ -126,7 +134,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
               ),
             );
           }
-          final detail = snapshot.requireData;
+          final detail = _current ?? snapshot.requireData;
           final account = detail.account;
           final customer = account.customer;
           final isCustomerAccount = widget.doctype == 'Customer';
@@ -158,6 +166,17 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
                 : null,
             onOpenInvoices: (customer != null && customer.isNotEmpty)
                 ? (branch) => _openInvoices(account, branch)
+                : null,
+            onLinkMapsBranch: (maps, delivery) => _linkMapsBranch(
+              detail,
+              maps: maps,
+              delivery: delivery,
+            ),
+            onUnlinkMapsBranch: (delivery) =>
+                _unlinkMapsBranch(detail, delivery),
+            // A delivery branch is a shipping Address on the Customer.
+            onPromoteMapsBranch: (customer != null && customer.isNotEmpty)
+                ? (maps) => _promoteMapsBranch(detail, customer, maps)
                 : null,
           );
         },
@@ -206,6 +225,147 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
     if (mounted) _reload();
   }
 
+  /// Pairs the Google Maps branch [maps] with the delivery branch [delivery]:
+  /// one door, shown once.
+  Future<void> _linkMapsBranch(
+    B2bAccountDetail detail, {
+    required B2bBranch maps,
+    required B2bBranch delivery,
+  }) async {
+    final row = maps.mapsRow;
+    final address = delivery.addressName;
+    if (row == null || address == null) return;
+    await _sendBranchLink(
+      detail,
+      mapsRow: row,
+      addressName: address,
+      successMessage: context.l10n.b2bBranchLinkedDone,
+    );
+  }
+
+  /// Splits a delivery branch from its Google Maps branch. The server also
+  /// stops auto-matching that Maps row, so it stays split.
+  Future<void> _unlinkMapsBranch(
+    B2bAccountDetail detail,
+    B2bBranch delivery,
+  ) async {
+    final row = delivery.mapsRow;
+    if (row == null) return;
+    await _sendBranchLink(
+      detail,
+      mapsRow: row,
+      addressName: null,
+      successMessage: context.l10n.b2bBranchUnlinkedDone,
+    );
+  }
+
+  Future<void> _sendBranchLink(
+    B2bAccountDetail detail, {
+    required String mapsRow,
+    required String? addressName,
+    required String successMessage,
+  }) async {
+    setState(() => _busy = true);
+    try {
+      final result = await ref
+          .read(b2bRepositoryProvider)
+          .linkBranch(
+            doctype: widget.doctype,
+            name: widget.name,
+            mapsRow: mapsRow,
+            addressName: addressName,
+          );
+      if (!mounted) return;
+      _applyBranches(detail, result);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(successMessage)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Swaps in the branch list the link endpoint returned. An empty list from
+  /// an account that had branches means the reply was not the expected shape:
+  /// refetch rather than blank the section.
+  void _applyBranches(B2bAccountDetail detail, B2bBranchLinkResult result) {
+    if (result.branches.isEmpty && detail.account.branches.isNotEmpty) {
+      _reload();
+      return;
+    }
+    setState(() {
+      _current = B2bAccountDetail(
+        account: detail.account.copyWith(
+          branches: result.branches,
+          unassignedInvoices: result.unassigned,
+        ),
+        labels: detail.labels,
+      );
+    });
+  }
+
+  /// Turns a Google Maps branch into a delivery branch: the same add-branch
+  /// dialog [_addBranch] opens, prefilled from the listing, then an explicit
+  /// link between the new Address and the Maps row. When the new Address
+  /// cannot be identified the account is reloaded and the server's name / pin
+  /// auto-match pairs them instead.
+  Future<void> _promoteMapsBranch(
+    B2bAccountDetail detail,
+    String customer,
+    B2bBranch entry,
+  ) async {
+    final maps = entry.maps;
+    final account = detail.account;
+    final mapsUrl = maps?.mapsUrl?.trim() ?? '';
+    final link = LeadActions.isSafeMapsUrl(mapsUrl) ? mapsUrl : '';
+    LocationLinkValue? pin;
+    if (maps != null && maps.hasLocation) {
+      pin = LocationLinkValue(
+        link: link,
+        latitude: maps.latitude,
+        longitude: maps.longitude,
+      );
+    } else if (link.isNotEmpty) {
+      pin = LocationLinkValue(link: link);
+    }
+    final selected = await chooseCustomerShippingAddress(
+      context,
+      customer: <String, dynamic>{
+        'name': customer,
+        'customer_name': account.title,
+        if (account.contact.mobileNo case final mobile?) 'mobile_no': mobile,
+      },
+      repository: ref.read(customerAddressRepositoryProvider),
+      forcePicker: true,
+      requireBranchName: true,
+      setAsPrimary: false,
+      initialBranchName: maps?.branchName ?? entry.displayName,
+      initialNewAddress: maps?.address ?? maps?.area,
+      initialNewLocation: pin,
+    );
+    if (!mounted) return;
+    final addressName =
+        selected?['selected_shipping_address_name']?.toString().trim() ?? '';
+    final row = entry.mapsRow;
+    if (selected == null || addressName.isEmpty || row == null) {
+      // Cancelled, or saved without an identifiable Address: the dialog may
+      // still have saved something, so show the server's view.
+      _reload();
+      return;
+    }
+    await _sendBranchLink(
+      detail,
+      mapsRow: row,
+      addressName: addressName,
+      successMessage: context.l10n.b2bBranchPromotedDone(entry.displayName),
+    );
+  }
+
   /// Opens the invoice list filtered to [branch] (null = every invoice).
   Future<void> _openInvoices(B2bAccount account, String? branch) async {
     await Navigator.of(context).push(
@@ -214,7 +374,7 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
           doctype: widget.doctype,
           name: widget.name,
           accountTitle: account.title,
-          branches: account.branches,
+          branches: account.deliveryBranches,
           hasUnassigned: account.unassignedInvoices != null,
           initialBranch: branch,
         ),
@@ -792,6 +952,15 @@ class _AccountBody extends StatelessWidget {
   /// invoices (null). Null itself when no Customer is linked.
   final void Function(String? branch)? onOpenInvoices;
 
+  /// Combines a Google Maps branch with a delivery branch.
+  final void Function(B2bBranch maps, B2bBranch delivery)? onLinkMapsBranch;
+
+  /// Splits a delivery branch from its Google Maps branch.
+  final void Function(B2bBranch delivery)? onUnlinkMapsBranch;
+
+  /// Turns a Google Maps branch into a delivery branch. Null with no Customer.
+  final void Function(B2bBranch maps)? onPromoteMapsBranch;
+
   const _AccountBody({
     required this.account,
     required this.labels,
@@ -807,6 +976,9 @@ class _AccountBody extends StatelessWidget {
     this.onViewPricing,
     this.onAddBranch,
     this.onOpenInvoices,
+    this.onLinkMapsBranch,
+    this.onUnlinkMapsBranch,
+    this.onPromoteMapsBranch,
   });
 
   @override
@@ -872,12 +1044,18 @@ class _AccountBody extends StatelessWidget {
             ]),
             if (account.doctype == 'Lead')
               _LeadProfileSection(leadName: account.name),
-            if (onOpenInvoices != null)
+            // Shown with a Customer (delivery branches + invoices) and also
+            // for a Lead that only has Google Maps branches so far.
+            if (onOpenInvoices != null || account.branches.isNotEmpty)
               _BranchesSection(
                 branches: account.branches,
                 unassigned: account.unassignedInvoices,
+                showAddBranch: onAddBranch != null,
                 onAddBranch: busy ? null : onAddBranch,
-                onOpenInvoices: onOpenInvoices!,
+                onOpenInvoices: onOpenInvoices,
+                onLinkMaps: busy ? null : onLinkMapsBranch,
+                onUnlinkMaps: busy ? null : onUnlinkMapsBranch,
+                onPromoteMaps: busy ? null : onPromoteMapsBranch,
               ),
             const SizedBox(height: 16),
             // The same diary the lead page shows — one journey per account, not
@@ -1062,20 +1240,44 @@ class _AccountBody extends StatelessWidget {
   }
 }
 
-/// The Customer's branches (named shipping Addresses), each with its own
-/// invoice totals and a shortcut to its invoices and map pin.
+/// Every door of the shop, once each. Delivery branches (the Customer's named
+/// shipping Addresses) carry their invoice totals plus, when one is known, the
+/// matching Google Maps listing; Google Maps branches that are not delivery
+/// branches yet follow, outlined, with the actions that fold them in.
 class _BranchesSection extends ConsumerWidget {
   final List<B2bBranch> branches;
   final B2bBranchStats? unassigned;
+
+  /// Whether the account can take a new delivery branch at all (has a
+  /// Customer). [onAddBranch] is additionally null while busy.
+  final bool showAddBranch;
   final VoidCallback? onAddBranch;
-  final void Function(String? branch) onOpenInvoices;
+
+  /// Null with no Customer: there are no invoices to open.
+  final void Function(String? branch)? onOpenInvoices;
+  final void Function(B2bBranch maps, B2bBranch delivery)? onLinkMaps;
+  final void Function(B2bBranch delivery)? onUnlinkMaps;
+  final void Function(B2bBranch maps)? onPromoteMaps;
 
   const _BranchesSection({
     required this.branches,
     required this.unassigned,
+    required this.showAddBranch,
     required this.onAddBranch,
     required this.onOpenInvoices,
+    this.onLinkMaps,
+    this.onUnlinkMaps,
+    this.onPromoteMaps,
   });
+
+  /// Google Maps branches still free to be combined with a delivery branch.
+  List<B2bBranch> get _freeMaps =>
+      branches.where((b) => b.isMapsOnly && b.mapsRow != null).toList();
+
+  /// Delivery branches with no Google Maps branch yet.
+  List<B2bBranch> get _freeDelivery => branches
+      .where((b) => b.isDeliveryBranch && !b.hasMaps && b.key.isNotEmpty)
+      .toList();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1105,18 +1307,22 @@ class _BranchesSection extends ConsumerWidget {
                 style: theme.textTheme.titleMedium,
               ),
             ),
-            TextButton.icon(
-              onPressed: onAddBranch,
-              icon: const Icon(Icons.add_business_outlined, size: 18),
-              label: Text(l10n.b2bAddBranch),
-            ),
+            if (showAddBranch)
+              TextButton.icon(
+                onPressed: onAddBranch,
+                icon: const Icon(Icons.add_business_outlined, size: 18),
+                label: Text(l10n.b2bAddBranch),
+              ),
           ],
         ),
         const Divider(),
         if (branches.isEmpty) Text(l10n.b2bNoBranches),
         for (final branch in branches)
-          _branchTile(context, branch, territoryName),
-        if (unassigned case final stats?)
+          if (branch.isMapsOnly)
+            _mapsOnlyTile(context, branch)
+          else
+            _branchTile(context, branch, territoryName),
+        if (unassigned case final stats? when onOpenInvoices != null)
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: Icon(
@@ -1131,7 +1337,7 @@ class _BranchesSection extends ConsumerWidget {
                 _statsLine(context, stats),
               ],
             ),
-            onTap: () => onOpenInvoices(B2bRepository.unassignedBranch),
+            onTap: () => onOpenInvoices!(B2bRepository.unassignedBranch),
           ),
       ],
     );
@@ -1148,6 +1354,23 @@ class _BranchesSection extends ConsumerWidget {
       if (branch.territory case final id?) territoryName(id),
       if (branch.addressText.isNotEmpty) branch.addressText,
     ].where((s) => s.isNotEmpty).join(' · ');
+
+    final actions = <PopupMenuEntry<_BranchAction>>[
+      if (branch.hasMaps && branch.mapsRow != null && onUnlinkMaps != null)
+        _menuItem(
+          _BranchAction.unlinkMaps,
+          Icons.link_off,
+          l10n.b2bBranchUnlinkMaps,
+        ),
+      if (!branch.hasMaps && _freeMaps.isNotEmpty && onLinkMaps != null)
+        _menuItem(
+          _BranchAction.linkMaps,
+          Icons.add_link,
+          l10n.b2bBranchLinkMaps,
+        ),
+    ];
+
+    final open = onOpenInvoices;
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: const Icon(Icons.storefront_outlined),
@@ -1172,19 +1395,280 @@ class _BranchesSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (location.isNotEmpty) Text(location),
+          if (branch.maps case final maps?)
+            _mapsLine(context, maps, autoMatched: branch.isMapsAutoMatched),
           _statsLine(context, branch.stats),
         ],
       ),
-      trailing: branch.hasLocation
-          ? IconButton(
-              tooltip: l10n.b2bOpenBranchMap,
-              icon: const Icon(Icons.map_outlined),
-              onPressed: () =>
-                  LeadActions.mapsAt(branch.latitude!, branch.longitude!),
-            )
-          : null,
-      onTap: branch.key.isEmpty ? null : () => onOpenInvoices(branch.key),
+      trailing: _trailing(
+        context,
+        mapButton: _mapButton(context, branch),
+        actions: actions,
+        onAction: (action) => _onAction(context, action, branch),
+      ),
+      onTap: (branch.key.isEmpty || open == null)
+          ? null
+          : () => open(branch.key),
     );
+  }
+
+  /// A Google Maps branch that is not a delivery branch: outlined, pinned,
+  /// with the actions that make it one or fold it into one.
+  Widget _mapsOnlyTile(BuildContext context, B2bBranch branch) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final maps = branch.maps;
+    final canLink = branch.mapsRow != null;
+    final actions = <PopupMenuEntry<_BranchAction>>[
+      if (canLink && onPromoteMaps != null)
+        _menuItem(
+          _BranchAction.makeDelivery,
+          Icons.add_business_outlined,
+          l10n.b2bBranchMakeDelivery,
+        ),
+      if (canLink && onLinkMaps != null && _freeDelivery.isNotEmpty)
+        _menuItem(
+          _BranchAction.sameAsExisting,
+          Icons.merge_type,
+          l10n.b2bBranchSameAsExisting,
+        ),
+    ];
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsetsDirectional.only(start: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(
+          Icons.location_on_outlined,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        title: Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(branch.displayName),
+            if (maps?.onTalabat ?? false)
+              _chip(
+                context,
+                l10n.b2bBranchOnTalabat,
+                theme.colorScheme.tertiary,
+              ),
+          ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.b2bBranchMapsOnlySubtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            if (maps != null) _mapsLine(context, maps),
+            if ((maps?.address ?? '').isNotEmpty)
+              Text(maps!.address!, style: theme.textTheme.bodySmall),
+          ],
+        ),
+        trailing: _trailing(
+          context,
+          mapButton: _mapButton(context, branch),
+          actions: actions,
+          onAction: (action) => _onAction(context, action, branch),
+        ),
+      ),
+    );
+  }
+
+  /// ★ rating (reviews) · area, led by a linked / auto-matched marker when it
+  /// sits under a delivery branch.
+  Widget _mapsLine(
+    BuildContext context,
+    B2bMapsInfo maps, {
+    bool? autoMatched,
+  }) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final style = theme.textTheme.bodySmall;
+    final area = maps.areaText;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 2,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          if (autoMatched != null)
+            Tooltip(
+              message: autoMatched
+                  ? l10n.b2bBranchMapsAutoMatched
+                  : l10n.b2bBranchMapsLinked,
+              child: _chip(
+                context,
+                autoMatched
+                    ? l10n.b2bBranchMapsAutoMatched
+                    : l10n.b2bBranchMapsLinked,
+                autoMatched
+                    ? theme.colorScheme.secondary
+                    : theme.colorScheme.primary,
+                icon: autoMatched ? Icons.auto_awesome : Icons.link,
+              ),
+            ),
+          if (maps.rating case final rating?)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.star_rounded, size: 14, color: LeadsTheme.gold),
+                const SizedBox(width: 2),
+                Text(
+                  maps.reviews != null
+                      ? '${rating.toStringAsFixed(1)} (${maps.reviews})'
+                      : rating.toStringAsFixed(1),
+                  style: style,
+                ),
+              ],
+            ),
+          if (area.isNotEmpty) Text(area, style: style),
+        ],
+      ),
+    );
+  }
+
+  /// Opens the best pin for the door: the delivery address's own pin, else
+  /// the Google Maps listing (its link, else its coordinates).
+  Widget? _mapButton(BuildContext context, B2bBranch branch) {
+    VoidCallback? open;
+    final maps = branch.maps;
+    final mapsUrl = maps?.mapsUrl?.trim() ?? '';
+    if (branch.hasLocation) {
+      open = () => LeadActions.mapsAt(branch.latitude!, branch.longitude!);
+    } else if (LeadActions.isSafeMapsUrl(mapsUrl)) {
+      open = () => LeadActions.maps(mapsUrl);
+    } else if (maps != null && maps.hasLocation) {
+      open = () => LeadActions.mapsAt(maps.latitude!, maps.longitude!);
+    }
+    if (open == null) return null;
+    return IconButton(
+      tooltip: context.l10n.b2bOpenBranchMap,
+      icon: const Icon(Icons.map_outlined),
+      onPressed: open,
+    );
+  }
+
+  Widget? _trailing(
+    BuildContext context, {
+    required Widget? mapButton,
+    required List<PopupMenuEntry<_BranchAction>> actions,
+    required void Function(_BranchAction action) onAction,
+  }) {
+    if (actions.isEmpty) return mapButton;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (mapButton != null) mapButton,
+        PopupMenuButton<_BranchAction>(
+          tooltip: context.l10n.b2bBranchActions,
+          icon: const Icon(Icons.more_vert),
+          onSelected: onAction,
+          itemBuilder: (_) => actions,
+        ),
+      ],
+    );
+  }
+
+  PopupMenuItem<_BranchAction> _menuItem(
+    _BranchAction value,
+    IconData icon,
+    String label,
+  ) {
+    return PopupMenuItem<_BranchAction>(
+      value: value,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(icon),
+        title: Text(label),
+      ),
+    );
+  }
+
+  Future<void> _onAction(
+    BuildContext context,
+    _BranchAction action,
+    B2bBranch branch,
+  ) async {
+    final l10n = context.l10n;
+    switch (action) {
+      case _BranchAction.unlinkMaps:
+        onUnlinkMaps?.call(branch);
+      case _BranchAction.makeDelivery:
+        onPromoteMaps?.call(branch);
+      case _BranchAction.linkMaps:
+        final picked = await _pickBranch(
+          context,
+          title: l10n.b2bBranchPickMapsTitle,
+          options: _freeMaps,
+        );
+        if (picked != null) onLinkMaps?.call(picked, branch);
+      case _BranchAction.sameAsExisting:
+        final options = _freeDelivery;
+        if (options.isEmpty) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.b2bBranchNoFreeDelivery)));
+          return;
+        }
+        final picked = await _pickBranch(
+          context,
+          title: l10n.b2bBranchPickDeliveryTitle,
+          options: options,
+        );
+        if (picked != null) onLinkMaps?.call(branch, picked);
+    }
+  }
+
+  Future<B2bBranch?> _pickBranch(
+    BuildContext context, {
+    required String title,
+    required List<B2bBranch> options,
+  }) {
+    return showDialog<B2bBranch>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(title),
+        children: [
+          for (final option in options)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, option),
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  option.isMapsOnly
+                      ? Icons.location_on_outlined
+                      : Icons.storefront_outlined,
+                ),
+                title: Text(option.displayName),
+                subtitle: _pickerSubtitle(option),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget? _pickerSubtitle(B2bBranch option) {
+    final text = option.isMapsOnly
+        ? [
+            if (option.maps?.areaText case final area? when area.isNotEmpty)
+              area,
+            if (option.maps?.rating case final rating?)
+              '★ ${rating.toStringAsFixed(1)}',
+          ].join(' · ')
+        : option.addressText;
+    return text.isEmpty ? null : Text(text);
   }
 
   Widget _statsLine(BuildContext context, B2bBranchStats stats) {
@@ -1258,6 +1742,8 @@ class _BranchesSection extends ConsumerWidget {
     );
   }
 }
+
+enum _BranchAction { linkMaps, unlinkMaps, makeDelivery, sameAsExisting }
 
 /// Printed-label stock for this account, one row per flavour, straight off the
 /// account payload. Tapping a row opens the label's own detail screen; an
@@ -1422,7 +1908,9 @@ class _LeadProfileSectionState extends ConsumerState<_LeadProfileSection> {
 }
 
 /// The compact, read-only lead card: score + tier/category/sahel chips, a
-/// metrics row, contact quick-actions, addresses, and a branches summary.
+/// metrics row, contact quick-actions and addresses. The Google Maps branches
+/// are not listed here: they sit in the account's unified branch section,
+/// once each, alongside the delivery branches they match.
 class _LeadProfileCard extends StatelessWidget {
   const _LeadProfileCard({required this.lead});
 
@@ -1432,10 +1920,6 @@ class _LeadProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final metrics = <Widget>[
-      _metric(
-        Icons.storefront_outlined,
-        context.l10n.leadsBranchesCount(lead.branchCount),
-      ),
       if (lead.avgRating != null)
         _metric(
           Icons.star_rounded,
@@ -1527,24 +2011,6 @@ class _LeadProfileCard extends StatelessWidget {
                     context,
                     context.l10n.leadDetailShippingAddress,
                     shippingAddress,
-                  ),
-              ],
-              if (lead.branches.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Text(
-                  context.l10n.leadDetailBranchesCount(lead.branches.length),
-                  style: theme.textTheme.titleSmall,
-                ),
-                const SizedBox(height: 6),
-                for (final branch in lead.branches.take(5))
-                  _branchRow(context, branch),
-                if (lead.branches.length > 5)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      context.l10n.b2bMoreBranches(lead.branches.length - 5),
-                      style: theme.textTheme.bodySmall,
-                    ),
                   ),
               ],
             ],
@@ -1680,49 +2146,6 @@ class _LeadProfileCard extends StatelessWidget {
             ),
           ),
           Text(value, style: theme.textTheme.bodyMedium),
-        ],
-      ),
-    );
-  }
-
-  Widget _branchRow(BuildContext context, LeadBranch branch) {
-    final theme = Theme.of(context);
-    final location = [
-      if (branch.area.trim().isNotEmpty) branch.area,
-      if (branch.region.trim().isNotEmpty) branch.region,
-    ].join(' · ');
-    final hasName = branch.branchName.trim().isNotEmpty;
-    final label = hasName
-        ? (location.isNotEmpty
-              ? '${branch.branchName} — $location'
-              : branch.branchName)
-        : (location.isNotEmpty ? location : '—');
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.storefront_outlined,
-            size: 14,
-            color: LeadsTheme.muted,
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              label,
-              style: theme.textTheme.bodySmall,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          if (branch.rating != null) ...[
-            const Icon(Icons.star_rounded, size: 14, color: LeadsTheme.gold),
-            const SizedBox(width: 2),
-            Text(
-              '${branch.rating!.toStringAsFixed(1)} (${branch.reviews})',
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
         ],
       ),
     );

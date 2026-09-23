@@ -8525,5 +8525,27 @@
   "manufacturingWoStatusInProcess": "In process",
   "manufacturingWoStatusCompleted": "Completed",
   "manufacturingWoStatusStopped": "Stopped",
-  "manufacturingWoStatusCancelled": "Cancelled"
+  "manufacturingWoStatusCancelled": "Cancelled",
+  "b2bBranchMapsLinked": "Linked to Google Maps",
+  "b2bBranchMapsAutoMatched": "Matched automatically",
+  "b2bBranchMapsOnlySubtitle": "On Google Maps — not a delivery branch yet",
+  "b2bBranchActions": "Branch actions",
+  "b2bBranchLinkMaps": "Link a Google Maps branch",
+  "b2bBranchUnlinkMaps": "Unlink Google Maps branch",
+  "b2bBranchMakeDelivery": "Make it a delivery branch",
+  "b2bBranchSameAsExisting": "Same as an existing branch…",
+  "b2bBranchPickMapsTitle": "Which Google Maps branch is this?",
+  "b2bBranchPickDeliveryTitle": "Which delivery branch is this?",
+  "b2bBranchNoFreeDelivery": "Every delivery branch already has a Google Maps branch.",
+  "b2bBranchLinkedDone": "Branches combined",
+  "b2bBranchUnlinkedDone": "Google Maps branch unlinked",
+  "b2bBranchPromotedDone": "{name} is now a delivery branch",
+  "@b2bBranchPromotedDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "b2bBranchOnTalabat": "On Talabat"
 }

@@ -37,6 +37,17 @@ class CustomerShippingAddressDialog extends StatefulWidget {
   final bool requireBranchName;
   final CustomerAddressRepository repository;
 
+  /// Prefill for the "new address" tab (e.g. promoting a Google Maps branch
+  /// to a delivery branch). All optional; when any is set, or when
+  /// [startOnNewAddress] is true, the dialog opens on the new-address tab.
+  final String? initialBranchName;
+  final String? initialNewAddress;
+
+  /// Pin prefilled on the new-address tab. It is sent with the result exactly
+  /// as if staff had pasted it.
+  final LocationLinkValue? initialNewLocation;
+  final bool startOnNewAddress;
+
   const CustomerShippingAddressDialog({
     super.key,
     required this.customerName,
@@ -48,6 +59,10 @@ class CustomerShippingAddressDialog extends StatefulWidget {
     required this.repository,
     this.title,
     this.requireBranchName = false,
+    this.initialBranchName,
+    this.initialNewAddress,
+    this.initialNewLocation,
+    this.startOnNewAddress = false,
   });
 
   /// Stable handles for the two free-text fields. The dialog grew a third
@@ -68,6 +83,10 @@ class CustomerShippingAddressDialog extends StatefulWidget {
     required CustomerAddressRepository repository,
     String? title,
     bool requireBranchName = false,
+    String? initialBranchName,
+    String? initialNewAddress,
+    LocationLinkValue? initialNewLocation,
+    bool startOnNewAddress = false,
   }) {
     return showDialog<Map<String, String>>(
       context: context,
@@ -81,6 +100,10 @@ class CustomerShippingAddressDialog extends StatefulWidget {
         repository: repository,
         title: title,
         requireBranchName: requireBranchName,
+        initialBranchName: initialBranchName,
+        initialNewAddress: initialNewAddress,
+        initialNewLocation: initialNewLocation,
+        startOnNewAddress: startOnNewAddress,
       ),
     );
   }
@@ -153,7 +176,9 @@ class _CustomerShippingAddressDialogState
     _selectedAddressName = widget.initialSelectedAddressName.isNotEmpty
         ? widget.initialSelectedAddressName
         : (_addresses.isNotEmpty ? _addresses.first['name']?.toString() : null);
-    _tab = _addresses.isEmpty ? _Tab.addNew : _Tab.saved;
+    _tab = (_addresses.isEmpty || _opensOnNewAddress)
+        ? _Tab.addNew
+        : _Tab.saved;
 
     final selectedAddress = _addresses.cast<Map<String, dynamic>?>().firstWhere(
       (a) => a?['name']?.toString() == _selectedAddressName,
@@ -165,12 +190,31 @@ class _CustomerShippingAddressDialogState
         : widget.initialPhone;
 
     _phoneController = TextEditingController(text: initialPhone);
-    _newAddressController = TextEditingController();
-    _branchNameController = TextEditingController();
+    _newAddressController = TextEditingController(
+      text: widget.initialNewAddress?.trim() ?? '',
+    );
+    _branchNameController = TextEditingController(
+      text: widget.initialBranchName?.trim() ?? '',
+    );
     _newLine2Controller = TextEditingController();
     _newPincodeController = TextEditingController();
-    _location = _locationOf(selectedAddress);
+    if (_tab == _Tab.addNew) {
+      _location = _initialNewLocation;
+      // A prefilled pin is meant to be saved, so it counts as touched.
+      _locationDirty = !_location.isEmpty;
+    } else {
+      _location = _locationOf(selectedAddress);
+    }
   }
+
+  bool get _opensOnNewAddress =>
+      widget.startOnNewAddress ||
+      (widget.initialBranchName?.trim().isNotEmpty ?? false) ||
+      (widget.initialNewAddress?.trim().isNotEmpty ?? false) ||
+      !(widget.initialNewLocation?.isEmpty ?? true);
+
+  LocationLinkValue get _initialNewLocation =>
+      widget.initialNewLocation ?? LocationLinkValue.empty;
 
   /// Existing pin on a saved address, when the backend sends one.
   ///
@@ -249,9 +293,9 @@ class _CustomerShippingAddressDialogState
       // A brand-new address starts with no pin; the saved tab shows the pin of
       // whichever address is selected.
       _location = tab == _Tab.addNew
-          ? LocationLinkValue.empty
+          ? _initialNewLocation
           : _locationOf(selected);
-      _locationDirty = false;
+      _locationDirty = tab == _Tab.addNew && !_location.isEmpty;
     });
   }
 

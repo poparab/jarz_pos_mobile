@@ -593,6 +593,7 @@ abstract final class ApiEndpoints {
   static const b2bPreviewMergeAsBranch =
       '/api/method/jarz_pos.api.crm.preview_merge_as_branch';
   static const b2bMergeAsBranch = '/api/method/jarz_pos.api.crm.merge_as_branch';
+  static const b2bLinkBranch = '/api/method/jarz_pos.api.crm.link_branch';
 
   // ── Pricing (Price Lists) ─────────────────────────────────────────────
   static const getPriceLists =

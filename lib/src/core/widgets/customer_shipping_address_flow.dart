@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../features/geo/presentation/widgets/location_link_field.dart'
+    show LocationLinkValue;
 import '../localization/localization_extensions.dart';
 import '../repositories/customer_address_repository.dart';
 import 'customer_shipping_address_dialog.dart';
@@ -7,6 +9,10 @@ import 'customer_shipping_address_dialog.dart';
 /// Loads and selects a standard Customer shipping Address, then returns the
 /// customer map shape consumed by POS invoice creation. B2B callers can require
 /// named branches and keep the Customer primary address unchanged.
+///
+/// [initialBranchName], [initialNewAddress] and [initialNewLocation] prefill
+/// the dialog's new-address tab and open it there (the picker is always
+/// shown when any of them is set).
 Future<Map<String, dynamic>?> chooseCustomerShippingAddress(
   BuildContext context, {
   required Map<String, dynamic> customer,
@@ -15,6 +21,9 @@ Future<Map<String, dynamic>?> chooseCustomerShippingAddress(
   bool forcePicker = false,
   bool requireBranchName = false,
   bool setAsPrimary = true,
+  String? initialBranchName,
+  String? initialNewAddress,
+  LocationLinkValue? initialNewLocation,
 }) async {
   final customerId = customer['name']?.toString().trim() ?? '';
   if (customerId.isEmpty) return null;
@@ -43,7 +52,13 @@ Future<Map<String, dynamic>?> chooseCustomerShippingAddress(
   final addresses = _selectableAddresses(addressBook);
   Map<String, String>? selection;
 
+  final hasPrefill =
+      (initialBranchName?.trim().isNotEmpty ?? false) ||
+      (initialNewAddress?.trim().isNotEmpty ?? false) ||
+      !(initialNewLocation?.isEmpty ?? true);
+
   if (!forcePicker &&
+      !hasPrefill &&
       addresses.length == 1 &&
       !_asBool(addresses.single['territory_missing'])) {
     final only = addresses.single;
@@ -75,6 +90,9 @@ Future<Map<String, dynamic>?> chooseCustomerShippingAddress(
           '',
       repository: repository,
       requireBranchName: requireBranchName,
+      initialBranchName: initialBranchName,
+      initialNewAddress: initialNewAddress,
+      initialNewLocation: initialNewLocation,
     );
     if (selection == null || !context.mounted) return null;
   }

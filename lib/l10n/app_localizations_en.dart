@@ -14887,4 +14887,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manufacturingWoStatusCancelled => 'Cancelled';
+
+  @override
+  String get b2bBranchMapsLinked => 'Linked to Google Maps';
+
+  @override
+  String get b2bBranchMapsAutoMatched => 'Matched automatically';
+
+  @override
+  String get b2bBranchMapsOnlySubtitle =>
+      'On Google Maps — not a delivery branch yet';
+
+  @override
+  String get b2bBranchActions => 'Branch actions';
+
+  @override
+  String get b2bBranchLinkMaps => 'Link a Google Maps branch';
+
+  @override
+  String get b2bBranchUnlinkMaps => 'Unlink Google Maps branch';
+
+  @override
+  String get b2bBranchMakeDelivery => 'Make it a delivery branch';
+
+  @override
+  String get b2bBranchSameAsExisting => 'Same as an existing branch…';
+
+  @override
+  String get b2bBranchPickMapsTitle => 'Which Google Maps branch is this?';
+
+  @override
+  String get b2bBranchPickDeliveryTitle => 'Which delivery branch is this?';
+
+  @override
+  String get b2bBranchNoFreeDelivery =>
+      'Every delivery branch already has a Google Maps branch.';
+
+  @override
+  String get b2bBranchLinkedDone => 'Branches combined';
+
+  @override
+  String get b2bBranchUnlinkedDone => 'Google Maps branch unlinked';
+
+  @override
+  String b2bBranchPromotedDone(String name) {
+    return '$name is now a delivery branch';
+  }
+
+  @override
+  String get b2bBranchOnTalabat => 'On Talabat';
 }

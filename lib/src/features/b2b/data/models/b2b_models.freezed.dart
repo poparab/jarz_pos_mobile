@@ -1664,6 +1664,489 @@ abstract class _B2bBranchStats implements B2bBranchStats {
       throw _privateConstructorUsedError;
 }
 
+B2bMapsInfo _$B2bMapsInfoFromJson(Map<String, dynamic> json) {
+  return _B2bMapsInfo.fromJson(json);
+}
+
+/// @nodoc
+mixin _$B2bMapsInfo {
+  /// The Lead branch-table row id the link endpoint is keyed on.
+  @_NullableStringConverter()
+  String? get row => throw _privateConstructorUsedError;
+  @JsonKey(name: 'branch_name')
+  @_NullableStringConverter()
+  String? get branchName => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get area => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get region => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get governorate => throw _privateConstructorUsedError;
+  @_NullableDoubleConverter()
+  double? get rating => throw _privateConstructorUsedError;
+  @_NullableIntConverter()
+  int? get reviews => throw _privateConstructorUsedError;
+  @JsonKey(name: 'maps_url')
+  @_NullableStringConverter()
+  String? get mapsUrl => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get phone => throw _privateConstructorUsedError;
+  @_NullableStringConverter()
+  String? get address => throw _privateConstructorUsedError;
+  @_NullableDoubleConverter()
+  double? get latitude => throw _privateConstructorUsedError;
+  @_NullableDoubleConverter()
+  double? get longitude => throw _privateConstructorUsedError;
+  @JsonKey(name: 'on_talabat')
+  @_BoolConverter()
+  bool get onTalabat => throw _privateConstructorUsedError;
+
+  /// Serializes this B2bMapsInfo to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of B2bMapsInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $B2bMapsInfoCopyWith<B2bMapsInfo> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $B2bMapsInfoCopyWith<$Res> {
+  factory $B2bMapsInfoCopyWith(
+    B2bMapsInfo value,
+    $Res Function(B2bMapsInfo) then,
+  ) = _$B2bMapsInfoCopyWithImpl<$Res, B2bMapsInfo>;
+  @useResult
+  $Res call({
+    @_NullableStringConverter() String? row,
+    @JsonKey(name: 'branch_name')
+    @_NullableStringConverter()
+    String? branchName,
+    @_NullableStringConverter() String? area,
+    @_NullableStringConverter() String? region,
+    @_NullableStringConverter() String? governorate,
+    @_NullableDoubleConverter() double? rating,
+    @_NullableIntConverter() int? reviews,
+    @JsonKey(name: 'maps_url') @_NullableStringConverter() String? mapsUrl,
+    @_NullableStringConverter() String? phone,
+    @_NullableStringConverter() String? address,
+    @_NullableDoubleConverter() double? latitude,
+    @_NullableDoubleConverter() double? longitude,
+    @JsonKey(name: 'on_talabat') @_BoolConverter() bool onTalabat,
+  });
+}
+
+/// @nodoc
+class _$B2bMapsInfoCopyWithImpl<$Res, $Val extends B2bMapsInfo>
+    implements $B2bMapsInfoCopyWith<$Res> {
+  _$B2bMapsInfoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of B2bMapsInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? row = freezed,
+    Object? branchName = freezed,
+    Object? area = freezed,
+    Object? region = freezed,
+    Object? governorate = freezed,
+    Object? rating = freezed,
+    Object? reviews = freezed,
+    Object? mapsUrl = freezed,
+    Object? phone = freezed,
+    Object? address = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? onTalabat = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            row: freezed == row
+                ? _value.row
+                : row // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            branchName: freezed == branchName
+                ? _value.branchName
+                : branchName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            area: freezed == area
+                ? _value.area
+                : area // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            region: freezed == region
+                ? _value.region
+                : region // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            governorate: freezed == governorate
+                ? _value.governorate
+                : governorate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            rating: freezed == rating
+                ? _value.rating
+                : rating // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            reviews: freezed == reviews
+                ? _value.reviews
+                : reviews // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            mapsUrl: freezed == mapsUrl
+                ? _value.mapsUrl
+                : mapsUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            phone: freezed == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            address: freezed == address
+                ? _value.address
+                : address // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            latitude: freezed == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            longitude: freezed == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            onTalabat: null == onTalabat
+                ? _value.onTalabat
+                : onTalabat // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$B2bMapsInfoImplCopyWith<$Res>
+    implements $B2bMapsInfoCopyWith<$Res> {
+  factory _$$B2bMapsInfoImplCopyWith(
+    _$B2bMapsInfoImpl value,
+    $Res Function(_$B2bMapsInfoImpl) then,
+  ) = __$$B2bMapsInfoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @_NullableStringConverter() String? row,
+    @JsonKey(name: 'branch_name')
+    @_NullableStringConverter()
+    String? branchName,
+    @_NullableStringConverter() String? area,
+    @_NullableStringConverter() String? region,
+    @_NullableStringConverter() String? governorate,
+    @_NullableDoubleConverter() double? rating,
+    @_NullableIntConverter() int? reviews,
+    @JsonKey(name: 'maps_url') @_NullableStringConverter() String? mapsUrl,
+    @_NullableStringConverter() String? phone,
+    @_NullableStringConverter() String? address,
+    @_NullableDoubleConverter() double? latitude,
+    @_NullableDoubleConverter() double? longitude,
+    @JsonKey(name: 'on_talabat') @_BoolConverter() bool onTalabat,
+  });
+}
+
+/// @nodoc
+class __$$B2bMapsInfoImplCopyWithImpl<$Res>
+    extends _$B2bMapsInfoCopyWithImpl<$Res, _$B2bMapsInfoImpl>
+    implements _$$B2bMapsInfoImplCopyWith<$Res> {
+  __$$B2bMapsInfoImplCopyWithImpl(
+    _$B2bMapsInfoImpl _value,
+    $Res Function(_$B2bMapsInfoImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of B2bMapsInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? row = freezed,
+    Object? branchName = freezed,
+    Object? area = freezed,
+    Object? region = freezed,
+    Object? governorate = freezed,
+    Object? rating = freezed,
+    Object? reviews = freezed,
+    Object? mapsUrl = freezed,
+    Object? phone = freezed,
+    Object? address = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? onTalabat = null,
+  }) {
+    return _then(
+      _$B2bMapsInfoImpl(
+        row: freezed == row
+            ? _value.row
+            : row // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        branchName: freezed == branchName
+            ? _value.branchName
+            : branchName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        area: freezed == area
+            ? _value.area
+            : area // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        region: freezed == region
+            ? _value.region
+            : region // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        governorate: freezed == governorate
+            ? _value.governorate
+            : governorate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        rating: freezed == rating
+            ? _value.rating
+            : rating // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        reviews: freezed == reviews
+            ? _value.reviews
+            : reviews // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        mapsUrl: freezed == mapsUrl
+            ? _value.mapsUrl
+            : mapsUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        phone: freezed == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        address: freezed == address
+            ? _value.address
+            : address // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        latitude: freezed == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        longitude: freezed == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        onTalabat: null == onTalabat
+            ? _value.onTalabat
+            : onTalabat // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$B2bMapsInfoImpl extends _B2bMapsInfo {
+  const _$B2bMapsInfoImpl({
+    @_NullableStringConverter() this.row,
+    @JsonKey(name: 'branch_name') @_NullableStringConverter() this.branchName,
+    @_NullableStringConverter() this.area,
+    @_NullableStringConverter() this.region,
+    @_NullableStringConverter() this.governorate,
+    @_NullableDoubleConverter() this.rating,
+    @_NullableIntConverter() this.reviews,
+    @JsonKey(name: 'maps_url') @_NullableStringConverter() this.mapsUrl,
+    @_NullableStringConverter() this.phone,
+    @_NullableStringConverter() this.address,
+    @_NullableDoubleConverter() this.latitude,
+    @_NullableDoubleConverter() this.longitude,
+    @JsonKey(name: 'on_talabat') @_BoolConverter() this.onTalabat = false,
+  }) : super._();
+
+  factory _$B2bMapsInfoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$B2bMapsInfoImplFromJson(json);
+
+  /// The Lead branch-table row id the link endpoint is keyed on.
+  @override
+  @_NullableStringConverter()
+  final String? row;
+  @override
+  @JsonKey(name: 'branch_name')
+  @_NullableStringConverter()
+  final String? branchName;
+  @override
+  @_NullableStringConverter()
+  final String? area;
+  @override
+  @_NullableStringConverter()
+  final String? region;
+  @override
+  @_NullableStringConverter()
+  final String? governorate;
+  @override
+  @_NullableDoubleConverter()
+  final double? rating;
+  @override
+  @_NullableIntConverter()
+  final int? reviews;
+  @override
+  @JsonKey(name: 'maps_url')
+  @_NullableStringConverter()
+  final String? mapsUrl;
+  @override
+  @_NullableStringConverter()
+  final String? phone;
+  @override
+  @_NullableStringConverter()
+  final String? address;
+  @override
+  @_NullableDoubleConverter()
+  final double? latitude;
+  @override
+  @_NullableDoubleConverter()
+  final double? longitude;
+  @override
+  @JsonKey(name: 'on_talabat')
+  @_BoolConverter()
+  final bool onTalabat;
+
+  @override
+  String toString() {
+    return 'B2bMapsInfo(row: $row, branchName: $branchName, area: $area, region: $region, governorate: $governorate, rating: $rating, reviews: $reviews, mapsUrl: $mapsUrl, phone: $phone, address: $address, latitude: $latitude, longitude: $longitude, onTalabat: $onTalabat)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$B2bMapsInfoImpl &&
+            (identical(other.row, row) || other.row == row) &&
+            (identical(other.branchName, branchName) ||
+                other.branchName == branchName) &&
+            (identical(other.area, area) || other.area == area) &&
+            (identical(other.region, region) || other.region == region) &&
+            (identical(other.governorate, governorate) ||
+                other.governorate == governorate) &&
+            (identical(other.rating, rating) || other.rating == rating) &&
+            (identical(other.reviews, reviews) || other.reviews == reviews) &&
+            (identical(other.mapsUrl, mapsUrl) || other.mapsUrl == mapsUrl) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.onTalabat, onTalabat) ||
+                other.onTalabat == onTalabat));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    row,
+    branchName,
+    area,
+    region,
+    governorate,
+    rating,
+    reviews,
+    mapsUrl,
+    phone,
+    address,
+    latitude,
+    longitude,
+    onTalabat,
+  );
+
+  /// Create a copy of B2bMapsInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$B2bMapsInfoImplCopyWith<_$B2bMapsInfoImpl> get copyWith =>
+      __$$B2bMapsInfoImplCopyWithImpl<_$B2bMapsInfoImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$B2bMapsInfoImplToJson(this);
+  }
+}
+
+abstract class _B2bMapsInfo extends B2bMapsInfo {
+  const factory _B2bMapsInfo({
+    @_NullableStringConverter() final String? row,
+    @JsonKey(name: 'branch_name')
+    @_NullableStringConverter()
+    final String? branchName,
+    @_NullableStringConverter() final String? area,
+    @_NullableStringConverter() final String? region,
+    @_NullableStringConverter() final String? governorate,
+    @_NullableDoubleConverter() final double? rating,
+    @_NullableIntConverter() final int? reviews,
+    @JsonKey(name: 'maps_url')
+    @_NullableStringConverter()
+    final String? mapsUrl,
+    @_NullableStringConverter() final String? phone,
+    @_NullableStringConverter() final String? address,
+    @_NullableDoubleConverter() final double? latitude,
+    @_NullableDoubleConverter() final double? longitude,
+    @JsonKey(name: 'on_talabat') @_BoolConverter() final bool onTalabat,
+  }) = _$B2bMapsInfoImpl;
+  const _B2bMapsInfo._() : super._();
+
+  factory _B2bMapsInfo.fromJson(Map<String, dynamic> json) =
+      _$B2bMapsInfoImpl.fromJson;
+
+  /// The Lead branch-table row id the link endpoint is keyed on.
+  @override
+  @_NullableStringConverter()
+  String? get row;
+  @override
+  @JsonKey(name: 'branch_name')
+  @_NullableStringConverter()
+  String? get branchName;
+  @override
+  @_NullableStringConverter()
+  String? get area;
+  @override
+  @_NullableStringConverter()
+  String? get region;
+  @override
+  @_NullableStringConverter()
+  String? get governorate;
+  @override
+  @_NullableDoubleConverter()
+  double? get rating;
+  @override
+  @_NullableIntConverter()
+  int? get reviews;
+  @override
+  @JsonKey(name: 'maps_url')
+  @_NullableStringConverter()
+  String? get mapsUrl;
+  @override
+  @_NullableStringConverter()
+  String? get phone;
+  @override
+  @_NullableStringConverter()
+  String? get address;
+  @override
+  @_NullableDoubleConverter()
+  double? get latitude;
+  @override
+  @_NullableDoubleConverter()
+  double? get longitude;
+  @override
+  @JsonKey(name: 'on_talabat')
+  @_BoolConverter()
+  bool get onTalabat;
+
+  /// Create a copy of B2bMapsInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$B2bMapsInfoImplCopyWith<_$B2bMapsInfoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 B2bBranch _$B2bBranchFromJson(Map<String, dynamic> json) {
   return _B2bBranch.fromJson(json);
 }
@@ -1713,6 +2196,20 @@ mixin _$B2bBranch {
   @_NullableStringConverter()
   String? get lastOrderDate => throw _privateConstructorUsedError;
 
+  /// `"address"` (a delivery branch) or `"maps"` (Google Maps only).
+  @_BranchSourceConverter()
+  String get source => throw _privateConstructorUsedError;
+
+  /// The Google Maps listing for this door, when one is known.
+  @_MapsInfoConverter()
+  B2bMapsInfo? get maps => throw _privateConstructorUsedError;
+
+  /// How [maps] got attached to a delivery branch: `"linked"` (a rep chose
+  /// it) or `"auto"` (matched by name / pin). Null for maps-only entries.
+  @JsonKey(name: 'maps_match')
+  @_NullableStringConverter()
+  String? get mapsMatch => throw _privateConstructorUsedError;
+
   /// Serializes this B2bBranch to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -1759,7 +2256,12 @@ abstract class $B2bBranchCopyWith<$Res> {
     @JsonKey(name: 'last_order_date')
     @_NullableStringConverter()
     String? lastOrderDate,
+    @_BranchSourceConverter() String source,
+    @_MapsInfoConverter() B2bMapsInfo? maps,
+    @JsonKey(name: 'maps_match') @_NullableStringConverter() String? mapsMatch,
   });
+
+  $B2bMapsInfoCopyWith<$Res>? get maps;
 }
 
 /// @nodoc
@@ -1793,6 +2295,9 @@ class _$B2bBranchCopyWithImpl<$Res, $Val extends B2bBranch>
     Object? totalBilled = null,
     Object? outstanding = null,
     Object? lastOrderDate = freezed,
+    Object? source = null,
+    Object? maps = freezed,
+    Object? mapsMatch = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -1860,9 +2365,35 @@ class _$B2bBranchCopyWithImpl<$Res, $Val extends B2bBranch>
                 ? _value.lastOrderDate
                 : lastOrderDate // ignore: cast_nullable_to_non_nullable
                       as String?,
+            source: null == source
+                ? _value.source
+                : source // ignore: cast_nullable_to_non_nullable
+                      as String,
+            maps: freezed == maps
+                ? _value.maps
+                : maps // ignore: cast_nullable_to_non_nullable
+                      as B2bMapsInfo?,
+            mapsMatch: freezed == mapsMatch
+                ? _value.mapsMatch
+                : mapsMatch // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of B2bBranch
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $B2bMapsInfoCopyWith<$Res>? get maps {
+    if (_value.maps == null) {
+      return null;
+    }
+
+    return $B2bMapsInfoCopyWith<$Res>(_value.maps!, (value) {
+      return _then(_value.copyWith(maps: value) as $Val);
+    });
   }
 }
 
@@ -1906,7 +2437,13 @@ abstract class _$$B2bBranchImplCopyWith<$Res>
     @JsonKey(name: 'last_order_date')
     @_NullableStringConverter()
     String? lastOrderDate,
+    @_BranchSourceConverter() String source,
+    @_MapsInfoConverter() B2bMapsInfo? maps,
+    @JsonKey(name: 'maps_match') @_NullableStringConverter() String? mapsMatch,
   });
+
+  @override
+  $B2bMapsInfoCopyWith<$Res>? get maps;
 }
 
 /// @nodoc
@@ -1939,6 +2476,9 @@ class __$$B2bBranchImplCopyWithImpl<$Res>
     Object? totalBilled = null,
     Object? outstanding = null,
     Object? lastOrderDate = freezed,
+    Object? source = null,
+    Object? maps = freezed,
+    Object? mapsMatch = freezed,
   }) {
     return _then(
       _$B2bBranchImpl(
@@ -2006,6 +2546,18 @@ class __$$B2bBranchImplCopyWithImpl<$Res>
             ? _value.lastOrderDate
             : lastOrderDate // ignore: cast_nullable_to_non_nullable
                   as String?,
+        source: null == source
+            ? _value.source
+            : source // ignore: cast_nullable_to_non_nullable
+                  as String,
+        maps: freezed == maps
+            ? _value.maps
+            : maps // ignore: cast_nullable_to_non_nullable
+                  as B2bMapsInfo?,
+        mapsMatch: freezed == mapsMatch
+            ? _value.mapsMatch
+            : mapsMatch // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -2043,6 +2595,9 @@ class _$B2bBranchImpl extends _B2bBranch {
     @JsonKey(name: 'last_order_date')
     @_NullableStringConverter()
     this.lastOrderDate,
+    @_BranchSourceConverter() this.source = 'address',
+    @_MapsInfoConverter() this.maps,
+    @JsonKey(name: 'maps_match') @_NullableStringConverter() this.mapsMatch,
   }) : _memberAddressNames = memberAddressNames,
        super._();
 
@@ -2116,9 +2671,27 @@ class _$B2bBranchImpl extends _B2bBranch {
   @_NullableStringConverter()
   final String? lastOrderDate;
 
+  /// `"address"` (a delivery branch) or `"maps"` (Google Maps only).
+  @override
+  @JsonKey()
+  @_BranchSourceConverter()
+  final String source;
+
+  /// The Google Maps listing for this door, when one is known.
+  @override
+  @_MapsInfoConverter()
+  final B2bMapsInfo? maps;
+
+  /// How [maps] got attached to a delivery branch: `"linked"` (a rep chose
+  /// it) or `"auto"` (matched by name / pin). Null for maps-only entries.
+  @override
+  @JsonKey(name: 'maps_match')
+  @_NullableStringConverter()
+  final String? mapsMatch;
+
   @override
   String toString() {
-    return 'B2bBranch(addressName: $addressName, branchName: $branchName, addressLine1: $addressLine1, addressLine2: $addressLine2, city: $city, phone: $phone, territory: $territory, territoryMissing: $territoryMissing, isPrimaryAddress: $isPrimaryAddress, latitude: $latitude, longitude: $longitude, memberAddressNames: $memberAddressNames, invoiceCount: $invoiceCount, totalBilled: $totalBilled, outstanding: $outstanding, lastOrderDate: $lastOrderDate)';
+    return 'B2bBranch(addressName: $addressName, branchName: $branchName, addressLine1: $addressLine1, addressLine2: $addressLine2, city: $city, phone: $phone, territory: $territory, territoryMissing: $territoryMissing, isPrimaryAddress: $isPrimaryAddress, latitude: $latitude, longitude: $longitude, memberAddressNames: $memberAddressNames, invoiceCount: $invoiceCount, totalBilled: $totalBilled, outstanding: $outstanding, lastOrderDate: $lastOrderDate, source: $source, maps: $maps, mapsMatch: $mapsMatch)';
   }
 
   @override
@@ -2157,12 +2730,16 @@ class _$B2bBranchImpl extends _B2bBranch {
             (identical(other.outstanding, outstanding) ||
                 other.outstanding == outstanding) &&
             (identical(other.lastOrderDate, lastOrderDate) ||
-                other.lastOrderDate == lastOrderDate));
+                other.lastOrderDate == lastOrderDate) &&
+            (identical(other.source, source) || other.source == source) &&
+            (identical(other.maps, maps) || other.maps == maps) &&
+            (identical(other.mapsMatch, mapsMatch) ||
+                other.mapsMatch == mapsMatch));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     addressName,
     branchName,
@@ -2180,7 +2757,10 @@ class _$B2bBranchImpl extends _B2bBranch {
     totalBilled,
     outstanding,
     lastOrderDate,
-  );
+    source,
+    maps,
+    mapsMatch,
+  ]);
 
   /// Create a copy of B2bBranch
   /// with the given fields replaced by the non-null parameter values.
@@ -2230,6 +2810,11 @@ abstract class _B2bBranch extends B2bBranch {
     @JsonKey(name: 'last_order_date')
     @_NullableStringConverter()
     final String? lastOrderDate,
+    @_BranchSourceConverter() final String source,
+    @_MapsInfoConverter() final B2bMapsInfo? maps,
+    @JsonKey(name: 'maps_match')
+    @_NullableStringConverter()
+    final String? mapsMatch,
   }) = _$B2bBranchImpl;
   const _B2bBranch._() : super._();
 
@@ -2294,6 +2879,23 @@ abstract class _B2bBranch extends B2bBranch {
   @JsonKey(name: 'last_order_date')
   @_NullableStringConverter()
   String? get lastOrderDate;
+
+  /// `"address"` (a delivery branch) or `"maps"` (Google Maps only).
+  @override
+  @_BranchSourceConverter()
+  String get source;
+
+  /// The Google Maps listing for this door, when one is known.
+  @override
+  @_MapsInfoConverter()
+  B2bMapsInfo? get maps;
+
+  /// How [maps] got attached to a delivery branch: `"linked"` (a rep chose
+  /// it) or `"auto"` (matched by name / pin). Null for maps-only entries.
+  @override
+  @JsonKey(name: 'maps_match')
+  @_NullableStringConverter()
+  String? get mapsMatch;
 
   /// Create a copy of B2bBranch
   /// with the given fields replaced by the non-null parameter values.
@@ -4497,13 +5099,21 @@ mixin _$B2bAccount {
   @JsonKey(name: 'open_todos')
   List<B2bTodo> get openTodos => throw _privateConstructorUsedError;
 
-  /// The linked Customer's branches (named shipping Addresses) with their
-  /// own invoice totals. Empty with no Customer or on an older server.
+  /// Every door of the shop, once each: the linked Customer's branches
+  /// (named shipping Addresses, with their own invoice totals and any matched
+  /// Google Maps listing) first, then the Lead's Google Maps branches that
+  /// are not delivery branches yet. Empty on an older server.
   List<B2bBranch> get branches => throw _privateConstructorUsedError;
 
   /// Totals for the invoices that match no branch; null when there are none.
   @JsonKey(name: 'unassigned_invoices')
   B2bBranchStats? get unassignedInvoices => throw _privateConstructorUsedError;
+
+  /// The Lead whose Google Maps branches were folded into [branches] (the
+  /// account itself for a Lead, the linked Lead for a Customer). Null when
+  /// there is none or on an older server.
+  @JsonKey(name: 'branch_lead')
+  String? get branchLead => throw _privateConstructorUsedError;
 
   /// The rep's dated field diary for this account, newest touch first. The
   /// account screen renders it through the shared journey timeline, which
@@ -4542,6 +5152,7 @@ abstract class $B2bAccountCopyWith<$Res> {
     @JsonKey(name: 'open_todos') List<B2bTodo> openTodos,
     List<B2bBranch> branches,
     @JsonKey(name: 'unassigned_invoices') B2bBranchStats? unassignedInvoices,
+    @JsonKey(name: 'branch_lead') String? branchLead,
     @JsonKey(name: 'journey_notes') List<JourneyNote> journeyNotes,
   });
 
@@ -4577,6 +5188,7 @@ class _$B2bAccountCopyWithImpl<$Res, $Val extends B2bAccount>
     Object? openTodos = null,
     Object? branches = null,
     Object? unassignedInvoices = freezed,
+    Object? branchLead = freezed,
     Object? journeyNotes = null,
   }) {
     return _then(
@@ -4633,6 +5245,10 @@ class _$B2bAccountCopyWithImpl<$Res, $Val extends B2bAccount>
                 ? _value.unassignedInvoices
                 : unassignedInvoices // ignore: cast_nullable_to_non_nullable
                       as B2bBranchStats?,
+            branchLead: freezed == branchLead
+                ? _value.branchLead
+                : branchLead // ignore: cast_nullable_to_non_nullable
+                      as String?,
             journeyNotes: null == journeyNotes
                 ? _value.journeyNotes
                 : journeyNotes // ignore: cast_nullable_to_non_nullable
@@ -4690,6 +5306,7 @@ abstract class _$$B2bAccountImplCopyWith<$Res>
     @JsonKey(name: 'open_todos') List<B2bTodo> openTodos,
     List<B2bBranch> branches,
     @JsonKey(name: 'unassigned_invoices') B2bBranchStats? unassignedInvoices,
+    @JsonKey(name: 'branch_lead') String? branchLead,
     @JsonKey(name: 'journey_notes') List<JourneyNote> journeyNotes,
   });
 
@@ -4726,6 +5343,7 @@ class __$$B2bAccountImplCopyWithImpl<$Res>
     Object? openTodos = null,
     Object? branches = null,
     Object? unassignedInvoices = freezed,
+    Object? branchLead = freezed,
     Object? journeyNotes = null,
   }) {
     return _then(
@@ -4782,6 +5400,10 @@ class __$$B2bAccountImplCopyWithImpl<$Res>
             ? _value.unassignedInvoices
             : unassignedInvoices // ignore: cast_nullable_to_non_nullable
                   as B2bBranchStats?,
+        branchLead: freezed == branchLead
+            ? _value.branchLead
+            : branchLead // ignore: cast_nullable_to_non_nullable
+                  as String?,
         journeyNotes: null == journeyNotes
             ? _value._journeyNotes
             : journeyNotes // ignore: cast_nullable_to_non_nullable
@@ -4793,7 +5415,7 @@ class __$$B2bAccountImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$B2bAccountImpl implements _B2bAccount {
+class _$B2bAccountImpl extends _B2bAccount {
   const _$B2bAccountImpl({
     required this.doctype,
     required this.name,
@@ -4810,12 +5432,14 @@ class _$B2bAccountImpl implements _B2bAccount {
     final List<B2bTodo> openTodos = const <B2bTodo>[],
     final List<B2bBranch> branches = const <B2bBranch>[],
     @JsonKey(name: 'unassigned_invoices') this.unassignedInvoices,
+    @JsonKey(name: 'branch_lead') this.branchLead,
     @JsonKey(name: 'journey_notes')
     final List<JourneyNote> journeyNotes = const <JourneyNote>[],
   }) : _recentInvoices = recentInvoices,
        _openTodos = openTodos,
        _branches = branches,
-       _journeyNotes = journeyNotes;
+       _journeyNotes = journeyNotes,
+       super._();
 
   factory _$B2bAccountImpl.fromJson(Map<String, dynamic> json) =>
       _$$B2bAccountImplFromJson(json);
@@ -4860,12 +5484,16 @@ class _$B2bAccountImpl implements _B2bAccount {
     return EqualUnmodifiableListView(_openTodos);
   }
 
-  /// The linked Customer's branches (named shipping Addresses) with their
-  /// own invoice totals. Empty with no Customer or on an older server.
+  /// Every door of the shop, once each: the linked Customer's branches
+  /// (named shipping Addresses, with their own invoice totals and any matched
+  /// Google Maps listing) first, then the Lead's Google Maps branches that
+  /// are not delivery branches yet. Empty on an older server.
   final List<B2bBranch> _branches;
 
-  /// The linked Customer's branches (named shipping Addresses) with their
-  /// own invoice totals. Empty with no Customer or on an older server.
+  /// Every door of the shop, once each: the linked Customer's branches
+  /// (named shipping Addresses, with their own invoice totals and any matched
+  /// Google Maps listing) first, then the Lead's Google Maps branches that
+  /// are not delivery branches yet. Empty on an older server.
   @override
   @JsonKey()
   List<B2bBranch> get branches {
@@ -4878,6 +5506,13 @@ class _$B2bAccountImpl implements _B2bAccount {
   @override
   @JsonKey(name: 'unassigned_invoices')
   final B2bBranchStats? unassignedInvoices;
+
+  /// The Lead whose Google Maps branches were folded into [branches] (the
+  /// account itself for a Lead, the linked Lead for a Customer). Null when
+  /// there is none or on an older server.
+  @override
+  @JsonKey(name: 'branch_lead')
+  final String? branchLead;
 
   /// The rep's dated field diary for this account, newest touch first. The
   /// account screen renders it through the shared journey timeline, which
@@ -4897,7 +5532,7 @@ class _$B2bAccountImpl implements _B2bAccount {
 
   @override
   String toString() {
-    return 'B2bAccount(doctype: $doctype, name: $name, title: $title, stage: $stage, owner: $owner, contact: $contact, customer: $customer, predictedNextOrder: $predictedNextOrder, avgOrderCycleDays: $avgOrderCycleDays, recentInvoices: $recentInvoices, openTodos: $openTodos, branches: $branches, unassignedInvoices: $unassignedInvoices, journeyNotes: $journeyNotes)';
+    return 'B2bAccount(doctype: $doctype, name: $name, title: $title, stage: $stage, owner: $owner, contact: $contact, customer: $customer, predictedNextOrder: $predictedNextOrder, avgOrderCycleDays: $avgOrderCycleDays, recentInvoices: $recentInvoices, openTodos: $openTodos, branches: $branches, unassignedInvoices: $unassignedInvoices, branchLead: $branchLead, journeyNotes: $journeyNotes)';
   }
 
   @override
@@ -4928,6 +5563,8 @@ class _$B2bAccountImpl implements _B2bAccount {
             const DeepCollectionEquality().equals(other._branches, _branches) &&
             (identical(other.unassignedInvoices, unassignedInvoices) ||
                 other.unassignedInvoices == unassignedInvoices) &&
+            (identical(other.branchLead, branchLead) ||
+                other.branchLead == branchLead) &&
             const DeepCollectionEquality().equals(
               other._journeyNotes,
               _journeyNotes,
@@ -4951,6 +5588,7 @@ class _$B2bAccountImpl implements _B2bAccount {
     const DeepCollectionEquality().hash(_openTodos),
     const DeepCollectionEquality().hash(_branches),
     unassignedInvoices,
+    branchLead,
     const DeepCollectionEquality().hash(_journeyNotes),
   );
 
@@ -4968,7 +5606,7 @@ class _$B2bAccountImpl implements _B2bAccount {
   }
 }
 
-abstract class _B2bAccount implements B2bAccount {
+abstract class _B2bAccount extends B2bAccount {
   const factory _B2bAccount({
     required final String doctype,
     required final String name,
@@ -4985,8 +5623,10 @@ abstract class _B2bAccount implements B2bAccount {
     final List<B2bBranch> branches,
     @JsonKey(name: 'unassigned_invoices')
     final B2bBranchStats? unassignedInvoices,
+    @JsonKey(name: 'branch_lead') final String? branchLead,
     @JsonKey(name: 'journey_notes') final List<JourneyNote> journeyNotes,
   }) = _$B2bAccountImpl;
+  const _B2bAccount._() : super._();
 
   factory _B2bAccount.fromJson(Map<String, dynamic> json) =
       _$B2bAccountImpl.fromJson;
@@ -5018,8 +5658,10 @@ abstract class _B2bAccount implements B2bAccount {
   @JsonKey(name: 'open_todos')
   List<B2bTodo> get openTodos;
 
-  /// The linked Customer's branches (named shipping Addresses) with their
-  /// own invoice totals. Empty with no Customer or on an older server.
+  /// Every door of the shop, once each: the linked Customer's branches
+  /// (named shipping Addresses, with their own invoice totals and any matched
+  /// Google Maps listing) first, then the Lead's Google Maps branches that
+  /// are not delivery branches yet. Empty on an older server.
   @override
   List<B2bBranch> get branches;
 
@@ -5027,6 +5669,13 @@ abstract class _B2bAccount implements B2bAccount {
   @override
   @JsonKey(name: 'unassigned_invoices')
   B2bBranchStats? get unassignedInvoices;
+
+  /// The Lead whose Google Maps branches were folded into [branches] (the
+  /// account itself for a Lead, the linked Lead for a Customer). Null when
+  /// there is none or on an older server.
+  @override
+  @JsonKey(name: 'branch_lead')
+  String? get branchLead;
 
   /// The rep's dated field diary for this account, newest touch first. The
   /// account screen renders it through the shared journey timeline, which

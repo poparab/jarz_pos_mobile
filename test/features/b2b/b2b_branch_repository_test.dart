@@ -172,4 +172,47 @@ void main() {
     expect(result.targetDoctype, 'Customer');
     expect(result.targetName, 'ILO-1');
   });
+
+  test('linkBranch posts the maps row and address, returns branches', () async {
+    final dio = _FakeDio({
+      'branches': [
+        {
+          'address_name': 'ILO-MADINATY',
+          'source': 'address',
+          'maps': {'row': 'a1'},
+          'maps_match': 'linked',
+        },
+      ],
+      'unassigned': null,
+    });
+    final result = await B2bRepository(dio).linkBranch(
+      doctype: 'Lead',
+      name: 'CRM-LEAD-1',
+      mapsRow: 'a1',
+      addressName: ' ILO-MADINATY ',
+    );
+
+    expect(dio.method, 'POST');
+    expect(dio.path, ApiEndpoints.b2bLinkBranch);
+    expect(dio.sentData, {
+      'doctype': 'Lead',
+      'name': 'CRM-LEAD-1',
+      'maps_row': 'a1',
+      'address_name': 'ILO-MADINATY',
+    });
+    expect(result.branches.single.mapsMatch, 'linked');
+    expect(result.unassigned, isNull);
+  });
+
+  test('linkBranch without an address unlinks (omits address_name)', () async {
+    final dio = _FakeDio({'branches': <Object>[]});
+    await B2bRepository(
+      dio,
+    ).linkBranch(doctype: 'Customer', name: 'ILO-1', mapsRow: '__self__');
+    expect(dio.sentData, {
+      'doctype': 'Customer',
+      'name': 'ILO-1',
+      'maps_row': '__self__',
+    });
+  });
 }

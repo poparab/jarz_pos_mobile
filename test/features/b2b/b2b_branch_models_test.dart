@@ -128,6 +128,187 @@ void main() {
     });
   });
 
+  group('unified branches (delivery + Google Maps)', () {
+    Map<String, dynamic> payload() => {
+      'doctype': 'Lead',
+      'name': 'CRM-LEAD-1',
+      'title': 'ILO',
+      'customer': 'ILO-1',
+      'branch_lead': 'CRM-LEAD-1',
+      'branches': [
+        {
+          'address_name': 'ILO-MADINATY',
+          'branch_name': 'All Seasons Park',
+          'address_line1': 'Madinaty',
+          'member_address_names': ['ILO-MADINATY'],
+          'invoice_count': 3,
+          'total_billed': '4500',
+          'outstanding': 0,
+          'last_order_date': '2026-09-20',
+          'source': 'address',
+          'maps': {
+            'row': 'a1b2c3',
+            'branch_name': 'ILO Madinaty',
+            'area': 'Madinaty',
+            'region': 'New Cairo',
+            'governorate': 'Cairo',
+            'rating': '4.6',
+            'reviews': '312',
+            'maps_url': 'https://maps.google.com/?cid=1',
+            'phone': '0100',
+            'address': 'All Seasons Park, Madinaty',
+            'latitude': 30.1,
+            'longitude': '31.6',
+            'on_talabat': 1,
+          },
+          'maps_match': 'linked',
+        },
+        {
+          'address_name': 'ILO-ZAYED',
+          'branch_name': 'Zayed',
+          'source': 'address',
+          'maps': {'row': '__self__', 'rating': 4.1, 'reviews': 20},
+          'maps_match': 'auto',
+        },
+        {
+          'address_name': null,
+          'branch_name': 'ILO Maadi',
+          'member_address_names': <String>[],
+          'invoice_count': 0,
+          'total_billed': 0,
+          'outstanding': 0,
+          'last_order_date': null,
+          'source': 'maps',
+          'maps': {
+            'row': 'd4e5f6',
+            'branch_name': 'ILO Maadi',
+            'area': 'Maadi',
+            'rating': null,
+            'reviews': null,
+            'maps_url': null,
+            'latitude': 29.96,
+            'longitude': 31.25,
+            'on_talabat': false,
+          },
+          'maps_match': null,
+        },
+      ],
+    };
+
+    test('parses an address branch with a linked Google Maps listing', () {
+      final account = B2bAccount.fromJson(payload());
+      expect(account.branchLead, 'CRM-LEAD-1');
+      expect(account.branches, hasLength(3));
+
+      final linked = account.branches.first;
+      expect(linked.source, B2bBranch.sourceAddress);
+      expect(linked.isMapsOnly, isFalse);
+      expect(linked.isDeliveryBranch, isTrue);
+      expect(linked.hasMaps, isTrue);
+      expect(linked.mapsMatch, 'linked');
+      expect(linked.isMapsAutoMatched, isFalse);
+      expect(linked.mapsRow, 'a1b2c3');
+      expect(linked.key, 'ILO-MADINATY');
+      expect(linked.displayName, 'All Seasons Park');
+      expect(linked.totalBilled, 4500);
+
+      final maps = linked.maps!;
+      expect(maps.rating, 4.6);
+      expect(maps.reviews, 312);
+      expect(maps.onTalabat, isTrue);
+      expect(maps.hasLocation, isTrue);
+      expect(maps.longitude, 31.6);
+      expect(maps.mapsUrl, 'https://maps.google.com/?cid=1');
+      expect(maps.areaText, 'Madinaty · New Cairo · Cairo');
+
+      final auto = account.branches[1];
+      expect(auto.isMapsAutoMatched, isTrue);
+      expect(auto.mapsRow, '__self__');
+      expect(auto.maps!.onTalabat, isFalse);
+      expect(auto.maps!.hasLocation, isFalse);
+    });
+
+    test('parses a maps-only entry with an empty key and zero stats', () {
+      final account = B2bAccount.fromJson(payload());
+      final mapsOnly = account.branches.last;
+      expect(mapsOnly.source, B2bBranch.sourceMaps);
+      expect(mapsOnly.isMapsOnly, isTrue);
+      expect(mapsOnly.isDeliveryBranch, isFalse);
+      expect(mapsOnly.addressName, isNull);
+      // No Address behind it: nothing for the invoice filter to key on.
+      expect(mapsOnly.key, isEmpty);
+      expect(mapsOnly.memberAddressNames, isEmpty);
+      expect(mapsOnly.invoiceCount, 0);
+      expect(mapsOnly.totalBilled, 0);
+      expect(mapsOnly.mapsMatch, isNull);
+      expect(mapsOnly.isMapsAutoMatched, isFalse);
+      expect(mapsOnly.displayName, 'ILO Maadi');
+      expect(mapsOnly.mapsRow, 'd4e5f6');
+      expect(mapsOnly.maps!.rating, isNull);
+      expect(mapsOnly.maps!.hasLocation, isTrue);
+
+      // Only the delivery branches reach the invoice filter.
+      expect(account.deliveryBranches.map((b) => b.key), [
+        'ILO-MADINATY',
+        'ILO-ZAYED',
+      ]);
+    });
+
+    test('maps-only entry without a branch name falls back to its area', () {
+      final branch = B2bBranch.fromJson(const {
+        'source': 'maps',
+        'maps': {'row': 'x', 'area': 'Heliopolis'},
+      });
+      expect(branch.displayName, 'Heliopolis');
+      expect(branch.key, isEmpty);
+    });
+
+    test('legacy payload without the new keys reads as address branches', () {
+      final account = B2bAccount.fromJson(const {
+        'doctype': 'Customer',
+        'name': 'ILO-1',
+        'title': 'ILO',
+        'branches': [
+          {'address_name': 'ILO-MADINATY', 'branch_name': 'All Seasons Park'},
+        ],
+      });
+      expect(account.branchLead, isNull);
+      final branch = account.branches.single;
+      expect(branch.source, B2bBranch.sourceAddress);
+      expect(branch.isMapsOnly, isFalse);
+      expect(branch.hasMaps, isFalse);
+      expect(branch.maps, isNull);
+      expect(branch.mapsMatch, isNull);
+      expect(branch.mapsRow, isNull);
+      expect(branch.key, 'ILO-MADINATY');
+      expect(account.deliveryBranches, hasLength(1));
+    });
+
+    test('blank source and a non-object maps value are tolerated', () {
+      final branch = B2bBranch.fromJson(const {
+        'address_name': 'A',
+        'source': '',
+        'maps': 'garbage',
+      });
+      expect(branch.source, B2bBranch.sourceAddress);
+      expect(branch.maps, isNull);
+    });
+
+    test('link result parses branches and unassigned totals', () {
+      final result = B2bBranchLinkResult.fromJson({
+        'branches': payload()['branches'],
+        'unassigned': {'invoice_count': '2', 'total_billed': 800},
+      });
+      expect(result.branches, hasLength(3));
+      expect(result.branches.last.isMapsOnly, isTrue);
+      expect(result.unassigned!.invoiceCount, 2);
+
+      final empty = B2bBranchLinkResult.fromJson(const {'unassigned': null});
+      expect(empty.branches, isEmpty);
+      expect(empty.unassigned, isNull);
+    });
+  });
+
   group('B2bAccountInvoices', () {
     test('parses invoices, summary and truncation', () {
       final page = B2bAccountInvoices.fromJson({

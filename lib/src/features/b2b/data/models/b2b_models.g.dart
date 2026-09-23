@@ -133,6 +133,44 @@ Map<String, dynamic> _$$B2bBranchStatsImplToJson(
   ),
 };
 
+_$B2bMapsInfoImpl _$$B2bMapsInfoImplFromJson(
+  Map<String, dynamic> json,
+) => _$B2bMapsInfoImpl(
+  row: const _NullableStringConverter().fromJson(json['row']),
+  branchName: const _NullableStringConverter().fromJson(json['branch_name']),
+  area: const _NullableStringConverter().fromJson(json['area']),
+  region: const _NullableStringConverter().fromJson(json['region']),
+  governorate: const _NullableStringConverter().fromJson(json['governorate']),
+  rating: const _NullableDoubleConverter().fromJson(json['rating']),
+  reviews: const _NullableIntConverter().fromJson(json['reviews']),
+  mapsUrl: const _NullableStringConverter().fromJson(json['maps_url']),
+  phone: const _NullableStringConverter().fromJson(json['phone']),
+  address: const _NullableStringConverter().fromJson(json['address']),
+  latitude: const _NullableDoubleConverter().fromJson(json['latitude']),
+  longitude: const _NullableDoubleConverter().fromJson(json['longitude']),
+  onTalabat: json['on_talabat'] == null
+      ? false
+      : const _BoolConverter().fromJson(json['on_talabat']),
+);
+
+Map<String, dynamic> _$$B2bMapsInfoImplToJson(
+  _$B2bMapsInfoImpl instance,
+) => <String, dynamic>{
+  'row': const _NullableStringConverter().toJson(instance.row),
+  'branch_name': const _NullableStringConverter().toJson(instance.branchName),
+  'area': const _NullableStringConverter().toJson(instance.area),
+  'region': const _NullableStringConverter().toJson(instance.region),
+  'governorate': const _NullableStringConverter().toJson(instance.governorate),
+  'rating': const _NullableDoubleConverter().toJson(instance.rating),
+  'reviews': const _NullableIntConverter().toJson(instance.reviews),
+  'maps_url': const _NullableStringConverter().toJson(instance.mapsUrl),
+  'phone': const _NullableStringConverter().toJson(instance.phone),
+  'address': const _NullableStringConverter().toJson(instance.address),
+  'latitude': const _NullableDoubleConverter().toJson(instance.latitude),
+  'longitude': const _NullableDoubleConverter().toJson(instance.longitude),
+  'on_talabat': const _BoolConverter().toJson(instance.onTalabat),
+};
+
 _$B2bBranchImpl _$$B2bBranchImplFromJson(
   Map<String, dynamic> json,
 ) => _$B2bBranchImpl(
@@ -170,6 +208,11 @@ _$B2bBranchImpl _$$B2bBranchImplFromJson(
   lastOrderDate: const _NullableStringConverter().fromJson(
     json['last_order_date'],
   ),
+  source: json['source'] == null
+      ? 'address'
+      : const _BranchSourceConverter().fromJson(json['source']),
+  maps: const _MapsInfoConverter().fromJson(json['maps']),
+  mapsMatch: const _NullableStringConverter().fromJson(json['maps_match']),
 );
 
 Map<String, dynamic> _$$B2bBranchImplToJson(
@@ -201,6 +244,9 @@ Map<String, dynamic> _$$B2bBranchImplToJson(
   'last_order_date': const _NullableStringConverter().toJson(
     instance.lastOrderDate,
   ),
+  'source': const _BranchSourceConverter().toJson(instance.source),
+  'maps': const _MapsInfoConverter().toJson(instance.maps),
+  'maps_match': const _NullableStringConverter().toJson(instance.mapsMatch),
 };
 
 _$B2bAccountInvoicesImpl _$$B2bAccountInvoicesImplFromJson(
@@ -437,6 +483,7 @@ _$B2bAccountImpl _$$B2bAccountImplFromJson(Map<String, dynamic> json) =>
           : B2bBranchStats.fromJson(
               json['unassigned_invoices'] as Map<String, dynamic>,
             ),
+      branchLead: json['branch_lead'] as String?,
       journeyNotes:
           (json['journey_notes'] as List<dynamic>?)
               ?.map((e) => JourneyNote.fromJson(e as Map<String, dynamic>))
@@ -459,6 +506,7 @@ Map<String, dynamic> _$$B2bAccountImplToJson(_$B2bAccountImpl instance) =>
       'open_todos': instance.openTodos,
       'branches': instance.branches,
       'unassigned_invoices': instance.unassignedInvoices,
+      'branch_lead': instance.branchLead,
       'journey_notes': instance.journeyNotes,
     };
 
