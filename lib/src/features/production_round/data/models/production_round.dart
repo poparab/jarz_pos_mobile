@@ -198,10 +198,12 @@ class ProductionRoundMaterial with _$ProductionRoundMaterial {
 
   String get displayName => itemName.trim().isEmpty ? itemCode : itemName;
 
-  /// How much of the need is already in the store, 0..1.
+  /// How much of the need is covered, 0..1 — own stock plus what an
+  /// alternative lends, so a row with nothing missing never reads short.
   double get coverage {
-    if (this.required <= 0) return 1;
-    return (onHand / this.required).clamp(0.0, 1.0).toDouble();
+    if (this.required <= 0 || missing <= 0) return 1;
+    final have = (onHand < 0 ? 0 : onHand) + alternativeOnHand;
+    return (have / this.required).clamp(0.0, 1.0).toDouble();
   }
 }
 

@@ -47,7 +47,8 @@ bool isWholeUnit(String uom) => _wholeUnits.contains(uom.trim().toLowerCase());
 /// A material quantity: "404" for Nos, "12.43 Kg" for anything weighed.
 String fmtMaterialQty(double value, String uom) {
   if (uom.trim().isEmpty) return fmtQty(value);
-  if (isWholeUnit(uom)) return fmtQty(value, decimals: 0);
+  // Whole pieces round UP: 0.3 of a lid short is still one lid to buy.
+  if (isWholeUnit(uom)) return fmtQty((value - 1e-9).ceilToDouble(), decimals: 0);
   return '${fmtQty(value)} ${uom.trim()}';
 }
 
