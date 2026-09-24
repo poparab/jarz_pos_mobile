@@ -147,7 +147,9 @@ class AppDrawer extends ConsumerWidget {
     // Current location, used to auto-expand the group holding the active route.
     String currentLocation;
     try {
-      currentLocation = GoRouterState.of(context).uri.toString();
+      // The path only: a query string (`/manufacturing?tab=…`) would defeat
+      // both the exact and the prefix match below.
+      currentLocation = GoRouterState.of(context).uri.path;
     } catch (_) {
       currentLocation = '';
     }
@@ -707,7 +709,10 @@ class _DrawerGroupsState extends State<_DrawerGroups> {
       children: [
         for (final g in widget.groups)
           ExpansionTile(
-            key: PageStorageKey<String>('drawer-group-${g.id}'),
+            // A ValueKey, not a PageStorageKey: page storage outlives the
+            // drawer and would reopen a stale group alongside the one holding
+            // the current route. The controller is the only source of state.
+            key: ValueKey<String>('drawer-group-${g.id}'),
             controller: _controllerFor(g.id),
             leading: Icon(g.icon),
             title: g.badge == null
