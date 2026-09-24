@@ -125,44 +125,50 @@ abstract class AppLocalizations {
   /// No description provided for @drawerGroupPosSales.
   ///
   /// In en, this message translates to:
-  /// **'POS / Sales'**
+  /// **'Sales & Orders'**
   String get drawerGroupPosSales;
 
   /// No description provided for @drawerGroupCrm.
   ///
   /// In en, this message translates to:
-  /// **'CRM / B2B'**
+  /// **'B2B & Pricing'**
   String get drawerGroupCrm;
 
   /// No description provided for @drawerGroupDelivery.
   ///
   /// In en, this message translates to:
-  /// **'Delivery / Logistics'**
+  /// **'Delivery & Couriers'**
   String get drawerGroupDelivery;
 
   /// No description provided for @drawerGroupFinance.
   ///
   /// In en, this message translates to:
-  /// **'Finance / Expenses'**
+  /// **'Finance & Expenses'**
   String get drawerGroupFinance;
 
   /// No description provided for @drawerGroupPurchasing.
   ///
   /// In en, this message translates to:
-  /// **'Purchasing / Inventory'**
+  /// **'Stock & Purchasing'**
   String get drawerGroupPurchasing;
 
   /// No description provided for @drawerGroupManagement.
   ///
   /// In en, this message translates to:
-  /// **'Management / Reports'**
+  /// **'Dashboards & Reports'**
   String get drawerGroupManagement;
 
-  /// No description provided for @drawerGroupPricing.
+  /// No description provided for @drawerGroupProduction.
   ///
   /// In en, this message translates to:
-  /// **'Pricing'**
-  String get drawerGroupPricing;
+  /// **'Production'**
+  String get drawerGroupProduction;
+
+  /// No description provided for @drawerGroupTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Team & Shifts'**
+  String get drawerGroupTeam;
 
   /// No description provided for @menuPriceLists.
   ///

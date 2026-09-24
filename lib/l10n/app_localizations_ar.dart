@@ -21,25 +21,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get menuB2bMode => 'وضع الأعمال (B2B)';
 
   @override
-  String get drawerGroupPosSales => 'نقاط البيع / المبيعات';
+  String get drawerGroupPosSales => 'المبيعات والطلبات';
 
   @override
-  String get drawerGroupCrm => 'إدارة العملاء / B2B';
+  String get drawerGroupCrm => 'B2B والتسعير';
 
   @override
-  String get drawerGroupDelivery => 'التوصيل / الخدمات اللوجستية';
+  String get drawerGroupDelivery => 'التوصيل والمناديب';
 
   @override
-  String get drawerGroupFinance => 'المالية / المصروفات';
+  String get drawerGroupFinance => 'المالية والمصروفات';
 
   @override
-  String get drawerGroupPurchasing => 'المشتريات / المخزون';
+  String get drawerGroupPurchasing => 'المخزون والمشتريات';
 
   @override
-  String get drawerGroupManagement => 'الإدارة / التقارير';
+  String get drawerGroupManagement => 'لوحات التحكم والتقارير';
 
   @override
-  String get drawerGroupPricing => 'التسعير';
+  String get drawerGroupProduction => 'الإنتاج';
+
+  @override
+  String get drawerGroupTeam => 'الفريق والورديات';
 
   @override
   String get menuPriceLists => 'قوائم الأسعار';

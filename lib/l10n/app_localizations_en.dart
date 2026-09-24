@@ -21,25 +21,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuB2bMode => 'B2B Mode';
 
   @override
-  String get drawerGroupPosSales => 'POS / Sales';
+  String get drawerGroupPosSales => 'Sales & Orders';
 
   @override
-  String get drawerGroupCrm => 'CRM / B2B';
+  String get drawerGroupCrm => 'B2B & Pricing';
 
   @override
-  String get drawerGroupDelivery => 'Delivery / Logistics';
+  String get drawerGroupDelivery => 'Delivery & Couriers';
 
   @override
-  String get drawerGroupFinance => 'Finance / Expenses';
+  String get drawerGroupFinance => 'Finance & Expenses';
 
   @override
-  String get drawerGroupPurchasing => 'Purchasing / Inventory';
+  String get drawerGroupPurchasing => 'Stock & Purchasing';
 
   @override
-  String get drawerGroupManagement => 'Management / Reports';
+  String get drawerGroupManagement => 'Dashboards & Reports';
 
   @override
-  String get drawerGroupPricing => 'Pricing';
+  String get drawerGroupProduction => 'Production';
+
+  @override
+  String get drawerGroupTeam => 'Team & Shifts';
 
   @override
   String get menuPriceLists => 'Price Lists';

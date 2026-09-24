@@ -136,6 +136,8 @@ class AppDrawer extends ConsumerWidget {
       required VoidCallback onTap,
     }) {
       return ListTile(
+        dense: true,
+        visualDensity: VisualDensity.compact,
         leading: Icon(icon),
         title: Text(title),
         onTap: onTap,
@@ -154,7 +156,14 @@ class AppDrawer extends ConsumerWidget {
     );
 
     // ── Group child lists (each item keeps its original route/gate/icon) ──
-    final posChildren = <Widget>[
+    //
+    // Eight short groups rather than seven long ones: the old "Purchasing" and
+    // "Management" groups had grown to six and eleven entries of unrelated
+    // work (stock next to production, rota next to InstaPay). Every entry keeps
+    // the gate it had; only the group it sits in moved.
+
+    // Sales: taking and following orders.
+    final salesChildren = <Widget>[
       navTile(
         icon: Icons.point_of_sale,
         title: l10n.menuPointOfSale,
@@ -171,36 +180,11 @@ class AppDrawer extends ConsumerWidget {
         title: l10n.menuSalesKanban,
         onTap: () => navigate(AppRoutes.kanban),
       ),
-    ];
-
-    final crmChildren = <Widget>[
-      if (canAccessB2b)
+      if (hasElevatedAccess)
         navTile(
-          icon: Icons.handshake_outlined,
-          title: l10n.menuB2bMode,
-          onTap: () => navigate(AppRoutes.b2b),
-        ),
-      if (canAccessB2b)
-        navTile(
-          icon: Icons.travel_explore,
-          title: l10n.menuLeads,
-          onTap: () => navigate(AppRoutes.leads),
-        ),
-      // Printed-label stock per B2B customer. The badge carries the count that
-      // has to go to the print house, so the shortage is visible from the drawer
-      // without opening the board — printing takes days, so noticing late is the
-      // whole failure mode.
-      if (canAccessB2b)
-        _LabelsNavTile(onTap: () => navigate(AppRoutes.labels)),
-    ];
-
-    final canViewPricing = canAccessManagerDashboardRole || canAccessB2b;
-    final pricingChildren = <Widget>[
-      if (canViewPricing)
-        navTile(
-          icon: Icons.sell_outlined,
-          title: l10n.menuPriceLists,
-          onTap: () => navigate(AppRoutes.pricing),
+          icon: Icons.list_alt,
+          title: l10n.menuMasterOrders,
+          onTap: () => navigate(AppRoutes.masterOrders),
         ),
     ];
 
@@ -227,6 +211,36 @@ class AppDrawer extends ConsumerWidget {
           showCourierBalancesDialog(context);
         },
       ),
+    ];
+
+    // B2B customers and what they pay. Price Lists used to be a one-entry
+    // group of its own.
+    final canViewPricing = canAccessManagerDashboardRole || canAccessB2b;
+    final b2bChildren = <Widget>[
+      if (canAccessB2b)
+        navTile(
+          icon: Icons.handshake_outlined,
+          title: l10n.menuB2bMode,
+          onTap: () => navigate(AppRoutes.b2b),
+        ),
+      if (canAccessB2b)
+        navTile(
+          icon: Icons.travel_explore,
+          title: l10n.menuLeads,
+          onTap: () => navigate(AppRoutes.leads),
+        ),
+      // Printed-label stock per B2B customer. The badge carries the count that
+      // has to go to the print house, so the shortage is visible from the drawer
+      // without opening the board — printing takes days, so noticing late is the
+      // whole failure mode.
+      if (canAccessB2b)
+        _LabelsNavTile(onTap: () => navigate(AppRoutes.labels)),
+      if (canViewPricing)
+        navTile(
+          icon: Icons.sell_outlined,
+          title: l10n.menuPriceLists,
+          onTap: () => navigate(AppRoutes.pricing),
+        ),
     ];
 
     final financeChildren = <Widget>[
@@ -263,9 +277,25 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.partnerSettlementMenuTitle,
           onTap: () => navigate(AppRoutes.partnerSettlements),
         ),
+      if (hasManagerAccess)
+        navTile(
+          icon: Icons.account_balance_outlined,
+          title: l10n.menuInstapayReconciliation,
+          onTap: () => navigate(AppRoutes.instapayReconciliation),
+        ),
+      // Gated on the same manager-dashboard access as the Employee Ledger it
+      // mirrors: `get_credit_ledger` is the customer analogue of
+      // `get_employee_ledger` and accepts the same role set, so a wider gate
+      // here would be a tile that 403s on tap.
+      if (hasManagerAccess)
+        navTile(
+          icon: Icons.credit_score_outlined,
+          title: l10n.menuCreditAccounts,
+          onTap: () => navigate(AppRoutes.creditAccounts),
+        ),
     ];
 
-    final purchasingChildren = <Widget>[
+    final inventoryChildren = <Widget>[
       // Ungated on purpose: anyone who notices a shortage can raise a request,
       // and the server gate (ROLES.PURCHASE_REQUEST) is deliberately the widest
       // in the app. Hiding this behind manager access would defeat the feature.
@@ -275,22 +305,6 @@ class AppDrawer extends ConsumerWidget {
           icon: Icons.receipt_long,
           title: l10n.menuPurchaseInvoice,
           onTap: () => navigate(AppRoutes.purchase),
-        ),
-      // Gated on its own role set rather than the general manager one: the
-      // production API accepts stock/manufacturing managers that
-      // `hasManagerAccess` misses, and rejects line/POS managers that it
-      // includes. Showing a tile that 403s on every call is the bug this
-      // avoids.
-      if (canAccessProductionBoard)
-        navTile(
-          icon: Icons.factory,
-          title: l10n.menuProductionBoard,
-          // The collapsed Today screen, not the five-tab board: the board is
-          // complete and correct and went unused for three months because it
-          // asks the person holding the tablet to hold the whole document
-          // lifecycle in their head. The full board is still one tap away,
-          // from Today's own app bar.
-          onTap: () => navigate(AppRoutes.productionToday),
         ),
       // Split rather than sharing one gate: Stock Transfer answers to
       // `ROLES.STOCK_TRANSFER` (the manager set PLUS the line-manager tier —
@@ -306,15 +320,6 @@ class AppDrawer extends ConsumerWidget {
           // front of somebody every call on it answers "Not permitted" to.
           onTap: () => navigate(AppRoutes.replenishment),
         ),
-      // The other half of Send to Branches: what to MAKE so there is enough
-      // to send. Read only, and gated on the production view set because
-      // that is what its endpoint accepts.
-      if (canAccessProductionBoard)
-        navTile(
-          icon: Icons.event_repeat,
-          title: l10n.menuProductionRound,
-          onTap: () => navigate(AppRoutes.productionRound),
-        ),
       if (canAccessStockTransfer)
         navTile(
           icon: Icons.swap_horiz,
@@ -329,7 +334,35 @@ class AppDrawer extends ConsumerWidget {
         ),
     ];
 
-    final managementChildren = <Widget>[
+    // Gated on its own role set rather than the general manager one: the
+    // production API accepts stock/manufacturing managers that
+    // `hasManagerAccess` misses, and rejects line/POS managers that it
+    // includes. Showing a tile that 403s on every call is the bug this avoids.
+    final productionChildren = <Widget>[
+      if (canAccessProductionBoard)
+        navTile(
+          icon: Icons.factory,
+          title: l10n.menuProductionBoard,
+          // The collapsed Today screen, not the five-tab board: the board is
+          // complete and correct and went unused for three months because it
+          // asks the person holding the tablet to hold the whole document
+          // lifecycle in their head. The full board is still one tap away,
+          // from Today's own app bar.
+          onTap: () => navigate(AppRoutes.productionToday),
+        ),
+      // The other half of Send to Branches: what to MAKE so there is enough
+      // to send. Read only, and gated on the production view set because
+      // that is what its endpoint accepts.
+      if (canAccessProductionBoard)
+        navTile(
+          icon: Icons.event_repeat,
+          title: l10n.menuProductionRound,
+          onTap: () => navigate(AppRoutes.productionRound),
+        ),
+    ];
+
+    // People and shifts: who works where and when, and what they are doing.
+    final teamChildren = <Widget>[
       // Mirrors `ROLES.LINE_MANAGER_TIER`, the board-user gate of
       // `api/tasks.py`; the board itself trusts `get_board_context`.
       if (canAccessTaskBoard)
@@ -337,35 +370,6 @@ class AppDrawer extends ConsumerWidget {
           icon: Icons.task_alt,
           title: l10n.tasksMenuTitle,
           onTap: () => navigate(AppRoutes.tasks),
-        ),
-      if (hasElevatedAccess)
-        navTile(
-          icon: Icons.list_alt,
-          title: l10n.menuMasterOrders,
-          onTap: () => navigate(AppRoutes.masterOrders),
-        ),
-      // Gated on the OTHER app's `ROLES.OPERATOR`, which includes JARZ Manager
-      // by the owner's decision, plus the dedicated `WooCommerce Sync Operator`
-      // role for anyone who runs the sync without being a manager. The
-      // destructive operations behind that app stay System-Manager-only and are
-      // not reachable from here at all.
-      if (canAccessWooSync)
-        navTile(
-          icon: Icons.sync_outlined,
-          title: l10n.wooSyncMenuTitle,
-          onTap: () => navigate(AppRoutes.wooSync),
-        ),
-      if (hasManagerAccess)
-        navTile(
-          icon: Icons.dashboard,
-          title: l10n.menuManagerDashboard,
-          onTap: () => navigate(AppRoutes.manager),
-        ),
-      if (hasManagerAccess && canAccessShiftMonitor)
-        navTile(
-          icon: Icons.timeline,
-          title: l10n.menuShiftMonitor,
-          onTap: () => navigate(AppRoutes.shiftMonitor),
         ),
       // Gated on the line-manager tier, which is exactly the set
       // `api/roster.py` accepts — a narrower gate here would be a dead tile,
@@ -384,6 +388,12 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuAttendance,
           onTap: () => navigate(AppRoutes.attendance),
         ),
+      if (hasManagerAccess && canAccessShiftMonitor)
+        navTile(
+          icon: Icons.timeline,
+          title: l10n.menuShiftMonitor,
+          onTap: () => navigate(AppRoutes.shiftMonitor),
+        ),
       // Same gate as the rota: `api/branch_access.py` accepts exactly the
       // line-manager tier (a line manager sees only their own branches).
       if (canActAsLineManager)
@@ -391,6 +401,15 @@ class AppDrawer extends ConsumerWidget {
           icon: Icons.key_outlined,
           title: l10n.menuBranchAccess,
           onTap: () => navigate(AppRoutes.branchAccess),
+        ),
+    ];
+
+    final managementChildren = <Widget>[
+      if (hasManagerAccess)
+        navTile(
+          icon: Icons.dashboard,
+          title: l10n.menuManagerDashboard,
+          onTap: () => navigate(AppRoutes.manager),
         ),
       // Kept for the line-manager tier: the hub still holds one report they may
       // read (Materials & Consumables), and the hub itself drops every tile
@@ -401,137 +420,79 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuReports,
           onTap: () => navigate(AppRoutes.reports),
         ),
-      if (hasManagerAccess)
+      // Gated on the OTHER app's `ROLES.OPERATOR`, which includes JARZ Manager
+      // by the owner's decision, plus the dedicated `WooCommerce Sync Operator`
+      // role for anyone who runs the sync without being a manager. The
+      // destructive operations behind that app stay System-Manager-only and are
+      // not reachable from here at all.
+      if (canAccessWooSync)
         navTile(
-          icon: Icons.account_balance_outlined,
-          title: context.l10n.menuInstapayReconciliation,
-          onTap: () => navigate(AppRoutes.instapayReconciliation),
-        ),
-      // Gated on the same manager-dashboard access as the Employee Ledger it
-      // mirrors: `get_credit_ledger` is the customer analogue of
-      // `get_employee_ledger` and accepts the same role set, so a wider gate
-      // here would be a tile that 403s on tap.
-      if (hasManagerAccess)
-        navTile(
-          icon: Icons.credit_score_outlined,
-          title: l10n.menuCreditAccounts,
-          onTap: () => navigate(AppRoutes.creditAccounts),
+          icon: Icons.sync_outlined,
+          title: l10n.wooSyncMenuTitle,
+          onTap: () => navigate(AppRoutes.wooSync),
         ),
     ];
 
-    // Auto-expand the group containing the active route; fall back to POS/Sales.
-    const posRoutes = [AppRoutes.pos, AppRoutes.shiftEnd, AppRoutes.kanban];
-    const crmRoutes = [AppRoutes.b2b, AppRoutes.leads, AppRoutes.labels];
-    const pricingRoutes = [AppRoutes.pricing];
-    const deliveryRoutes = [AppRoutes.trips, AppRoutes.fleetMap];
-    const financeRoutes = [
-      AppRoutes.expenses,
-      AppRoutes.monthlyExpenses,
-      AppRoutes.cashTransfer,
-      AppRoutes.cashCustody,
-    ];
-    const purchasingRoutes = [
-      AppRoutes.purchase,
-      AppRoutes.itemRequests,
-      AppRoutes.manufacturing,
-      // Both spellings of the same destination. `/manufacturing/today` is
-      // already caught by the prefix rule above it, but the tile points here
-      // now, and a list that only names the route nobody navigates to is one
-      // rename away from silently losing the highlight.
-      AppRoutes.productionToday,
-      AppRoutes.stockTransfer,
-      AppRoutes.inventoryCount,
-    ];
-    const managementRoutes = [
-      AppRoutes.tasks,
-      AppRoutes.masterOrders,
-      AppRoutes.manager,
-      AppRoutes.shiftMonitor,
-      AppRoutes.roster,
-      AppRoutes.attendance,
-      AppRoutes.branchAccess,
-      AppRoutes.reports,
-      AppRoutes.reportsShipping,
-      AppRoutes.reportsInventory,
-      AppRoutes.reportsProduct,
-      AppRoutes.reportsCustomer,
-      AppRoutes.reportsExecutive,
-      AppRoutes.reportsB2b,
-      AppRoutes.instapayReconciliation,
-      AppRoutes.creditAccounts,
-      AppRoutes.creditAccountDetail,
-    ];
-    final anyGroupMatches = [
-      posRoutes,
-      crmRoutes,
-      pricingRoutes,
-      deliveryRoutes,
-      financeRoutes,
-      purchasingRoutes,
-      managementRoutes,
-    ].any(matchesRoute);
-
-    Widget? group({
-      required IconData icon,
-      required String label,
-      required List<Widget> children,
-      required bool expanded,
-      Widget? badge,
-    }) {
-      if (children.isEmpty) return null;
-      return ExpansionTile(
-        leading: Icon(icon),
-        title: badge == null
-            ? Text(label)
-            : Row(
-                children: [
-                  Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
-                  const SizedBox(width: 8),
-                  badge,
-                ],
-              ),
-        initiallyExpanded: expanded,
-        childrenPadding: const EdgeInsets.only(left: 16),
-        children: children,
-      );
-    }
-
-    final groups = <Widget?>[
-      group(
+    final groups = <_DrawerGroupSpec>[
+      _DrawerGroupSpec(
+        id: 'sales',
         icon: Icons.point_of_sale,
         label: l10n.drawerGroupPosSales,
-        children: posChildren,
-        expanded: matchesRoute(posRoutes) || !anyGroupMatches,
+        children: salesChildren,
+        routes: const [
+          AppRoutes.pos,
+          AppRoutes.shiftEnd,
+          AppRoutes.kanban,
+          AppRoutes.masterOrders,
+        ],
       ),
-      group(
-        icon: Icons.handshake_outlined,
-        label: l10n.drawerGroupCrm,
-        children: crmChildren,
-        expanded: matchesRoute(crmRoutes),
-      ),
-      group(
-        icon: Icons.sell_outlined,
-        label: l10n.drawerGroupPricing,
-        children: pricingChildren,
-        expanded: matchesRoute(pricingRoutes),
-      ),
-      group(
+      _DrawerGroupSpec(
+        id: 'delivery',
         icon: Icons.local_shipping_outlined,
         label: l10n.drawerGroupDelivery,
         children: deliveryChildren,
-        expanded: matchesRoute(deliveryRoutes),
+        routes: const [AppRoutes.trips, AppRoutes.fleetMap],
       ),
-      group(
+      _DrawerGroupSpec(
+        id: 'b2b',
+        icon: Icons.handshake_outlined,
+        label: l10n.drawerGroupCrm,
+        children: b2bChildren,
+        routes: const [
+          AppRoutes.b2b,
+          AppRoutes.leads,
+          AppRoutes.labels,
+          AppRoutes.pricing,
+        ],
+      ),
+      _DrawerGroupSpec(
+        id: 'finance',
         icon: Icons.account_balance_wallet,
         label: l10n.drawerGroupFinance,
         children: financeChildren,
-        expanded: matchesRoute(financeRoutes),
+        routes: const [
+          AppRoutes.expenses,
+          AppRoutes.monthlyExpenses,
+          AppRoutes.cashTransfer,
+          AppRoutes.cashCustody,
+          AppRoutes.partnerSettlements,
+          AppRoutes.instapayReconciliation,
+          AppRoutes.creditAccounts,
+          AppRoutes.creditAccountDetail,
+        ],
       ),
-      group(
-        icon: Icons.inventory,
+      _DrawerGroupSpec(
+        id: 'inventory',
+        icon: Icons.inventory_2_outlined,
         label: l10n.drawerGroupPurchasing,
-        children: purchasingChildren,
-        expanded: matchesRoute(purchasingRoutes),
+        children: inventoryChildren,
+        routes: const [
+          AppRoutes.purchase,
+          AppRoutes.itemRequests,
+          AppRoutes.replenishment,
+          AppRoutes.stockTransfer,
+          AppRoutes.inventoryCount,
+        ],
         // The group starts collapsed, so without this the open-request count
         // on its child tile is invisible until someone thinks to expand it.
         // Null when there is nothing open, so the header is the plain one.
@@ -539,13 +500,61 @@ class AppDrawer extends ConsumerWidget {
             ? const _ItemRequestsBadge(dotOnly: true)
             : null,
       ),
-      group(
+      _DrawerGroupSpec(
+        id: 'production',
+        icon: Icons.factory_outlined,
+        label: l10n.drawerGroupProduction,
+        children: productionChildren,
+        routes: const [
+          // `/manufacturing/today` is caught by the prefix rule on
+          // `/manufacturing`, but the tile points at it, so it is named too:
+          // a list that only names the route nobody navigates to is one rename
+          // away from silently losing the highlight.
+          AppRoutes.manufacturing,
+          AppRoutes.productionToday,
+          AppRoutes.productionRound,
+        ],
+      ),
+      _DrawerGroupSpec(
+        id: 'team',
+        icon: Icons.groups_outlined,
+        label: l10n.drawerGroupTeam,
+        children: teamChildren,
+        routes: const [
+          AppRoutes.tasks,
+          AppRoutes.roster,
+          AppRoutes.attendance,
+          AppRoutes.shiftMonitor,
+          AppRoutes.branchAccess,
+        ],
+      ),
+      _DrawerGroupSpec(
+        id: 'management',
         icon: Icons.insights,
         label: l10n.drawerGroupManagement,
         children: managementChildren,
-        expanded: matchesRoute(managementRoutes),
+        routes: const [
+          AppRoutes.manager,
+          AppRoutes.reports,
+          AppRoutes.reportsShipping,
+          AppRoutes.reportsInventory,
+          AppRoutes.reportsProduct,
+          AppRoutes.reportsCustomer,
+          AppRoutes.reportsExecutive,
+          AppRoutes.reportsB2b,
+          AppRoutes.wooSync,
+        ],
       ),
-    ].whereType<Widget>().toList();
+    ].where((g) => g.children.isNotEmpty).toList();
+
+    // Open the group holding the active route; fall back to the first group
+    // (Sales) so the drawer never opens as a wall of collapsed headers.
+    final activeGroup = groups
+        .where((g) => matchesRoute(g.routes))
+        .map((g) => g.id)
+        .firstOrNull;
+    final initiallyOpen =
+        activeGroup ?? (groups.isEmpty ? null : groups.first.id);
 
     return Drawer(
       child: ListView(
@@ -563,9 +572,11 @@ class AppDrawer extends ConsumerWidget {
           // is never hidden inside a collapsed one. Renders nothing when there
           // is nothing to do or the user approves nothing.
           const PendingApprovalsDrawerSection(),
-          ...groups,
+          _DrawerGroups(groups: groups, initiallyOpen: initiallyOpen),
           const Divider(),
           ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
             leading: const Icon(Icons.info_outline),
             title: Text(l10n.menuAbout),
             onTap: () {
@@ -574,6 +585,8 @@ class AppDrawer extends ConsumerWidget {
             },
           ),
           SwitchListTile.adaptive(
+            dense: true,
+            visualDensity: VisualDensity.compact,
             secondary: const Icon(Icons.language),
             title: Text(l10n.menuLanguage),
             subtitle: Text(selectedLanguageLabel),
@@ -586,6 +599,8 @@ class AppDrawer extends ConsumerWidget {
             },
           ),
           ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
             leading: const Icon(Icons.logout),
             title: Text(l10n.menuLogout),
             onTap: () async {
@@ -628,6 +643,102 @@ class _DrawerHeaderTitle extends StatelessWidget {
   }
 }
 
+/// One collapsible section of the drawer.
+class _DrawerGroupSpec {
+  final String id;
+  final IconData icon;
+  final String label;
+  final List<Widget> children;
+
+  /// Routes whose screens live in this group; the group holding the current
+  /// route opens when the drawer does.
+  final List<String> routes;
+  final Widget? badge;
+
+  const _DrawerGroupSpec({
+    required this.id,
+    required this.icon,
+    required this.label,
+    required this.children,
+    required this.routes,
+    this.badge,
+  });
+}
+
+/// The drawer's groups as an accordion: opening one closes whichever was open,
+/// so the drawer stays one group deep instead of growing into a long scroll.
+class _DrawerGroups extends StatefulWidget {
+  final List<_DrawerGroupSpec> groups;
+  final String? initiallyOpen;
+
+  const _DrawerGroups({required this.groups, required this.initiallyOpen});
+
+  @override
+  State<_DrawerGroups> createState() => _DrawerGroupsState();
+}
+
+class _DrawerGroupsState extends State<_DrawerGroups> {
+  // Keyed by group id, not position: gates resolve asynchronously, so a group
+  // can appear after the first build and shift the ones below it.
+  final Map<String, ExpansibleController> _controllers = {};
+
+  ExpansibleController _controllerFor(String id) =>
+      _controllers.putIfAbsent(id, ExpansibleController.new);
+
+  void _onExpansionChanged(String id, bool expanded) {
+    if (!expanded) return;
+    for (final entry in _controllers.entries) {
+      if (entry.key != id && entry.value.isExpanded) entry.value.collapse();
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in _controllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        for (final g in widget.groups)
+          ExpansionTile(
+            key: PageStorageKey<String>('drawer-group-${g.id}'),
+            controller: _controllerFor(g.id),
+            leading: Icon(g.icon),
+            title: g.badge == null
+                ? Text(g.label, style: theme.textTheme.titleSmall)
+                : Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          g.label,
+                          style: theme.textTheme.titleSmall,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      g.badge!,
+                    ],
+                  ),
+            initiallyExpanded: g.id == widget.initiallyOpen,
+            onExpansionChanged: (expanded) =>
+                _onExpansionChanged(g.id, expanded),
+            visualDensity: VisualDensity.compact,
+            shape: const Border(),
+            collapsedShape: const Border(),
+            childrenPadding: const EdgeInsetsDirectional.only(start: 16),
+            children: g.children,
+          ),
+      ],
+    );
+  }
+}
+
 /// Drawer entry for team item requests, badged with how many are still open.
 ///
 /// Red while any open request has not been accepted by a buyer — that is the
@@ -644,6 +755,8 @@ class _ItemRequestsNavTile extends ConsumerWidget {
           orElse: () => 0,
         );
     return ListTile(
+      dense: true,
+      visualDensity: VisualDensity.compact,
       leading: const Icon(Icons.playlist_add),
       title: Text(context.l10n.menuItemRequests),
       // Null rather than an empty widget: any trailing slot, even an empty
@@ -717,6 +830,8 @@ class _LabelsNavTile extends ConsumerWidget {
         );
 
     return ListTile(
+      dense: true,
+      visualDensity: VisualDensity.compact,
       leading: const Icon(Icons.label_important_outline),
       title: Text(context.l10n.labelsTitle),
       trailing: count == 0
