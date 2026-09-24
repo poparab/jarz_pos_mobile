@@ -2585,6 +2585,25 @@ class PosNotifier extends StateNotifier<PosState> {
         normalized == 'y';
   }
 
+  /// The discount fields an amendment cart row inherits from its source line.
+  ///
+  /// Only a real (non-zero) discount is carried. Every invoice line reports
+  /// `discount_amount: 0` / `discount_percentage: 0`, and the server counts any
+  /// SENT pricing field — zero included — as a manual override that needs
+  /// manager pricing access. Copying the zeros made every cashier's amendment
+  /// fail with "manager pricing access required" on an undiscounted order.
+  @visibleForTesting
+  static Map<String, double> amendmentLineDiscounts(Map<String, dynamic> item) {
+    double read(dynamic value) =>
+        value is num ? value.toDouble() : double.tryParse('${value ?? ''}') ?? 0.0;
+    final amount = read(item['discount_amount']);
+    final percentage = read(item['discount_percentage']);
+    return {
+      if (amount.abs() > 0.0001) 'discount_amount': amount,
+      if (percentage.abs() > 0.0001) 'discount_percentage': percentage,
+    };
+  }
+
   double _coerceDouble(dynamic value, {double fallback = 0.0}) {
     if (value is num) return value.toDouble();
     return double.tryParse(value?.toString() ?? '') ?? fallback;
@@ -3469,10 +3488,7 @@ class PosNotifier extends StateNotifier<PosState> {
         'type': 'item',
         if (item.containsKey('price_list_rate'))
           'price_list_rate': _coerceDouble(item['price_list_rate']),
-        if (item.containsKey('discount_amount'))
-          'discount_amount': _coerceDouble(item['discount_amount']),
-        if (item.containsKey('discount_percentage'))
-          'discount_percentage': _coerceDouble(item['discount_percentage']),
+        ...amendmentLineDiscounts(item),
       });
     }
 

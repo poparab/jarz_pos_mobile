@@ -1020,7 +1020,11 @@ class InvoiceCard {
     if (canAmendFlag != null) {
       return canAmendFlag!;
     }
-    if (hasUnsettledCourierTxn || !isFullyUnpaid || isReturn) {
+    // No payment check here: the board feed carries no can_amend, and the
+    // server now carries a paid order's payment across. Refusing paid orders
+    // on the client hid Edit for every prepaid order (Woo 17612). Tapping Edit
+    // fetches the details, whose server verdict is final.
+    if (hasUnsettledCourierTxn || isReturn) {
       return false;
     }
     if ((deliveryTrip ?? '').trim().isNotEmpty) {

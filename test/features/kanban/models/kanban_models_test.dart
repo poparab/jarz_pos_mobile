@@ -190,6 +190,39 @@ void main() {
       });
     }
 
+    group('canAmend fallback (board feed sends no can_amend)', () {
+      test('a paid order in a prep state offers Edit (Woo 17612)', () {
+        final card = buildCard(overrides: {'outstanding_amount': 0});
+        expect(card.isFullyUnpaid, isFalse);
+        expect(card.canAmend, isTrue);
+      });
+
+      test('a partially paid order offers Edit', () {
+        expect(buildCard(overrides: {'outstanding_amount': 60}).canAmend, isTrue);
+      });
+
+      test('an unpaid order still offers Edit', () {
+        expect(buildCard(overrides: {'outstanding_amount': 150}).canAmend, isTrue);
+      });
+
+      test('non-payment refusals still hold', () {
+        expect(buildCard(overrides: {'status': 'Out for Delivery'}).canAmend, isFalse);
+        expect(buildCard(overrides: {'is_return': 1}).canAmend, isFalse);
+        expect(buildCard(overrides: {'delivery_trip': 'DT-1'}).canAmend, isFalse);
+        expect(
+          buildCard(overrides: {'has_unsettled_courier_txn': true}).canAmend,
+          isFalse,
+        );
+      });
+
+      test('an explicit server verdict wins', () {
+        expect(
+          buildCard(overrides: {'outstanding_amount': 150, 'can_amend': false}).canAmend,
+          isFalse,
+        );
+      });
+    });
+
     test('fromJson normalises booleans and phone fallbacks', () {
       final card = buildCard(overrides: {
         'shipping_income': 5,

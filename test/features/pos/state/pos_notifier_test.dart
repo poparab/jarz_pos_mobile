@@ -273,6 +273,33 @@ void main() {
   // ──────────────────────────────────────────────────────────────────────────
   // PosState computed getters
   // ──────────────────────────────────────────────────────────────────────────
+  group('PosNotifier.amendmentLineDiscounts', () {
+    test('drops the zero discounts every invoice line reports', () {
+      // Sent as-is they read as a manual override on the server and refused
+      // every cashier amendment with "manager pricing access required".
+      expect(
+        PosNotifier.amendmentLineDiscounts({
+          'item_code': 'Blueberry Medium',
+          'discount_amount': 0.0,
+          'discount_percentage': 0,
+        }),
+        isEmpty,
+      );
+      expect(PosNotifier.amendmentLineDiscounts({'item_code': 'X'}), isEmpty);
+      expect(
+        PosNotifier.amendmentLineDiscounts({'discount_amount': null, 'discount_percentage': ''}),
+        isEmpty,
+      );
+    });
+
+    test('keeps a real discount so it stays manager-gated', () {
+      expect(
+        PosNotifier.amendmentLineDiscounts({'discount_amount': 20, 'discount_percentage': '10'}),
+        {'discount_amount': 20.0, 'discount_percentage': 10.0},
+      );
+    });
+  });
+
   group('PosState computed getters', () {
     test('cartTotal sums rate * quantity across items', () {
       final state = PosState(
