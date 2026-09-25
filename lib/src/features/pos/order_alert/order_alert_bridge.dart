@@ -30,6 +30,7 @@ import 'web_push_registration_service.dart';
 import '../../../core/constants/timing_config.dart';
 import '../../approvals/state/pending_approvals_provider.dart';
 import '../../tasks/state/tasks_providers.dart';
+import '../../credit/state/credit_providers.dart';
 
 /// Ceiling for the alert poll's backoff.
 ///
@@ -539,6 +540,19 @@ class OrderAlertBridge {
           _navigateToTask(data['task_id']?.toString());
         }
         break;
+      case 'settlement_reminder':
+        _logger.info(
+          'FCM settlement reminder: ${data['kind']} for ${data['customer']}',
+        );
+        // A B2B shop's agreed pay day is due / overdue, or the previous
+        // invoice should be collected with this delivery. The tray entry is
+        // drawn by the SDK; here the "Collections due" badge and any open
+        // credit screen catch up, and a tap lands on the shop's account.
+        _refreshSettlement(data['customer']?.toString());
+        if (openedApp) {
+          _navigateToSettlement(data['customer']?.toString());
+        }
+        break;
       default:
         _logger.debug('Ignored push message of type $type');
     }
@@ -598,6 +612,33 @@ class OrderAlertBridge {
     }
   }
 
+  /// Badge, Collections list and (if open) the shop's terms card. Invalidating
+  /// an autoDispose provider nobody watches is free, so this never starts a
+  /// fetch for a screen that is not on display.
+  void _refreshSettlement(String? customer) {
+    try {
+      _ref.invalidate(pendingApprovalsProvider);
+      _ref.invalidate(collectionsDueProvider);
+      final id = customer?.trim() ?? '';
+      if (id.isNotEmpty) {
+        _ref.invalidate(settlementTermsProvider(id));
+      }
+    } catch (error, stackTrace) {
+      _logger.error('Failed to refresh after settlement push', error, stackTrace);
+    }
+  }
+
+  /// The shop's credit account, by id. Without a customer (a payload this
+  /// build did not expect), the Collections list is the next best place.
+  void _navigateToSettlement(String? customer) {
+    final id = customer?.trim() ?? '';
+    _navigateTo(
+      id.isEmpty
+          ? AppRoutes.creditCollections
+          : AppRoutes.creditAccountDetailFor(id),
+    );
+  }
+
   void _navigateToTask(String? taskId) {
     final id = taskId?.trim() ?? '';
     _navigateTo(id.isEmpty ? AppRoutes.tasks : AppRoutes.taskDetailFor(id));
@@ -655,6 +696,9 @@ class OrderAlertBridge {
     } else if (type == 'task_notification') {
       _refreshTasks(payload['task_id']);
       _navigateToTask(payload['task_id']);
+    } else if (type == 'settlement_reminder') {
+      _refreshSettlement(payload['customer']);
+      _navigateToSettlement(payload['customer']);
     }
   }
 
