@@ -13,6 +13,10 @@ class PendingApprovalKeys {
   static const tasksAssigned = 'tasks_assigned';
   static const tasksReview = 'tasks_review';
 
+  /// B2B shops whose agreed settlement schedule says money is overdue or due
+  /// today. A reminder to collect, not an approval — nothing is blocked.
+  static const creditCollections = 'credit_collections';
+
   static const known = {
     expenses,
     employeeAdvances,
@@ -21,6 +25,7 @@ class PendingApprovalKeys {
     customShipping,
     tasksAssigned,
     tasksReview,
+    creditCollections,
   };
 }
 

@@ -413,7 +413,13 @@ object OrderAlertNative {
         // Keyed on the request id, so two pending expenses are two tray
         // entries. Using a single constant id here would reproduce, in the
         // native path, exactly the collapse the FCM tag was changed to avoid.
-        val requestId = data["notification_id"] ?: data["expense_id"] ?: ""
+        // A settlement reminder is keyed on kind + customer, so two shops'
+        // reminders (or one shop's due-soon and overdue) are separate entries.
+        val requestId = if (data["type"] == "settlement_reminder") {
+            "settlement:${data["kind"] ?: ""}:${data["customer"] ?: ""}"
+        } else {
+            data["notification_id"] ?: data["expense_id"] ?: ""
+        }
         val notificationId = if (requestId.isNotEmpty()) {
             APPROVAL_NOTIFICATION_ID + (requestId.hashCode() and 0x0000FFFF)
         } else {
@@ -432,6 +438,9 @@ object OrderAlertNative {
             putExtra("expense_month", data["expense_month"] ?: "")
             // task_notification: which task to open on tap.
             putExtra("task_id", data["task_id"] ?: "")
+            // settlement_reminder: which shop's credit account to open on tap.
+            putExtra("customer", data["customer"] ?: "")
+            putExtra("kind", data["kind"] ?: "")
         }
 
         val pendingIntent = PendingIntent.getActivity(

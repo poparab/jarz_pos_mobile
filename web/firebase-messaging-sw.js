@@ -24,6 +24,11 @@ if (appBasePath.endsWith('/push/')) {
 // manager answered one of two. notification_id is set by every payload builder
 // and equals invoice_id on the invoice paths, so this changes nothing there.
 function notificationTagFor(data) {
+  // Settlement reminders are per shop and per kind: two shops' reminders
+  // (or one shop's due-soon then overdue) must not replace each other.
+  if (data.type === 'settlement_reminder') {
+    return `settlement:${data.kind || ''}:${data.customer || ''}`;
+  }
   return data.invoice_id || data.notification_id || data.type || 'jarz_pos';
 }
 
@@ -46,6 +51,11 @@ function notificationUrlFor(data) {
     return data.task_id
       ? `${appBasePath}#/tasks/${encodeURIComponent(data.task_id)}`
       : `${appBasePath}#/tasks`;
+  }
+  if (data.type === 'settlement_reminder') {
+    return data.customer
+      ? `${appBasePath}#/credit-accounts/detail?customer=${encodeURIComponent(data.customer)}`
+      : `${appBasePath}#/credit-accounts?view=collections`;
   }
   const invoiceId = data.invoice_id || '';
   return invoiceId

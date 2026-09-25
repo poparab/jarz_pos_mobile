@@ -52,6 +52,12 @@ class JarzFirebaseMessagingService : FlutterFirebaseMessagingService() {
                 "task_notification" -> {
                     OrderAlertNative.showApprovalNotification(applicationContext, data)
                 }
+                // B2B collection reminder: same foreground gap, same quiet
+                // approvals channel. The tap carries customer so
+                // _handleLaunchPayload opens that shop's credit account.
+                "settlement_reminder" -> {
+                    OrderAlertNative.showApprovalNotification(applicationContext, data)
+                }
             }
         }
         super.onMessageReceived(remoteMessage)

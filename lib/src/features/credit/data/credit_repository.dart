@@ -8,6 +8,7 @@ import '../../../core/network/dio_provider.dart';
 import '../../../core/network/frappe_error_message.dart';
 import 'credit_payment_token.dart';
 import 'models/credit_models.dart';
+import 'models/settlement_models.dart';
 
 final creditRepositoryProvider = Provider<CreditRepository>((ref) {
   final dio = ref.watch(dioProvider);
@@ -151,6 +152,66 @@ class CreditRepository {
       });
     } on DioException catch (error) {
       throw mapFrappeError(error, fallback: 'Failed to record payment');
+    }
+  }
+
+  // ── Settlement terms ───────────────────────────────────────────────────
+
+  /// One shop's payment schedule, its computed collection status, and
+  /// whether the caller may edit it. `terms` is null for a shop with none.
+  Future<SettlementTermsResponse> getSettlementTerms(String customer) async {
+    try {
+      final response = await _dio.get(
+        ApiEndpoints.getSettlementTerms,
+        queryParameters: {'customer': customer},
+      );
+      final map = _payload(response, 'Failed to load payment terms');
+      return SettlementTermsResponse.fromJson({'customer': customer, ...map});
+    } on DioException catch (error) {
+      throw mapFrappeError(error, fallback: 'Failed to load payment terms');
+    }
+  }
+
+  /// Upserts the schedule. The response has the same shape as
+  /// [getSettlementTerms], so the caller can show the recomputed status
+  /// without a second round-trip.
+  Future<SettlementTermsResponse> saveSettlementTerms(
+    SettlementTermsDraft draft,
+  ) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.saveSettlementTerms,
+        data: draft.toPayload(),
+      );
+      final map = _payload(response, 'Failed to save payment terms');
+      return SettlementTermsResponse.fromJson({
+        'customer': draft.customer,
+        ...map,
+      });
+    } on DioException catch (error) {
+      throw mapFrappeError(error, fallback: 'Failed to save payment terms');
+    }
+  }
+
+  /// Shops to collect from: overdue → due today → due soon → unscheduled →
+  /// on track. Shops owing nothing are excluded by the server.
+  Future<CollectionsDue> getCollectionsDue({
+    int daysAhead = 7,
+    String? branch,
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiEndpoints.getCollectionsDue,
+        queryParameters: {
+          'days_ahead': daysAhead,
+          if (branch != null && branch.isNotEmpty) 'branch': branch,
+        },
+      );
+      return CollectionsDue.fromJson(
+        _payload(response, 'Failed to load collections'),
+      );
+    } on DioException catch (error) {
+      throw mapFrappeError(error, fallback: 'Failed to load collections');
     }
   }
 }

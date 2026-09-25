@@ -8562,5 +8562,129 @@
       }
     }
   },
-  "b2bBranchOnTalabat": "On Talabat"
+  "b2bBranchOnTalabat": "On Talabat",
+  "settlementTermsTitle": "Payment terms",
+  "settlementTermsNotSet": "No payment terms set, so no collection reminders for this shop.",
+  "settlementTermsSetAction": "Set terms",
+  "settlementTermsEditAction": "Edit",
+  "settlementTermsLoadFailed": "Could not load payment terms",
+  "settlementTermsPaused": "Reminders paused",
+  "settlementStateOverdue": "Overdue",
+  "settlementStateDueToday": "Due today",
+  "settlementStateDueSoon": "Due soon",
+  "settlementStateOk": "On track",
+  "settlementStateNone": "Nothing owed",
+  "settlementStateUnscheduled": "Not scheduled",
+  "settlementNextDueLabel": "Next due",
+  "settlementNextDueAmountLabel": "Due on that date",
+  "settlementDueNowLabel": "Due now",
+  "settlementOverdueAmountLabel": "Overdue",
+  "settlementOverdueSinceLabel": "Overdue since",
+  "settlementCollectNextDeliveryLabel": "Collect with the next delivery",
+  "settlementRemindsLabel": "Reminds",
+  "settlementRemindsAllManagers": "All managers",
+  "settlementNotesLabel": "Agreed terms",
+  "settlementDescOnDelivery": "Pays on delivery",
+  "settlementDescInvoiceAfterInvoice": "Pays the previous invoice on each delivery",
+  "settlementDescWeekly": "Every {days}",
+  "@settlementDescWeekly": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "settlementDescWeeklyInterval": "Every {weeks} weeks on {days}",
+  "@settlementDescWeeklyInterval": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      },
+      "days": {}
+    }
+  },
+  "settlementDescMonthDays": "Every month on {days}",
+  "@settlementDescMonthDays": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "settlementDescMonthDayNumber": "the {day}",
+  "@settlementDescMonthDayNumber": {
+    "placeholders": {
+      "day": {}
+    }
+  },
+  "settlementDescMonthDayLast": "the last day",
+  "settlementDescEveryNDays": "{count, plural, =1{Every day} other{Every {count} days}}",
+  "@settlementDescEveryNDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settlementSheetTitle": "Payment terms",
+  "settlementSheetHint": "A schedule for reminders only. Nothing here blocks an order.",
+  "settlementCycleLabel": "How does this shop pay?",
+  "settlementCycleOnDelivery": "On delivery",
+  "settlementCycleInvoiceAfterInvoice": "Invoice after invoice",
+  "settlementCycleWeekly": "Weekly",
+  "settlementCycleDaysOfMonth": "Days of the month",
+  "settlementCycleEveryNDays": "Every N days",
+  "settlementCycleOnDeliveryHint": "Pays at the door. Any open balance shows as overdue.",
+  "settlementCycleInvoiceAfterInvoiceHint": "When a new order is delivered, the shop pays the previous one.",
+  "settlementWeekdaysLabel": "Pay day",
+  "settlementWeekIntervalLabel": "Every how many weeks",
+  "settlementWeekIntervalHint": "1 = every week, 2 = every other week",
+  "settlementMonthDaysLabel": "Days of the month",
+  "settlementMonthDayLastChip": "Last day",
+  "settlementMonthDaysClampHint": "A day the month does not have (like the 31st) falls on its last day.",
+  "settlementIntervalDaysLabel": "Every how many days",
+  "settlementAnchorDateLabel": "Counting from",
+  "settlementAnchorDateDefault": "Today (default)",
+  "settlementRemindDaysBeforeLabel": "Remind how many days before",
+  "settlementRemindDaysBeforeHint": "0 = only on the day",
+  "settlementOverdueRepeatLabel": "Repeat the overdue reminder every (days)",
+  "settlementResponsibleUserLabel": "Who gets reminded",
+  "settlementResponsibleUserHint": "User email. Leave empty for all managers.",
+  "settlementNotesFieldLabel": "Agreed terms (returns, discounts, anything)",
+  "settlementEnabledLabel": "Send reminders",
+  "settlementSaveAction": "Save terms",
+  "settlementSaveFailed": "Could not save payment terms",
+  "settlementSaved": "Payment terms saved",
+  "settlementValidationPickDay": "Pick at least one day",
+  "settlementValidationWholeNumber": "Enter a whole number, 1 or more",
+  "settlementValidationZeroOrMore": "Enter a whole number, 0 or more",
+  "creditAccountsViewAccounts": "Accounts",
+  "creditAccountsViewCollections": "Collections",
+  "collectionsSubtitle": "Shops to collect from, most urgent first. Reminders only; nothing here blocks an order.",
+  "collectionsEmpty": "Nothing to collect in the next {days} days",
+  "@collectionsEmpty": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "collectionsLoadFailed": "Failed to load collections",
+  "collectionsNoTerms": "No payment terms set",
+  "collectionsDueNow": "Due now {amount}",
+  "@collectionsDueNow": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "collectionsOverdueAmount": "Overdue {amount}",
+  "@collectionsOverdueAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "collectionsNextDue": "{amount} due {date}",
+  "@collectionsNextDue": {
+    "placeholders": {
+      "amount": {},
+      "date": {}
+    }
+  },
+  "approvalsQueueCreditCollections": "Collections due"
 }

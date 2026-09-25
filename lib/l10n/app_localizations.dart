@@ -24472,6 +24472,432 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On Talabat'**
   String get b2bBranchOnTalabat;
+
+  /// No description provided for @settlementTermsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment terms'**
+  String get settlementTermsTitle;
+
+  /// No description provided for @settlementTermsNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No payment terms set, so no collection reminders for this shop.'**
+  String get settlementTermsNotSet;
+
+  /// No description provided for @settlementTermsSetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set terms'**
+  String get settlementTermsSetAction;
+
+  /// No description provided for @settlementTermsEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get settlementTermsEditAction;
+
+  /// No description provided for @settlementTermsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load payment terms'**
+  String get settlementTermsLoadFailed;
+
+  /// No description provided for @settlementTermsPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders paused'**
+  String get settlementTermsPaused;
+
+  /// No description provided for @settlementStateOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get settlementStateOverdue;
+
+  /// No description provided for @settlementStateDueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today'**
+  String get settlementStateDueToday;
+
+  /// No description provided for @settlementStateDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get settlementStateDueSoon;
+
+  /// No description provided for @settlementStateOk.
+  ///
+  /// In en, this message translates to:
+  /// **'On track'**
+  String get settlementStateOk;
+
+  /// No description provided for @settlementStateNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing owed'**
+  String get settlementStateNone;
+
+  /// No description provided for @settlementStateUnscheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Not scheduled'**
+  String get settlementStateUnscheduled;
+
+  /// No description provided for @settlementNextDueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next due'**
+  String get settlementNextDueLabel;
+
+  /// No description provided for @settlementNextDueAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Due on that date'**
+  String get settlementNextDueAmountLabel;
+
+  /// No description provided for @settlementDueNowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Due now'**
+  String get settlementDueNowLabel;
+
+  /// No description provided for @settlementOverdueAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get settlementOverdueAmountLabel;
+
+  /// No description provided for @settlementOverdueSinceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue since'**
+  String get settlementOverdueSinceLabel;
+
+  /// No description provided for @settlementCollectNextDeliveryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect with the next delivery'**
+  String get settlementCollectNextDeliveryLabel;
+
+  /// No description provided for @settlementRemindsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminds'**
+  String get settlementRemindsLabel;
+
+  /// No description provided for @settlementRemindsAllManagers.
+  ///
+  /// In en, this message translates to:
+  /// **'All managers'**
+  String get settlementRemindsAllManagers;
+
+  /// No description provided for @settlementNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Agreed terms'**
+  String get settlementNotesLabel;
+
+  /// No description provided for @settlementDescOnDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Pays on delivery'**
+  String get settlementDescOnDelivery;
+
+  /// No description provided for @settlementDescInvoiceAfterInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Pays the previous invoice on each delivery'**
+  String get settlementDescInvoiceAfterInvoice;
+
+  /// No description provided for @settlementDescWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days}'**
+  String settlementDescWeekly(Object days);
+
+  /// No description provided for @settlementDescWeeklyInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {weeks} weeks on {days}'**
+  String settlementDescWeeklyInterval(int weeks, Object days);
+
+  /// No description provided for @settlementDescMonthDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Every month on {days}'**
+  String settlementDescMonthDays(Object days);
+
+  /// No description provided for @settlementDescMonthDayNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'the {day}'**
+  String settlementDescMonthDayNumber(Object day);
+
+  /// No description provided for @settlementDescMonthDayLast.
+  ///
+  /// In en, this message translates to:
+  /// **'the last day'**
+  String get settlementDescMonthDayLast;
+
+  /// No description provided for @settlementDescEveryNDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Every day} other{Every {count} days}}'**
+  String settlementDescEveryNDays(int count);
+
+  /// No description provided for @settlementSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment terms'**
+  String get settlementSheetTitle;
+
+  /// No description provided for @settlementSheetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A schedule for reminders only. Nothing here blocks an order.'**
+  String get settlementSheetHint;
+
+  /// No description provided for @settlementCycleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'How does this shop pay?'**
+  String get settlementCycleLabel;
+
+  /// No description provided for @settlementCycleOnDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'On delivery'**
+  String get settlementCycleOnDelivery;
+
+  /// No description provided for @settlementCycleInvoiceAfterInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice after invoice'**
+  String get settlementCycleInvoiceAfterInvoice;
+
+  /// No description provided for @settlementCycleWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get settlementCycleWeekly;
+
+  /// No description provided for @settlementCycleDaysOfMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Days of the month'**
+  String get settlementCycleDaysOfMonth;
+
+  /// No description provided for @settlementCycleEveryNDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Every N days'**
+  String get settlementCycleEveryNDays;
+
+  /// No description provided for @settlementCycleOnDeliveryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pays at the door. Any open balance shows as overdue.'**
+  String get settlementCycleOnDeliveryHint;
+
+  /// No description provided for @settlementCycleInvoiceAfterInvoiceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When a new order is delivered, the shop pays the previous one.'**
+  String get settlementCycleInvoiceAfterInvoiceHint;
+
+  /// No description provided for @settlementWeekdaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay day'**
+  String get settlementWeekdaysLabel;
+
+  /// No description provided for @settlementWeekIntervalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Every how many weeks'**
+  String get settlementWeekIntervalLabel;
+
+  /// No description provided for @settlementWeekIntervalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'1 = every week, 2 = every other week'**
+  String get settlementWeekIntervalHint;
+
+  /// No description provided for @settlementMonthDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Days of the month'**
+  String get settlementMonthDaysLabel;
+
+  /// No description provided for @settlementMonthDayLastChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Last day'**
+  String get settlementMonthDayLastChip;
+
+  /// No description provided for @settlementMonthDaysClampHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A day the month does not have (like the 31st) falls on its last day.'**
+  String get settlementMonthDaysClampHint;
+
+  /// No description provided for @settlementIntervalDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Every how many days'**
+  String get settlementIntervalDaysLabel;
+
+  /// No description provided for @settlementAnchorDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Counting from'**
+  String get settlementAnchorDateLabel;
+
+  /// No description provided for @settlementAnchorDateDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Today (default)'**
+  String get settlementAnchorDateDefault;
+
+  /// No description provided for @settlementRemindDaysBeforeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind how many days before'**
+  String get settlementRemindDaysBeforeLabel;
+
+  /// No description provided for @settlementRemindDaysBeforeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'0 = only on the day'**
+  String get settlementRemindDaysBeforeHint;
+
+  /// No description provided for @settlementOverdueRepeatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat the overdue reminder every (days)'**
+  String get settlementOverdueRepeatLabel;
+
+  /// No description provided for @settlementResponsibleUserLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Who gets reminded'**
+  String get settlementResponsibleUserLabel;
+
+  /// No description provided for @settlementResponsibleUserHint.
+  ///
+  /// In en, this message translates to:
+  /// **'User email. Leave empty for all managers.'**
+  String get settlementResponsibleUserHint;
+
+  /// No description provided for @settlementNotesFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Agreed terms (returns, discounts, anything)'**
+  String get settlementNotesFieldLabel;
+
+  /// No description provided for @settlementEnabledLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Send reminders'**
+  String get settlementEnabledLabel;
+
+  /// No description provided for @settlementSaveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save terms'**
+  String get settlementSaveAction;
+
+  /// No description provided for @settlementSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save payment terms'**
+  String get settlementSaveFailed;
+
+  /// No description provided for @settlementSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment terms saved'**
+  String get settlementSaved;
+
+  /// No description provided for @settlementValidationPickDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one day'**
+  String get settlementValidationPickDay;
+
+  /// No description provided for @settlementValidationWholeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number, 1 or more'**
+  String get settlementValidationWholeNumber;
+
+  /// No description provided for @settlementValidationZeroOrMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number, 0 or more'**
+  String get settlementValidationZeroOrMore;
+
+  /// No description provided for @creditAccountsViewAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get creditAccountsViewAccounts;
+
+  /// No description provided for @creditAccountsViewCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get creditAccountsViewCollections;
+
+  /// No description provided for @collectionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops to collect from, most urgent first. Reminders only; nothing here blocks an order.'**
+  String get collectionsSubtitle;
+
+  /// No description provided for @collectionsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to collect in the next {days} days'**
+  String collectionsEmpty(int days);
+
+  /// No description provided for @collectionsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load collections'**
+  String get collectionsLoadFailed;
+
+  /// No description provided for @collectionsNoTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'No payment terms set'**
+  String get collectionsNoTerms;
+
+  /// No description provided for @collectionsDueNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Due now {amount}'**
+  String collectionsDueNow(Object amount);
+
+  /// No description provided for @collectionsOverdueAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue {amount}'**
+  String collectionsOverdueAmount(Object amount);
+
+  /// No description provided for @collectionsNextDue.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} due {date}'**
+  String collectionsNextDue(Object amount, Object date);
+
+  /// No description provided for @approvalsQueueCreditCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections due'**
+  String get approvalsQueueCreditCollections;
 }
 
 class _AppLocalizationsDelegate

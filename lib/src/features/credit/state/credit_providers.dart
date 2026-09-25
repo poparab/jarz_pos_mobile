@@ -4,6 +4,7 @@ import '../../pos/data/repositories/pos_repository.dart';
 import '../data/credit_payment_token.dart';
 import '../data/credit_repository.dart';
 import '../data/models/credit_models.dart';
+import '../data/models/settlement_models.dart';
 
 /// How far back the credit ledger's ACTIVITY FEED looks.
 ///
@@ -94,6 +95,26 @@ final creditPaymentPosProfilesProvider =
       .map((profile) => (profile['name'] ?? '').toString())
       .where((name) => name.isNotEmpty)
       .toList();
+});
+
+/// One shop's settlement terms + computed collection status.
+///
+/// autoDispose: only the account detail screen reads it, and a stale status
+/// ("due today" yesterday) is worse than a refetch on the next visit.
+final settlementTermsProvider = FutureProvider.autoDispose
+    .family<SettlementTermsResponse, String>((ref, customer) async {
+  final repository = ref.watch(creditRepositoryProvider);
+  return repository.getSettlementTerms(customer);
+});
+
+/// How far ahead the Collections list looks for "due soon".
+const collectionsDaysAhead = 7;
+
+/// Shops to collect from, most urgent first.
+final collectionsDueProvider =
+    FutureProvider.autoDispose<CollectionsDue>((ref) async {
+  final repository = ref.watch(creditRepositoryProvider);
+  return repository.getCollectionsDue(daysAhead: collectionsDaysAhead);
 });
 
 /// `YYYY-MM-DD`, the only date shape these endpoints accept.

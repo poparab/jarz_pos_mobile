@@ -134,6 +134,18 @@ abstract final class AppRoutes {
   static const creditAccounts = '/credit-accounts';
   static const creditAccountDetail = '/credit-accounts/detail';
 
+  /// The accounts screen opened on its Collections view (side-menu
+  /// "Collections due", settlement reminder without a customer).
+  static const creditCollections = '/credit-accounts?view=collections';
+
+  /// One shop's account by id alone — for push taps and deep links, which
+  /// cannot carry `extra`. `/credit-accounts/<id>` (the settlement reminder's
+  /// `route`) resolves to the same screen.
+  static String creditAccountDetailFor(String customer) => Uri(
+        path: creditAccountDetail,
+        queryParameters: {'customer': customer},
+      ).toString();
+
   // ── WooCommerce sync operations ───────────────────────────────────────
   // The retry / review / breaker workflow that lived only in Desk.
   static const wooSync = '/woo-sync';

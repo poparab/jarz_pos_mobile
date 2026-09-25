@@ -699,7 +699,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.creditAccounts,
         name: 'credit-accounts',
-        builder: (context, state) => const CreditAccountsScreen(),
+        builder: (context, state) => CreditAccountsScreen(
+          initialView: CreditAccountsScreen.viewFromQuery(
+            state.uri.queryParameters['view'],
+          ),
+        ),
       ),
       GoRoute(
         path: AppRoutes.creditAccountDetail,
@@ -709,11 +713,26 @@ final routerProvider = Provider<GoRouter>((ref) {
           final data = extra is Map
               ? Map<String, dynamic>.from(extra)
               : const <String, dynamic>{};
+          // `extra` from an in-app tap; `?customer=` from a push tap or a
+          // deep link, which cannot carry an object.
+          final customer = (data['customer'] ??
+                  state.uri.queryParameters['customer'] ??
+                  '')
+              .toString();
           return CreditAccountDetailScreen(
-            customer: (data['customer'] ?? '').toString(),
+            customer: customer,
             customerName: (data['customer_name'] ?? '').toString(),
           );
         },
+      ),
+      // The settlement reminder's `route`: `/credit-accounts/<customer>`.
+      // Declared AFTER `/credit-accounts/detail` so the static segment wins.
+      GoRoute(
+        path: '${AppRoutes.creditAccounts}/:customer',
+        name: 'credit-account-by-id',
+        builder: (context, state) => CreditAccountDetailScreen(
+          customer: state.pathParameters['customer'] ?? '',
+        ),
       ),
       // ── B2B customer labels ───────────────────────────────────────────
       // `/labels/detail` is declared before nothing else, but it must stay

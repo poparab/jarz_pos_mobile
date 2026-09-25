@@ -94,6 +94,8 @@ class _PendingApprovalsDrawerSectionState
         _go(AppRoutes.tasksView('mine'));
       case PendingApprovalKeys.tasksReview:
         _go(AppRoutes.tasksView('review'));
+      case PendingApprovalKeys.creditCollections:
+        _go(AppRoutes.creditCollections);
       case PendingApprovalKeys.paymentReceipts:
         // Receipts are confirmed in the Kanban's receipts dialog, which runs on
         // the board's provider — so it is opened there, not over any screen
@@ -141,6 +143,10 @@ class _PendingApprovalsDrawerSectionState
       PendingApprovalKeys.tasksReview => (
         Icons.rate_review_outlined,
         l10n.tasksQueueReview,
+      ),
+      PendingApprovalKeys.creditCollections => (
+        Icons.request_quote_outlined,
+        l10n.approvalsQueueCreditCollections,
       ),
       _ => (Icons.local_shipping_outlined, l10n.approvalsQueueCustomShipping),
     };

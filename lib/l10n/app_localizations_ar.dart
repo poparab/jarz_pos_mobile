@@ -14950,4 +14950,251 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get b2bBranchOnTalabat => 'على طلبات';
+
+  @override
+  String get settlementTermsTitle => 'شروط السداد';
+
+  @override
+  String get settlementTermsNotSet =>
+      'مفيش شروط سداد متحددة، فمفيش تذكير بالتحصيل للمحل ده.';
+
+  @override
+  String get settlementTermsSetAction => 'حدد الشروط';
+
+  @override
+  String get settlementTermsEditAction => 'تعديل';
+
+  @override
+  String get settlementTermsLoadFailed => 'تعذر تحميل شروط السداد';
+
+  @override
+  String get settlementTermsPaused => 'التذكير متوقف';
+
+  @override
+  String get settlementStateOverdue => 'متأخر';
+
+  @override
+  String get settlementStateDueToday => 'مستحق النهارده';
+
+  @override
+  String get settlementStateDueSoon => 'مستحق قريب';
+
+  @override
+  String get settlementStateOk => 'ماشي في ميعاده';
+
+  @override
+  String get settlementStateNone => 'مفيش مستحقات';
+
+  @override
+  String get settlementStateUnscheduled => 'من غير جدول';
+
+  @override
+  String get settlementNextDueLabel => 'الميعاد الجاي';
+
+  @override
+  String get settlementNextDueAmountLabel => 'المستحق في الميعاد ده';
+
+  @override
+  String get settlementDueNowLabel => 'مستحق دلوقتي';
+
+  @override
+  String get settlementOverdueAmountLabel => 'متأخر';
+
+  @override
+  String get settlementOverdueSinceLabel => 'متأخر من';
+
+  @override
+  String get settlementCollectNextDeliveryLabel => 'يتحصل مع التوصيل الجاي';
+
+  @override
+  String get settlementRemindsLabel => 'التذكير يروح لـ';
+
+  @override
+  String get settlementRemindsAllManagers => 'كل المديرين';
+
+  @override
+  String get settlementNotesLabel => 'الاتفاق';
+
+  @override
+  String get settlementDescOnDelivery => 'بيدفع عند الاستلام';
+
+  @override
+  String get settlementDescInvoiceAfterInvoice =>
+      'بيدفع الفاتورة اللي قبلها مع كل توصيل';
+
+  @override
+  String settlementDescWeekly(Object days) {
+    return 'كل يوم $days';
+  }
+
+  @override
+  String settlementDescWeeklyInterval(int weeks, Object days) {
+    return 'كل $weeks أسابيع يوم $days';
+  }
+
+  @override
+  String settlementDescMonthDays(Object days) {
+    return 'كل شهر يوم $days';
+  }
+
+  @override
+  String settlementDescMonthDayNumber(Object day) {
+    return '$day';
+  }
+
+  @override
+  String get settlementDescMonthDayLast => 'آخر الشهر';
+
+  @override
+  String settlementDescEveryNDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'كل $count يوم',
+      few: 'كل $count أيام',
+      two: 'كل يومين',
+      one: 'كل يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settlementSheetTitle => 'شروط السداد';
+
+  @override
+  String get settlementSheetHint =>
+      'جدول للتذكير بس. مفيش حاجة هنا بتوقف أي أوردر.';
+
+  @override
+  String get settlementCycleLabel => 'المحل ده بيدفع إزاي؟';
+
+  @override
+  String get settlementCycleOnDelivery => 'عند الاستلام';
+
+  @override
+  String get settlementCycleInvoiceAfterInvoice => 'فاتورة بفاتورة';
+
+  @override
+  String get settlementCycleWeekly => 'أسبوعي';
+
+  @override
+  String get settlementCycleDaysOfMonth => 'أيام في الشهر';
+
+  @override
+  String get settlementCycleEveryNDays => 'كل كام يوم';
+
+  @override
+  String get settlementCycleOnDeliveryHint =>
+      'بيدفع على الباب. أي رصيد مفتوح بيظهر متأخر.';
+
+  @override
+  String get settlementCycleInvoiceAfterInvoiceHint =>
+      'لما يوصله أوردر جديد، المحل بيدفع اللي قبله.';
+
+  @override
+  String get settlementWeekdaysLabel => 'يوم الدفع';
+
+  @override
+  String get settlementWeekIntervalLabel => 'كل كام أسبوع';
+
+  @override
+  String get settlementWeekIntervalHint => '1 = كل أسبوع، 2 = أسبوع وأسبوع';
+
+  @override
+  String get settlementMonthDaysLabel => 'أيام الشهر';
+
+  @override
+  String get settlementMonthDayLastChip => 'آخر يوم';
+
+  @override
+  String get settlementMonthDaysClampHint =>
+      'لو اليوم مش موجود في الشهر (زي 31) بيتحسب آخر يوم في الشهر.';
+
+  @override
+  String get settlementIntervalDaysLabel => 'كل كام يوم';
+
+  @override
+  String get settlementAnchorDateLabel => 'العد من';
+
+  @override
+  String get settlementAnchorDateDefault => 'النهارده (الافتراضي)';
+
+  @override
+  String get settlementRemindDaysBeforeLabel => 'التذكير قبلها بكام يوم';
+
+  @override
+  String get settlementRemindDaysBeforeHint => '0 = في نفس اليوم بس';
+
+  @override
+  String get settlementOverdueRepeatLabel => 'كرر تذكير التأخير كل (يوم)';
+
+  @override
+  String get settlementResponsibleUserLabel => 'مين ييجيله التذكير';
+
+  @override
+  String get settlementResponsibleUserHint =>
+      'إيميل المستخدم. سيبه فاضي لكل المديرين.';
+
+  @override
+  String get settlementNotesFieldLabel => 'الاتفاق (مرتجعات، خصومات، أي حاجة)';
+
+  @override
+  String get settlementEnabledLabel => 'ابعت تذكير';
+
+  @override
+  String get settlementSaveAction => 'احفظ الشروط';
+
+  @override
+  String get settlementSaveFailed => 'تعذر حفظ شروط السداد';
+
+  @override
+  String get settlementSaved => 'شروط السداد اتحفظت';
+
+  @override
+  String get settlementValidationPickDay => 'اختار يوم واحد على الأقل';
+
+  @override
+  String get settlementValidationWholeNumber => 'اكتب رقم صحيح، 1 أو أكتر';
+
+  @override
+  String get settlementValidationZeroOrMore => 'اكتب رقم صحيح، 0 أو أكتر';
+
+  @override
+  String get creditAccountsViewAccounts => 'الحسابات';
+
+  @override
+  String get creditAccountsViewCollections => 'التحصيل';
+
+  @override
+  String get collectionsSubtitle =>
+      'المحلات اللي محتاجة تحصيل، الأهم الأول. تذكير بس، مفيش حاجة هنا بتوقف أوردر.';
+
+  @override
+  String collectionsEmpty(int days) {
+    return 'مفيش تحصيل في الـ $days يوم الجايين';
+  }
+
+  @override
+  String get collectionsLoadFailed => 'تعذر تحميل التحصيل';
+
+  @override
+  String get collectionsNoTerms => 'مفيش شروط سداد متحددة';
+
+  @override
+  String collectionsDueNow(Object amount) {
+    return 'مستحق دلوقتي $amount';
+  }
+
+  @override
+  String collectionsOverdueAmount(Object amount) {
+    return 'متأخر $amount';
+  }
+
+  @override
+  String collectionsNextDue(Object amount, Object date) {
+    return '$amount مستحق $date';
+  }
+
+  @override
+  String get approvalsQueueCreditCollections => 'تحصيل مستحق';
 }

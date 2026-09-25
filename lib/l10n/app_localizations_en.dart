@@ -14956,4 +14956,255 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get b2bBranchOnTalabat => 'On Talabat';
+
+  @override
+  String get settlementTermsTitle => 'Payment terms';
+
+  @override
+  String get settlementTermsNotSet =>
+      'No payment terms set, so no collection reminders for this shop.';
+
+  @override
+  String get settlementTermsSetAction => 'Set terms';
+
+  @override
+  String get settlementTermsEditAction => 'Edit';
+
+  @override
+  String get settlementTermsLoadFailed => 'Could not load payment terms';
+
+  @override
+  String get settlementTermsPaused => 'Reminders paused';
+
+  @override
+  String get settlementStateOverdue => 'Overdue';
+
+  @override
+  String get settlementStateDueToday => 'Due today';
+
+  @override
+  String get settlementStateDueSoon => 'Due soon';
+
+  @override
+  String get settlementStateOk => 'On track';
+
+  @override
+  String get settlementStateNone => 'Nothing owed';
+
+  @override
+  String get settlementStateUnscheduled => 'Not scheduled';
+
+  @override
+  String get settlementNextDueLabel => 'Next due';
+
+  @override
+  String get settlementNextDueAmountLabel => 'Due on that date';
+
+  @override
+  String get settlementDueNowLabel => 'Due now';
+
+  @override
+  String get settlementOverdueAmountLabel => 'Overdue';
+
+  @override
+  String get settlementOverdueSinceLabel => 'Overdue since';
+
+  @override
+  String get settlementCollectNextDeliveryLabel =>
+      'Collect with the next delivery';
+
+  @override
+  String get settlementRemindsLabel => 'Reminds';
+
+  @override
+  String get settlementRemindsAllManagers => 'All managers';
+
+  @override
+  String get settlementNotesLabel => 'Agreed terms';
+
+  @override
+  String get settlementDescOnDelivery => 'Pays on delivery';
+
+  @override
+  String get settlementDescInvoiceAfterInvoice =>
+      'Pays the previous invoice on each delivery';
+
+  @override
+  String settlementDescWeekly(Object days) {
+    return 'Every $days';
+  }
+
+  @override
+  String settlementDescWeeklyInterval(int weeks, Object days) {
+    return 'Every $weeks weeks on $days';
+  }
+
+  @override
+  String settlementDescMonthDays(Object days) {
+    return 'Every month on $days';
+  }
+
+  @override
+  String settlementDescMonthDayNumber(Object day) {
+    return 'the $day';
+  }
+
+  @override
+  String get settlementDescMonthDayLast => 'the last day';
+
+  @override
+  String settlementDescEveryNDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count days',
+      one: 'Every day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settlementSheetTitle => 'Payment terms';
+
+  @override
+  String get settlementSheetHint =>
+      'A schedule for reminders only. Nothing here blocks an order.';
+
+  @override
+  String get settlementCycleLabel => 'How does this shop pay?';
+
+  @override
+  String get settlementCycleOnDelivery => 'On delivery';
+
+  @override
+  String get settlementCycleInvoiceAfterInvoice => 'Invoice after invoice';
+
+  @override
+  String get settlementCycleWeekly => 'Weekly';
+
+  @override
+  String get settlementCycleDaysOfMonth => 'Days of the month';
+
+  @override
+  String get settlementCycleEveryNDays => 'Every N days';
+
+  @override
+  String get settlementCycleOnDeliveryHint =>
+      'Pays at the door. Any open balance shows as overdue.';
+
+  @override
+  String get settlementCycleInvoiceAfterInvoiceHint =>
+      'When a new order is delivered, the shop pays the previous one.';
+
+  @override
+  String get settlementWeekdaysLabel => 'Pay day';
+
+  @override
+  String get settlementWeekIntervalLabel => 'Every how many weeks';
+
+  @override
+  String get settlementWeekIntervalHint =>
+      '1 = every week, 2 = every other week';
+
+  @override
+  String get settlementMonthDaysLabel => 'Days of the month';
+
+  @override
+  String get settlementMonthDayLastChip => 'Last day';
+
+  @override
+  String get settlementMonthDaysClampHint =>
+      'A day the month does not have (like the 31st) falls on its last day.';
+
+  @override
+  String get settlementIntervalDaysLabel => 'Every how many days';
+
+  @override
+  String get settlementAnchorDateLabel => 'Counting from';
+
+  @override
+  String get settlementAnchorDateDefault => 'Today (default)';
+
+  @override
+  String get settlementRemindDaysBeforeLabel => 'Remind how many days before';
+
+  @override
+  String get settlementRemindDaysBeforeHint => '0 = only on the day';
+
+  @override
+  String get settlementOverdueRepeatLabel =>
+      'Repeat the overdue reminder every (days)';
+
+  @override
+  String get settlementResponsibleUserLabel => 'Who gets reminded';
+
+  @override
+  String get settlementResponsibleUserHint =>
+      'User email. Leave empty for all managers.';
+
+  @override
+  String get settlementNotesFieldLabel =>
+      'Agreed terms (returns, discounts, anything)';
+
+  @override
+  String get settlementEnabledLabel => 'Send reminders';
+
+  @override
+  String get settlementSaveAction => 'Save terms';
+
+  @override
+  String get settlementSaveFailed => 'Could not save payment terms';
+
+  @override
+  String get settlementSaved => 'Payment terms saved';
+
+  @override
+  String get settlementValidationPickDay => 'Pick at least one day';
+
+  @override
+  String get settlementValidationWholeNumber =>
+      'Enter a whole number, 1 or more';
+
+  @override
+  String get settlementValidationZeroOrMore =>
+      'Enter a whole number, 0 or more';
+
+  @override
+  String get creditAccountsViewAccounts => 'Accounts';
+
+  @override
+  String get creditAccountsViewCollections => 'Collections';
+
+  @override
+  String get collectionsSubtitle =>
+      'Shops to collect from, most urgent first. Reminders only; nothing here blocks an order.';
+
+  @override
+  String collectionsEmpty(int days) {
+    return 'Nothing to collect in the next $days days';
+  }
+
+  @override
+  String get collectionsLoadFailed => 'Failed to load collections';
+
+  @override
+  String get collectionsNoTerms => 'No payment terms set';
+
+  @override
+  String collectionsDueNow(Object amount) {
+    return 'Due now $amount';
+  }
+
+  @override
+  String collectionsOverdueAmount(Object amount) {
+    return 'Overdue $amount';
+  }
+
+  @override
+  String collectionsNextDue(Object amount, Object date) {
+    return '$amount due $date';
+  }
+
+  @override
+  String get approvalsQueueCreditCollections => 'Collections due';
 }

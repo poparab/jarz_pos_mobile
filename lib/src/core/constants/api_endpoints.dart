@@ -72,6 +72,15 @@ abstract final class ApiEndpoints {
   static const recordCreditPayment =
       '/api/method/jarz_pos.api.credit.record_credit_payment';
 
+  // ── Settlement terms (B2B collection schedule + reminders) ─────────────
+  // A schedule and reminders, never a gate: nothing here blocks an order.
+  static const getSettlementTerms =
+      '/api/method/jarz_pos.api.settlement_terms.get_settlement_terms';
+  static const saveSettlementTerms =
+      '/api/method/jarz_pos.api.settlement_terms.save_settlement_terms';
+  static const getCollectionsDue =
+      '/api/method/jarz_pos.api.settlement_terms.get_collections_due';
+
   // ── Geo ───────────────────────────────────────────────────────────────
   /// Read-only resolve of a pasted Maps link into coordinates + the distance
   /// from the branch. Writes nothing; the address save carries the result.

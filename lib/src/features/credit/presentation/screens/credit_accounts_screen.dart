@@ -10,6 +10,10 @@ import '../../../../core/network/frappe_error_message.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../data/models/credit_models.dart';
 import '../../state/credit_providers.dart';
+import '../widgets/collections_view.dart';
+
+/// The two views of the credit accounts screen.
+enum CreditAccountsView { accounts, collections }
 
 /// Shops carrying an open credit balance, largest balance first.
 ///
@@ -18,18 +22,98 @@ import '../../state/credit_providers.dart';
 /// an invoice being 40 days old is business as usual, not an incident. The
 /// signals are therefore a BALANCE and an AGE, in neutral type. No red
 /// "OVERDUE" chip: alarm styling on a normal state trains people to ignore it.
-class CreditAccountsScreen extends ConsumerWidget {
-  const CreditAccountsScreen({super.key});
+///
+/// The "Collections" view beside it is where schedules DO speak: it lists the
+/// shops whose own agreed settlement terms say money is due, which is a
+/// reminder the owner asked for, not an ageing alarm.
+class CreditAccountsScreen extends StatefulWidget {
+  /// The view to open on; the side-menu "Collections due" entry and the
+  /// `?view=collections` deep link open straight on Collections.
+  final CreditAccountsView initialView;
+
+  const CreditAccountsScreen({
+    super.key,
+    this.initialView = CreditAccountsView.accounts,
+  });
+
+  /// `?view=collections` → [CreditAccountsView.collections]; anything else
+  /// is the accounts list.
+  static CreditAccountsView viewFromQuery(String? value) =>
+      value == 'collections'
+          ? CreditAccountsView.collections
+          : CreditAccountsView.accounts;
+
+  @override
+  State<CreditAccountsScreen> createState() => _CreditAccountsScreenState();
+}
+
+class _CreditAccountsScreenState extends State<CreditAccountsScreen> {
+  late CreditAccountsView _view = widget.initialView;
+
+  @override
+  void didUpdateWidget(covariant CreditAccountsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-navigating to the same route with a different `view` (a push tap
+    // while the screen is open) must switch the view, not be ignored.
+    if (oldWidget.initialView != widget.initialView) {
+      _view = widget.initialView;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    return Scaffold(
+      drawer: const AppDrawer(),
+      appBar: AppBar(title: Text(l10n.creditAccountsTitle)),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            child: SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<CreditAccountsView>(
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(
+                    value: CreditAccountsView.accounts,
+                    icon: const Icon(Icons.account_balance_wallet_outlined),
+                    label: Text(l10n.creditAccountsViewAccounts),
+                  ),
+                  ButtonSegment(
+                    value: CreditAccountsView.collections,
+                    icon: const Icon(Icons.event_note_outlined),
+                    label: Text(l10n.creditAccountsViewCollections),
+                  ),
+                ],
+                selected: {_view},
+                onSelectionChanged: (selection) =>
+                    setState(() => _view = selection.first),
+              ),
+            ),
+          ),
+          Expanded(
+            child: _view == CreditAccountsView.collections
+                ? const CollectionsView()
+                : const _CreditAccountsList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The original accounts list: balances, largest first.
+class _CreditAccountsList extends ConsumerWidget {
+  const _CreditAccountsList();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final ledgerAsync = ref.watch(creditLedgerProvider);
 
-    return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(title: Text(l10n.creditAccountsTitle)),
-      body: RefreshIndicator(
+    return RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(creditLedgerProvider);
           await ref.read(creditLedgerProvider.future);
@@ -60,8 +144,7 @@ class CreditAccountsScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
