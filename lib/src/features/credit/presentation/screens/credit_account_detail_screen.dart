@@ -116,7 +116,19 @@ class CreditAccountDetailScreen extends ConsumerWidget {
                   )
                 else
                   for (final invoice in invoices)
-                    _CreditInvoiceTile(invoice: invoice, currency: currency),
+                    _CreditInvoiceTile(
+                      invoice: invoice,
+                      currency: currency,
+                      onPay: invoice.outstandingAmount > 0.005
+                          ? () => _recordPayment(
+                                context,
+                                ref,
+                                balance: balance,
+                                currency: currency,
+                                targetInvoice: invoice,
+                              )
+                          : null,
+                    ),
               ],
             );
           },
@@ -130,6 +142,7 @@ class CreditAccountDetailScreen extends ConsumerWidget {
     WidgetRef ref, {
     required double balance,
     required String currency,
+    CreditInvoice? targetInvoice,
   }) async {
     final posProfile = ref.read(creditLedgerPosProfileProvider);
     final result = await RecordCreditPaymentSheet.show(
@@ -139,6 +152,7 @@ class CreditAccountDetailScreen extends ConsumerWidget {
       balance: balance,
       currency: currency,
       initialPosProfile: posProfile,
+      targetInvoice: targetInvoice,
     );
     if (result == null || !context.mounted) return;
     // FIFO means the outcome is regularly not the one the user pictured, so
@@ -245,7 +259,15 @@ class _CreditInvoiceTile extends StatelessWidget {
   final CreditInvoice invoice;
   final String currency;
 
-  const _CreditInvoiceTile({required this.invoice, required this.currency});
+  /// Pays THIS order first — the shop paying for the new delivery while the
+  /// older one stays open. Null hides the button.
+  final VoidCallback? onPay;
+
+  const _CreditInvoiceTile({
+    required this.invoice,
+    required this.currency,
+    this.onPay,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -312,6 +334,16 @@ class _CreditInvoiceTile extends StatelessWidget {
                     '${l10n.creditAccountInvoiceTotalLabel} '
                     '${formatCurrency(context, invoice.grandTotal, currencyCode: effectiveCurrency)}',
                     style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                  ),
+                if (onPay != null)
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                    ),
+                    icon: const Icon(Icons.payments_outlined, size: 18),
+                    label: Text(l10n.creditAccountPayInvoice),
+                    onPressed: onPay,
                   ),
               ],
             ),

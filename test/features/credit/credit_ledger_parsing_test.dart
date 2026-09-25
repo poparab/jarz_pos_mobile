@@ -345,6 +345,36 @@ void main() {
       expect(first, startsWith('cpay-'));
     });
 
+    test('paying a named order is a different attempt from plain FIFO', () {
+      // Same money, same branch — but the shop said "this order", so a
+      // retry must not replay a FIFO payment that cleared a different one.
+      final idempotency = CreditPaymentIdempotency();
+      final fifo = idempotency.tokenFor(
+        customer: 'C',
+        amount: 500,
+        posProfile: 'Main',
+        paymentMethod: 'Cash',
+      );
+      final targeted = idempotency.tokenFor(
+        customer: 'C',
+        amount: 500,
+        posProfile: 'Main',
+        paymentMethod: 'Cash',
+        invoice: 'ACC-SINV-2026-00042',
+      );
+      expect(targeted, isNot(fifo));
+      expect(
+        idempotency.tokenFor(
+          customer: 'C',
+          amount: 500,
+          posProfile: 'Main',
+          paymentMethod: 'Cash',
+          invoice: 'ACC-SINV-2026-00042',
+        ),
+        targeted,
+      );
+    });
+
     test('changing any figure makes it a different payment', () {
       final idempotency = CreditPaymentIdempotency();
       final first = idempotency.tokenFor(

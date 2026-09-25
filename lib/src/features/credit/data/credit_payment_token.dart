@@ -35,6 +35,7 @@ class CreditPaymentIdempotency {
     required String paymentMethod,
     String remarks = '',
     String postingDate = '',
+    String invoice = '',
   }) {
     final signature = [
       customer.trim(),
@@ -44,6 +45,7 @@ class CreditPaymentIdempotency {
       paymentMethod.trim(),
       remarks.trim(),
       postingDate.trim(),
+      invoice.trim(),
     ].join('|');
 
     final current = _token;

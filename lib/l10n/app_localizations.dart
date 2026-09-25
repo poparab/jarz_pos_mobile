@@ -20469,6 +20469,30 @@ abstract class AppLocalizations {
   /// **'The amount is applied to the oldest invoices first, so it may not clear the ones you expect.'**
   String get creditPaymentFifoNotice;
 
+  /// No description provided for @creditAccountPayInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay this order'**
+  String get creditAccountPayInvoice;
+
+  /// No description provided for @creditPaymentTargetInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'For order {invoice}'**
+  String creditPaymentTargetInvoice(Object invoice);
+
+  /// No description provided for @creditPaymentTargetOutstandingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding on this order {amount}'**
+  String creditPaymentTargetOutstandingHint(Object amount);
+
+  /// No description provided for @creditPaymentTargetNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'The amount goes to this order first. Anything extra clears the oldest open orders.'**
+  String get creditPaymentTargetNotice;
+
   /// No description provided for @creditPaymentResultTitle.
   ///
   /// In en, this message translates to:

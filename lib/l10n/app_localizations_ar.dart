@@ -12420,6 +12420,23 @@ class AppLocalizationsAr extends AppLocalizations {
       'المبلغ بيتوزع على أقدم الفواتير الأول، فممكن ميقفلش الفواتير اللي متوقعها.';
 
   @override
+  String get creditAccountPayInvoice => 'ادفع الأوردر ده';
+
+  @override
+  String creditPaymentTargetInvoice(Object invoice) {
+    return 'للأوردر $invoice';
+  }
+
+  @override
+  String creditPaymentTargetOutstandingHint(Object amount) {
+    return 'المتبقي على الأوردر ده $amount';
+  }
+
+  @override
+  String get creditPaymentTargetNotice =>
+      'المبلغ بيروح للأوردر ده الأول، وأي زيادة بتقفل أقدم الأوردرات المفتوحة.';
+
+  @override
   String get creditPaymentResultTitle => 'تم تسجيل الدفعة';
 
   @override

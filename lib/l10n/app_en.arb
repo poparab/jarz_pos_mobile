@@ -7352,6 +7352,20 @@
   "creditPaymentAmountExceedsBalance": "More than the balance. The extra will sit as an advance.",
   "creditPaymentFailed": "Failed to record payment",
   "creditPaymentFifoNotice": "The amount is applied to the oldest invoices first, so it may not clear the ones you expect.",
+  "creditAccountPayInvoice": "Pay this order",
+  "creditPaymentTargetInvoice": "For order {invoice}",
+  "@creditPaymentTargetInvoice": {
+    "placeholders": {
+      "invoice": {}
+    }
+  },
+  "creditPaymentTargetOutstandingHint": "Outstanding on this order {amount}",
+  "@creditPaymentTargetOutstandingHint": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "creditPaymentTargetNotice": "The amount goes to this order first. Anything extra clears the oldest open orders.",
   "creditPaymentResultTitle": "Payment recorded",
   "creditPaymentResultCleared": "{count, plural, =1{{amount} cleared invoice {invoices}} other{{amount} cleared invoices {invoices}}}",
   "@creditPaymentResultCleared": {

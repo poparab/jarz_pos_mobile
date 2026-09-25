@@ -41,6 +41,11 @@ class RecordCreditPaymentSheet extends ConsumerStatefulWidget {
   /// branch filter, or the single profile this user has).
   final String? initialPosProfile;
 
+  /// The order the shop says it is paying for, when it names one — often the
+  /// NEWEST, with the older one left open. Paid first; any extra still goes
+  /// oldest-first. Null means plain rolling settlement.
+  final CreditInvoice? targetInvoice;
+
   const RecordCreditPaymentSheet({
     super.key,
     required this.customer,
@@ -48,6 +53,7 @@ class RecordCreditPaymentSheet extends ConsumerStatefulWidget {
     required this.balance,
     this.currency = '',
     this.initialPosProfile,
+    this.targetInvoice,
   });
 
   /// Shows the sheet and returns the server's allocation result, or null when
@@ -59,6 +65,7 @@ class RecordCreditPaymentSheet extends ConsumerStatefulWidget {
     required double balance,
     String currency = '',
     String? initialPosProfile,
+    CreditInvoice? targetInvoice,
   }) {
     return showModalBottomSheet<CreditPaymentResult>(
       context: context,
@@ -74,6 +81,7 @@ class RecordCreditPaymentSheet extends ConsumerStatefulWidget {
           balance: balance,
           currency: currency,
           initialPosProfile: initialPosProfile,
+          targetInvoice: targetInvoice,
         ),
       ),
     );
@@ -104,9 +112,11 @@ class _RecordCreditPaymentSheetState
   void initState() {
     super.initState();
     // Defaults to the full balance: settling the whole account is what the
-    // shop usually hands over, and it saves the common case a keystroke.
+    // shop usually hands over, and it saves the common case a keystroke. A
+    // named order defaults to what is left on THAT order instead.
+    final initial = _targetOutstanding ?? widget.balance;
     _amountController = TextEditingController(
-      text: widget.balance > 0 ? widget.balance.toStringAsFixed(2) : '',
+      text: initial > 0 ? initial.toStringAsFixed(2) : '',
     );
     _posProfile = widget.initialPosProfile;
   }
@@ -117,6 +127,14 @@ class _RecordCreditPaymentSheetState
     _remarksController.dispose();
     super.dispose();
   }
+
+  String? get _targetName {
+    final name = widget.targetInvoice?.invoice.trim() ?? '';
+    return name.isEmpty ? null : name;
+  }
+
+  double? get _targetOutstanding =>
+      _targetName == null ? null : widget.targetInvoice!.outstandingAmount;
 
   double? get _amount {
     final raw = _amountController.text.trim();
@@ -158,6 +176,7 @@ class _RecordCreditPaymentSheetState
       posProfile: profile,
       paymentMethod: _paymentMethod,
       remarks: remarks,
+      invoice: _targetName ?? '',
     );
 
     try {
@@ -168,6 +187,7 @@ class _RecordCreditPaymentSheetState
             paymentMethod: _paymentMethod,
             remarks: remarks,
             idempotencyToken: token,
+            invoice: _targetName,
           );
       // Accepted — including the replay branch, which means the money is in.
       // Holding on to the token would make the next real settlement look like
@@ -229,6 +249,13 @@ class _RecordCreditPaymentSheetState
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            if (_targetName != null)
+              Text(
+                l10n.creditPaymentTargetInvoice(
+                  widget.targetInvoice!.displayId,
+                ),
+                style: theme.textTheme.titleSmall,
+              ),
             const SizedBox(height: 14),
             TextField(
               controller: _amountController,
@@ -241,13 +268,21 @@ class _RecordCreditPaymentSheetState
               decoration: InputDecoration(
                 labelText: l10n.creditPaymentAmountLabel,
                 prefixText: '${currencySymbol(context, currencyCode: widget.currency)} ',
-                helperText: l10n.creditPaymentFullBalanceHint(
-                  formatCurrency(
-                    context,
-                    widget.balance,
-                    currencyCode: widget.currency,
-                  ),
-                ),
+                helperText: _targetOutstanding != null
+                    ? l10n.creditPaymentTargetOutstandingHint(
+                        formatCurrency(
+                          context,
+                          _targetOutstanding!,
+                          currencyCode: widget.currency,
+                        ),
+                      )
+                    : l10n.creditPaymentFullBalanceHint(
+                        formatCurrency(
+                          context,
+                          widget.balance,
+                          currencyCode: widget.currency,
+                        ),
+                      ),
                 border: const OutlineInputBorder(),
               ),
               onChanged: (_) => setState(() {}),
@@ -329,7 +364,9 @@ class _RecordCreditPaymentSheetState
             ),
             const SizedBox(height: 12),
             Text(
-              l10n.creditPaymentFifoNotice,
+              _targetName != null
+                  ? l10n.creditPaymentTargetNotice
+                  : l10n.creditPaymentFifoNotice,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

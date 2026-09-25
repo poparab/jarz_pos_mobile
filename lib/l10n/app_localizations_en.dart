@@ -12453,6 +12453,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'The amount is applied to the oldest invoices first, so it may not clear the ones you expect.';
 
   @override
+  String get creditAccountPayInvoice => 'Pay this order';
+
+  @override
+  String creditPaymentTargetInvoice(Object invoice) {
+    return 'For order $invoice';
+  }
+
+  @override
+  String creditPaymentTargetOutstandingHint(Object amount) {
+    return 'Outstanding on this order $amount';
+  }
+
+  @override
+  String get creditPaymentTargetNotice =>
+      'The amount goes to this order first. Anything extra clears the oldest open orders.';
+
+  @override
   String get creditPaymentResultTitle => 'Payment recorded';
 
   @override

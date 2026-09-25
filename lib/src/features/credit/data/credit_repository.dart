@@ -121,6 +121,7 @@ class CreditRepository {
     String? postingDate,
     String? remarks,
     String? idempotencyToken,
+    String? invoice,
   }) async {
     try {
       final response = await _dio.post(
@@ -136,6 +137,10 @@ class CreditRepository {
             'remarks': remarks.trim(),
           if (idempotencyToken != null && idempotencyToken.trim().isNotEmpty)
             'idempotency_token': idempotencyToken.trim(),
+          // Paid first; the backend refuses rather than falls back to FIFO
+          // when it is no longer an open credit invoice of this customer.
+          if (invoice != null && invoice.trim().isNotEmpty)
+            'invoice': invoice.trim(),
         },
       );
       final map = _payload(response, 'Failed to record payment');
