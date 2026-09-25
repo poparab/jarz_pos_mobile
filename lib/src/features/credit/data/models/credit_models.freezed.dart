@@ -47,6 +47,11 @@ mixin _$CustomerCreditProfile {
   double get availableCredit => throw _privateConstructorUsedError;
   String get currency => throw _privateConstructorUsedError;
 
+  /// Whether this user may switch credit on/off and set days / limit. Off
+  /// by default: an older server that never sends it offers no editor.
+  @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
+  bool get canEditSettings => throw _privateConstructorUsedError;
+
   /// Serializes this CustomerCreditProfile to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -75,6 +80,8 @@ abstract class $CustomerCreditProfileCopyWith<$Res> {
     @JsonKey(name: 'available_credit', fromJson: creditDouble)
     double availableCredit,
     String currency,
+    @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
+    bool canEditSettings,
   });
 }
 
@@ -104,6 +111,7 @@ class _$CustomerCreditProfileCopyWithImpl<
     Object? currentBalance = null,
     Object? availableCredit = null,
     Object? currency = null,
+    Object? canEditSettings = null,
   }) {
     return _then(
       _value.copyWith(
@@ -139,6 +147,10 @@ class _$CustomerCreditProfileCopyWithImpl<
                 ? _value.currency
                 : currency // ignore: cast_nullable_to_non_nullable
                       as String,
+            canEditSettings: null == canEditSettings
+                ? _value.canEditSettings
+                : canEditSettings // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -165,6 +177,8 @@ abstract class _$$CustomerCreditProfileImplCopyWith<$Res>
     @JsonKey(name: 'available_credit', fromJson: creditDouble)
     double availableCredit,
     String currency,
+    @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
+    bool canEditSettings,
   });
 }
 
@@ -191,6 +205,7 @@ class __$$CustomerCreditProfileImplCopyWithImpl<$Res>
     Object? currentBalance = null,
     Object? availableCredit = null,
     Object? currency = null,
+    Object? canEditSettings = null,
   }) {
     return _then(
       _$CustomerCreditProfileImpl(
@@ -226,6 +241,10 @@ class __$$CustomerCreditProfileImplCopyWithImpl<$Res>
             ? _value.currency
             : currency // ignore: cast_nullable_to_non_nullable
                   as String,
+        canEditSettings: null == canEditSettings
+            ? _value.canEditSettings
+            : canEditSettings // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -247,6 +266,8 @@ class _$CustomerCreditProfileImpl extends _CustomerCreditProfile {
     @JsonKey(name: 'available_credit', fromJson: creditDouble)
     this.availableCredit = 0.0,
     this.currency = '',
+    @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
+    this.canEditSettings = false,
   }) : super._();
 
   factory _$CustomerCreditProfileImpl.fromJson(Map<String, dynamic> json) =>
@@ -286,9 +307,15 @@ class _$CustomerCreditProfileImpl extends _CustomerCreditProfile {
   @JsonKey()
   final String currency;
 
+  /// Whether this user may switch credit on/off and set days / limit. Off
+  /// by default: an older server that never sends it offers no editor.
+  @override
+  @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
+  final bool canEditSettings;
+
   @override
   String toString() {
-    return 'CustomerCreditProfile(customer: $customer, customerName: $customerName, creditAllowed: $creditAllowed, creditDays: $creditDays, creditLimit: $creditLimit, currentBalance: $currentBalance, availableCredit: $availableCredit, currency: $currency)';
+    return 'CustomerCreditProfile(customer: $customer, customerName: $customerName, creditAllowed: $creditAllowed, creditDays: $creditDays, creditLimit: $creditLimit, currentBalance: $currentBalance, availableCredit: $availableCredit, currency: $currency, canEditSettings: $canEditSettings)';
   }
 
   @override
@@ -311,7 +338,9 @@ class _$CustomerCreditProfileImpl extends _CustomerCreditProfile {
             (identical(other.availableCredit, availableCredit) ||
                 other.availableCredit == availableCredit) &&
             (identical(other.currency, currency) ||
-                other.currency == currency));
+                other.currency == currency) &&
+            (identical(other.canEditSettings, canEditSettings) ||
+                other.canEditSettings == canEditSettings));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -326,6 +355,7 @@ class _$CustomerCreditProfileImpl extends _CustomerCreditProfile {
     currentBalance,
     availableCredit,
     currency,
+    canEditSettings,
   );
 
   /// Create a copy of CustomerCreditProfile
@@ -360,6 +390,8 @@ abstract class _CustomerCreditProfile extends CustomerCreditProfile {
     @JsonKey(name: 'available_credit', fromJson: creditDouble)
     final double availableCredit,
     final String currency,
+    @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
+    final bool canEditSettings,
   }) = _$CustomerCreditProfileImpl;
   const _CustomerCreditProfile._() : super._();
 
@@ -397,6 +429,12 @@ abstract class _CustomerCreditProfile extends CustomerCreditProfile {
   double get availableCredit;
   @override
   String get currency;
+
+  /// Whether this user may switch credit on/off and set days / limit. Off
+  /// by default: an older server that never sends it offers no editor.
+  @override
+  @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
+  bool get canEditSettings;
 
   /// Create a copy of CustomerCreditProfile
   /// with the given fields replaced by the non-null parameter values.

@@ -285,5 +285,18 @@ void main() {
         isFalse,
       );
     });
+
+    test('the credit editor is offered only when the server says so', () {
+      // An older server never sends the key: no editor, not a guessed one.
+      expect(
+        CustomerCreditProfile.fromJson(const {}).canEditSettings,
+        isFalse,
+      );
+      expect(
+        CustomerCreditProfile.fromJson(const {'can_edit_settings': 1})
+            .canEditSettings,
+        isTrue,
+      );
+    });
   });
 }

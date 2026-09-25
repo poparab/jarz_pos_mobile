@@ -72,6 +72,10 @@ abstract final class ApiEndpoints {
   static const recordCreditPayment =
       '/api/method/jarz_pos.api.credit.record_credit_payment';
 
+  /// Switches a shop's credit on/off and sets its days / limit (managers).
+  static const updateCustomerCreditSettings =
+      '/api/method/jarz_pos.api.credit.update_customer_credit_settings';
+
   // ── Settlement terms (B2B collection schedule + reminders) ─────────────
   // A schedule and reminders, never a gate: nothing here blocks an order.
   static const getSettlementTerms =

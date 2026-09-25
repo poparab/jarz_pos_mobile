@@ -53,6 +53,12 @@ class CustomerCreditProfile with _$CustomerCreditProfile {
     @Default(0.0)
     double availableCredit,
     @Default('') String currency,
+
+    /// Whether this user may switch credit on/off and set days / limit. Off
+    /// by default: an older server that never sends it offers no editor.
+    @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
+    @Default(false)
+    bool canEditSettings,
   }) = _CustomerCreditProfile;
 
   factory CustomerCreditProfile.fromJson(Map<String, dynamic> json) =>

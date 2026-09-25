@@ -13,6 +13,7 @@ import '../../../../core/widgets/customer_shipping_address_flow.dart';
 import '../../../geo/presentation/widgets/location_link_field.dart'
     show LocationLinkValue;
 import '../../../credit/data/models/settlement_models.dart';
+import '../../../credit/presentation/widgets/credit_settings_section.dart';
 import '../../../credit/presentation/widgets/settlement_terms_section.dart';
 import '../../../journey/presentation/widgets/journey_notes_section.dart';
 import '../../../labels/models/label_models.dart' show LabelStatus;
@@ -1089,6 +1090,16 @@ class _AccountBody extends StatelessWidget {
                 party: party,
                 partyName: account.title,
                 hideWhenUnavailable: true,
+              ),
+            ],
+            // Credit needs a real Customer; a Lead gets it once converted.
+            if (settlementPartyForAccount(account) case final party?
+                when !party.isLead) ...[
+              const SizedBox(height: 12),
+              CreditSettingsSection(
+                key: const ValueKey('b2b-credit-settings'),
+                customer: party.name,
+                customerName: account.title,
               ),
             ],
             const SizedBox(height: 16),

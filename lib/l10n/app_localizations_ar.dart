@@ -9532,6 +9532,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get journeySectionTitle => 'سجل الزيارات';
 
   @override
+  String journeyOpenTasksTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مهام مفتوحة',
+      two: 'مهمتين مفتوحين',
+      one: 'مهمة واحدة مفتوحة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journeyNoOpenTasks => 'مفيش مهام مفتوحة';
+
+  @override
+  String get journeyLatestLogsTitle => 'آخر السجلات';
+
+  @override
+  String journeyShowAllLogs(int count) {
+    return 'اعرض كل السجلات ($count)';
+  }
+
+  @override
+  String get journeyShowLatestLogs => 'اعرض الأحدث بس';
+
+  @override
   String get journeyLogVisit => 'سجّل زيارة';
 
   @override
@@ -12418,6 +12444,53 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get creditPaymentFifoNotice =>
       'المبلغ بيتوزع على أقدم الفواتير الأول، فممكن ميقفلش الفواتير اللي متوقعها.';
+
+  @override
+  String get creditSettingsTitle => 'حساب الآجل';
+
+  @override
+  String get creditSettingsAllowed => 'مسموح بالطلب آجل';
+
+  @override
+  String get creditSettingsNotAllowed => 'الآجل مش مسموح';
+
+  @override
+  String get creditSettingsAllowSwitch => 'السماح بالطلب آجل';
+
+  @override
+  String get creditSettingsDaysLabel => 'أيام الآجل';
+
+  @override
+  String get creditSettingsDaysHelper => '0 يعني الافتراضي 30 يوم';
+
+  @override
+  String get creditSettingsLimitLabel => 'حد الآجل';
+
+  @override
+  String get creditSettingsLimitHelper => 'سيبه فاضي أو 0 لو من غير حد';
+
+  @override
+  String get creditSettingsNoLimit => 'من غير حد';
+
+  @override
+  String get creditSettingsEdit => 'تعديل الآجل';
+
+  @override
+  String get creditSettingsSaved => 'اتحفظت إعدادات الآجل';
+
+  @override
+  String get creditSettingsSaveFailed => 'تعذر حفظ إعدادات الآجل';
+
+  @override
+  String get creditSettingsDaysInvalid => 'اكتب أيام من 0 لـ 365';
+
+  @override
+  String get creditSettingsLimitInvalid => 'اكتب حد 0 أو أكتر';
+
+  @override
+  String creditSettingsOffWithBalance(Object amount) {
+    return 'الآجل اتقفل للطلبات الجديدة. لسه عليه $amount وتقدر تحصلها.';
+  }
 
   @override
   String get creditAccountPayInvoice => 'ادفع الأوردر ده';

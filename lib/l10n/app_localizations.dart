@@ -15697,6 +15697,36 @@ abstract class AppLocalizations {
   /// **'Journey'**
   String get journeySectionTitle;
 
+  /// No description provided for @journeyOpenTasksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 open task} other{{count} open tasks}}'**
+  String journeyOpenTasksTitle(int count);
+
+  /// No description provided for @journeyNoOpenTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'No open tasks'**
+  String get journeyNoOpenTasks;
+
+  /// No description provided for @journeyLatestLogsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest logs'**
+  String get journeyLatestLogsTitle;
+
+  /// No description provided for @journeyShowAllLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all {count} logs'**
+  String journeyShowAllLogs(int count);
+
+  /// No description provided for @journeyShowLatestLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Show latest only'**
+  String get journeyShowLatestLogs;
+
   /// No description provided for @journeyLogVisit.
   ///
   /// In en, this message translates to:
@@ -20468,6 +20498,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The amount is applied to the oldest invoices first, so it may not clear the ones you expect.'**
   String get creditPaymentFifoNotice;
+
+  /// No description provided for @creditSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit account'**
+  String get creditSettingsTitle;
+
+  /// No description provided for @creditSettingsAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders on credit allowed'**
+  String get creditSettingsAllowed;
+
+  /// No description provided for @creditSettingsNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit not allowed'**
+  String get creditSettingsNotAllowed;
+
+  /// No description provided for @creditSettingsAllowSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow orders on credit'**
+  String get creditSettingsAllowSwitch;
+
+  /// No description provided for @creditSettingsDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit days'**
+  String get creditSettingsDaysLabel;
+
+  /// No description provided for @creditSettingsDaysHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'0 uses the default of 30 days'**
+  String get creditSettingsDaysHelper;
+
+  /// No description provided for @creditSettingsLimitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit limit'**
+  String get creditSettingsLimitLabel;
+
+  /// No description provided for @creditSettingsLimitHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty or 0 for no limit'**
+  String get creditSettingsLimitHelper;
+
+  /// No description provided for @creditSettingsNoLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'No limit'**
+  String get creditSettingsNoLimit;
+
+  /// No description provided for @creditSettingsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit credit'**
+  String get creditSettingsEdit;
+
+  /// No description provided for @creditSettingsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit settings saved'**
+  String get creditSettingsSaved;
+
+  /// No description provided for @creditSettingsSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save credit settings'**
+  String get creditSettingsSaveFailed;
+
+  /// No description provided for @creditSettingsDaysInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter days between 0 and 365'**
+  String get creditSettingsDaysInvalid;
+
+  /// No description provided for @creditSettingsLimitInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a limit of 0 or more'**
+  String get creditSettingsLimitInvalid;
+
+  /// No description provided for @creditSettingsOffWithBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit is off for new orders. {amount} is still owed and can still be collected.'**
+  String creditSettingsOffWithBalance(Object amount);
 
   /// No description provided for @creditAccountPayInvoice.
   ///

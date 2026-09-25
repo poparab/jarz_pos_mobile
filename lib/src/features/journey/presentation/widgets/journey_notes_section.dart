@@ -91,18 +91,12 @@ class JourneyNotesSection extends ConsumerWidget {
           ),
           data: (notes) => notes.isEmpty
               ? const _EmptyCard()
-              : Column(
-                  children: [
-                    for (var i = 0; i < notes.length; i++)
-                      _JourneyTile(
-                        note: notes[i],
-                        isLast: i == notes.length - 1,
-                        onEdit: () => _edit(context, ref, notes[i]),
-                        onDelete: () => _delete(context, ref, notes[i]),
-                        onToggleDone: (done) =>
-                            _toggleDone(context, ref, notes[i], done),
-                      ),
-                  ],
+              : _JourneyBody(
+                  notes: notes,
+                  onEdit: (note) => _edit(context, ref, note),
+                  onDelete: (note) => _delete(context, ref, note),
+                  onToggleDone: (note, done) =>
+                      _toggleDone(context, ref, note, done),
                 ),
         ),
       ],
@@ -229,6 +223,126 @@ class JourneyNotesSection extends ConsumerWidget {
       messenger.showSnackBar(
           SnackBar(content: Text(userErrorMessageFor(l10n, e))));
     }
+  }
+}
+
+/// How many logs the timeline shows before "Show all".
+const journeyLatestLogCount = 3;
+
+/// Next actions not yet marked done, soonest due first (undated last), taken
+/// from EVERY log — an old visit's promise is still owed even when that visit
+/// has scrolled out of the latest logs.
+List<JourneyNote> openJourneyTasks(List<JourneyNote> notes) {
+  final open = notes
+      .where((note) => note.hasNextAction && !note.nextActionDone)
+      .toList();
+  open.sort((a, b) {
+    final ad = (a.nextActionDate ?? '').trim();
+    final bd = (b.nextActionDate ?? '').trim();
+    if (ad.isEmpty && bd.isEmpty) return 0;
+    if (ad.isEmpty) return 1;
+    if (bd.isEmpty) return -1;
+    return ad.compareTo(bd);
+  });
+  return open;
+}
+
+/// Open tasks pinned first, then only the newest logs (the server lists them
+/// newest first) with a toggle for the full history.
+class _JourneyBody extends StatefulWidget {
+  const _JourneyBody({
+    required this.notes,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onToggleDone,
+  });
+
+  final List<JourneyNote> notes;
+  final void Function(JourneyNote note) onEdit;
+  final void Function(JourneyNote note) onDelete;
+  final Future<void> Function(JourneyNote note, bool done) onToggleDone;
+
+  @override
+  State<_JourneyBody> createState() => _JourneyBodyState();
+}
+
+class _JourneyBodyState extends State<_JourneyBody> {
+  bool _showAll = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final notes = widget.notes;
+    final tasks = openJourneyTasks(notes);
+    final hidden = notes.length - journeyLatestLogCount;
+    final visible = _showAll || hidden <= 0
+        ? notes
+        : notes.take(journeyLatestLogCount).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            children: [
+              Icon(
+                tasks.isEmpty
+                    ? Icons.task_alt
+                    : Icons.notifications_active_outlined,
+                size: 16,
+                color: tasks.isEmpty
+                    ? JourneyFormat.doneGreen
+                    : const Color(0xFF9A6B12),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                tasks.isEmpty
+                    ? l10n.journeyNoOpenTasks
+                    : l10n.journeyOpenTasksTitle(tasks.length),
+                style: LeadsTheme.heading.copyWith(fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+        for (final task in tasks)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: _NextActionRow(
+              key: ValueKey('open-task-${task.name}'),
+              note: task,
+              onToggleDone: (done) => widget.onToggleDone(task, done),
+            ),
+          ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.journeyLatestLogsTitle,
+          style: LeadsTheme.heading.copyWith(fontSize: 14),
+        ),
+        const SizedBox(height: 4),
+        for (var i = 0; i < visible.length; i++)
+          _JourneyTile(
+            note: visible[i],
+            isLast: i == visible.length - 1,
+            onEdit: () => widget.onEdit(visible[i]),
+            onDelete: () => widget.onDelete(visible[i]),
+            onToggleDone: (done) => widget.onToggleDone(visible[i], done),
+          ),
+        if (hidden > 0)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              onPressed: () => setState(() => _showAll = !_showAll),
+              icon: Icon(_showAll ? Icons.expand_less : Icons.expand_more),
+              label: Text(
+                _showAll
+                    ? l10n.journeyShowLatestLogs
+                    : l10n.journeyShowAllLogs(notes.length),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 
@@ -394,7 +508,10 @@ class _JourneyTile extends StatelessWidget {
                       height: 1.35,
                     ),
                   ),
-                  if (note.hasNextAction) ...[
+                  // An OPEN promise lives in the pinned tasks list above the
+                  // timeline, so it is shown once; the log keeps it only once
+                  // done, as history (and so it can be reopened).
+                  if (note.hasNextAction && note.nextActionDone) ...[
                     const SizedBox(height: 10),
                     _NextActionRow(note: note, onToggleDone: onToggleDone),
                   ],
@@ -436,7 +553,11 @@ class _JourneyTile extends StatelessWidget {
 /// ([JourneyNote.canComplete]); without that right the row still shows the
 /// state, just with no control to change it.
 class _NextActionRow extends StatefulWidget {
-  const _NextActionRow({required this.note, required this.onToggleDone});
+  const _NextActionRow({
+    super.key,
+    required this.note,
+    required this.onToggleDone,
+  });
 
   final JourneyNote note;
   final Future<void> Function(bool done) onToggleDone;

@@ -5593,6 +5593,25 @@
   "journeyEditorPickDate": "Pick a date",
   "journeyEditorClear": "Clear",
   "journeySectionTitle": "Journey",
+  "journeyOpenTasksTitle": "{count, plural, =1{1 open task} other{{count} open tasks}}",
+  "@journeyOpenTasksTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyNoOpenTasks": "No open tasks",
+  "journeyLatestLogsTitle": "Latest logs",
+  "journeyShowAllLogs": "Show all {count} logs",
+  "@journeyShowAllLogs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyShowLatestLogs": "Show latest only",
   "journeyLogVisit": "Log visit",
   "journeyNoteAdded": "Journey note added",
   "journeyNoteUpdated": "Journey note updated",
@@ -7352,6 +7371,26 @@
   "creditPaymentAmountExceedsBalance": "More than the balance. The extra will sit as an advance.",
   "creditPaymentFailed": "Failed to record payment",
   "creditPaymentFifoNotice": "The amount is applied to the oldest invoices first, so it may not clear the ones you expect.",
+  "creditSettingsTitle": "Credit account",
+  "creditSettingsAllowed": "Orders on credit allowed",
+  "creditSettingsNotAllowed": "Credit not allowed",
+  "creditSettingsAllowSwitch": "Allow orders on credit",
+  "creditSettingsDaysLabel": "Credit days",
+  "creditSettingsDaysHelper": "0 uses the default of 30 days",
+  "creditSettingsLimitLabel": "Credit limit",
+  "creditSettingsLimitHelper": "Leave empty or 0 for no limit",
+  "creditSettingsNoLimit": "No limit",
+  "creditSettingsEdit": "Edit credit",
+  "creditSettingsSaved": "Credit settings saved",
+  "creditSettingsSaveFailed": "Failed to save credit settings",
+  "creditSettingsDaysInvalid": "Enter days between 0 and 365",
+  "creditSettingsLimitInvalid": "Enter a limit of 0 or more",
+  "creditSettingsOffWithBalance": "Credit is off for new orders. {amount} is still owed and can still be collected.",
+  "@creditSettingsOffWithBalance": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
   "creditAccountPayInvoice": "Pay this order",
   "creditPaymentTargetInvoice": "For order {invoice}",
   "@creditPaymentTargetInvoice": {

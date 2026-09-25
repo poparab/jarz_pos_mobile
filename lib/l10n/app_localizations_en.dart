@@ -9576,6 +9576,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journeySectionTitle => 'Journey';
 
   @override
+  String journeyOpenTasksTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count open tasks',
+      one: '1 open task',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get journeyNoOpenTasks => 'No open tasks';
+
+  @override
+  String get journeyLatestLogsTitle => 'Latest logs';
+
+  @override
+  String journeyShowAllLogs(int count) {
+    return 'Show all $count logs';
+  }
+
+  @override
+  String get journeyShowLatestLogs => 'Show latest only';
+
+  @override
   String get journeyLogVisit => 'Log visit';
 
   @override
@@ -12451,6 +12476,53 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get creditPaymentFifoNotice =>
       'The amount is applied to the oldest invoices first, so it may not clear the ones you expect.';
+
+  @override
+  String get creditSettingsTitle => 'Credit account';
+
+  @override
+  String get creditSettingsAllowed => 'Orders on credit allowed';
+
+  @override
+  String get creditSettingsNotAllowed => 'Credit not allowed';
+
+  @override
+  String get creditSettingsAllowSwitch => 'Allow orders on credit';
+
+  @override
+  String get creditSettingsDaysLabel => 'Credit days';
+
+  @override
+  String get creditSettingsDaysHelper => '0 uses the default of 30 days';
+
+  @override
+  String get creditSettingsLimitLabel => 'Credit limit';
+
+  @override
+  String get creditSettingsLimitHelper => 'Leave empty or 0 for no limit';
+
+  @override
+  String get creditSettingsNoLimit => 'No limit';
+
+  @override
+  String get creditSettingsEdit => 'Edit credit';
+
+  @override
+  String get creditSettingsSaved => 'Credit settings saved';
+
+  @override
+  String get creditSettingsSaveFailed => 'Failed to save credit settings';
+
+  @override
+  String get creditSettingsDaysInvalid => 'Enter days between 0 and 365';
+
+  @override
+  String get creditSettingsLimitInvalid => 'Enter a limit of 0 or more';
+
+  @override
+  String creditSettingsOffWithBalance(Object amount) {
+    return 'Credit is off for new orders. $amount is still owed and can still be collected.';
+  }
 
   @override
   String get creditAccountPayInvoice => 'Pay this order';

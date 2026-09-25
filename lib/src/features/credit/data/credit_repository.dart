@@ -58,6 +58,32 @@ class CreditRepository {
     }
   }
 
+  /// Switches credit on/off for one shop and sets its terms. A null [days] or
+  /// [limit] leaves that value as it is on the server; a limit of 0 means no
+  /// limit. Returns the refreshed profile.
+  Future<CustomerCreditProfile> updateCustomerCreditSettings({
+    required String customer,
+    required bool creditAllowed,
+    int? days,
+    double? limit,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.updateCustomerCreditSettings,
+        data: {
+          'customer': customer,
+          'credit_allowed': creditAllowed ? 1 : 0,
+          if (days != null) 'credit_days': days,
+          if (limit != null) 'credit_limit': limit,
+        },
+      );
+      final map = _payload(response, 'Failed to save credit settings');
+      return CustomerCreditProfile.fromJson({'customer': customer, ...map});
+    } on DioException catch (error) {
+      throw mapFrappeError(error, fallback: 'Failed to save credit settings');
+    }
+  }
+
   /// Per-shop credit balances plus the window-scoped invoice feed.
   ///
   /// The date window scopes the `invoices` list ONLY. Each customer's
