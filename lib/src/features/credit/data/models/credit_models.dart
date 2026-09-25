@@ -59,6 +59,12 @@ class CustomerCreditProfile with _$CustomerCreditProfile {
     @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
     @Default(false)
     bool canEditSettings,
+
+    /// The days actually STORED on the Customer (0 = "use the default").
+    /// [creditDays] reports the effective value (0 shown as 30), so an editor
+    /// that saved it back would pin every default shop to 30.
+    @JsonKey(name: 'credit_days_setting', fromJson: creditIntOrNull)
+    int? creditDaysSetting,
   }) = _CustomerCreditProfile;
 
   factory CustomerCreditProfile.fromJson(Map<String, dynamic> json) =>

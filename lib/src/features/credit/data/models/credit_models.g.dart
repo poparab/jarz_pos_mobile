@@ -28,6 +28,7 @@ _$CustomerCreditProfileImpl _$$CustomerCreditProfileImplFromJson(
   canEditSettings: json['can_edit_settings'] == null
       ? false
       : creditBool(json['can_edit_settings']),
+  creditDaysSetting: creditIntOrNull(json['credit_days_setting']),
 );
 
 Map<String, dynamic> _$$CustomerCreditProfileImplToJson(
@@ -42,6 +43,7 @@ Map<String, dynamic> _$$CustomerCreditProfileImplToJson(
   'available_credit': instance.availableCredit,
   'currency': instance.currency,
   'can_edit_settings': instance.canEditSettings,
+  'credit_days_setting': instance.creditDaysSetting,
 };
 
 _$CreditLedgerFiltersImpl _$$CreditLedgerFiltersImplFromJson(

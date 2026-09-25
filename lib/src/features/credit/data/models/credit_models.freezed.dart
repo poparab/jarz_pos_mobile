@@ -52,6 +52,12 @@ mixin _$CustomerCreditProfile {
   @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
   bool get canEditSettings => throw _privateConstructorUsedError;
 
+  /// The days actually STORED on the Customer (0 = "use the default").
+  /// [creditDays] reports the effective value (0 shown as 30), so an editor
+  /// that saved it back would pin every default shop to 30.
+  @JsonKey(name: 'credit_days_setting', fromJson: creditIntOrNull)
+  int? get creditDaysSetting => throw _privateConstructorUsedError;
+
   /// Serializes this CustomerCreditProfile to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -82,6 +88,8 @@ abstract class $CustomerCreditProfileCopyWith<$Res> {
     String currency,
     @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
     bool canEditSettings,
+    @JsonKey(name: 'credit_days_setting', fromJson: creditIntOrNull)
+    int? creditDaysSetting,
   });
 }
 
@@ -112,6 +120,7 @@ class _$CustomerCreditProfileCopyWithImpl<
     Object? availableCredit = null,
     Object? currency = null,
     Object? canEditSettings = null,
+    Object? creditDaysSetting = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -151,6 +160,10 @@ class _$CustomerCreditProfileCopyWithImpl<
                 ? _value.canEditSettings
                 : canEditSettings // ignore: cast_nullable_to_non_nullable
                       as bool,
+            creditDaysSetting: freezed == creditDaysSetting
+                ? _value.creditDaysSetting
+                : creditDaysSetting // ignore: cast_nullable_to_non_nullable
+                      as int?,
           )
           as $Val,
     );
@@ -179,6 +192,8 @@ abstract class _$$CustomerCreditProfileImplCopyWith<$Res>
     String currency,
     @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
     bool canEditSettings,
+    @JsonKey(name: 'credit_days_setting', fromJson: creditIntOrNull)
+    int? creditDaysSetting,
   });
 }
 
@@ -206,6 +221,7 @@ class __$$CustomerCreditProfileImplCopyWithImpl<$Res>
     Object? availableCredit = null,
     Object? currency = null,
     Object? canEditSettings = null,
+    Object? creditDaysSetting = freezed,
   }) {
     return _then(
       _$CustomerCreditProfileImpl(
@@ -245,6 +261,10 @@ class __$$CustomerCreditProfileImplCopyWithImpl<$Res>
             ? _value.canEditSettings
             : canEditSettings // ignore: cast_nullable_to_non_nullable
                   as bool,
+        creditDaysSetting: freezed == creditDaysSetting
+            ? _value.creditDaysSetting
+            : creditDaysSetting // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -268,6 +288,8 @@ class _$CustomerCreditProfileImpl extends _CustomerCreditProfile {
     this.currency = '',
     @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
     this.canEditSettings = false,
+    @JsonKey(name: 'credit_days_setting', fromJson: creditIntOrNull)
+    this.creditDaysSetting,
   }) : super._();
 
   factory _$CustomerCreditProfileImpl.fromJson(Map<String, dynamic> json) =>
@@ -313,9 +335,16 @@ class _$CustomerCreditProfileImpl extends _CustomerCreditProfile {
   @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
   final bool canEditSettings;
 
+  /// The days actually STORED on the Customer (0 = "use the default").
+  /// [creditDays] reports the effective value (0 shown as 30), so an editor
+  /// that saved it back would pin every default shop to 30.
+  @override
+  @JsonKey(name: 'credit_days_setting', fromJson: creditIntOrNull)
+  final int? creditDaysSetting;
+
   @override
   String toString() {
-    return 'CustomerCreditProfile(customer: $customer, customerName: $customerName, creditAllowed: $creditAllowed, creditDays: $creditDays, creditLimit: $creditLimit, currentBalance: $currentBalance, availableCredit: $availableCredit, currency: $currency, canEditSettings: $canEditSettings)';
+    return 'CustomerCreditProfile(customer: $customer, customerName: $customerName, creditAllowed: $creditAllowed, creditDays: $creditDays, creditLimit: $creditLimit, currentBalance: $currentBalance, availableCredit: $availableCredit, currency: $currency, canEditSettings: $canEditSettings, creditDaysSetting: $creditDaysSetting)';
   }
 
   @override
@@ -340,7 +369,9 @@ class _$CustomerCreditProfileImpl extends _CustomerCreditProfile {
             (identical(other.currency, currency) ||
                 other.currency == currency) &&
             (identical(other.canEditSettings, canEditSettings) ||
-                other.canEditSettings == canEditSettings));
+                other.canEditSettings == canEditSettings) &&
+            (identical(other.creditDaysSetting, creditDaysSetting) ||
+                other.creditDaysSetting == creditDaysSetting));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -356,6 +387,7 @@ class _$CustomerCreditProfileImpl extends _CustomerCreditProfile {
     availableCredit,
     currency,
     canEditSettings,
+    creditDaysSetting,
   );
 
   /// Create a copy of CustomerCreditProfile
@@ -392,6 +424,8 @@ abstract class _CustomerCreditProfile extends CustomerCreditProfile {
     final String currency,
     @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
     final bool canEditSettings,
+    @JsonKey(name: 'credit_days_setting', fromJson: creditIntOrNull)
+    final int? creditDaysSetting,
   }) = _$CustomerCreditProfileImpl;
   const _CustomerCreditProfile._() : super._();
 
@@ -435,6 +469,13 @@ abstract class _CustomerCreditProfile extends CustomerCreditProfile {
   @override
   @JsonKey(name: 'can_edit_settings', fromJson: creditBool)
   bool get canEditSettings;
+
+  /// The days actually STORED on the Customer (0 = "use the default").
+  /// [creditDays] reports the effective value (0 shown as 30), so an editor
+  /// that saved it back would pin every default shop to 30.
+  @override
+  @JsonKey(name: 'credit_days_setting', fromJson: creditIntOrNull)
+  int? get creditDaysSetting;
 
   /// Create a copy of CustomerCreditProfile
   /// with the given fields replaced by the non-null parameter values.

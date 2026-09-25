@@ -307,9 +307,11 @@ class _JourneyBodyState extends State<_JourneyBody> {
         ),
         for (final task in tasks)
           Padding(
+            // Keyed on the Column child, so a row's in-flight spinner follows
+            // its own task when another one above it closes and drops out.
+            key: ValueKey('open-task-${task.name}'),
             padding: const EdgeInsets.only(bottom: 6),
             child: _NextActionRow(
-              key: ValueKey('open-task-${task.name}'),
               note: task,
               onToggleDone: (done) => widget.onToggleDone(task, done),
             ),
@@ -553,11 +555,7 @@ class _JourneyTile extends StatelessWidget {
 /// ([JourneyNote.canComplete]); without that right the row still shows the
 /// state, just with no control to change it.
 class _NextActionRow extends StatefulWidget {
-  const _NextActionRow({
-    super.key,
-    required this.note,
-    required this.onToggleDone,
-  });
+  const _NextActionRow({required this.note, required this.onToggleDone});
 
   final JourneyNote note;
   final Future<void> Function(bool done) onToggleDone;

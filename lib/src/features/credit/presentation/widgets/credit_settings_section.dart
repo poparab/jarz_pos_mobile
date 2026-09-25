@@ -193,8 +193,9 @@ class _CreditSettingsSheetState extends ConsumerState<CreditSettingsSheet> {
     super.initState();
     final initial = widget.initial;
     _allowed = initial.creditAllowed;
+    final storedDays = initial.creditDaysSetting ?? initial.creditDays;
     _daysController = TextEditingController(
-      text: initial.creditDays > 0 ? '${initial.creditDays}' : '',
+      text: storedDays > 0 ? '$storedDays' : '',
     );
     // Empty means "no limit"; showing 0.00 would read as "no credit at all".
     _limitController = TextEditingController(
