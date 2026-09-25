@@ -14971,6 +14971,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settlementTermsPaused => 'التذكير متوقف';
 
   @override
+  String get settlementLeadHint =>
+      'هتتطبق لوحدها أول ما العميل المحتمل ده يبقى عميل.';
+
+  @override
   String get settlementStateOverdue => 'متأخر';
 
   @override

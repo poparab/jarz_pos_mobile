@@ -16,6 +16,43 @@ part 'settlement_models.g.dart';
 /// Money goes through [creditDouble] for the same reason as the rest of the
 /// credit feature: a serialised Decimal reaches us as a String.
 
+/// Who a settlement terms record belongs to: a Customer (stored in
+/// `Jarz Settlement Terms`) or a Lead that has not become a Customer yet
+/// (stored on the Lead and carried over when it converts).
+///
+/// Also the provider key, so it has value equality. Every endpoint takes
+/// exactly one of `customer` / `lead`; [queryParameters] sends only that one.
+@immutable
+class SettlementParty {
+  static const customerType = 'Customer';
+  static const leadType = 'Lead';
+
+  final String type;
+  final String name;
+
+  const SettlementParty._(this.type, this.name);
+
+  const SettlementParty.customer(String name) : this._(customerType, name);
+
+  const SettlementParty.lead(String name) : this._(leadType, name);
+
+  bool get isLead => type == leadType;
+
+  /// The one argument the endpoints expect for this party.
+  Map<String, String> get queryParameters =>
+      {isLead ? 'lead' : 'customer': name};
+
+  @override
+  bool operator ==(Object other) =>
+      other is SettlementParty && other.type == type && other.name == name;
+
+  @override
+  int get hashCode => Object.hash(type, name);
+
+  @override
+  String toString() => 'SettlementParty($type, $name)';
+}
+
 /// The five cycles, spelled exactly as the DocType's Select options. These
 /// strings go back to the server verbatim.
 class SettlementCycle {
@@ -171,10 +208,23 @@ class SettlementTermsResponse with _$SettlementTermsResponse {
 
   const factory SettlementTermsResponse({
     @Default(true) bool success,
+
+    /// Empty for a Lead that has not become a Customer yet (the server sends
+    /// `customer: null` then).
     @JsonKey(fromJson: settlementString) @Default('') String customer,
     @JsonKey(name: 'customer_name', fromJson: settlementString)
     @Default('')
     String customerName,
+
+    /// `Customer` or `Lead`. Empty from a server older than lead support,
+    /// which only ever answered for a Customer.
+    @JsonKey(name: 'party_type', fromJson: settlementString)
+    @Default('')
+    String partyType,
+
+    /// The Customer or Lead name the terms are stored against. A converted
+    /// lead answers as its Customer.
+    @JsonKey(fromJson: settlementString) @Default('') String party,
 
     /// Null when the customer has no record.
     SettlementTerms? terms,
@@ -193,6 +243,24 @@ class SettlementTermsResponse with _$SettlementTermsResponse {
 
   factory SettlementTermsResponse.fromJson(Map<String, dynamic> json) =>
       _$SettlementTermsResponseFromJson(json);
+
+  /// Terms stored on a Lead that has no Customer yet; they move to the
+  /// Customer when the lead converts.
+  bool get isUnconvertedLead =>
+      partyType == SettlementParty.leadType && customer.trim().isEmpty;
+
+  /// The party this response is about, or null when the server did not say
+  /// (an older server answering for a customer id it was given).
+  SettlementParty? get resolvedParty {
+    final name = party.trim();
+    if (name.isNotEmpty) {
+      return partyType == SettlementParty.leadType
+          ? SettlementParty.lead(name)
+          : SettlementParty.customer(name);
+    }
+    final id = customer.trim();
+    return id.isEmpty ? null : SettlementParty.customer(id);
+  }
 
   /// A real, saved record — not null and not an empty template.
   bool get hasTerms {
@@ -310,7 +378,10 @@ class CollectionsDue with _$CollectionsDue {
 /// "Days of Month" shop clears the stale value instead of an empty string
 /// failing the Int/list parsing.
 class SettlementTermsDraft {
+  /// Exactly one of [customer] / [lead] is sent; [lead] wins when both are
+  /// set.
   final String customer;
+  final String lead;
   final String cycle;
   final bool enabled;
   final List<String> weekdays;
@@ -324,7 +395,8 @@ class SettlementTermsDraft {
   final String? notes;
 
   const SettlementTermsDraft({
-    required this.customer,
+    this.customer = '',
+    this.lead = '',
     required this.cycle,
     this.enabled = true,
     this.weekdays = const [],
@@ -338,12 +410,18 @@ class SettlementTermsDraft {
     this.notes,
   });
 
+  bool get isLead => lead.trim().isNotEmpty;
+
+  SettlementParty get party => isLead
+      ? SettlementParty.lead(lead.trim())
+      : SettlementParty.customer(customer.trim());
+
   Map<String, dynamic> toPayload() {
     final anchor = anchorDate?.trim() ?? '';
     final user = responsibleUser?.trim() ?? '';
     final note = notes?.trim() ?? '';
     return {
-      'customer': customer,
+      ...party.queryParameters,
       'cycle': cycle,
       'enabled': enabled ? 1 : 0,
       if (cycle == SettlementCycle.weekly) ...{

@@ -78,6 +78,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.settlement_terms.get_settlement_terms';
   static const saveSettlementTerms =
       '/api/method/jarz_pos.api.settlement_terms.save_settlement_terms';
+  static const deleteSettlementTerms =
+      '/api/method/jarz_pos.api.settlement_terms.delete_settlement_terms';
   static const getCollectionsDue =
       '/api/method/jarz_pos.api.settlement_terms.get_collections_due';
 

@@ -5632,6 +5632,7 @@
   "settlementTermsEditAction": "تعديل",
   "settlementTermsLoadFailed": "تعذر تحميل شروط السداد",
   "settlementTermsPaused": "التذكير متوقف",
+  "settlementLeadHint": "هتتطبق لوحدها أول ما العميل المحتمل ده يبقى عميل.",
   "settlementStateOverdue": "متأخر",
   "settlementStateDueToday": "مستحق النهارده",
   "settlementStateDueSoon": "مستحق قريب",

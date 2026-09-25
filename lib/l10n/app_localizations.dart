@@ -24509,6 +24509,12 @@ abstract class AppLocalizations {
   /// **'Reminders paused'**
   String get settlementTermsPaused;
 
+  /// No description provided for @settlementLeadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Will apply automatically when this lead becomes a customer.'**
+  String get settlementLeadHint;
+
   /// No description provided for @settlementStateOverdue.
   ///
   /// In en, this message translates to:

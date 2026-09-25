@@ -5,8 +5,9 @@ import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/settlement_models.dart';
 import '../settlement_labels.dart';
 
-/// "Payment terms" on a shop's credit account: when the shop settles, what
-/// is due, and whether it is late.
+/// "Payment terms" on a shop's credit account or B2B account: when the shop
+/// settles, what is due, and whether it is late. For a Lead that is not a
+/// Customer yet it also says the terms will carry over on conversion.
 ///
 /// A reminder surface, never a gate: the state chip is the only alarm colour
 /// on the credit screens, and it only turns red when the shop's OWN agreed
@@ -145,6 +146,25 @@ class SettlementTermsCard extends StatelessWidget {
                 Text(terms.notes, style: theme.textTheme.bodyMedium),
               ],
             ],
+            // Terms held on a Lead move to its Customer on conversion.
+            if (data.isUnconvertedLead)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 14, color: muted),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        l10n.settlementLeadHint,
+                        key: const ValueKey('settlement-lead-hint'),
+                        style:
+                            theme.textTheme.bodySmall?.copyWith(color: muted),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             if (canEdit)
               Align(
                 alignment: AlignmentDirectional.centerEnd,

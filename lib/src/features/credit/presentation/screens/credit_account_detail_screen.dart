@@ -6,10 +6,10 @@ import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/network/frappe_error_message.dart';
 import '../../data/models/credit_models.dart';
+import '../../data/models/settlement_models.dart';
 import '../../state/credit_providers.dart';
 import '../widgets/record_credit_payment_sheet.dart';
-import '../widgets/settlement_terms_card.dart';
-import '../widgets/settlement_terms_sheet.dart';
+import '../widgets/settlement_terms_section.dart';
 
 /// One shop's credit account: the running balance, its open invoices oldest
 /// first, and the action that records a payment against them.
@@ -27,6 +27,8 @@ class CreditAccountDetailScreen extends ConsumerWidget {
     this.customerName = '',
   });
 
+  SettlementParty get _party => SettlementParty.customer(customer);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
@@ -39,7 +41,7 @@ class CreditAccountDetailScreen extends ConsumerWidget {
         ? customerName
         : (ledgerAsync.valueOrNull?.rowFor(customer)?.displayName ??
             _nonEmpty(
-              ref.watch(settlementTermsProvider(customer)).valueOrNull
+              ref.watch(settlementTermsProvider(_party)).valueOrNull
                   ?.customerName,
             ) ??
             customer);
@@ -52,7 +54,7 @@ class CreditAccountDetailScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(creditLedgerProvider);
           ref.invalidate(customerCreditProfileProvider(customer));
-          ref.invalidate(settlementTermsProvider(customer));
+          ref.invalidate(settlementTermsProvider(_party));
           await ref.read(creditLedgerProvider.future);
         },
         child: ledgerAsync.when(
@@ -94,10 +96,9 @@ class CreditAccountDetailScreen extends ConsumerWidget {
                   profile: profileAsync.valueOrNull,
                 ),
                 const SizedBox(height: 8),
-                _SettlementTermsSection(
-                  customer: customer,
-                  customerName: title,
-                ),
+                // Loads on its own so an older backend without the settlement
+                // endpoints costs one muted line, not the screen.
+                SettlementTermsSection(party: _party, partyName: title),
                 const SizedBox(height: 12),
                 FilledButton.icon(
                   icon: const Icon(Icons.payments_outlined),
@@ -187,62 +188,6 @@ class CreditAccountDetailScreen extends ConsumerWidget {
 String? _nonEmpty(String? value) {
   final trimmed = value?.trim() ?? '';
   return trimmed.isEmpty ? null : trimmed;
-}
-
-/// The shop's payment terms card. Loads on its own so an older backend
-/// without the settlement endpoints costs one muted line, not the screen.
-class _SettlementTermsSection extends ConsumerWidget {
-  final String customer;
-  final String customerName;
-
-  const _SettlementTermsSection({
-    required this.customer,
-    required this.customerName,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final async = ref.watch(settlementTermsProvider(customer));
-
-    return async.when(
-      loading: () => const Card(
-        child: Padding(
-          padding: EdgeInsets.all(14),
-          child: LinearProgressIndicator(),
-        ),
-      ),
-      error: (error, _) => Card(
-        child: ListTile(
-          dense: true,
-          leading: const Icon(Icons.event_note_outlined),
-          title: Text(l10n.settlementTermsLoadFailed),
-          trailing: IconButton(
-            tooltip: l10n.commonRetry,
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(settlementTermsProvider(customer)),
-          ),
-        ),
-      ),
-      data: (data) => SettlementTermsCard(
-        data: data,
-        onEdit: data.canEdit
-            ? () async {
-                final saved = await SettlementTermsSheet.show(
-                  context,
-                  customer: customer,
-                  customerName: customerName,
-                  initial: data.terms,
-                );
-                if (saved == null || !context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.settlementSaved)),
-                );
-              }
-            : null,
-      ),
-    );
-  }
 }
 
 class _BalanceCard extends StatelessWidget {

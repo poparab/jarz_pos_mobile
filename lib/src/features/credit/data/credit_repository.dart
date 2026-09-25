@@ -157,17 +157,44 @@ class CreditRepository {
 
   // ── Settlement terms ───────────────────────────────────────────────────
 
-  /// One shop's payment schedule, its computed collection status, and
-  /// whether the caller may edit it. `terms` is null for a shop with none.
-  Future<SettlementTermsResponse> getSettlementTerms(String customer) async {
+  /// The one party argument the settlement endpoints accept: exactly one of
+  /// [customer] / [lead], and only the one given travels.
+  static SettlementParty settlementParty({String? customer, String? lead}) {
+    final c = customer?.trim() ?? '';
+    final l = lead?.trim() ?? '';
+    if ((c.isEmpty) == (l.isEmpty)) {
+      throw ArgumentError('Pass exactly one of customer or lead');
+    }
+    return l.isNotEmpty
+        ? SettlementParty.lead(l)
+        : SettlementParty.customer(c);
+  }
+
+  /// One party's payment schedule, its computed collection status, and
+  /// whether the caller may edit it. `terms` is null for a party with none.
+  ///
+  /// Throws [SettlementTermsUnavailable] when the caller may not see terms
+  /// or the server predates them (or predates `lead=`), so a screen that
+  /// only offers terms as an extra can hide the card instead of erroring.
+  Future<SettlementTermsResponse> getSettlementTerms({
+    String? customer,
+    String? lead,
+  }) async {
+    final party = settlementParty(customer: customer, lead: lead);
     try {
       final response = await _dio.get(
         ApiEndpoints.getSettlementTerms,
-        queryParameters: {'customer': customer},
+        queryParameters: party.queryParameters,
       );
       final map = _payload(response, 'Failed to load payment terms');
-      return SettlementTermsResponse.fromJson({'customer': customer, ...map});
+      return SettlementTermsResponse.fromJson({
+        ..._partyDefaults(party),
+        ...map,
+      });
     } on DioException catch (error) {
+      if (isSettlementTermsUnavailable(error, sentLead: party.isLead)) {
+        throw SettlementTermsUnavailable(extractFrappeErrorMessage(error));
+      }
       throw mapFrappeError(error, fallback: 'Failed to load payment terms');
     }
   }
@@ -185,13 +212,35 @@ class CreditRepository {
       );
       final map = _payload(response, 'Failed to save payment terms');
       return SettlementTermsResponse.fromJson({
-        'customer': draft.customer,
+        ..._partyDefaults(draft.party),
         ...map,
       });
     } on DioException catch (error) {
       throw mapFrappeError(error, fallback: 'Failed to save payment terms');
     }
   }
+
+  /// Removes a party's terms record. Exactly one of [customer] / [lead].
+  Future<void> deleteSettlementTerms({String? customer, String? lead}) async {
+    final party = settlementParty(customer: customer, lead: lead);
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.deleteSettlementTerms,
+        data: party.queryParameters,
+      );
+      _payload(response, 'Failed to delete payment terms');
+    } on DioException catch (error) {
+      throw mapFrappeError(error, fallback: 'Failed to delete payment terms');
+    }
+  }
+
+  /// What an older server (no `party_type` / `party`) implied: the party the
+  /// request was made for.
+  static Map<String, dynamic> _partyDefaults(SettlementParty party) => {
+        'customer': party.isLead ? null : party.name,
+        'party_type': party.type,
+        'party': party.name,
+      };
 
   /// Shops to collect from: overdue → due today → due soon → unscheduled →
   /// on track. Shops owing nothing are excluded by the server.
@@ -214,4 +263,73 @@ class CreditRepository {
       throw mapFrappeError(error, fallback: 'Failed to load collections');
     }
   }
+}
+
+/// The caller may not read settlement terms, or the server does not know the
+/// endpoint / the `lead` argument yet. Screens that show terms as an optional
+/// extra hide the card on this rather than showing an error.
+class SettlementTermsUnavailable implements Exception {
+  final String message;
+  const SettlementTermsUnavailable([this.message = '']);
+
+  @override
+  String toString() => 'SettlementTermsUnavailable: $message';
+}
+
+/// Whether a failed settlement-terms read means "not for this caller / not on
+/// this server" — hide the card — rather than a real failure, which must keep
+/// the retry line. Deliberately narrow; decided only from:
+///
+/// * HTTP 403 / 404;
+/// * Frappe's `exc_type` being `PermissionError` or `DoesNotExistError`;
+/// * the message saying the method is missing ("Failed to get method") or not
+///   whitelisted ("is not whitelisted");
+/// * a request sent with `lead=` answered 417 "customer is required": a
+///   backend older than lead support (Frappe drops the unknown `lead` kwarg,
+///   so the old endpoint sees no customer at all).
+///
+/// Never matched against the traceback: a real server bug mentioning, say,
+/// an AttributeError must surface as an error, not as a missing card.
+bool isSettlementTermsUnavailable(
+  DioException error, {
+  bool sentLead = false,
+}) {
+  final status = error.response?.statusCode;
+  if (status == 403 || status == 404) return true;
+
+  var data = error.response?.data;
+  if (data is String) {
+    try {
+      data = json.decode(data);
+    } catch (_) {
+      // Not JSON; only the extracted message below applies.
+    }
+  }
+
+  if (data is Map) {
+    final excType = '${data['exc_type'] ?? ''}'.trim();
+    if (excType == 'PermissionError' || excType == 'DoesNotExistError') {
+      return true;
+    }
+  }
+
+  final messages = <String>[
+    extractFrappeErrorMessage(error, fallback: ''),
+    if (data is Map) ...[
+      '${data['exception'] ?? ''}',
+      '${data['_server_messages'] ?? ''}',
+      '${data['message'] ?? ''}',
+    ],
+  ];
+  bool mentions(String needle) => messages.any(
+        (m) => m.toLowerCase().contains(needle.toLowerCase()),
+      );
+
+  if (mentions('Failed to get method') || mentions('is not whitelisted')) {
+    return true;
+  }
+  if (sentLead && status == 417 && mentions('customer is required')) {
+    return true;
+  }
+  return false;
 }

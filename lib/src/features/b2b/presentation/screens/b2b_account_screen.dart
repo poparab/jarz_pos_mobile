@@ -12,6 +12,8 @@ import '../../../../core/repositories/customer_address_repository.dart';
 import '../../../../core/widgets/customer_shipping_address_flow.dart';
 import '../../../geo/presentation/widgets/location_link_field.dart'
     show LocationLinkValue;
+import '../../../credit/data/models/settlement_models.dart';
+import '../../../credit/presentation/widgets/settlement_terms_section.dart';
 import '../../../journey/presentation/widgets/journey_notes_section.dart';
 import '../../../labels/models/label_models.dart' show LabelStatus;
 import '../../../labels/presentation/widgets/label_status_chip.dart';
@@ -36,6 +38,27 @@ import '../widgets/b2b_merge_branch_flow.dart';
 import '../widgets/b2b_stage_chip.dart';
 import 'b2b_branch_invoices_screen.dart';
 import '../../../../core/utils/territory_label.dart';
+
+/// Whose payment terms the account screen shows: the linked Customer when
+/// there is one (a Customer account, or a converted Lead), otherwise the Lead
+/// itself — terms agreed during the deal, before the first order, which the
+/// server moves to the Customer on conversion. An Opportunity with no Customer
+/// falls back to its linked Lead; with neither there is nothing to attach
+/// terms to and the section is omitted.
+SettlementParty? settlementPartyForAccount(B2bAccount account) {
+  final customer = account.customer?.trim() ?? '';
+  if (customer.isNotEmpty) return SettlementParty.customer(customer);
+  if (account.doctype == 'Customer') {
+    final name = account.name.trim();
+    return name.isEmpty ? null : SettlementParty.customer(name);
+  }
+  if (account.doctype == 'Lead') {
+    final name = account.name.trim();
+    return name.isEmpty ? null : SettlementParty.lead(name);
+  }
+  final lead = account.branchLead?.trim() ?? '';
+  return lead.isEmpty ? null : SettlementParty.lead(lead);
+}
 
 /// B2B account detail: contact, stage, lead score, predicted next order, recent
 /// invoices and open todos, plus quick actions (send sample, place order, log
@@ -1057,6 +1080,17 @@ class _AccountBody extends StatelessWidget {
                 onUnlinkMaps: busy ? null : onUnlinkMapsBranch,
                 onPromoteMaps: busy ? null : onPromoteMapsBranch,
               ),
+            // Agreed payment terms, settable before the first order. Hidden
+            // outright for a user who may not see them or on an older server.
+            if (settlementPartyForAccount(account) case final party?) ...[
+              const SizedBox(height: 16),
+              SettlementTermsSection(
+                key: const ValueKey('b2b-settlement-terms'),
+                party: party,
+                partyName: account.title,
+                hideWhenUnavailable: true,
+              ),
+            ],
             const SizedBox(height: 16),
             // The same diary the lead page shows — one journey per account, not
             // one per screen. `onJourneyChanged` reloads the account because a

@@ -14977,6 +14977,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settlementTermsPaused => 'Reminders paused';
 
   @override
+  String get settlementLeadHint =>
+      'Will apply automatically when this lead becomes a customer.';
+
+  @override
   String get settlementStateOverdue => 'Overdue';
 
   @override

@@ -104,6 +104,10 @@ _$SettlementTermsResponseImpl _$$SettlementTermsResponseImplFromJson(
   customerName: json['customer_name'] == null
       ? ''
       : settlementString(json['customer_name']),
+  partyType: json['party_type'] == null
+      ? ''
+      : settlementString(json['party_type']),
+  party: json['party'] == null ? '' : settlementString(json['party']),
   terms: json['terms'] == null
       ? null
       : SettlementTerms.fromJson(json['terms'] as Map<String, dynamic>),
@@ -123,6 +127,8 @@ Map<String, dynamic> _$$SettlementTermsResponseImplToJson(
   'success': instance.success,
   'customer': instance.customer,
   'customer_name': instance.customerName,
+  'party_type': instance.partyType,
+  'party': instance.party,
   'terms': instance.terms,
   'description': instance.description,
   'status': instance.status,

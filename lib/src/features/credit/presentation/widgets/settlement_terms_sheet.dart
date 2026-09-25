@@ -14,13 +14,16 @@ import '../../data/models/settlement_models.dart';
 import '../../state/credit_providers.dart';
 import '../settlement_labels.dart';
 
-/// Edits one shop's settlement schedule.
+/// Edits one party's settlement schedule — a Customer, or a Lead whose terms
+/// carry over to its Customer on conversion.
 ///
 /// Only the inputs of the chosen cycle are shown, and only those travel: see
 /// [SettlementTermsDraft.toPayload]. Everything here feeds REMINDERS; none of
 /// it can stop an order being placed.
 class SettlementTermsSheet extends ConsumerStatefulWidget {
-  final String customer;
+  final SettlementParty party;
+
+  /// Display name for the header; falls back to the party's id.
   final String customerName;
 
   /// The saved record, or null for a shop with none yet.
@@ -28,19 +31,27 @@ class SettlementTermsSheet extends ConsumerStatefulWidget {
 
   const SettlementTermsSheet({
     super.key,
-    required this.customer,
+    required this.party,
     this.customerName = '',
     this.initial,
   });
 
   /// Shows the sheet; returns the server's recomputed terms + status on
   /// save, or null when the user backed out.
+  ///
+  /// Pass [party], or [customer] as a shorthand for a Customer party.
   static Future<SettlementTermsResponse?> show(
     BuildContext context, {
-    required String customer,
+    SettlementParty? party,
+    String? customer,
     String customerName = '',
     SettlementTerms? initial,
   }) {
+    assert(
+      (party == null) != (customer == null),
+      'Pass exactly one of party or customer',
+    );
+    final target = party ?? SettlementParty.customer(customer ?? '');
     return showModalBottomSheet<SettlementTermsResponse>(
       context: context,
       isScrollControlled: true,
@@ -50,7 +61,7 @@ class SettlementTermsSheet extends ConsumerStatefulWidget {
           bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
         ),
         child: SettlementTermsSheet(
-          customer: customer,
+          party: target,
           customerName: customerName,
           initial: initial,
         ),
@@ -159,7 +170,8 @@ class _SettlementTermsSheetState extends ConsumerState<SettlementTermsSheet> {
   }
 
   SettlementTermsDraft _draft() => SettlementTermsDraft(
-        customer: widget.customer,
+        customer: widget.party.isLead ? '' : widget.party.name,
+        lead: widget.party.isLead ? widget.party.name : '',
         cycle: _cycle,
         enabled: _enabled,
         weekdays: _weekdays.toList(),
@@ -189,9 +201,9 @@ class _SettlementTermsSheetState extends ConsumerState<SettlementTermsSheet> {
           .read(creditRepositoryProvider)
           .saveSettlementTerms(_draft());
       // The status moved with the schedule, and so may the Collections list
-      // and the side-menu "Collections due" count.
-      ref.invalidate(settlementTermsProvider(widget.customer));
-      ref.invalidate(collectionsDueProvider);
+      // and the side-menu "Collections due" count. Both the B2B and the
+      // credit account screens read the same party-keyed provider.
+      invalidateSettlementTerms(ref, widget.party, saved: result);
       ref.invalidate(pendingApprovalsProvider);
       if (!mounted) return;
       Navigator.of(context).pop(result);
@@ -248,7 +260,7 @@ class _SettlementTermsSheetState extends ConsumerState<SettlementTermsSheet> {
             Text(
               widget.customerName.isNotEmpty
                   ? widget.customerName
-                  : widget.customer,
+                  : widget.party.name,
               style: theme.textTheme.bodyMedium?.copyWith(color: muted),
             ),
             const SizedBox(height: 4),
@@ -256,6 +268,12 @@ class _SettlementTermsSheetState extends ConsumerState<SettlementTermsSheet> {
               l10n.settlementSheetHint,
               style: theme.textTheme.bodySmall?.copyWith(color: muted),
             ),
+            if (widget.party.isLead)
+              Text(
+                l10n.settlementLeadHint,
+                key: const ValueKey('settlement-lead-hint'),
+                style: theme.textTheme.bodySmall?.copyWith(color: muted),
+              ),
             const SizedBox(height: 14),
             Text(l10n.settlementCycleLabel, style: theme.textTheme.titleSmall),
             const SizedBox(height: 6),

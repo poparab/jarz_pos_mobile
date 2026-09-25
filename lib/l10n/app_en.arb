@@ -8569,6 +8569,7 @@
   "settlementTermsEditAction": "Edit",
   "settlementTermsLoadFailed": "Could not load payment terms",
   "settlementTermsPaused": "Reminders paused",
+  "settlementLeadHint": "Will apply automatically when this lead becomes a customer.",
   "settlementStateOverdue": "Overdue",
   "settlementStateDueToday": "Due today",
   "settlementStateDueSoon": "Due soon",

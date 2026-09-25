@@ -97,15 +97,43 @@ final creditPaymentPosProfilesProvider =
       .toList();
 });
 
-/// One shop's settlement terms + computed collection status.
+/// One party's settlement terms + computed collection status, keyed by
+/// (party type, name): a Customer from the credit account screen or the B2B
+/// account screen, or a not-yet-converted Lead from the B2B account screen.
 ///
-/// autoDispose: only the account detail screen reads it, and a stale status
-/// ("due today" yesterday) is worse than a refetch on the next visit.
+/// autoDispose: only account screens read it, and a stale status ("due
+/// today" yesterday) is worse than a refetch on the next visit.
 final settlementTermsProvider = FutureProvider.autoDispose
-    .family<SettlementTermsResponse, String>((ref, customer) async {
+    .family<SettlementTermsResponse, SettlementParty>((ref, party) async {
   final repository = ref.watch(creditRepositoryProvider);
-  return repository.getSettlementTerms(customer);
+  return party.isLead
+      ? repository.getSettlementTerms(lead: party.name)
+      : repository.getSettlementTerms(customer: party.name);
 });
+
+/// Refreshes every screen showing terms for [party] after a save or delete:
+/// the party itself, the party the server resolved it to (a converted lead
+/// answers as its Customer), that Customer, and the Collections list the new
+/// schedule may move.
+void invalidateSettlementTerms(
+  WidgetRef ref,
+  SettlementParty party, {
+  SettlementTermsResponse? saved,
+}) {
+  ref.invalidate(settlementTermsProvider(party));
+  final resolved = saved?.resolvedParty;
+  if (resolved != null && resolved != party) {
+    ref.invalidate(settlementTermsProvider(resolved));
+  }
+  final customer = saved?.customer.trim() ?? '';
+  if (customer.isNotEmpty) {
+    final byCustomer = SettlementParty.customer(customer);
+    if (byCustomer != party && byCustomer != resolved) {
+      ref.invalidate(settlementTermsProvider(byCustomer));
+    }
+  }
+  ref.invalidate(collectionsDueProvider);
+}
 
 /// How far ahead the Collections list looks for "due soon".
 const collectionsDaysAhead = 7;

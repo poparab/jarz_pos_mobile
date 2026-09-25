@@ -964,10 +964,23 @@ SettlementTermsResponse _$SettlementTermsResponseFromJson(
 /// @nodoc
 mixin _$SettlementTermsResponse {
   bool get success => throw _privateConstructorUsedError;
+
+  /// Empty for a Lead that has not become a Customer yet (the server sends
+  /// `customer: null` then).
   @JsonKey(fromJson: settlementString)
   String get customer => throw _privateConstructorUsedError;
   @JsonKey(name: 'customer_name', fromJson: settlementString)
   String get customerName => throw _privateConstructorUsedError;
+
+  /// `Customer` or `Lead`. Empty from a server older than lead support,
+  /// which only ever answered for a Customer.
+  @JsonKey(name: 'party_type', fromJson: settlementString)
+  String get partyType => throw _privateConstructorUsedError;
+
+  /// The Customer or Lead name the terms are stored against. A converted
+  /// lead answers as its Customer.
+  @JsonKey(fromJson: settlementString)
+  String get party => throw _privateConstructorUsedError;
 
   /// Null when the customer has no record.
   SettlementTerms? get terms => throw _privateConstructorUsedError;
@@ -1006,6 +1019,8 @@ abstract class $SettlementTermsResponseCopyWith<$Res> {
     @JsonKey(fromJson: settlementString) String customer,
     @JsonKey(name: 'customer_name', fromJson: settlementString)
     String customerName,
+    @JsonKey(name: 'party_type', fromJson: settlementString) String partyType,
+    @JsonKey(fromJson: settlementString) String party,
     SettlementTerms? terms,
     @JsonKey(fromJson: settlementString) String description,
     SettlementStatus status,
@@ -1038,6 +1053,8 @@ class _$SettlementTermsResponseCopyWithImpl<
     Object? success = null,
     Object? customer = null,
     Object? customerName = null,
+    Object? partyType = null,
+    Object? party = null,
     Object? terms = freezed,
     Object? description = null,
     Object? status = null,
@@ -1057,6 +1074,14 @@ class _$SettlementTermsResponseCopyWithImpl<
             customerName: null == customerName
                 ? _value.customerName
                 : customerName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            partyType: null == partyType
+                ? _value.partyType
+                : partyType // ignore: cast_nullable_to_non_nullable
+                      as String,
+            party: null == party
+                ? _value.party
+                : party // ignore: cast_nullable_to_non_nullable
                       as String,
             terms: freezed == terms
                 ? _value.terms
@@ -1122,6 +1147,8 @@ abstract class _$$SettlementTermsResponseImplCopyWith<$Res>
     @JsonKey(fromJson: settlementString) String customer,
     @JsonKey(name: 'customer_name', fromJson: settlementString)
     String customerName,
+    @JsonKey(name: 'party_type', fromJson: settlementString) String partyType,
+    @JsonKey(fromJson: settlementString) String party,
     SettlementTerms? terms,
     @JsonKey(fromJson: settlementString) String description,
     SettlementStatus status,
@@ -1156,6 +1183,8 @@ class __$$SettlementTermsResponseImplCopyWithImpl<$Res>
     Object? success = null,
     Object? customer = null,
     Object? customerName = null,
+    Object? partyType = null,
+    Object? party = null,
     Object? terms = freezed,
     Object? description = null,
     Object? status = null,
@@ -1175,6 +1204,14 @@ class __$$SettlementTermsResponseImplCopyWithImpl<$Res>
         customerName: null == customerName
             ? _value.customerName
             : customerName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        partyType: null == partyType
+            ? _value.partyType
+            : partyType // ignore: cast_nullable_to_non_nullable
+                  as String,
+        party: null == party
+            ? _value.party
+            : party // ignore: cast_nullable_to_non_nullable
                   as String,
         terms: freezed == terms
             ? _value.terms
@@ -1209,6 +1246,9 @@ class _$SettlementTermsResponseImpl extends _SettlementTermsResponse {
     @JsonKey(fromJson: settlementString) this.customer = '',
     @JsonKey(name: 'customer_name', fromJson: settlementString)
     this.customerName = '',
+    @JsonKey(name: 'party_type', fromJson: settlementString)
+    this.partyType = '',
+    @JsonKey(fromJson: settlementString) this.party = '',
     this.terms,
     @JsonKey(fromJson: settlementString) this.description = '',
     this.status = const SettlementStatus(),
@@ -1222,12 +1262,27 @@ class _$SettlementTermsResponseImpl extends _SettlementTermsResponse {
   @override
   @JsonKey()
   final bool success;
+
+  /// Empty for a Lead that has not become a Customer yet (the server sends
+  /// `customer: null` then).
   @override
   @JsonKey(fromJson: settlementString)
   final String customer;
   @override
   @JsonKey(name: 'customer_name', fromJson: settlementString)
   final String customerName;
+
+  /// `Customer` or `Lead`. Empty from a server older than lead support,
+  /// which only ever answered for a Customer.
+  @override
+  @JsonKey(name: 'party_type', fromJson: settlementString)
+  final String partyType;
+
+  /// The Customer or Lead name the terms are stored against. A converted
+  /// lead answers as its Customer.
+  @override
+  @JsonKey(fromJson: settlementString)
+  final String party;
 
   /// Null when the customer has no record.
   @override
@@ -1252,7 +1307,7 @@ class _$SettlementTermsResponseImpl extends _SettlementTermsResponse {
 
   @override
   String toString() {
-    return 'SettlementTermsResponse(success: $success, customer: $customer, customerName: $customerName, terms: $terms, description: $description, status: $status, currency: $currency, canEdit: $canEdit)';
+    return 'SettlementTermsResponse(success: $success, customer: $customer, customerName: $customerName, partyType: $partyType, party: $party, terms: $terms, description: $description, status: $status, currency: $currency, canEdit: $canEdit)';
   }
 
   @override
@@ -1265,6 +1320,9 @@ class _$SettlementTermsResponseImpl extends _SettlementTermsResponse {
                 other.customer == customer) &&
             (identical(other.customerName, customerName) ||
                 other.customerName == customerName) &&
+            (identical(other.partyType, partyType) ||
+                other.partyType == partyType) &&
+            (identical(other.party, party) || other.party == party) &&
             (identical(other.terms, terms) || other.terms == terms) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -1281,6 +1339,8 @@ class _$SettlementTermsResponseImpl extends _SettlementTermsResponse {
     success,
     customer,
     customerName,
+    partyType,
+    party,
     terms,
     description,
     status,
@@ -1311,6 +1371,9 @@ abstract class _SettlementTermsResponse extends SettlementTermsResponse {
     @JsonKey(fromJson: settlementString) final String customer,
     @JsonKey(name: 'customer_name', fromJson: settlementString)
     final String customerName,
+    @JsonKey(name: 'party_type', fromJson: settlementString)
+    final String partyType,
+    @JsonKey(fromJson: settlementString) final String party,
     final SettlementTerms? terms,
     @JsonKey(fromJson: settlementString) final String description,
     final SettlementStatus status,
@@ -1324,12 +1387,27 @@ abstract class _SettlementTermsResponse extends SettlementTermsResponse {
 
   @override
   bool get success;
+
+  /// Empty for a Lead that has not become a Customer yet (the server sends
+  /// `customer: null` then).
   @override
   @JsonKey(fromJson: settlementString)
   String get customer;
   @override
   @JsonKey(name: 'customer_name', fromJson: settlementString)
   String get customerName;
+
+  /// `Customer` or `Lead`. Empty from a server older than lead support,
+  /// which only ever answered for a Customer.
+  @override
+  @JsonKey(name: 'party_type', fromJson: settlementString)
+  String get partyType;
+
+  /// The Customer or Lead name the terms are stored against. A converted
+  /// lead answers as its Customer.
+  @override
+  @JsonKey(fromJson: settlementString)
+  String get party;
 
   /// Null when the customer has no record.
   @override

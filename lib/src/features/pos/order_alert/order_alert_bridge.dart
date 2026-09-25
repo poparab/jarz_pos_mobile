@@ -30,6 +30,7 @@ import 'web_push_registration_service.dart';
 import '../../../core/constants/timing_config.dart';
 import '../../approvals/state/pending_approvals_provider.dart';
 import '../../tasks/state/tasks_providers.dart';
+import '../../credit/data/models/settlement_models.dart' show SettlementParty;
 import '../../credit/state/credit_providers.dart';
 
 /// Ceiling for the alert poll's backoff.
@@ -621,7 +622,7 @@ class OrderAlertBridge {
       _ref.invalidate(collectionsDueProvider);
       final id = customer?.trim() ?? '';
       if (id.isNotEmpty) {
-        _ref.invalidate(settlementTermsProvider(id));
+        _ref.invalidate(settlementTermsProvider(SettlementParty.customer(id)));
       }
     } catch (error, stackTrace) {
       _logger.error('Failed to refresh after settlement push', error, stackTrace);
