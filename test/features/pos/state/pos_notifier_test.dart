@@ -1456,6 +1456,38 @@ void main() {
       ];
     });
 
+    test('a paid source locks the amendment to its payment method', () async {
+      await notifier.startAmendmentDraft({
+        'name': 'ACC-SINV-2026-18471',
+        'pos_profile': 'Main POS',
+        'grand_total': 160,
+        'amendment_payment_method': 'Kashier Card',
+        'items': [
+          {'item_code': 'ITEM-BURGER', 'item_name': 'Burger', 'qty': 1, 'rate': 160},
+        ],
+      });
+      expect(notifier.state.isAmendmentDraft, isTrue);
+      expect(notifier.state.amendmentPaymentMethod, 'Kashier Card');
+
+      notifier.startNewInvoice();
+      expect(notifier.state.amendmentPaymentMethod, isNull,
+          reason: 'the lock must never follow the cashier into a new order');
+    });
+
+    test('an unpaid source leaves the payment method open', () async {
+      await notifier.startAmendmentDraft({
+        'name': 'ACC-SINV-2026-18472',
+        'pos_profile': 'Main POS',
+        'grand_total': 160,
+        'amendment_payment_method': '  ',
+        'items': [
+          {'item_code': 'ITEM-BURGER', 'item_name': 'Burger', 'qty': 1, 'rate': 160},
+        ],
+      });
+      expect(notifier.state.isAmendmentDraft, isTrue);
+      expect(notifier.state.amendmentPaymentMethod, isNull);
+    });
+
     test(
       'startAmendmentDraft rebuilds bundle cart items from invoice rows',
       () async {

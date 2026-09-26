@@ -149,6 +149,10 @@ class InvoiceCard {
   final bool? canAmendFlag;
   final String? amendmentBlockCode;
   final String? amendmentBlockReason;
+  // Set by the server when the order is already paid: the method its
+  // replacement keeps (e.g. "Kashier Card"). The POS skips its payment-method
+  // dialog for such an amendment instead of offering Cash/Instapay.
+  final String? amendmentPaymentMethod;
   final bool? canReturnFlag;
   final String? returnBlockCode;
   final String? returnBlockReason;
@@ -267,6 +271,7 @@ class InvoiceCard {
     this.canAmendFlag,
     this.amendmentBlockCode,
     this.amendmentBlockReason,
+    this.amendmentPaymentMethod,
     this.canReturnFlag,
     this.returnBlockCode,
     this.returnBlockReason,
@@ -429,6 +434,7 @@ class InvoiceCard {
       canAmendFlag: canAmendFlag,
       amendmentBlockCode: json['amendment_block_code']?.toString(),
       amendmentBlockReason: json['amendment_block_reason']?.toString(),
+      amendmentPaymentMethod: _nonEmpty(json['amendment_payment_method']),
       canReturnFlag: _parseFlag(json['can_return']),
       returnBlockCode: json['return_block_code']?.toString(),
       returnBlockReason: json['return_block_reason']?.toString(),
@@ -553,6 +559,7 @@ class InvoiceCard {
       'can_amend': canAmendFlag,
       'amendment_block_code': amendmentBlockCode,
       'amendment_block_reason': amendmentBlockReason,
+      'amendment_payment_method': amendmentPaymentMethod,
       'can_return': canReturnFlag,
       'return_block_code': returnBlockCode,
       'return_block_reason': returnBlockReason,
@@ -640,6 +647,7 @@ class InvoiceCard {
   double? returnedAmount,
   String? amendmentBlockCode,
   String? amendmentBlockReason,
+  String? amendmentPaymentMethod,
   double? customDeliveryIncome,
   bool clearCustomDeliveryIncome = false,
   int? wooOrderId,
@@ -722,6 +730,7 @@ class InvoiceCard {
       returnedAmount: returnedAmount ?? this.returnedAmount,
       amendmentBlockCode: amendmentBlockCode ?? this.amendmentBlockCode,
       amendmentBlockReason: amendmentBlockReason ?? this.amendmentBlockReason,
+      amendmentPaymentMethod: amendmentPaymentMethod ?? this.amendmentPaymentMethod,
       customDeliveryIncome: clearCustomDeliveryIncome ? null : (customDeliveryIncome ?? this.customDeliveryIncome),
       wooOrderId: clearWooOrderId ? null : (wooOrderId ?? this.wooOrderId),
       addressLatitude: addressLatitude ?? this.addressLatitude,

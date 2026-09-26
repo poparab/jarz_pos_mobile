@@ -69,6 +69,7 @@ class _CheckoutOutcomeStub extends _PosNotifierStub {
 
   final EmployeeCashOutcome outcome;
   int checkoutCalls = 0;
+  String? lastPaymentMethod;
   EmployeeCashOutcome _outcome = EmployeeCashOutcome.none;
 
   @override
@@ -88,6 +89,7 @@ class _CheckoutOutcomeStub extends _PosNotifierStub {
     bool posProfileOverride = false,
   }) async {
     checkoutCalls += 1;
+    lastPaymentMethod = paymentMethod;
     _outcome = outcome;
     state = state.copyWith(
       cartItems: const [],
@@ -168,6 +170,7 @@ PosState _buildBundleState({required Object? selectedItems}) {
 PosState _buildState({
   required bool isAmendmentDraft,
   String? amendmentSourceInvoiceId,
+  String? amendmentPaymentMethod,
 }) {
   return PosState(
     selectedProfile: const {'name': 'Main'},
@@ -183,6 +186,7 @@ PosState _buildState({
     isPickup: true,
     isAmendmentDraft: isAmendmentDraft,
     amendmentSourceInvoiceId: amendmentSourceInvoiceId,
+    amendmentPaymentMethod: amendmentPaymentMethod,
   );
 }
 
@@ -719,6 +723,68 @@ void main() {
   });
 
   group('CartWidget amendment checkout', () {
+    Future<void> tapSubmitAmendment(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1200, 4000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpAndSettle();
+      final submit = find.text('Submit Amendment');
+      await tester.ensureVisible(submit);
+      await tester.tap(submit);
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets(
+      'a paid order keeps its method and never shows the payment dialog (17612)',
+      (tester) async {
+        final state = _buildState(
+          isAmendmentDraft: true,
+          amendmentSourceInvoiceId: 'ACC-SINV-2026-18471',
+          amendmentPaymentMethod: 'Kashier Card',
+        );
+        final stub = _CheckoutOutcomeStub(
+          state,
+          outcome: EmployeeCashOutcome.none,
+        );
+        await _pumpCartWidget(tester, state, stub: stub);
+
+        await tapSubmitAmendment(tester);
+
+        // The first dialog is the branch-profile check that follows the payment
+        // step, which proves the payment-method dialog was skipped.
+        expect(find.text('Profile Mismatch'), findsOneWidget);
+        await tester.tap(find.text('Proceed'));
+        await tester.pumpAndSettle();
+
+        expect(stub.checkoutCalls, 1);
+        expect(stub.lastPaymentMethod, 'Kashier Card');
+      },
+    );
+
+    testWidgets(
+      'an unpaid amendment still asks how the order will be paid',
+      (tester) async {
+        final state = _buildState(
+          isAmendmentDraft: true,
+          amendmentSourceInvoiceId: 'ACC-SINV-2026-18472',
+        );
+        final stub = _CheckoutOutcomeStub(
+          state,
+          outcome: EmployeeCashOutcome.none,
+        );
+        await _pumpCartWidget(tester, state, stub: stub);
+
+        await tapSubmitAmendment(tester);
+        await tester.pumpAndSettle();
+
+        expect(stub.checkoutCalls, 0, reason: 'waits for the payment dialog');
+        expect(find.text('Profile Mismatch'), findsNothing,
+            reason: 'the payment dialog comes first and is still open');
+        expect(find.text('Cash'), findsWidgets);
+      },
+    );
+
     testWidgets(
       'shows submit amendment action when amendment draft has source invoice',
       (tester) async {

@@ -215,6 +215,15 @@ void main() {
         );
       });
 
+      test('the paid-order payment method survives the trip to the POS', () {
+        final card = buildCard(overrides: {'amendment_payment_method': 'Kashier Card'});
+        expect(card.amendmentPaymentMethod, 'Kashier Card');
+        // The Edit button hands card.toJson() to the POS amendment draft.
+        expect(card.toJson()['amendment_payment_method'], 'Kashier Card');
+        expect(buildCard(overrides: {'amendment_payment_method': ''}).amendmentPaymentMethod, isNull);
+        expect(buildCard().amendmentPaymentMethod, isNull);
+      });
+
       test('an explicit server verdict wins', () {
         expect(
           buildCard(overrides: {'outstanding_amount': 150, 'can_amend': false}).canAmend,

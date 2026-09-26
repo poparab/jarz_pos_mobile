@@ -1900,7 +1900,15 @@ class CartWidget extends ConsumerWidget {
     // Payment method selection for non-sales partner orders. An Employee order
     // sends none: see [PosState.skipsPaymentMethod].
     String? paymentMethod;
-    if (state.selectedSalesPartner == null && !state.skipsPaymentMethod) {
+    final lockedPaymentMethod = state.isAmendmentDraft
+        ? state.amendmentPaymentMethod
+        : null;
+    if (lockedPaymentMethod != null) {
+      // Editing an order that is already paid (e.g. Kashier Card): the money is
+      // carried across as-is, so the method is too. The dialog has no Kashier
+      // option, and picking Cash here relabelled a prepaid order (17612).
+      paymentMethod = lockedPaymentMethod;
+    } else if (state.selectedSalesPartner == null && !state.skipsPaymentMethod) {
       if (!context.mounted) return;
       // Credit ("on account") is offered per order, and only for the customer
       // the order is actually on: the dialog resolves that customer's credit

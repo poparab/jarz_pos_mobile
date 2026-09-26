@@ -66,6 +66,12 @@ class PosState {
   // Source invoice grand total captured when the amendment draft started.
   // Used to guard against submitting an empty or badly loaded cart.
   final double? amendmentSourceGrandTotal;
+  // The payment method an amendment of an already-PAID order must keep (the
+  // server's `amendment_payment_method`, e.g. "Kashier Card"). When set, checkout
+  // skips the payment-method dialog and sends this instead: the dialog has no
+  // Kashier option, and a cashier picking Cash relabelled prepaid order 17612.
+  // Not persisted with drafts; the server enforces the same rule regardless.
+  final String? amendmentPaymentMethod;
   // ── Draft (multi-cart) state ───────────────────────────────────────
   /// All persisted draft carts (summaries only, sorted newest-first).
   final List<DraftCartSummary> drafts;
@@ -128,6 +134,7 @@ class PosState {
     this.amendmentSourceInvoiceId,
     this.amendmentSourceWooOrderId,
     this.amendmentSourceGrandTotal,
+    this.amendmentPaymentMethod,
     this.drafts = const [],
     this.currentDraftId,
     this.draftDirty = false,
@@ -180,6 +187,8 @@ class PosState {
     bool clearAmendmentSourceInvoiceId = false,
     int? amendmentSourceWooOrderId,
     double? amendmentSourceGrandTotal,
+    String? amendmentPaymentMethod,
+    bool clearAmendmentPaymentMethod = false,
     // Draft fields
     List<DraftCartSummary>? drafts,
     String? currentDraftId,
@@ -271,6 +280,10 @@ class PosState {
       amendmentSourceGrandTotal: clearAmendmentSourceInvoiceId
           ? null
           : (amendmentSourceGrandTotal ?? this.amendmentSourceGrandTotal),
+      amendmentPaymentMethod:
+          (clearAmendmentSourceInvoiceId || clearAmendmentPaymentMethod)
+          ? null
+          : (amendmentPaymentMethod ?? this.amendmentPaymentMethod),
       drafts: drafts ?? this.drafts,
       currentDraftId: clearCurrentDraftId
           ? null
@@ -874,6 +887,11 @@ class PosNotifier extends StateNotifier<PosState> {
         clearAmendmentSourceInvoiceId: target.amendmentSourceInvoiceId == null,
         amendmentSourceWooOrderId: target.amendmentSourceWooOrderId,
         amendmentSourceGrandTotal: target.amendmentSourceGrandTotal,
+        // Drafts do not persist the paid-order lock: keep it only when this is
+        // the same amendment already in hand, never carry it to another order.
+        clearAmendmentPaymentMethod:
+            target.amendmentSourceInvoiceId == null ||
+            target.amendmentSourceInvoiceId != state.amendmentSourceInvoiceId,
         customDeliveryIncome: target.customDeliveryIncome,
         clearCustomDeliveryIncome: target.customDeliveryIncome == null,
       );
@@ -3708,6 +3726,11 @@ class PosNotifier extends StateNotifier<PosState> {
           ? (invoiceData['items'] as List).length
           : 0;
       final sourceGrandTotal = _coerceDouble(invoiceData['grand_total']);
+      final lockedPaymentMethodRaw =
+          invoiceData['amendment_payment_method']?.toString().trim() ?? '';
+      final lockedPaymentMethod = lockedPaymentMethodRaw.isEmpty
+          ? null
+          : lockedPaymentMethodRaw;
 
       if (sourceItemCount > 0 && builtCartItems.isEmpty) {
         state = state.copyWith(
@@ -3791,6 +3814,8 @@ class PosNotifier extends StateNotifier<PosState> {
         amendmentSourceGrandTotal: sourceGrandTotal > 0
             ? sourceGrandTotal
             : null,
+        amendmentPaymentMethod: lockedPaymentMethod,
+        clearAmendmentPaymentMethod: lockedPaymentMethod == null,
         clearCurrentDraftId: true,
         draftDirty: false,
       );
