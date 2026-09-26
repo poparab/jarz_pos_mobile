@@ -1900,13 +1900,11 @@ class CartWidget extends ConsumerWidget {
     // Payment method selection for non-sales partner orders. An Employee order
     // sends none: see [PosState.skipsPaymentMethod].
     String? paymentMethod;
-    final lockedPaymentMethod = state.isAmendmentDraft
-        ? state.amendmentPaymentMethod
-        : null;
+    final lockedPaymentMethod = state.amendmentLockedPaymentMethod;
     if (lockedPaymentMethod != null) {
-      // Editing an order that is already paid (e.g. Kashier Card): the money is
-      // carried across as-is, so the method is too. The dialog has no Kashier
-      // option, and picking Cash here relabelled a prepaid order (17612).
+      // Editing an already-paid order that still costs no more than was paid:
+      // the carried payment settles it, so it keeps its method (see
+      // [PosState.amendmentLockedPaymentMethod]). A dearer edit asks below.
       paymentMethod = lockedPaymentMethod;
     } else if (state.selectedSalesPartner == null && !state.skipsPaymentMethod) {
       if (!context.mounted) return;

@@ -66,12 +66,12 @@ class PosState {
   // Source invoice grand total captured when the amendment draft started.
   // Used to guard against submitting an empty or badly loaded cart.
   final double? amendmentSourceGrandTotal;
-  // The payment method an amendment of an already-PAID order must keep (the
-  // server's `amendment_payment_method`, e.g. "Kashier Card"). When set, checkout
-  // skips the payment-method dialog and sends this instead: the dialog has no
-  // Kashier option, and a cashier picking Cash relabelled prepaid order 17612.
-  // Not persisted with drafts; the server enforces the same rule regardless.
+  // The method an already-PAID order was paid by (the server's
+  // `amendment_payment_method`, e.g. "Kashier Card") and how much was paid
+  // (`amendment_paid_amount`). See [amendmentLockedPaymentMethod]. Not persisted
+  // with drafts; the server applies the same rule to the replacement regardless.
   final String? amendmentPaymentMethod;
+  final double? amendmentPaidAmount;
   // ── Draft (multi-cart) state ───────────────────────────────────────
   /// All persisted draft carts (summaries only, sorted newest-first).
   final List<DraftCartSummary> drafts;
@@ -135,6 +135,7 @@ class PosState {
     this.amendmentSourceWooOrderId,
     this.amendmentSourceGrandTotal,
     this.amendmentPaymentMethod,
+    this.amendmentPaidAmount,
     this.drafts = const [],
     this.currentDraftId,
     this.draftDirty = false,
@@ -188,6 +189,7 @@ class PosState {
     int? amendmentSourceWooOrderId,
     double? amendmentSourceGrandTotal,
     String? amendmentPaymentMethod,
+    double? amendmentPaidAmount,
     bool clearAmendmentPaymentMethod = false,
     // Draft fields
     List<DraftCartSummary>? drafts,
@@ -284,6 +286,10 @@ class PosState {
           (clearAmendmentSourceInvoiceId || clearAmendmentPaymentMethod)
           ? null
           : (amendmentPaymentMethod ?? this.amendmentPaymentMethod),
+      amendmentPaidAmount:
+          (clearAmendmentSourceInvoiceId || clearAmendmentPaymentMethod)
+          ? null
+          : (amendmentPaidAmount ?? this.amendmentPaidAmount),
       drafts: drafts ?? this.drafts,
       currentDraftId: clearCurrentDraftId
           ? null
@@ -480,6 +486,21 @@ class PosState {
 
   double get totalWithShipping {
     return cartTotal + shippingCost;
+  }
+
+  /// The method an amendment checkout sends WITHOUT asking, or null to ask.
+  ///
+  /// Only for an order that is already paid, and only while the edited total
+  /// stays within what was paid: the carried payment then settles it, so the
+  /// method is just the record of how the money arrived (the dialog has no
+  /// Kashier option, and picking Cash relabelled prepaid order 17612). A dearer
+  /// edit leaves a balance, and the cashier decides how that is collected.
+  String? get amendmentLockedPaymentMethod {
+    if (!isAmendmentDraft) return null;
+    final method = amendmentPaymentMethod;
+    final paid = amendmentPaidAmount ?? amendmentSourceGrandTotal;
+    if (method == null || paid == null) return null;
+    return displayTotalWithPromo <= paid + 0.01 ? method : null;
   }
 
   /// Display-only grand total with the promo preview discount subtracted.
@@ -3731,6 +3752,9 @@ class PosNotifier extends StateNotifier<PosState> {
       final lockedPaymentMethod = lockedPaymentMethodRaw.isEmpty
           ? null
           : lockedPaymentMethodRaw;
+      final paidAmount = double.tryParse(
+        invoiceData['amendment_paid_amount']?.toString() ?? '',
+      );
 
       if (sourceItemCount > 0 && builtCartItems.isEmpty) {
         state = state.copyWith(
@@ -3815,6 +3839,7 @@ class PosNotifier extends StateNotifier<PosState> {
             ? sourceGrandTotal
             : null,
         amendmentPaymentMethod: lockedPaymentMethod,
+        amendmentPaidAmount: lockedPaymentMethod == null ? null : paidAmount,
         clearAmendmentPaymentMethod: lockedPaymentMethod == null,
         clearCurrentDraftId: true,
         draftDirty: false,

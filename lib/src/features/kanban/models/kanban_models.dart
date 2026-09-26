@@ -153,6 +153,9 @@ class InvoiceCard {
   // replacement keeps (e.g. "Kashier Card"). The POS skips its payment-method
   // dialog for such an amendment instead of offering Cash/Instapay.
   final String? amendmentPaymentMethod;
+  // How much of the order is already paid (the carried payment). The POS skips
+  // its dialog only while the edited total stays within it.
+  final double? amendmentPaidAmount;
   final bool? canReturnFlag;
   final String? returnBlockCode;
   final String? returnBlockReason;
@@ -272,6 +275,7 @@ class InvoiceCard {
     this.amendmentBlockCode,
     this.amendmentBlockReason,
     this.amendmentPaymentMethod,
+    this.amendmentPaidAmount,
     this.canReturnFlag,
     this.returnBlockCode,
     this.returnBlockReason,
@@ -435,6 +439,9 @@ class InvoiceCard {
       amendmentBlockCode: json['amendment_block_code']?.toString(),
       amendmentBlockReason: json['amendment_block_reason']?.toString(),
       amendmentPaymentMethod: _nonEmpty(json['amendment_payment_method']),
+      amendmentPaidAmount: json['amendment_paid_amount'] == null
+          ? null
+          : double.tryParse(json['amendment_paid_amount'].toString()),
       canReturnFlag: _parseFlag(json['can_return']),
       returnBlockCode: json['return_block_code']?.toString(),
       returnBlockReason: json['return_block_reason']?.toString(),
@@ -560,6 +567,7 @@ class InvoiceCard {
       'amendment_block_code': amendmentBlockCode,
       'amendment_block_reason': amendmentBlockReason,
       'amendment_payment_method': amendmentPaymentMethod,
+      'amendment_paid_amount': amendmentPaidAmount,
       'can_return': canReturnFlag,
       'return_block_code': returnBlockCode,
       'return_block_reason': returnBlockReason,
@@ -648,6 +656,7 @@ class InvoiceCard {
   String? amendmentBlockCode,
   String? amendmentBlockReason,
   String? amendmentPaymentMethod,
+  double? amendmentPaidAmount,
   double? customDeliveryIncome,
   bool clearCustomDeliveryIncome = false,
   int? wooOrderId,
@@ -731,6 +740,7 @@ class InvoiceCard {
       amendmentBlockCode: amendmentBlockCode ?? this.amendmentBlockCode,
       amendmentBlockReason: amendmentBlockReason ?? this.amendmentBlockReason,
       amendmentPaymentMethod: amendmentPaymentMethod ?? this.amendmentPaymentMethod,
+      amendmentPaidAmount: amendmentPaidAmount ?? this.amendmentPaidAmount,
       customDeliveryIncome: clearCustomDeliveryIncome ? null : (customDeliveryIncome ?? this.customDeliveryIncome),
       wooOrderId: clearWooOrderId ? null : (wooOrderId ?? this.wooOrderId),
       addressLatitude: addressLatitude ?? this.addressLatitude,

@@ -171,6 +171,7 @@ PosState _buildState({
   required bool isAmendmentDraft,
   String? amendmentSourceInvoiceId,
   String? amendmentPaymentMethod,
+  double? amendmentPaidAmount,
 }) {
   return PosState(
     selectedProfile: const {'name': 'Main'},
@@ -187,6 +188,7 @@ PosState _buildState({
     isAmendmentDraft: isAmendmentDraft,
     amendmentSourceInvoiceId: amendmentSourceInvoiceId,
     amendmentPaymentMethod: amendmentPaymentMethod,
+    amendmentPaidAmount: amendmentPaidAmount,
   );
 }
 
@@ -742,6 +744,7 @@ void main() {
           isAmendmentDraft: true,
           amendmentSourceInvoiceId: 'ACC-SINV-2026-18471',
           amendmentPaymentMethod: 'Kashier Card',
+          amendmentPaidAmount: 160,
         );
         final stub = _CheckoutOutcomeStub(
           state,
@@ -759,6 +762,30 @@ void main() {
 
         expect(stub.checkoutCalls, 1);
         expect(stub.lastPaymentMethod, 'Kashier Card');
+      },
+    );
+
+    testWidgets(
+      'a paid order edited to cost more lets the cashier choose for the balance',
+      (tester) async {
+        // Paid 100, the edited cart is 160: 60 is still owed.
+        final state = _buildState(
+          isAmendmentDraft: true,
+          amendmentSourceInvoiceId: 'ACC-SINV-2026-18471',
+          amendmentPaymentMethod: 'Kashier Card',
+          amendmentPaidAmount: 100,
+        );
+        final stub = _CheckoutOutcomeStub(
+          state,
+          outcome: EmployeeCashOutcome.none,
+        );
+        await _pumpCartWidget(tester, state, stub: stub);
+
+        await tapSubmitAmendment(tester);
+        await tester.pumpAndSettle();
+
+        expect(stub.checkoutCalls, 0, reason: 'waits for the payment dialog');
+        expect(find.text('Select Payment Method'), findsOneWidget);
       },
     );
 

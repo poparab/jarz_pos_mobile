@@ -273,6 +273,45 @@ void main() {
   // ──────────────────────────────────────────────────────────────────────────
   // PosState computed getters
   // ──────────────────────────────────────────────────────────────────────────
+  group('PosState.amendmentLockedPaymentMethod', () {
+    PosState paidDraft({required double rate, double? paid, double? sourceTotal}) =>
+        PosState(
+          cartItems: [
+            {'item_code': 'X', 'quantity': 1, 'rate': rate, 'type': 'item'},
+          ],
+          isPickup: true,
+          isAmendmentDraft: true,
+          amendmentSourceInvoiceId: 'ACC-SINV-2026-18471',
+          amendmentPaymentMethod: 'Kashier Card',
+          amendmentPaidAmount: paid,
+          amendmentSourceGrandTotal: sourceTotal,
+        );
+
+    test('same price keeps the paid method', () {
+      expect(paidDraft(rate: 480, paid: 480).amendmentLockedPaymentMethod, 'Kashier Card');
+    });
+
+    test('cheaper keeps the paid method', () {
+      expect(paidDraft(rate: 400, paid: 480).amendmentLockedPaymentMethod, 'Kashier Card');
+    });
+
+    test('dearer leaves the balance to the cashier', () {
+      expect(paidDraft(rate: 640, paid: 480).amendmentLockedPaymentMethod, isNull);
+    });
+
+    test('falls back to the source total when the paid amount is missing', () {
+      expect(paidDraft(rate: 480, sourceTotal: 480).amendmentLockedPaymentMethod, 'Kashier Card');
+      expect(paidDraft(rate: 480).amendmentLockedPaymentMethod, isNull);
+    });
+
+    test('never applies outside an amendment', () {
+      expect(
+        paidDraft(rate: 480, paid: 480).copyWith(isAmendmentDraft: false).amendmentLockedPaymentMethod,
+        isNull,
+      );
+    });
+  });
+
   group('PosNotifier.amendmentLineDiscounts', () {
     test('drops the zero discounts every invoice line reports', () {
       // Sent as-is they read as a manual override on the server and refused
@@ -1462,16 +1501,19 @@ void main() {
         'pos_profile': 'Main POS',
         'grand_total': 160,
         'amendment_payment_method': 'Kashier Card',
+        'amendment_paid_amount': 160,
         'items': [
           {'item_code': 'ITEM-BURGER', 'item_name': 'Burger', 'qty': 1, 'rate': 160},
         ],
       });
       expect(notifier.state.isAmendmentDraft, isTrue);
       expect(notifier.state.amendmentPaymentMethod, 'Kashier Card');
+      expect(notifier.state.amendmentPaidAmount, 160.0);
 
       notifier.startNewInvoice();
       expect(notifier.state.amendmentPaymentMethod, isNull,
           reason: 'the lock must never follow the cashier into a new order');
+      expect(notifier.state.amendmentPaidAmount, isNull);
     });
 
     test('an unpaid source leaves the payment method open', () async {
