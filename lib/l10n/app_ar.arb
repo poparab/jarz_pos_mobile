@@ -5796,6 +5796,7 @@
   "userAdminCreatedMessage": "تم إنشاء {name}.",
   "userAdminChangePassword": "تغيير كلمة المرور",
   "userAdminPasswordDialogTitle": "كلمة مرور جديدة لـ {name}",
+  "userAdminSignedOutEverywhereNote": "سيتم تسجيل خروج المستخدم من كل أجهزته.",
   "userAdminSignOutEverywhere": "تسجيل خروج المستخدم من كل الأجهزة",
   "userAdminPasswordChangedMessage": "تم تغيير كلمة مرور {name}.",
   "userAdminDisable": "إيقاف",

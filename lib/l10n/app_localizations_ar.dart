@@ -15533,6 +15533,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get userAdminSignedOutEverywhereNote =>
+      'سيتم تسجيل خروج المستخدم من كل أجهزته.';
+
+  @override
   String get userAdminSignOutEverywhere => 'تسجيل خروج المستخدم من كل الأجهزة';
 
   @override

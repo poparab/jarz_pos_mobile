@@ -25493,6 +25493,12 @@ abstract class AppLocalizations {
   /// **'New password for {name}'**
   String userAdminPasswordDialogTitle(String name);
 
+  /// No description provided for @userAdminSignedOutEverywhereNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The user will be signed out of all their devices.'**
+  String get userAdminSignedOutEverywhereNote;
+
   /// No description provided for @userAdminSignOutEverywhere.
   ///
   /// In en, this message translates to:

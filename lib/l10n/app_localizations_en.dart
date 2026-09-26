@@ -15542,6 +15542,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get userAdminSignedOutEverywhereNote =>
+      'The user will be signed out of all their devices.';
+
+  @override
   String get userAdminSignOutEverywhere => 'Sign the user out of all devices';
 
   @override

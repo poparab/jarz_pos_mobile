@@ -8812,6 +8812,7 @@
   "userAdminChangePassword": "Change password",
   "userAdminPasswordDialogTitle": "New password for {name}",
   "@userAdminPasswordDialogTitle": {"placeholders": {"name": {"type": "String"}}},
+  "userAdminSignedOutEverywhereNote": "The user will be signed out of all their devices.",
   "userAdminSignOutEverywhere": "Sign the user out of all devices",
   "userAdminPasswordChangedMessage": "Password changed for {name}.",
   "@userAdminPasswordChangedMessage": {"placeholders": {"name": {"type": "String"}}},

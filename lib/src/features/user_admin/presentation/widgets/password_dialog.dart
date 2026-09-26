@@ -45,7 +45,6 @@ class _PasswordDialogState extends State<PasswordDialog> {
   final _password = TextEditingController();
   final _confirm = TextEditingController();
   bool _obscure = true;
-  bool _signOut = true;
 
   @override
   void dispose() {
@@ -58,7 +57,7 @@ class _PasswordDialogState extends State<PasswordDialog> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     Navigator.of(
       context,
-    ).pop(PasswordChoice(password: _password.text, signOut: _signOut));
+    ).pop(PasswordChoice(password: _password.text, signOut: true));
   }
 
   @override
@@ -119,12 +118,13 @@ class _PasswordDialogState extends State<PasswordDialog> {
                   onFieldSubmitted: (_) => _submit(),
                 ),
                 const SizedBox(height: 8),
-                CheckboxListTile(
+                // Not optional: the server always signs the user out, because
+                // a reset usually means the old password leaked.
+                ListTile(
                   contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  value: _signOut,
-                  onChanged: (v) => setState(() => _signOut = v ?? true),
-                  title: Text(l10n.userAdminSignOutEverywhere),
+                  dense: true,
+                  leading: const Icon(Icons.logout, size: 20),
+                  title: Text(l10n.userAdminSignedOutEverywhereNote),
                 ),
               ],
             ),
