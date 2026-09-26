@@ -22,8 +22,6 @@ class AppDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final isLineManager = ref.watch(isLineManagerProvider);
-    final isModerator = ref.watch(isModeratorProvider);
     final canAccessB2b = ref.watch(canAccessB2bProvider);
     final canAccessManagerDashboardRole = ref.watch(
       canAccessManagerDashboardRoleProvider,
@@ -51,7 +49,15 @@ class AppDrawer extends ConsumerWidget {
       data: (v) => v,
       orElse: () => false,
     );
-    final hasElevatedAccess = hasManagerAccess || isLineManager || isModerator;
+    // Each gate below mirrors the role set its own endpoint accepts. Verified
+    // against production 2026-09-26 by evaluating every screen's server gate
+    // as a real member of each Jarz role profile.
+    final canAccessMasterOrders = ref.watch(canAccessMasterOrdersProvider);
+    final canViewLiveCourierMap = ref.watch(canViewLiveCourierMapProvider);
+    final canViewPricing = ref.watch(canViewPricingProvider);
+    final canAccessBranchAccess = ref.watch(canAccessBranchAccessProvider);
+    final canRaiseItemRequest = ref.watch(canRaiseItemRequestProvider);
+    final canManageUsers = ref.watch(canManageUsersProvider);
     final canAccessProductionBoard =
         ref.watch(canAccessProductionBoardProvider);
     // Each of these mirrors the role set its OWN API accepts. `hasManagerAccess`
@@ -182,7 +188,7 @@ class AppDrawer extends ConsumerWidget {
         title: l10n.menuSalesKanban,
         onTap: () => navigate(AppRoutes.kanban),
       ),
-      if (hasElevatedAccess)
+      if (canAccessMasterOrders)
         navTile(
           icon: Icons.list_alt,
           title: l10n.menuMasterOrders,
@@ -193,8 +199,9 @@ class AppDrawer extends ConsumerWidget {
     final deliveryChildren = <Widget>[
       // Supervisor-only, mirroring the tracking API's `_ensure_ops_permission`,
       // which deliberately excludes couriers: a courier may see their own run,
-      // never a colleague's live position.
-      if (canAccessManagerDashboardRole)
+      // never a colleague's live position. Its set does not admit the line
+      // manager's Role record, so the tile is hidden from them.
+      if (canViewLiveCourierMap)
         navTile(
           icon: Icons.map_outlined,
           title: l10n.menuLiveCourierMap,
@@ -217,7 +224,6 @@ class AppDrawer extends ConsumerWidget {
 
     // B2B customers and what they pay. Price Lists used to be a one-entry
     // group of its own.
-    final canViewPricing = canAccessManagerDashboardRole || canAccessB2b;
     final b2bChildren = <Widget>[
       if (canAccessB2b)
         navTile(
@@ -301,7 +307,8 @@ class AppDrawer extends ConsumerWidget {
       // Ungated on purpose: anyone who notices a shortage can raise a request,
       // and the server gate (ROLES.PURCHASE_REQUEST) is deliberately the widest
       // in the app. Hiding this behind manager access would defeat the feature.
-      _ItemRequestsNavTile(onTap: () => navigate(AppRoutes.itemRequests)),
+      if (canRaiseItemRequest)
+        _ItemRequestsNavTile(onTap: () => navigate(AppRoutes.itemRequests)),
       if (canAccessPurchaseInvoice)
         navTile(
           icon: Icons.receipt_long,
@@ -396,9 +403,10 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuShiftMonitor,
           onTap: () => navigate(AppRoutes.shiftMonitor),
         ),
-      // Same gate as the rota: `api/branch_access.py` accepts exactly the
-      // line-manager tier (a line manager sees only their own branches).
-      if (canActAsLineManager)
+      // `api/branch_access.py` accepts exactly the line-manager tier (a line
+      // manager sees only their own branches) -- not the POS Manager that
+      // `canActAsLineManager` folds in.
+      if (canAccessBranchAccess)
         navTile(
           icon: Icons.key_outlined,
           title: l10n.menuBranchAccess,
@@ -432,6 +440,14 @@ class AppDrawer extends ConsumerWidget {
           icon: Icons.sync_outlined,
           title: l10n.wooSyncMenuTitle,
           onTap: () => navigate(AppRoutes.wooSync),
+        ),
+      // Create, edit, disable, delete users and set passwords. Mirrors
+      // `services/user_admin.ACCESS_ROLES`: JARZ Manager and the admin tier.
+      if (canManageUsers)
+        navTile(
+          icon: Icons.manage_accounts_outlined,
+          title: l10n.menuUsers,
+          onTap: () => navigate(AppRoutes.users),
         ),
     ];
 
@@ -545,6 +561,7 @@ class AppDrawer extends ConsumerWidget {
           AppRoutes.reportsExecutive,
           AppRoutes.reportsB2b,
           AppRoutes.wooSync,
+          AppRoutes.users,
         ],
       ),
     ].where((g) => g.children.isNotEmpty).toList();

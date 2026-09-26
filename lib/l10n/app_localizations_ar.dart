@@ -15274,4 +15274,329 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get approvalsQueueCreditCollections => 'تحصيل مستحق';
+
+  @override
+  String get menuUsers => 'المستخدمون';
+
+  @override
+  String get userAdminTitle => 'المستخدمون';
+
+  @override
+  String get userAdminAccessDenied =>
+      'إدارة حسابات المستخدمين متاحة للمديرين فقط.';
+
+  @override
+  String get userAdminSearchHint => 'ابحث بالاسم أو البريد أو رقم الموبايل';
+
+  @override
+  String get userAdminFilterAll => 'الكل';
+
+  @override
+  String get userAdminFilterActive => 'نشط';
+
+  @override
+  String get userAdminFilterDisabled => 'موقوف';
+
+  @override
+  String get userAdminFilterManagers => 'المديرون';
+
+  @override
+  String get userAdminFilterLineManagers => 'المشرفون';
+
+  @override
+  String get userAdminFilterModerators => 'المودريتورز';
+
+  @override
+  String get userAdminFilterB2b => 'مبيعات الشركات';
+
+  @override
+  String get userAdminFilterProduction => 'الإنتاج';
+
+  @override
+  String get userAdminFilterStaff => 'الموظفون';
+
+  @override
+  String get userAdminFilterOther => 'أخرى';
+
+  @override
+  String get userAdminTierManager => 'مدير';
+
+  @override
+  String get userAdminTierLineManager => 'مشرف';
+
+  @override
+  String get userAdminTierModerator => 'مودريتور';
+
+  @override
+  String get userAdminTierB2b => 'مبيعات شركات';
+
+  @override
+  String get userAdminTierProduction => 'إنتاج';
+
+  @override
+  String get userAdminTierStaff => 'موظف';
+
+  @override
+  String get userAdminTierOther => 'أخرى';
+
+  @override
+  String get userAdminAddUser => 'إضافة مستخدم';
+
+  @override
+  String get userAdminNoUsers => 'مفيش مستخدمين مطابقين.';
+
+  @override
+  String userAdminCount(int count) {
+    return '$count مستخدم';
+  }
+
+  @override
+  String get userAdminYouTag => 'أنت';
+
+  @override
+  String get userAdminDisabledTag => 'موقوف';
+
+  @override
+  String get userAdminViewOnly => 'عرض فقط';
+
+  @override
+  String get userAdminViewOnlyBanner =>
+      'ده حساب مدير نظام (System Manager). ممكن تشوفه هنا لكن مينفعش تعدّله.';
+
+  @override
+  String get userAdminDisabledBanner =>
+      'الحساب ده موقوف، والمستخدم مش هيقدر يسجّل دخول.';
+
+  @override
+  String get userAdminNewTitle => 'مستخدم جديد';
+
+  @override
+  String get userAdminEditTitle => 'المستخدم';
+
+  @override
+  String get userAdminSectionAccount => 'الحساب';
+
+  @override
+  String get userAdminSectionRoles => 'ملفات الصلاحيات';
+
+  @override
+  String get userAdminSectionEmployee => 'الموظف';
+
+  @override
+  String get userAdminSectionBranches => 'الفروع';
+
+  @override
+  String get userAdminSectionActions => 'إجراءات الحساب';
+
+  @override
+  String get userAdminFirstName => 'الاسم الأول';
+
+  @override
+  String get userAdminLastName => 'اسم العائلة';
+
+  @override
+  String get userAdminMobile => 'رقم الموبايل';
+
+  @override
+  String get userAdminEmail => 'البريد الإلكتروني';
+
+  @override
+  String get userAdminEmailReadOnly =>
+      'البريد الإلكتروني هو اسم الدخول ومينفعش يتغيّر.';
+
+  @override
+  String get userAdminPassword => 'كلمة المرور';
+
+  @override
+  String get userAdminConfirmPassword => 'تأكيد كلمة المرور';
+
+  @override
+  String get userAdminNewPassword => 'كلمة المرور الجديدة';
+
+  @override
+  String get userAdminShowPassword => 'إظهار كلمة المرور';
+
+  @override
+  String get userAdminHidePassword => 'إخفاء كلمة المرور';
+
+  @override
+  String get userAdminFieldRequired => 'مطلوب';
+
+  @override
+  String get userAdminEmailInvalid => 'اكتب بريد إلكتروني صحيح';
+
+  @override
+  String userAdminPasswordTooShort(int min) {
+    return 'على الأقل $min حروف';
+  }
+
+  @override
+  String get userAdminPasswordMismatch => 'كلمتا المرور غير متطابقتين';
+
+  @override
+  String get userAdminRoleProfilesRequired =>
+      'اختار ملف صلاحيات واحد على الأقل.';
+
+  @override
+  String get userAdminRoleProfilesReplaceWarning =>
+      'صلاحيات المستخدم هتتستبدل بصلاحيات الملفات المختارة.';
+
+  @override
+  String get userAdminRoleProfilesSelfLocked =>
+      'مينفعش تغيّر ملفات الصلاحيات الخاصة بيك.';
+
+  @override
+  String get userAdminRoleProfileNotAssignable =>
+      'الملف ده يقدر يديه مدير النظام بس.';
+
+  @override
+  String get userAdminNoRoleProfiles => 'مفيش ملفات صلاحيات متاحة.';
+
+  @override
+  String get userAdminPrivilegedTag => 'صلاحيات عالية';
+
+  @override
+  String get userAdminRequirePosShift => 'يتطلب فتح وردية';
+
+  @override
+  String get userAdminRequirePosShiftHelp =>
+      'لازم المستخدم يفتح وردية قبل ما يبيع على نقطة البيع.';
+
+  @override
+  String get userAdminEmployeeNone => 'مفيش موظف مربوط';
+
+  @override
+  String get userAdminEmployeeChoose => 'ربط موظف';
+
+  @override
+  String get userAdminEmployeeChange => 'تغيير';
+
+  @override
+  String get userAdminEmployeeUnlink => 'فك الربط';
+
+  @override
+  String get userAdminEmployeeUnlinkPending => 'ربط الموظف هيتشال لما تحفظ.';
+
+  @override
+  String get userAdminEmployeeSearchHint => 'ابحث عن موظف';
+
+  @override
+  String get userAdminEmployeeNoResults => 'مفيش موظفين نشطين مطابقين.';
+
+  @override
+  String userAdminEmployeeLinkedTo(String user) {
+    return 'مربوط بـ $user';
+  }
+
+  @override
+  String userAdminEmployeeLinkedWarning(String user) {
+    return 'الموظف ده مربوط بالفعل بحساب $user.';
+  }
+
+  @override
+  String get userAdminBranchesNone => 'مفيش صلاحية على أي فرع';
+
+  @override
+  String get userAdminManageBranchAccess => 'إدارة صلاحيات الفروع';
+
+  @override
+  String get userAdminLastLogin => 'آخر دخول';
+
+  @override
+  String get userAdminCreatedOn => 'تاريخ الإنشاء';
+
+  @override
+  String get userAdminNever => 'لم يسجّل دخول';
+
+  @override
+  String get userAdminCreate => 'إنشاء المستخدم';
+
+  @override
+  String get userAdminNoChanges => 'مفيش تغييرات تتحفظ.';
+
+  @override
+  String userAdminSavedMessage(String name) {
+    return 'تم حفظ $name.';
+  }
+
+  @override
+  String userAdminCreatedMessage(String name) {
+    return 'تم إنشاء $name.';
+  }
+
+  @override
+  String get userAdminChangePassword => 'تغيير كلمة المرور';
+
+  @override
+  String userAdminPasswordDialogTitle(String name) {
+    return 'كلمة مرور جديدة لـ $name';
+  }
+
+  @override
+  String get userAdminSignOutEverywhere => 'تسجيل خروج المستخدم من كل الأجهزة';
+
+  @override
+  String userAdminPasswordChangedMessage(String name) {
+    return 'تم تغيير كلمة مرور $name.';
+  }
+
+  @override
+  String get userAdminDisable => 'إيقاف';
+
+  @override
+  String get userAdminEnable => 'تفعيل';
+
+  @override
+  String userAdminDisableTitle(String name) {
+    return 'إيقاف $name؟';
+  }
+
+  @override
+  String get userAdminDisableBody =>
+      'هيتعمل له تسجيل خروج من كل الأجهزة، ومش هيقدر يدخل تاني غير لما الحساب يتفعّل.';
+
+  @override
+  String userAdminEnableTitle(String name) {
+    return 'تفعيل $name؟';
+  }
+
+  @override
+  String get userAdminEnableBody =>
+      'هيقدر يسجّل دخول تاني بكلمة المرور الحالية.';
+
+  @override
+  String userAdminDisabledMessage(String name) {
+    return 'تم إيقاف $name.';
+  }
+
+  @override
+  String userAdminEnabledMessage(String name) {
+    return 'تم تفعيل $name.';
+  }
+
+  @override
+  String get userAdminDelete => 'حذف المستخدم';
+
+  @override
+  String userAdminDeleteTitle(String name) {
+    return 'حذف $name نهائيًا؟';
+  }
+
+  @override
+  String get userAdminDeleteBody =>
+      'ده هيحذف الحساب نهائيًا ومفيش رجوع فيه. لو الشخص ساب الشغل، الأفضل توقف الحساب بدل الحذف عشان سجلّه يفضل موجود. الحساب المربوط بطلبات أو سجلات تانية مينفعش يتحذف.';
+
+  @override
+  String userAdminDeletedMessage(String name) {
+    return 'تم حذف $name.';
+  }
+
+  @override
+  String get userAdminUnsavedTitle => 'تجاهل التغييرات؟';
+
+  @override
+  String get userAdminUnsavedBody => 'التغييرات اللي عملتها لسه ما اتحفظتش.';
+
+  @override
+  String get userAdminDiscard => 'تجاهل';
 }

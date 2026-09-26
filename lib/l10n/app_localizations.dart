@@ -25024,6 +25024,576 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Collections due'**
   String get approvalsQueueCreditCollections;
+
+  /// No description provided for @menuUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get menuUsers;
+
+  /// No description provided for @userAdminTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get userAdminTitle;
+
+  /// No description provided for @userAdminAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Only managers can manage user accounts.'**
+  String get userAdminAccessDenied;
+
+  /// No description provided for @userAdminSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, email or mobile'**
+  String get userAdminSearchHint;
+
+  /// No description provided for @userAdminFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get userAdminFilterAll;
+
+  /// No description provided for @userAdminFilterActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get userAdminFilterActive;
+
+  /// No description provided for @userAdminFilterDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get userAdminFilterDisabled;
+
+  /// No description provided for @userAdminFilterManagers.
+  ///
+  /// In en, this message translates to:
+  /// **'Managers'**
+  String get userAdminFilterManagers;
+
+  /// No description provided for @userAdminFilterLineManagers.
+  ///
+  /// In en, this message translates to:
+  /// **'Line managers'**
+  String get userAdminFilterLineManagers;
+
+  /// No description provided for @userAdminFilterModerators.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderators'**
+  String get userAdminFilterModerators;
+
+  /// No description provided for @userAdminFilterB2b.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B sales'**
+  String get userAdminFilterB2b;
+
+  /// No description provided for @userAdminFilterProduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Production'**
+  String get userAdminFilterProduction;
+
+  /// No description provided for @userAdminFilterStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get userAdminFilterStaff;
+
+  /// No description provided for @userAdminFilterOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get userAdminFilterOther;
+
+  /// No description provided for @userAdminTierManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get userAdminTierManager;
+
+  /// No description provided for @userAdminTierLineManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Line manager'**
+  String get userAdminTierLineManager;
+
+  /// No description provided for @userAdminTierModerator.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderator'**
+  String get userAdminTierModerator;
+
+  /// No description provided for @userAdminTierB2b.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B sales'**
+  String get userAdminTierB2b;
+
+  /// No description provided for @userAdminTierProduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Production'**
+  String get userAdminTierProduction;
+
+  /// No description provided for @userAdminTierStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get userAdminTierStaff;
+
+  /// No description provided for @userAdminTierOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get userAdminTierOther;
+
+  /// No description provided for @userAdminAddUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Add user'**
+  String get userAdminAddUser;
+
+  /// No description provided for @userAdminNoUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'No users match.'**
+  String get userAdminNoUsers;
+
+  /// No description provided for @userAdminCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} users'**
+  String userAdminCount(int count);
+
+  /// No description provided for @userAdminYouTag.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get userAdminYouTag;
+
+  /// No description provided for @userAdminDisabledTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get userAdminDisabledTag;
+
+  /// No description provided for @userAdminViewOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'View only'**
+  String get userAdminViewOnly;
+
+  /// No description provided for @userAdminViewOnlyBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a System Manager account. It can be viewed here but not changed.'**
+  String get userAdminViewOnlyBanner;
+
+  /// No description provided for @userAdminDisabledBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is disabled. The user cannot sign in.'**
+  String get userAdminDisabledBanner;
+
+  /// No description provided for @userAdminNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New user'**
+  String get userAdminNewTitle;
+
+  /// No description provided for @userAdminEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get userAdminEditTitle;
+
+  /// No description provided for @userAdminSectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get userAdminSectionAccount;
+
+  /// No description provided for @userAdminSectionRoles.
+  ///
+  /// In en, this message translates to:
+  /// **'Role profiles'**
+  String get userAdminSectionRoles;
+
+  /// No description provided for @userAdminSectionEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get userAdminSectionEmployee;
+
+  /// No description provided for @userAdminSectionBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Branches'**
+  String get userAdminSectionBranches;
+
+  /// No description provided for @userAdminSectionActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Account actions'**
+  String get userAdminSectionActions;
+
+  /// No description provided for @userAdminFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get userAdminFirstName;
+
+  /// No description provided for @userAdminLastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get userAdminLastName;
+
+  /// No description provided for @userAdminMobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile'**
+  String get userAdminMobile;
+
+  /// No description provided for @userAdminEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get userAdminEmail;
+
+  /// No description provided for @userAdminEmailReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'The email is the login and cannot be changed.'**
+  String get userAdminEmailReadOnly;
+
+  /// No description provided for @userAdminPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get userAdminPassword;
+
+  /// No description provided for @userAdminConfirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get userAdminConfirmPassword;
+
+  /// No description provided for @userAdminNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get userAdminNewPassword;
+
+  /// No description provided for @userAdminShowPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get userAdminShowPassword;
+
+  /// No description provided for @userAdminHidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get userAdminHidePassword;
+
+  /// No description provided for @userAdminFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get userAdminFieldRequired;
+
+  /// No description provided for @userAdminEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address'**
+  String get userAdminEmailInvalid;
+
+  /// No description provided for @userAdminPasswordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {min} characters'**
+  String userAdminPasswordTooShort(int min);
+
+  /// No description provided for @userAdminPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get userAdminPasswordMismatch;
+
+  /// No description provided for @userAdminRoleProfilesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least one role profile.'**
+  String get userAdminRoleProfilesRequired;
+
+  /// No description provided for @userAdminRoleProfilesReplaceWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The user\'\'s roles will be replaced by the roles of the selected profiles.'**
+  String get userAdminRoleProfilesReplaceWarning;
+
+  /// No description provided for @userAdminRoleProfilesSelfLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot change your own role profiles.'**
+  String get userAdminRoleProfilesSelfLocked;
+
+  /// No description provided for @userAdminRoleProfileNotAssignable.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a System Manager can assign this profile.'**
+  String get userAdminRoleProfileNotAssignable;
+
+  /// No description provided for @userAdminNoRoleProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'No role profiles are available.'**
+  String get userAdminNoRoleProfiles;
+
+  /// No description provided for @userAdminPrivilegedTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Privileged'**
+  String get userAdminPrivilegedTag;
+
+  /// No description provided for @userAdminRequirePosShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Require POS shift'**
+  String get userAdminRequirePosShift;
+
+  /// No description provided for @userAdminRequirePosShiftHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The user must open a shift before selling on the POS.'**
+  String get userAdminRequirePosShiftHelp;
+
+  /// No description provided for @userAdminEmployeeNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No employee linked'**
+  String get userAdminEmployeeNone;
+
+  /// No description provided for @userAdminEmployeeChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Link employee'**
+  String get userAdminEmployeeChoose;
+
+  /// No description provided for @userAdminEmployeeChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get userAdminEmployeeChange;
+
+  /// No description provided for @userAdminEmployeeUnlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get userAdminEmployeeUnlink;
+
+  /// No description provided for @userAdminEmployeeUnlinkPending.
+  ///
+  /// In en, this message translates to:
+  /// **'The employee link will be removed when you save.'**
+  String get userAdminEmployeeUnlinkPending;
+
+  /// No description provided for @userAdminEmployeeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search employees'**
+  String get userAdminEmployeeSearchHint;
+
+  /// No description provided for @userAdminEmployeeNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No active employees found.'**
+  String get userAdminEmployeeNoResults;
+
+  /// No description provided for @userAdminEmployeeLinkedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to {user}'**
+  String userAdminEmployeeLinkedTo(String user);
+
+  /// No description provided for @userAdminEmployeeLinkedWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This employee is already linked to {user}.'**
+  String userAdminEmployeeLinkedWarning(String user);
+
+  /// No description provided for @userAdminBranchesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No branch access'**
+  String get userAdminBranchesNone;
+
+  /// No description provided for @userAdminManageBranchAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage branch access'**
+  String get userAdminManageBranchAccess;
+
+  /// No description provided for @userAdminLastLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Last login'**
+  String get userAdminLastLogin;
+
+  /// No description provided for @userAdminCreatedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get userAdminCreatedOn;
+
+  /// No description provided for @userAdminNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get userAdminNever;
+
+  /// No description provided for @userAdminCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create user'**
+  String get userAdminCreate;
+
+  /// No description provided for @userAdminNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to save.'**
+  String get userAdminNoChanges;
+
+  /// No description provided for @userAdminSavedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} saved.'**
+  String userAdminSavedMessage(String name);
+
+  /// No description provided for @userAdminCreatedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} created.'**
+  String userAdminCreatedMessage(String name);
+
+  /// No description provided for @userAdminChangePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get userAdminChangePassword;
+
+  /// No description provided for @userAdminPasswordDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New password for {name}'**
+  String userAdminPasswordDialogTitle(String name);
+
+  /// No description provided for @userAdminSignOutEverywhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign the user out of all devices'**
+  String get userAdminSignOutEverywhere;
+
+  /// No description provided for @userAdminPasswordChangedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed for {name}.'**
+  String userAdminPasswordChangedMessage(String name);
+
+  /// No description provided for @userAdminDisable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get userAdminDisable;
+
+  /// No description provided for @userAdminEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get userAdminEnable;
+
+  /// No description provided for @userAdminDisableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable {name}?'**
+  String userAdminDisableTitle(String name);
+
+  /// No description provided for @userAdminDisableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They will be signed out of every device and cannot sign in until the account is enabled again.'**
+  String get userAdminDisableBody;
+
+  /// No description provided for @userAdminEnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable {name}?'**
+  String userAdminEnableTitle(String name);
+
+  /// No description provided for @userAdminEnableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They will be able to sign in again with their current password.'**
+  String get userAdminEnableBody;
+
+  /// No description provided for @userAdminDisabledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} disabled.'**
+  String userAdminDisabledMessage(String name);
+
+  /// No description provided for @userAdminEnabledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} enabled.'**
+  String userAdminEnabledMessage(String name);
+
+  /// No description provided for @userAdminDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete user'**
+  String get userAdminDelete;
+
+  /// No description provided for @userAdminDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name} permanently?'**
+  String userAdminDeleteTitle(String name);
+
+  /// No description provided for @userAdminDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the account permanently and cannot be undone. For someone who has left, disable the account instead: it keeps their history intact. An account linked to orders or other records cannot be deleted.'**
+  String get userAdminDeleteBody;
+
+  /// No description provided for @userAdminDeletedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} deleted.'**
+  String userAdminDeletedMessage(String name);
+
+  /// No description provided for @userAdminUnsavedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes?'**
+  String get userAdminUnsavedTitle;
+
+  /// No description provided for @userAdminUnsavedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your changes have not been saved.'**
+  String get userAdminUnsavedBody;
+
+  /// No description provided for @userAdminDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get userAdminDiscard;
 }
 
 class _AppLocalizationsDelegate

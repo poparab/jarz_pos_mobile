@@ -306,6 +306,56 @@ class UserRoles {
       roles.contains(RoleNames.systemManager) ||
       roles.contains(RoleNames.accountsManager);
 
+  /// Backend `ROLES.LINE_MANAGER_TIER` exactly: both line-manager spellings,
+  /// JARZ Manager, System Manager, Administrator. Unlike
+  /// [canActAsLineManager] it does NOT fold in the POS Manager, which the
+  /// tier's own endpoints refuse.
+  bool get _isLineManagerTier =>
+      isLineManager ||
+      isJarzManager ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator);
+
+  /// Whether this user may open Master Orders. Mirrors
+  /// `orders._ensure_elevated_access` = `LINE_MANAGER_TIER | {Moderator}`.
+  bool get canAccessMasterOrders => _isLineManagerTier || isModerator;
+
+  /// Whether this user may watch the Live Courier Map. Mirrors the courier
+  /// app's `ROLES.COURIER_SUPERVISOR` exactly, which names only the LOWERCASE
+  /// line-manager spelling. The Role record every real line manager holds is
+  /// the capitalised one, so the server refuses them (checked against
+  /// production, 2026-09-26) and the tile must not be offered.
+  bool get canViewLiveCourierMap =>
+      isJarzManager ||
+      roles.contains(RoleNames.jarzLineManagerAlt) ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator);
+
+  /// Whether this user may open Price Lists (read). Mirrors
+  /// `price_lists._ensure_pricing_read_access`: the line-manager tier, or B2B.
+  bool get canViewPriceLists => _isLineManagerTier || canUseB2b;
+
+  /// Whether this user may open Branch Access. Mirrors
+  /// `branch_access.has_access` = `LINE_MANAGER_TIER` (no POS Manager).
+  bool get canAccessBranchAccess => _isLineManagerTier;
+
+  /// Whether this user may raise an item request. Mirrors
+  /// `ROLES.PURCHASE_REQUEST`, the widest gate in the app: every POS user is in
+  /// it. A B2B-only rep is not, so the tile is hidden from them.
+  bool get canRaiseItemRequest =>
+      canAccessPurchaseInvoice ||
+      canAccessProductionBoard ||
+      _isLineManagerTier ||
+      roles.contains(RoleNames.posUser) ||
+      roles.contains(RoleNames.posManager);
+
+  /// Whether this user may manage the site's users (create, edit, disable,
+  /// delete, set a password). Mirrors `services/user_admin.ACCESS_ROLES`.
+  bool get canManageUsers =>
+      isJarzManager ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator);
+
   factory UserRoles.fromJson(Map<String, dynamic> json) {
     final rolesRaw = json['roles'];
     final rolesList = rolesRaw is List
@@ -642,10 +692,33 @@ final canAccessB2bProvider = Provider<bool>((ref) {
 final canViewPricingProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
-    data: (roles) => roles.canAccessManagerDashboard || roles.canUseB2b,
+    data: (roles) => roles.canViewPriceLists,
     orElse: () => false,
   );
 });
+
+bool _roleGate(Ref ref, bool Function(UserRoles roles) gate) =>
+    ref.watch(userRolesFutureProvider).maybeWhen(
+          data: gate,
+          orElse: () => false,
+        );
+
+final canAccessMasterOrdersProvider =
+    Provider<bool>((ref) => _roleGate(ref, (r) => r.canAccessMasterOrders));
+
+final canViewLiveCourierMapProvider =
+    Provider<bool>((ref) => _roleGate(ref, (r) => r.canViewLiveCourierMap));
+
+final canAccessBranchAccessProvider =
+    Provider<bool>((ref) => _roleGate(ref, (r) => r.canAccessBranchAccess));
+
+final canRaiseItemRequestProvider =
+    Provider<bool>((ref) => _roleGate(ref, (r) => r.canRaiseItemRequest));
+
+/// User management (create / edit / disable / delete / password). JARZ Manager
+/// and the admin tier only; the server enforces the same set.
+final canManageUsersProvider =
+    Provider<bool>((ref) => _roleGate(ref, (r) => r.canManageUsers));
 
 /// Whether the current user can EDIT pricing (create lists, set category prices,
 /// set/remove overrides, assign customers). Managers only; B2B reps are

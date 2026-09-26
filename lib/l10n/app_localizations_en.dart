@@ -15283,4 +15283,329 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get approvalsQueueCreditCollections => 'Collections due';
+
+  @override
+  String get menuUsers => 'Users';
+
+  @override
+  String get userAdminTitle => 'Users';
+
+  @override
+  String get userAdminAccessDenied => 'Only managers can manage user accounts.';
+
+  @override
+  String get userAdminSearchHint => 'Search by name, email or mobile';
+
+  @override
+  String get userAdminFilterAll => 'All';
+
+  @override
+  String get userAdminFilterActive => 'Active';
+
+  @override
+  String get userAdminFilterDisabled => 'Disabled';
+
+  @override
+  String get userAdminFilterManagers => 'Managers';
+
+  @override
+  String get userAdminFilterLineManagers => 'Line managers';
+
+  @override
+  String get userAdminFilterModerators => 'Moderators';
+
+  @override
+  String get userAdminFilterB2b => 'B2B sales';
+
+  @override
+  String get userAdminFilterProduction => 'Production';
+
+  @override
+  String get userAdminFilterStaff => 'Staff';
+
+  @override
+  String get userAdminFilterOther => 'Other';
+
+  @override
+  String get userAdminTierManager => 'Manager';
+
+  @override
+  String get userAdminTierLineManager => 'Line manager';
+
+  @override
+  String get userAdminTierModerator => 'Moderator';
+
+  @override
+  String get userAdminTierB2b => 'B2B sales';
+
+  @override
+  String get userAdminTierProduction => 'Production';
+
+  @override
+  String get userAdminTierStaff => 'Staff';
+
+  @override
+  String get userAdminTierOther => 'Other';
+
+  @override
+  String get userAdminAddUser => 'Add user';
+
+  @override
+  String get userAdminNoUsers => 'No users match.';
+
+  @override
+  String userAdminCount(int count) {
+    return '$count users';
+  }
+
+  @override
+  String get userAdminYouTag => 'You';
+
+  @override
+  String get userAdminDisabledTag => 'Disabled';
+
+  @override
+  String get userAdminViewOnly => 'View only';
+
+  @override
+  String get userAdminViewOnlyBanner =>
+      'This is a System Manager account. It can be viewed here but not changed.';
+
+  @override
+  String get userAdminDisabledBanner =>
+      'This account is disabled. The user cannot sign in.';
+
+  @override
+  String get userAdminNewTitle => 'New user';
+
+  @override
+  String get userAdminEditTitle => 'User';
+
+  @override
+  String get userAdminSectionAccount => 'Account';
+
+  @override
+  String get userAdminSectionRoles => 'Role profiles';
+
+  @override
+  String get userAdminSectionEmployee => 'Employee';
+
+  @override
+  String get userAdminSectionBranches => 'Branches';
+
+  @override
+  String get userAdminSectionActions => 'Account actions';
+
+  @override
+  String get userAdminFirstName => 'First name';
+
+  @override
+  String get userAdminLastName => 'Last name';
+
+  @override
+  String get userAdminMobile => 'Mobile';
+
+  @override
+  String get userAdminEmail => 'Email';
+
+  @override
+  String get userAdminEmailReadOnly =>
+      'The email is the login and cannot be changed.';
+
+  @override
+  String get userAdminPassword => 'Password';
+
+  @override
+  String get userAdminConfirmPassword => 'Confirm password';
+
+  @override
+  String get userAdminNewPassword => 'New password';
+
+  @override
+  String get userAdminShowPassword => 'Show password';
+
+  @override
+  String get userAdminHidePassword => 'Hide password';
+
+  @override
+  String get userAdminFieldRequired => 'Required';
+
+  @override
+  String get userAdminEmailInvalid => 'Enter a valid email address';
+
+  @override
+  String userAdminPasswordTooShort(int min) {
+    return 'At least $min characters';
+  }
+
+  @override
+  String get userAdminPasswordMismatch => 'Passwords do not match';
+
+  @override
+  String get userAdminRoleProfilesRequired =>
+      'Select at least one role profile.';
+
+  @override
+  String get userAdminRoleProfilesReplaceWarning =>
+      'The user\'s roles will be replaced by the roles of the selected profiles.';
+
+  @override
+  String get userAdminRoleProfilesSelfLocked =>
+      'You cannot change your own role profiles.';
+
+  @override
+  String get userAdminRoleProfileNotAssignable =>
+      'Only a System Manager can assign this profile.';
+
+  @override
+  String get userAdminNoRoleProfiles => 'No role profiles are available.';
+
+  @override
+  String get userAdminPrivilegedTag => 'Privileged';
+
+  @override
+  String get userAdminRequirePosShift => 'Require POS shift';
+
+  @override
+  String get userAdminRequirePosShiftHelp =>
+      'The user must open a shift before selling on the POS.';
+
+  @override
+  String get userAdminEmployeeNone => 'No employee linked';
+
+  @override
+  String get userAdminEmployeeChoose => 'Link employee';
+
+  @override
+  String get userAdminEmployeeChange => 'Change';
+
+  @override
+  String get userAdminEmployeeUnlink => 'Unlink';
+
+  @override
+  String get userAdminEmployeeUnlinkPending =>
+      'The employee link will be removed when you save.';
+
+  @override
+  String get userAdminEmployeeSearchHint => 'Search employees';
+
+  @override
+  String get userAdminEmployeeNoResults => 'No active employees found.';
+
+  @override
+  String userAdminEmployeeLinkedTo(String user) {
+    return 'Linked to $user';
+  }
+
+  @override
+  String userAdminEmployeeLinkedWarning(String user) {
+    return 'This employee is already linked to $user.';
+  }
+
+  @override
+  String get userAdminBranchesNone => 'No branch access';
+
+  @override
+  String get userAdminManageBranchAccess => 'Manage branch access';
+
+  @override
+  String get userAdminLastLogin => 'Last login';
+
+  @override
+  String get userAdminCreatedOn => 'Created';
+
+  @override
+  String get userAdminNever => 'Never';
+
+  @override
+  String get userAdminCreate => 'Create user';
+
+  @override
+  String get userAdminNoChanges => 'Nothing to save.';
+
+  @override
+  String userAdminSavedMessage(String name) {
+    return '$name saved.';
+  }
+
+  @override
+  String userAdminCreatedMessage(String name) {
+    return '$name created.';
+  }
+
+  @override
+  String get userAdminChangePassword => 'Change password';
+
+  @override
+  String userAdminPasswordDialogTitle(String name) {
+    return 'New password for $name';
+  }
+
+  @override
+  String get userAdminSignOutEverywhere => 'Sign the user out of all devices';
+
+  @override
+  String userAdminPasswordChangedMessage(String name) {
+    return 'Password changed for $name.';
+  }
+
+  @override
+  String get userAdminDisable => 'Disable';
+
+  @override
+  String get userAdminEnable => 'Enable';
+
+  @override
+  String userAdminDisableTitle(String name) {
+    return 'Disable $name?';
+  }
+
+  @override
+  String get userAdminDisableBody =>
+      'They will be signed out of every device and cannot sign in until the account is enabled again.';
+
+  @override
+  String userAdminEnableTitle(String name) {
+    return 'Enable $name?';
+  }
+
+  @override
+  String get userAdminEnableBody =>
+      'They will be able to sign in again with their current password.';
+
+  @override
+  String userAdminDisabledMessage(String name) {
+    return '$name disabled.';
+  }
+
+  @override
+  String userAdminEnabledMessage(String name) {
+    return '$name enabled.';
+  }
+
+  @override
+  String get userAdminDelete => 'Delete user';
+
+  @override
+  String userAdminDeleteTitle(String name) {
+    return 'Delete $name permanently?';
+  }
+
+  @override
+  String get userAdminDeleteBody =>
+      'This removes the account permanently and cannot be undone. For someone who has left, disable the account instead: it keeps their history intact. An account linked to orders or other records cannot be deleted.';
+
+  @override
+  String userAdminDeletedMessage(String name) {
+    return '$name deleted.';
+  }
+
+  @override
+  String get userAdminUnsavedTitle => 'Discard changes?';
+
+  @override
+  String get userAdminUnsavedBody => 'Your changes have not been saved.';
+
+  @override
+  String get userAdminDiscard => 'Discard';
 }

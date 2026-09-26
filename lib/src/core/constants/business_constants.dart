@@ -91,6 +91,7 @@ abstract final class RoleNames {
   /// holding the role as plain POS users.
   static const jarzLineManagerAlt = 'jarz line manager';
   static const posManager = 'POS Manager';
+  static const posUser = 'POS User';
   static const systemManager = 'System Manager';
   static const administrator = 'Administrator';
   static const moderator = 'Moderator';

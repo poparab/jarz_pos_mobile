@@ -967,4 +967,19 @@ abstract final class ApiEndpoints {
   static const tasksArchiveTask = '$_tasks.archive_task';
   static const tasksOverview = '$_tasks.get_overview';
   static const tasksCounts = '$_tasks.get_task_counts';
+
+  // ── User management (manager tier) ────────────────────────────────────
+  // ERPNext User accounts: create, edit role profiles, disable, reset a
+  // password. The server gates every call on JARZ Manager / System Manager and
+  // refuses to touch System Manager accounts for anyone below that.
+  static const _userAdmin = '/api/method/jarz_pos.api.user_admin';
+  static const userAdminContext = '$_userAdmin.get_context';
+  static const userAdminListUsers = '$_userAdmin.list_users';
+  static const userAdminGetUser = '$_userAdmin.get_user';
+  static const userAdminListEmployees = '$_userAdmin.list_employees';
+  static const userAdminCreateUser = '$_userAdmin.create_user';
+  static const userAdminUpdateUser = '$_userAdmin.update_user';
+  static const userAdminSetEnabled = '$_userAdmin.set_enabled';
+  static const userAdminResetPassword = '$_userAdmin.reset_password';
+  static const userAdminDeleteUser = '$_userAdmin.delete_user';
 }

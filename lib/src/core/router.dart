@@ -33,6 +33,8 @@ import '../features/cash_custody/presentation/cash_custody_screen.dart';
 import '../features/tasks/presentation/task_detail_screen.dart';
 import '../features/tasks/presentation/task_overview_screen.dart';
 import '../features/tasks/presentation/tasks_board_screen.dart';
+import '../features/user_admin/presentation/user_admin_form_screen.dart';
+import '../features/user_admin/presentation/user_admin_list_screen.dart';
 import '../features/geo/presentation/screens/address_pin_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
 import '../features/partner_settlements/presentation/partner_settlements_screen.dart';
@@ -403,6 +405,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.branchAccess,
         name: 'branch-access',
         builder: (context, state) => const BranchAccessScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.users,
+        name: 'users',
+        builder: (context, state) => const UserAdminListScreen(),
+      ),
+      // Declared before `/users/:id` so the static segment wins.
+      GoRoute(
+        path: AppRoutes.userNew,
+        name: 'user-new',
+        builder: (context, state) => const UserAdminFormScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.userDetail,
+        name: 'user-detail',
+        builder: (context, state) => UserAdminFormScreen(
+          userName: Uri.decodeComponent(state.pathParameters['id'] ?? ''),
+        ),
       ),
       GoRoute(
         path: AppRoutes.purchase,
