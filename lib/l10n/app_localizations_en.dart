@@ -15789,5 +15789,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get expensesPeriodTooLong =>
+      'The period cannot be longer than 366 days';
+
+  @override
   String get expensesPeriodJournalEntries => 'Period journal entries';
 }

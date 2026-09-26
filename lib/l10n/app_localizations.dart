@@ -25901,6 +25901,12 @@ abstract class AppLocalizations {
   /// **'Period: {from} – {to}'**
   String expensesPeriodValue(String from, String to);
 
+  /// No description provided for @expensesPeriodTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'The period cannot be longer than 366 days'**
+  String get expensesPeriodTooLong;
+
   /// No description provided for @expensesPeriodJournalEntries.
   ///
   /// In en, this message translates to:

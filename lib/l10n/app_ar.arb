@@ -5865,5 +5865,6 @@
   "expensesPeriodAfterExpenseDate": "الفترة لا يمكن أن تنتهي بعد تاريخ المصروف",
   "expensesPeriodValue": "الفترة: {from} – {to}",
   "@expensesPeriodValue": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
+  "expensesPeriodTooLong": "لا يمكن أن تزيد الفترة عن 366 يومًا",
   "expensesPeriodJournalEntries": "قيود توزيع الفترة"
 }

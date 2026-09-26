@@ -500,6 +500,31 @@ void main() {
       );
     });
 
+    test('366 days inclusive is valid', () {
+      // 2025-10-06 .. 2026-10-06 is 366 days counting both ends.
+      expect(
+        validateExpensePeriod(
+          requiresPeriod: true,
+          periodFrom: DateTime(2025, 10, 6),
+          periodTo: DateTime(2026, 10, 6),
+          expenseDate: expenseDate,
+        ),
+        isNull,
+      );
+    });
+
+    test('367 days inclusive is too long', () {
+      expect(
+        validateExpensePeriod(
+          requiresPeriod: true,
+          periodFrom: DateTime(2025, 10, 5),
+          periodTo: DateTime(2026, 10, 6),
+          expenseDate: expenseDate,
+        ),
+        ExpensePeriodError.tooLong,
+      );
+    });
+
     test('period starting in an earlier month is valid', () {
       expect(
         validateExpensePeriod(

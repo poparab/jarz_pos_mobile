@@ -314,14 +314,22 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
         return l10n.expensesPeriodFromAfterTo;
       case ExpensePeriodError.toAfterExpenseDate:
         return l10n.expensesPeriodAfterExpenseDate;
+      case ExpensePeriodError.tooLong:
+        return l10n.expensesPeriodTooLong;
     }
   }
 
   Future<void> _pickPeriod(FormFieldState<void> field) async {
     final expenseDay = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
     // A bill is paid after the service, so the period cannot end after the
-    // expense date; it may start well before it (the server splits months).
-    final firstDate = DateTime(expenseDay.year - 2, expenseDay.month, expenseDay.day);
+    // expense date; it may start in an earlier month (the server splits
+    // months) but spans at most 366 days inclusive, so the earliest start
+    // is 365 days before the expense date.
+    final firstDate = DateTime(
+      expenseDay.year,
+      expenseDay.month,
+      expenseDay.day - (maxExpensePeriodDays - 1),
+    );
     final current = (_periodFrom != null &&
             _periodTo != null &&
             !_periodFrom!.isBefore(firstDate) &&

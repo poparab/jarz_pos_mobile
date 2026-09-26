@@ -8897,5 +8897,6 @@
   "expensesPeriodAfterExpenseDate": "The period cannot end after the expense date",
   "expensesPeriodValue": "Period: {from} – {to}",
   "@expensesPeriodValue": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
+  "expensesPeriodTooLong": "The period cannot be longer than 366 days",
   "expensesPeriodJournalEntries": "Period journal entries"
 }

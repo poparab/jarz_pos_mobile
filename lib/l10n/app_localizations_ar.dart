@@ -15779,5 +15779,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get expensesPeriodTooLong => 'لا يمكن أن تزيد الفترة عن 366 يومًا';
+
+  @override
   String get expensesPeriodJournalEntries => 'قيود توزيع الفترة';
 }

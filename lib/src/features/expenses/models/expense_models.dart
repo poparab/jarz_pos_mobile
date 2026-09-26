@@ -398,7 +398,14 @@ enum ExpensePeriodError {
   /// The period ends after the expense date -- a bill is paid after the
   /// service, never before.
   toAfterExpenseDate,
+
+  /// The period spans more than [maxExpensePeriodDays] days (inclusive).
+  tooLong,
 }
+
+/// Server cap on a service period, counting both ends
+/// (`period_to - period_from + 1 <= 366`).
+const int maxExpensePeriodDays = 366;
 
 /// Client-side mirror of the server's period rules. Compares calendar days
 /// only, so a time-stamped [expenseDate] does not reject a same-day period.
@@ -415,6 +422,12 @@ ExpensePeriodError? validateExpensePeriod({
   final to = day(periodTo);
   if (from.isAfter(to)) return ExpensePeriodError.fromAfterTo;
   if (to.isAfter(day(expenseDate))) return ExpensePeriodError.toAfterExpenseDate;
+  // Count in UTC so a DST shift cannot make a calendar day 23 or 25 hours.
+  final days = DateTime.utc(to.year, to.month, to.day)
+          .difference(DateTime.utc(from.year, from.month, from.day))
+          .inDays +
+      1;
+  if (days > maxExpensePeriodDays) return ExpensePeriodError.tooLong;
   return null;
 }
 
