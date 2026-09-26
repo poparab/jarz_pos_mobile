@@ -25846,6 +25846,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Running total for the period'**
   String get pnlRunningTotal;
+
+  /// No description provided for @expensesPeriodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Period covered'**
+  String get expensesPeriodLabel;
+
+  /// No description provided for @expensesPeriodFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get expensesPeriodFrom;
+
+  /// No description provided for @expensesPeriodTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get expensesPeriodTo;
+
+  /// No description provided for @expensesPeriodSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the period'**
+  String get expensesPeriodSelect;
+
+  /// No description provided for @expensesPeriodHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The cost is split across months automatically.'**
+  String get expensesPeriodHelper;
+
+  /// No description provided for @expensesPeriodRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the period this bill covers'**
+  String get expensesPeriodRequired;
+
+  /// No description provided for @expensesPeriodFromAfterTo.
+  ///
+  /// In en, this message translates to:
+  /// **'The period must start on or before its end'**
+  String get expensesPeriodFromAfterTo;
+
+  /// No description provided for @expensesPeriodAfterExpenseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'The period cannot end after the expense date'**
+  String get expensesPeriodAfterExpenseDate;
+
+  /// No description provided for @expensesPeriodValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Period: {from} – {to}'**
+  String expensesPeriodValue(String from, String to);
+
+  /// No description provided for @expensesPeriodJournalEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Period journal entries'**
+  String get expensesPeriodJournalEntries;
 }
 
 class _AppLocalizationsDelegate

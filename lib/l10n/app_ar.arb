@@ -5854,5 +5854,16 @@
   "pnlWarnShipping": "{pct}% بس من تكلفة المناديب المسجلة على الطلبات وصلت للدفاتر، فمصروف الشحن أقل من الحقيقي.",
   "pnlWarnRecurring": "المصروفات الثابتة: اتسجل {posted} من {due} مستحق للشهور دي.",
   "pnlNoteShippingInFreight": "قبل سبتمبر ٢٠٢٦ إيراد الشحن كان بيتسجل جوه حساب مصاريف المناديب، وهنا بيظهر لوحده.",
-  "pnlRunningTotal": "الإجمالي التراكمي للفترة"
+  "pnlRunningTotal": "الإجمالي التراكمي للفترة",
+  "expensesPeriodLabel": "الفترة المدفوعة",
+  "expensesPeriodFrom": "من",
+  "expensesPeriodTo": "إلى",
+  "expensesPeriodSelect": "اختر الفترة",
+  "expensesPeriodHelper": "تتوزع التكلفة على الشهور تلقائيًا",
+  "expensesPeriodRequired": "اختر الفترة التي تغطيها الفاتورة",
+  "expensesPeriodFromAfterTo": "يجب أن تبدأ الفترة قبل نهايتها أو في نفس اليوم",
+  "expensesPeriodAfterExpenseDate": "الفترة لا يمكن أن تنتهي بعد تاريخ المصروف",
+  "expensesPeriodValue": "الفترة: {from} – {to}",
+  "@expensesPeriodValue": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
+  "expensesPeriodJournalEntries": "قيود توزيع الفترة"
 }

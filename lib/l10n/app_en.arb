@@ -8886,5 +8886,16 @@
   "pnlWarnRecurring": "Recurring expenses: {posted} recorded of {due} due for the months in this range.",
   "@pnlWarnRecurring": {"placeholders": {"posted": {"type": "String"}, "due": {"type": "String"}}},
   "pnlNoteShippingInFreight": "Before September 2026 shipping income was booked inside the courier expense account. It is shown separately here.",
-  "pnlRunningTotal": "Running total for the period"
+  "pnlRunningTotal": "Running total for the period",
+  "expensesPeriodLabel": "Period covered",
+  "expensesPeriodFrom": "From",
+  "expensesPeriodTo": "To",
+  "expensesPeriodSelect": "Select the period",
+  "expensesPeriodHelper": "The cost is split across months automatically.",
+  "expensesPeriodRequired": "Choose the period this bill covers",
+  "expensesPeriodFromAfterTo": "The period must start on or before its end",
+  "expensesPeriodAfterExpenseDate": "The period cannot end after the expense date",
+  "expensesPeriodValue": "Period: {from} – {to}",
+  "@expensesPeriodValue": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
+  "expensesPeriodJournalEntries": "Period journal entries"
 }

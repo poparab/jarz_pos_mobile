@@ -47,6 +47,13 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
   ExpensePaymentSource? _selectedSource;
   bool _submitting = false;
 
+  /// Service period the bill covers. Only collected (and only sent) when the
+  /// chosen reason has `requiresPeriod`.
+  DateTime? _periodFrom;
+  DateTime? _periodTo;
+
+  bool get _requiresPeriod => _selectedReason?.requiresPeriod ?? false;
+
   @override
   void initState() {
     super.initState();
@@ -162,13 +169,24 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
                       child: Text(reason.localizedLabel(languageCode)),
                         ))
                     .toList(),
-                onChanged: (value) => setState(() => _selectedReason = value),
+                onChanged: (value) => setState(() {
+                  _selectedReason = value;
+                  // A reason without a period must not carry a stale one.
+                  if (!(value?.requiresPeriod ?? false)) {
+                    _periodFrom = null;
+                    _periodTo = null;
+                  }
+                }),
                 decoration: InputDecoration(
                   labelText: l10n.expensesReasonLabel,
                   border: const OutlineInputBorder(),
                 ),
                 validator: (value) => value == null ? l10n.expensesReasonRequired : null,
               ),
+              if (_requiresPeriod) ...[
+                const SizedBox(height: 16),
+                _buildPeriodField(context),
+              ],
               const SizedBox(height: 16),
               DropdownButtonFormField<ExpensePaymentSource>(
                 key: ValueKey<String?>(_selectedSource?.account ?? _selectedSource?.label),
@@ -249,6 +267,8 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
         ? formatPostingDateTimeForApi(_selectedDate)
         : formatPostingDateForApi(_selectedDate);
 
+    final sendPeriod = reason.requiresPeriod && _periodFrom != null && _periodTo != null;
+
     setState(() => _submitting = true);
     // A custody is paid by account, never through a POS profile: both a
     // holder and a manager send its account with source type "custody".
@@ -267,12 +287,102 @@ class _ExpenseFormSheetState extends ConsumerState<ExpenseFormSheet> {
           ? 'custody'
           : (widget.isManager ? _typeLabel(context, source) : null),
       paymentLabel: source.label,
+      periodFrom: sendPeriod ? formatPostingDateForApi(_periodFrom!) : null,
+      periodTo: sendPeriod ? formatPostingDateForApi(_periodTo!) : null,
     );
     if (!mounted) return;
     setState(() => _submitting = false);
     if (record != null) {
       Navigator.of(context).pop(record);
     }
+  }
+
+  String? _periodErrorText(BuildContext context) {
+    final error = validateExpensePeriod(
+      requiresPeriod: _requiresPeriod,
+      periodFrom: _periodFrom,
+      periodTo: _periodTo,
+      expenseDate: _selectedDate,
+    );
+    final l10n = context.l10n;
+    switch (error) {
+      case null:
+        return null;
+      case ExpensePeriodError.missing:
+        return l10n.expensesPeriodRequired;
+      case ExpensePeriodError.fromAfterTo:
+        return l10n.expensesPeriodFromAfterTo;
+      case ExpensePeriodError.toAfterExpenseDate:
+        return l10n.expensesPeriodAfterExpenseDate;
+    }
+  }
+
+  Future<void> _pickPeriod(FormFieldState<void> field) async {
+    final expenseDay = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    // A bill is paid after the service, so the period cannot end after the
+    // expense date; it may start well before it (the server splits months).
+    final firstDate = DateTime(expenseDay.year - 2, expenseDay.month, expenseDay.day);
+    final current = (_periodFrom != null &&
+            _periodTo != null &&
+            !_periodFrom!.isBefore(firstDate) &&
+            !_periodTo!.isAfter(expenseDay) &&
+            !_periodFrom!.isAfter(_periodTo!))
+        ? DateTimeRange(start: _periodFrom!, end: _periodTo!)
+        : null;
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: firstDate,
+      lastDate: expenseDay,
+      initialDateRange: current,
+      currentDate: expenseDay,
+      helpText: context.l10n.expensesPeriodLabel,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _periodFrom = DateTime(picked.start.year, picked.start.month, picked.start.day);
+      _periodTo = DateTime(picked.end.year, picked.end.month, picked.end.day);
+    });
+    field.validate();
+  }
+
+  Widget _buildPeriodField(BuildContext context) {
+    final l10n = context.l10n;
+    String show(DateTime? d) =>
+        d == null ? '—' : formatDate(context, d, pattern: 'd MMM yyyy');
+    return FormField<void>(
+      // Keyed on the reason so switching reasons resets the error state.
+      key: ValueKey<String?>('period-${_selectedReason?.account}'),
+      validator: (_) => _periodErrorText(context),
+      builder: (field) => InkWell(
+        onTap: () => _pickPeriod(field),
+        child: InputDecorator(
+          isEmpty: _periodFrom == null && _periodTo == null,
+          decoration: InputDecoration(
+            labelText: l10n.expensesPeriodLabel,
+            hintText: l10n.expensesPeriodSelect,
+            helperText: l10n.expensesPeriodHelper,
+            helperMaxLines: 2,
+            errorText: field.errorText,
+            errorMaxLines: 2,
+            border: const OutlineInputBorder(),
+            suffixIcon: const Icon(Icons.date_range),
+          ),
+          child: (_periodFrom == null && _periodTo == null)
+              ? null
+              : Row(
+                  children: [
+                    Expanded(
+                      child: Text('${l10n.expensesPeriodFrom}: ${show(_periodFrom)}'),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text('${l10n.expensesPeriodTo}: ${show(_periodTo)}'),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
   }
 
   Widget _custodyItem(

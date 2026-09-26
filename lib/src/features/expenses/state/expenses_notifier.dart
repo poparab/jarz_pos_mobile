@@ -166,6 +166,8 @@ class ExpensesNotifier extends StateNotifier<ExpensesState> {
     String? payingAccount,
     String? paymentSourceType,
     String? paymentLabel,
+    String? periodFrom,
+    String? periodTo,
   }) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
@@ -178,6 +180,8 @@ class ExpensesNotifier extends StateNotifier<ExpensesState> {
         payingAccount: payingAccount,
         paymentSourceType: paymentSourceType,
         paymentLabel: paymentLabel,
+        periodFrom: periodFrom,
+        periodTo: periodTo,
       );
       await load(month: state.selectedMonth, paymentFilters: state.paymentFilters);
       state = state.copyWith(isSubmitting: false);

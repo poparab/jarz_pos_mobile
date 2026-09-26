@@ -15755,4 +15755,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pnlRunningTotal => 'Running total for the period';
+
+  @override
+  String get expensesPeriodLabel => 'Period covered';
+
+  @override
+  String get expensesPeriodFrom => 'From';
+
+  @override
+  String get expensesPeriodTo => 'To';
+
+  @override
+  String get expensesPeriodSelect => 'Select the period';
+
+  @override
+  String get expensesPeriodHelper =>
+      'The cost is split across months automatically.';
+
+  @override
+  String get expensesPeriodRequired => 'Choose the period this bill covers';
+
+  @override
+  String get expensesPeriodFromAfterTo =>
+      'The period must start on or before its end';
+
+  @override
+  String get expensesPeriodAfterExpenseDate =>
+      'The period cannot end after the expense date';
+
+  @override
+  String expensesPeriodValue(String from, String to) {
+    return 'Period: $from – $to';
+  }
+
+  @override
+  String get expensesPeriodJournalEntries => 'Period journal entries';
 }

@@ -42,6 +42,8 @@ class ExpensesRepository {
     String? payingAccount,
     String? paymentSourceType,
     String? paymentLabel,
+    String? periodFrom,
+    String? periodTo,
   }) async {
     final body = {
       'amount': amount,
@@ -52,6 +54,10 @@ class ExpensesRepository {
       if (payingAccount != null) 'paying_account': payingAccount,
       if (paymentSourceType != null) 'payment_source_type': paymentSourceType,
       if (paymentLabel != null) 'payment_label': paymentLabel,
+      // Service period (YYYY-MM-DD). Sent only when set, so reasons without
+      // a period keep the original request shape.
+      if (periodFrom != null && periodFrom.isNotEmpty) 'period_from': periodFrom,
+      if (periodTo != null && periodTo.isNotEmpty) 'period_to': periodTo,
     };
 
     final response = await _dio.post(

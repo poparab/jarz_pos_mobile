@@ -15746,4 +15746,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pnlRunningTotal => 'الإجمالي التراكمي للفترة';
+
+  @override
+  String get expensesPeriodLabel => 'الفترة المدفوعة';
+
+  @override
+  String get expensesPeriodFrom => 'من';
+
+  @override
+  String get expensesPeriodTo => 'إلى';
+
+  @override
+  String get expensesPeriodSelect => 'اختر الفترة';
+
+  @override
+  String get expensesPeriodHelper => 'تتوزع التكلفة على الشهور تلقائيًا';
+
+  @override
+  String get expensesPeriodRequired => 'اختر الفترة التي تغطيها الفاتورة';
+
+  @override
+  String get expensesPeriodFromAfterTo =>
+      'يجب أن تبدأ الفترة قبل نهايتها أو في نفس اليوم';
+
+  @override
+  String get expensesPeriodAfterExpenseDate =>
+      'الفترة لا يمكن أن تنتهي بعد تاريخ المصروف';
+
+  @override
+  String expensesPeriodValue(String from, String to) {
+    return 'الفترة: $from – $to';
+  }
+
+  @override
+  String get expensesPeriodJournalEntries => 'قيود توزيع الفترة';
 }

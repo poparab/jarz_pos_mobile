@@ -14,6 +14,8 @@ class _FakeExpensesRepository extends ExpensesRepository {
   ExpenseRecord? approveResult;
   bool shouldThrow = false;
   final List<String> calls = [];
+  String? lastPeriodFrom;
+  String? lastPeriodTo;
 
   @override
   Future<ExpenseBootstrap> fetchExpenses({String? month, List<String>? paymentIds}) async {
@@ -32,8 +34,12 @@ class _FakeExpensesRepository extends ExpensesRepository {
     String? payingAccount,
     String? paymentSourceType,
     String? paymentLabel,
+    String? periodFrom,
+    String? periodTo,
   }) async {
     calls.add('createExpense:$amount:$reasonAccount');
+    lastPeriodFrom = periodFrom;
+    lastPeriodTo = periodTo;
     if (shouldThrow) throw Exception('create failed');
     return createResult ?? _dummyRecord('NEW-1');
   }
@@ -237,6 +243,23 @@ void main() {
         expect(notifier.state.isSubmitting, isFalse);
         // Should have called createExpense + fetchExpenses (reload)
         expect(repo.calls, contains(startsWith('createExpense')));
+      });
+
+      test('forwards the service period to the repository', () async {
+        await notifier.createExpense(
+          amount: 900,
+          reasonAccount: 'Rent - J',
+          periodFrom: '2026-09-25',
+          periodTo: '2026-10-05',
+        );
+        expect(repo.lastPeriodFrom, '2026-09-25');
+        expect(repo.lastPeriodTo, '2026-10-05');
+      });
+
+      test('omits the period when none is given', () async {
+        await notifier.createExpense(amount: 50, reasonAccount: 'Misc');
+        expect(repo.lastPeriodFrom, isNull);
+        expect(repo.lastPeriodTo, isNull);
       });
 
       test('error returns null and sets error', () async {

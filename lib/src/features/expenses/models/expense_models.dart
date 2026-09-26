@@ -105,17 +105,38 @@ class ExpensePaymentSource {
   }
 }
 
+/// Loose truthiness for Frappe flags, which arrive as bool, 0/1 or "0"/"1".
+bool _parseFlag(dynamic value) =>
+    value == true || value == 1 || value == '1' || value == 'true';
+
+/// Parses a `YYYY-MM-DD` (or ISO) wire date to a date-only value; null for
+/// anything absent or unparseable.
+DateTime? _parseDateOnly(dynamic value) {
+  if (value == null) return null;
+  final text = value.toString().trim();
+  if (text.isEmpty) return null;
+  final parsed = DateTime.tryParse(text);
+  if (parsed == null) return null;
+  return DateTime(parsed.year, parsed.month, parsed.day);
+}
+
 class ExpenseReason {
   final String account;
   final String label;
   final String? labelEn;
   final String? labelAr;
 
+  /// The reason is a bill for a service period (rent, internet, electricity):
+  /// the form must collect the period it covers so the server can spread the
+  /// cost across months. Absent on older servers, which read as false.
+  final bool requiresPeriod;
+
   const ExpenseReason({
     required this.account,
     required this.label,
     this.labelEn,
     this.labelAr,
+    this.requiresPeriod = false,
   });
 
   String localizedLabel(String languageCode) {
@@ -133,6 +154,7 @@ class ExpenseReason {
       label: (json['label'] ?? '').toString(),
       labelEn: json['label_en']?.toString(),
       labelAr: json['label_ar']?.toString(),
+      requiresPeriod: _parseFlag(json['requires_period']),
     );
   }
 
@@ -141,6 +163,7 @@ class ExpenseReason {
         'label': label,
         'label_en': labelEn,
         'label_ar': labelAr,
+        'requires_period': requiresPeriod,
       };
 }
 
@@ -213,6 +236,15 @@ class ExpenseRecord {
   final DateTime? modifiedOn;
   final List<ExpenseTimelineEvent> timeline;
 
+  /// The service period a bill covers (both null when the expense has none).
+  final DateTime? periodFrom;
+  final DateTime? periodTo;
+
+  /// Journal entries the server posted to spread a period across months.
+  final List<String> periodJournalEntries;
+
+  bool get hasPeriod => periodFrom != null && periodTo != null;
+
   /// A request still waiting for an answer.
   ///
   /// A rejected request is also `docstatus == 0` -- there is no docstatus for
@@ -258,6 +290,9 @@ class ExpenseRecord {
     required this.createdOn,
     required this.modifiedOn,
     required this.timeline,
+    this.periodFrom,
+    this.periodTo,
+    this.periodJournalEntries = const [],
   });
 
   String localizedReasonLabel(String languageCode) {
@@ -340,8 +375,47 @@ class ExpenseRecord {
       createdOn: parseDate(json['creation']),
       modifiedOn: parseDate(json['modified']),
       timeline: parseTimeline(json['timeline']),
+      periodFrom: _parseDateOnly(json['period_from']),
+      periodTo: _parseDateOnly(json['period_to']),
+      periodJournalEntries: (json['period_journal_entries'] is List)
+          ? (json['period_journal_entries'] as List)
+              .where((e) => e != null && e.toString().trim().isNotEmpty)
+              .map((e) => e.toString().trim())
+              .toList()
+          : const [],
     );
   }
+}
+
+/// Why a service period cannot be submitted, or null when it can.
+enum ExpensePeriodError {
+  /// The reason needs a period and one or both ends are missing.
+  missing,
+
+  /// The period starts after it ends.
+  fromAfterTo,
+
+  /// The period ends after the expense date -- a bill is paid after the
+  /// service, never before.
+  toAfterExpenseDate,
+}
+
+/// Client-side mirror of the server's period rules. Compares calendar days
+/// only, so a time-stamped [expenseDate] does not reject a same-day period.
+ExpensePeriodError? validateExpensePeriod({
+  required bool requiresPeriod,
+  required DateTime? periodFrom,
+  required DateTime? periodTo,
+  required DateTime expenseDate,
+}) {
+  if (!requiresPeriod) return null;
+  if (periodFrom == null || periodTo == null) return ExpensePeriodError.missing;
+  DateTime day(DateTime d) => DateTime(d.year, d.month, d.day);
+  final from = day(periodFrom);
+  final to = day(periodTo);
+  if (from.isAfter(to)) return ExpensePeriodError.fromAfterTo;
+  if (to.isAfter(day(expenseDate))) return ExpensePeriodError.toAfterExpenseDate;
+  return null;
 }
 
 class ExpenseSummary {

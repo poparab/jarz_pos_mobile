@@ -359,4 +359,157 @@ void main() {
       expect(b.appliedPaymentIds, isEmpty);
     });
   });
+
+  // ── Service period ────────────────────────────────────────────────────
+
+  group('ExpenseReason.requiresPeriod', () {
+    test('absent on old servers reads as false', () {
+      final r = ExpenseReason.fromJson({'account': 'A', 'label': 'L'});
+      expect(r.requiresPeriod, isFalse);
+    });
+
+    test('parses bool, int and string truthy flags', () {
+      expect(ExpenseReason.fromJson({'requires_period': true}).requiresPeriod, isTrue);
+      expect(ExpenseReason.fromJson({'requires_period': 1}).requiresPeriod, isTrue);
+      expect(ExpenseReason.fromJson({'requires_period': '1'}).requiresPeriod, isTrue);
+      expect(ExpenseReason.fromJson({'requires_period': false}).requiresPeriod, isFalse);
+      expect(ExpenseReason.fromJson({'requires_period': 0}).requiresPeriod, isFalse);
+      expect(ExpenseReason.fromJson({'requires_period': null}).requiresPeriod, isFalse);
+    });
+
+    test('toJson carries the flag', () {
+      final r = ExpenseReason.fromJson({'account': 'A', 'requires_period': true});
+      expect(r.toJson()['requires_period'], isTrue);
+    });
+
+    test('bootstrap reasons carry the flag', () {
+      final b = ExpenseBootstrap.fromJson({
+        'reasons': [
+          {'account': 'Rent - J', 'label': 'Rent', 'requires_period': true},
+          {'account': 'Misc - J', 'label': 'Misc'},
+        ],
+      });
+      expect(b.reasons[0].requiresPeriod, isTrue);
+      expect(b.reasons[1].requiresPeriod, isFalse);
+    });
+  });
+
+  group('ExpenseRecord period fields', () {
+    test('parse period dates and journal entries', () {
+      final r = ExpenseRecord.fromJson({
+        'name': 'EXP-1',
+        'period_from': '2026-09-25',
+        'period_to': '2026-10-05',
+        'period_journal_entries': ['ACC-JV-1', 'ACC-JV-2'],
+      });
+      expect(r.periodFrom, DateTime(2026, 9, 25));
+      expect(r.periodTo, DateTime(2026, 10, 5));
+      expect(r.periodJournalEntries, ['ACC-JV-1', 'ACC-JV-2']);
+      expect(r.hasPeriod, isTrue);
+    });
+
+    test('absent or null period fields are safe (old servers)', () {
+      final absent = ExpenseRecord.fromJson({'name': 'EXP-2'});
+      expect(absent.periodFrom, isNull);
+      expect(absent.periodTo, isNull);
+      expect(absent.periodJournalEntries, isEmpty);
+      expect(absent.hasPeriod, isFalse);
+
+      final nulls = ExpenseRecord.fromJson({
+        'name': 'EXP-3',
+        'period_from': null,
+        'period_to': '',
+        'period_journal_entries': null,
+      });
+      expect(nulls.periodFrom, isNull);
+      expect(nulls.periodTo, isNull);
+      expect(nulls.periodJournalEntries, isEmpty);
+      expect(nulls.hasPeriod, isFalse);
+    });
+  });
+
+  group('validateExpensePeriod', () {
+    final expenseDate = DateTime(2026, 10, 6, 14, 30);
+
+    test('no period needed -> always valid', () {
+      expect(
+        validateExpensePeriod(
+          requiresPeriod: false,
+          periodFrom: null,
+          periodTo: null,
+          expenseDate: expenseDate,
+        ),
+        isNull,
+      );
+    });
+
+    test('missing ends', () {
+      expect(
+        validateExpensePeriod(
+          requiresPeriod: true,
+          periodFrom: DateTime(2026, 9, 25),
+          periodTo: null,
+          expenseDate: expenseDate,
+        ),
+        ExpensePeriodError.missing,
+      );
+      expect(
+        validateExpensePeriod(
+          requiresPeriod: true,
+          periodFrom: null,
+          periodTo: null,
+          expenseDate: expenseDate,
+        ),
+        ExpensePeriodError.missing,
+      );
+    });
+
+    test('from after to', () {
+      expect(
+        validateExpensePeriod(
+          requiresPeriod: true,
+          periodFrom: DateTime(2026, 10, 5),
+          periodTo: DateTime(2026, 9, 25),
+          expenseDate: expenseDate,
+        ),
+        ExpensePeriodError.fromAfterTo,
+      );
+    });
+
+    test('to after expense date', () {
+      expect(
+        validateExpensePeriod(
+          requiresPeriod: true,
+          periodFrom: DateTime(2026, 9, 25),
+          periodTo: DateTime(2026, 10, 7),
+          expenseDate: expenseDate,
+        ),
+        ExpensePeriodError.toAfterExpenseDate,
+      );
+    });
+
+    test('same-day ends and a to equal to a time-stamped expense date are valid', () {
+      expect(
+        validateExpensePeriod(
+          requiresPeriod: true,
+          periodFrom: DateTime(2026, 10, 6),
+          periodTo: DateTime(2026, 10, 6),
+          expenseDate: expenseDate,
+        ),
+        isNull,
+      );
+    });
+
+    test('period starting in an earlier month is valid', () {
+      expect(
+        validateExpensePeriod(
+          requiresPeriod: true,
+          periodFrom: DateTime(2026, 8, 25),
+          periodTo: DateTime(2026, 9, 24),
+          expenseDate: expenseDate,
+        ),
+        isNull,
+      );
+    });
+  });
 }

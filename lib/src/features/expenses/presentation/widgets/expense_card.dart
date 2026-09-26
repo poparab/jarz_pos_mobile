@@ -71,6 +71,13 @@ class ExpenseCard extends StatelessWidget {
               '${context.l10n.expensesPayFromLabel}: $paymentLabel',
               style: Theme.of(context).textTheme.bodySmall,
             ),
+            if (expense.hasPeriod) ...[
+              const SizedBox(height: 4),
+              Text(
+                formatExpensePeriod(context, expense.periodFrom!, expense.periodTo!),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
             const SizedBox(height: 4),
             Row(
               children: [
@@ -92,6 +99,11 @@ class ExpenseCard extends StatelessWidget {
             _InfoRow(label: context.l10n.expensesRemarksLabel, value: expense.remarks!),
           if (expense.journalEntry != null && expense.journalEntry!.isNotEmpty)
             _InfoRow(label: context.l10n.expensesJournalEntry, value: expense.journalEntry!),
+          if (expense.periodJournalEntries.isNotEmpty)
+            _InfoRow(
+              label: context.l10n.expensesPeriodJournalEntries,
+              value: expense.periodJournalEntries.join(', '),
+            ),
           if ((expense.rejectionReason ?? '').isNotEmpty)
             _InfoRow(
               label: context.l10n.expensesRejectionReason,
@@ -168,6 +180,16 @@ class ExpenseCard extends StatelessWidget {
     if (expense.docstatus == 0) return context.l10n.expensesDraftStatus;
     return localizedStatusLabel(context, expense.status);
   }
+}
+
+/// "Period: 25 Sep – 5 Oct", adding the year only when the two ends fall in
+/// different years so a Dec–Jan bill is not ambiguous.
+String formatExpensePeriod(BuildContext context, DateTime from, DateTime to) {
+  final pattern = from.year == to.year ? 'd MMM' : 'd MMM yyyy';
+  return context.l10n.expensesPeriodValue(
+    formatDate(context, from, pattern: pattern),
+    formatDate(context, to, pattern: pattern),
+  );
 }
 
 class _StatusChip extends StatelessWidget {
