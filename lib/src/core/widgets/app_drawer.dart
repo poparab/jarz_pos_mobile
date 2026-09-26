@@ -199,8 +199,8 @@ class AppDrawer extends ConsumerWidget {
     final deliveryChildren = <Widget>[
       // Supervisor-only, mirroring the tracking API's `_ensure_ops_permission`,
       // which deliberately excludes couriers: a courier may see their own run,
-      // never a colleague's live position. Its set does not admit the line
-      // manager's Role record, so the tile is hidden from them.
+      // never a colleague's live position. Line managers see their own
+      // branches (`ROLES.COURIER_MAP_VIEWER`).
       if (canViewLiveCourierMap)
         navTile(
           icon: Icons.map_outlined,

@@ -112,6 +112,7 @@ void main() {
       {
         ..._base,
         'Master Orders',
+        'Live courier map',
         'Price Lists',
         'InstaPay Reconciliation',
         'Credit Accounts',

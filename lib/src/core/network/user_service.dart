@@ -321,15 +321,10 @@ class UserRoles {
   bool get canAccessMasterOrders => _isLineManagerTier || isModerator;
 
   /// Whether this user may watch the Live Courier Map. Mirrors the courier
-  /// app's `ROLES.COURIER_SUPERVISOR` exactly, which names only the LOWERCASE
-  /// line-manager spelling. The Role record every real line manager holds is
-  /// the capitalised one, so the server refuses them (checked against
-  /// production, 2026-09-26) and the tile must not be offered.
-  bool get canViewLiveCourierMap =>
-      isJarzManager ||
-      roles.contains(RoleNames.jarzLineManagerAlt) ||
-      roles.contains(RoleNames.systemManager) ||
-      roles.contains(RoleNames.administrator);
+  /// app's `ROLES.COURIER_MAP_VIEWER`: the line-manager tier, both spellings.
+  /// Opened to line managers by the owner on 2026-09-26; the server scopes
+  /// them to their own branches.
+  bool get canViewLiveCourierMap => _isLineManagerTier;
 
   /// Whether this user may open Price Lists (read). Mirrors
   /// `price_lists._ensure_pricing_read_access`: the line-manager tier, or B2B.
