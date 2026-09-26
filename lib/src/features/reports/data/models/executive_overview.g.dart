@@ -62,6 +62,8 @@ _$ExecutiveKpisImpl _$$ExecutiveKpisImplFromJson(Map<String, dynamic> json) =>
       netShippingPl: (json['net_shipping_pl'] as num?)?.toDouble() ?? 0,
       customers: (json['total_customers'] as num?)?.toInt() ?? 0,
       criticalStock: (json['critical_stock'] as num?)?.toInt() ?? 0,
+      netProfit: (json['net_profit'] as num?)?.toDouble() ?? 0,
+      netMarginPct: (json['net_margin'] as num?)?.toDouble() ?? 0,
     );
 
 Map<String, dynamic> _$$ExecutiveKpisImplToJson(_$ExecutiveKpisImpl instance) =>
@@ -74,4 +76,6 @@ Map<String, dynamic> _$$ExecutiveKpisImplToJson(_$ExecutiveKpisImpl instance) =>
       'net_shipping_pl': instance.netShippingPl,
       'total_customers': instance.customers,
       'critical_stock': instance.criticalStock,
+      'net_profit': instance.netProfit,
+      'net_margin': instance.netMarginPct,
     };

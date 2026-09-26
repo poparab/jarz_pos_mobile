@@ -25600,6 +25600,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discard'**
   String get userAdminDiscard;
+
+  /// No description provided for @pnlTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profit & Loss'**
+  String get pnlTitle;
+
+  /// No description provided for @pnlSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue from B2B vs B2C, every expense, and the net profit, checked against the books'**
+  String get pnlSubtitle;
+
+  /// No description provided for @pnlTotalRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Total revenue'**
+  String get pnlTotalRevenue;
+
+  /// No description provided for @pnlB2cRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'B2C revenue'**
+  String get pnlB2cRevenue;
+
+  /// No description provided for @pnlB2bRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B revenue'**
+  String get pnlB2bRevenue;
+
+  /// No description provided for @pnlGrossProfit.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross profit'**
+  String get pnlGrossProfit;
+
+  /// No description provided for @pnlTotalExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Total expenses'**
+  String get pnlTotalExpenses;
+
+  /// No description provided for @pnlNetProfit.
+  ///
+  /// In en, this message translates to:
+  /// **'Net profit'**
+  String get pnlNetProfit;
+
+  /// No description provided for @pnlShippingNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping difference'**
+  String get pnlShippingNet;
+
+  /// No description provided for @pnlMarginOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}% margin'**
+  String pnlMarginOf(String pct);
+
+  /// No description provided for @pnlRevenueTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue by channel'**
+  String get pnlRevenueTrend;
+
+  /// No description provided for @pnlChannelB2c.
+  ///
+  /// In en, this message translates to:
+  /// **'B2C'**
+  String get pnlChannelB2c;
+
+  /// No description provided for @pnlChannelB2b.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B'**
+  String get pnlChannelB2b;
+
+  /// No description provided for @pnlChannelStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get pnlChannelStaff;
+
+  /// No description provided for @pnlChannelSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Samples'**
+  String get pnlChannelSamples;
+
+  /// No description provided for @pnlChannelAdjustments.
+  ///
+  /// In en, this message translates to:
+  /// **'Ledger adjustments'**
+  String get pnlChannelAdjustments;
+
+  /// No description provided for @pnlChannelOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get pnlChannelOther;
+
+  /// No description provided for @pnlShippingIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping income'**
+  String get pnlShippingIncome;
+
+  /// No description provided for @pnlShippingExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping expense'**
+  String get pnlShippingExpense;
+
+  /// No description provided for @pnlChannelSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B vs B2C'**
+  String get pnlChannelSplit;
+
+  /// No description provided for @pnlOrdersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} orders'**
+  String pnlOrdersCount(int count);
+
+  /// No description provided for @pnlReturnsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} returns'**
+  String pnlReturnsCount(int count);
+
+  /// No description provided for @pnlStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Profit & loss statement'**
+  String get pnlStatement;
+
+  /// No description provided for @pnlSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get pnlSales;
+
+  /// No description provided for @pnlCostOfSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost of sales'**
+  String get pnlCostOfSales;
+
+  /// No description provided for @pnlRecurringExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expenses'**
+  String get pnlRecurringExpenses;
+
+  /// No description provided for @pnlOtherExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Other expenses'**
+  String get pnlOtherExpenses;
+
+  /// No description provided for @pnlRevenueVsExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue vs expenses'**
+  String get pnlRevenueVsExpenses;
+
+  /// No description provided for @pnlExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get pnlExpenses;
+
+  /// No description provided for @pnlShippingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping: charged vs paid'**
+  String get pnlShippingTitle;
+
+  /// No description provided for @pnlShippingDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference'**
+  String get pnlShippingDifference;
+
+  /// No description provided for @pnlPerDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Per delivery: {income} charged, {expense} paid ({count} deliveries)'**
+  String pnlPerDelivery(String income, String expense, int count);
+
+  /// No description provided for @pnlRecurringPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'{posted} posted of {due} due for these months'**
+  String pnlRecurringPosted(String posted, String due);
+
+  /// No description provided for @pnlExpenseMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the money went'**
+  String get pnlExpenseMix;
+
+  /// No description provided for @pnlLedgerMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches the ledger'**
+  String get pnlLedgerMatches;
+
+  /// No description provided for @pnlLedgerMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Differs from the ledger by {amount}'**
+  String pnlLedgerMismatch(String amount);
+
+  /// No description provided for @pnlWarnCogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost of goods is recorded for only {pct}% of orders in this period, so profit here is overstated.'**
+  String pnlWarnCogs(String pct);
+
+  /// No description provided for @pnlWarnShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {pct}% of the courier cost recorded on orders has reached the books, so shipping expense is understated.'**
+  String pnlWarnShipping(String pct);
+
+  /// No description provided for @pnlWarnRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expenses: {posted} recorded of {due} due for the months in this range.'**
+  String pnlWarnRecurring(String posted, String due);
+
+  /// No description provided for @pnlNoteShippingInFreight.
+  ///
+  /// In en, this message translates to:
+  /// **'Before September 2026 shipping income was booked inside the courier expense account. It is shown separately here.'**
+  String get pnlNoteShippingInFreight;
+
+  /// No description provided for @pnlRunningTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Running total for the period'**
+  String get pnlRunningTotal;
 }
 
 class _AppLocalizationsDelegate

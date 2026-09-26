@@ -8,6 +8,7 @@ import '../data/models/product_analytics.dart';
 import '../data/models/customer_analytics.dart';
 import '../data/models/executive_overview.dart';
 import '../data/models/b2b_sales_clients.dart';
+import '../data/models/profit_and_loss.dart';
 
 final finalProductsReportProvider =
     FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
@@ -139,6 +140,15 @@ final b2bSalesClientsProvider = FutureProvider.autoDispose
     .family<B2bSalesAnalytics, ReportRange>((ref, range) async {
   final repo = ref.watch(reportsRepositoryProvider);
   return repo.fetchB2bSalesClients(
+    dateFrom: range.fromIso,
+    dateTo: range.toIso,
+  );
+});
+
+final profitAndLossProvider = FutureProvider.autoDispose
+    .family<ProfitAndLoss, ReportRange>((ref, range) async {
+  final repo = ref.watch(reportsRepositoryProvider);
+  return repo.fetchProfitAndLoss(
     dateFrom: range.fromIso,
     dateTo: range.toIso,
   );

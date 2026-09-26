@@ -417,7 +417,11 @@ mixin _$ExecutiveKpis {
   @JsonKey(name: 'total_customers')
   int get customers => throw _privateConstructorUsedError;
   @JsonKey(name: 'critical_stock')
-  int get criticalStock => throw _privateConstructorUsedError;
+  int get criticalStock => throw _privateConstructorUsedError; // Ledger P&L, added 2026-09 (absent on older backends → 0).
+  @JsonKey(name: 'net_profit')
+  double get netProfit => throw _privateConstructorUsedError;
+  @JsonKey(name: 'net_margin')
+  double get netMarginPct => throw _privateConstructorUsedError;
 
   /// Serializes this ExecutiveKpis to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -445,6 +449,8 @@ abstract class $ExecutiveKpisCopyWith<$Res> {
     @JsonKey(name: 'net_shipping_pl') double netShippingPl,
     @JsonKey(name: 'total_customers') int customers,
     @JsonKey(name: 'critical_stock') int criticalStock,
+    @JsonKey(name: 'net_profit') double netProfit,
+    @JsonKey(name: 'net_margin') double netMarginPct,
   });
 }
 
@@ -471,6 +477,8 @@ class _$ExecutiveKpisCopyWithImpl<$Res, $Val extends ExecutiveKpis>
     Object? netShippingPl = null,
     Object? customers = null,
     Object? criticalStock = null,
+    Object? netProfit = null,
+    Object? netMarginPct = null,
   }) {
     return _then(
       _value.copyWith(
@@ -506,6 +514,14 @@ class _$ExecutiveKpisCopyWithImpl<$Res, $Val extends ExecutiveKpis>
                 ? _value.criticalStock
                 : criticalStock // ignore: cast_nullable_to_non_nullable
                       as int,
+            netProfit: null == netProfit
+                ? _value.netProfit
+                : netProfit // ignore: cast_nullable_to_non_nullable
+                      as double,
+            netMarginPct: null == netMarginPct
+                ? _value.netMarginPct
+                : netMarginPct // ignore: cast_nullable_to_non_nullable
+                      as double,
           )
           as $Val,
     );
@@ -530,6 +546,8 @@ abstract class _$$ExecutiveKpisImplCopyWith<$Res>
     @JsonKey(name: 'net_shipping_pl') double netShippingPl,
     @JsonKey(name: 'total_customers') int customers,
     @JsonKey(name: 'critical_stock') int criticalStock,
+    @JsonKey(name: 'net_profit') double netProfit,
+    @JsonKey(name: 'net_margin') double netMarginPct,
   });
 }
 
@@ -555,6 +573,8 @@ class __$$ExecutiveKpisImplCopyWithImpl<$Res>
     Object? netShippingPl = null,
     Object? customers = null,
     Object? criticalStock = null,
+    Object? netProfit = null,
+    Object? netMarginPct = null,
   }) {
     return _then(
       _$ExecutiveKpisImpl(
@@ -590,6 +610,14 @@ class __$$ExecutiveKpisImplCopyWithImpl<$Res>
             ? _value.criticalStock
             : criticalStock // ignore: cast_nullable_to_non_nullable
                   as int,
+        netProfit: null == netProfit
+            ? _value.netProfit
+            : netProfit // ignore: cast_nullable_to_non_nullable
+                  as double,
+        netMarginPct: null == netMarginPct
+            ? _value.netMarginPct
+            : netMarginPct // ignore: cast_nullable_to_non_nullable
+                  as double,
       ),
     );
   }
@@ -607,6 +635,8 @@ class _$ExecutiveKpisImpl implements _ExecutiveKpis {
     @JsonKey(name: 'net_shipping_pl') this.netShippingPl = 0,
     @JsonKey(name: 'total_customers') this.customers = 0,
     @JsonKey(name: 'critical_stock') this.criticalStock = 0,
+    @JsonKey(name: 'net_profit') this.netProfit = 0,
+    @JsonKey(name: 'net_margin') this.netMarginPct = 0,
   });
 
   factory _$ExecutiveKpisImpl.fromJson(Map<String, dynamic> json) =>
@@ -636,10 +666,17 @@ class _$ExecutiveKpisImpl implements _ExecutiveKpis {
   @override
   @JsonKey(name: 'critical_stock')
   final int criticalStock;
+  // Ledger P&L, added 2026-09 (absent on older backends → 0).
+  @override
+  @JsonKey(name: 'net_profit')
+  final double netProfit;
+  @override
+  @JsonKey(name: 'net_margin')
+  final double netMarginPct;
 
   @override
   String toString() {
-    return 'ExecutiveKpis(revenue: $revenue, orders: $orders, grossProfit: $grossProfit, grossMarginPct: $grossMarginPct, avgOrderValue: $avgOrderValue, netShippingPl: $netShippingPl, customers: $customers, criticalStock: $criticalStock)';
+    return 'ExecutiveKpis(revenue: $revenue, orders: $orders, grossProfit: $grossProfit, grossMarginPct: $grossMarginPct, avgOrderValue: $avgOrderValue, netShippingPl: $netShippingPl, customers: $customers, criticalStock: $criticalStock, netProfit: $netProfit, netMarginPct: $netMarginPct)';
   }
 
   @override
@@ -660,7 +697,11 @@ class _$ExecutiveKpisImpl implements _ExecutiveKpis {
             (identical(other.customers, customers) ||
                 other.customers == customers) &&
             (identical(other.criticalStock, criticalStock) ||
-                other.criticalStock == criticalStock));
+                other.criticalStock == criticalStock) &&
+            (identical(other.netProfit, netProfit) ||
+                other.netProfit == netProfit) &&
+            (identical(other.netMarginPct, netMarginPct) ||
+                other.netMarginPct == netMarginPct));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -675,6 +716,8 @@ class _$ExecutiveKpisImpl implements _ExecutiveKpis {
     netShippingPl,
     customers,
     criticalStock,
+    netProfit,
+    netMarginPct,
   );
 
   /// Create a copy of ExecutiveKpis
@@ -701,6 +744,8 @@ abstract class _ExecutiveKpis implements ExecutiveKpis {
     @JsonKey(name: 'net_shipping_pl') final double netShippingPl,
     @JsonKey(name: 'total_customers') final int customers,
     @JsonKey(name: 'critical_stock') final int criticalStock,
+    @JsonKey(name: 'net_profit') final double netProfit,
+    @JsonKey(name: 'net_margin') final double netMarginPct,
   }) = _$ExecutiveKpisImpl;
 
   factory _ExecutiveKpis.fromJson(Map<String, dynamic> json) =
@@ -729,7 +774,13 @@ abstract class _ExecutiveKpis implements ExecutiveKpis {
   int get customers;
   @override
   @JsonKey(name: 'critical_stock')
-  int get criticalStock;
+  int get criticalStock; // Ledger P&L, added 2026-09 (absent on older backends → 0).
+  @override
+  @JsonKey(name: 'net_profit')
+  double get netProfit;
+  @override
+  @JsonKey(name: 'net_margin')
+  double get netMarginPct;
 
   /// Create a copy of ExecutiveKpis
   /// with the given fields replaced by the non-null parameter values.

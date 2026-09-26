@@ -105,6 +105,11 @@ class _QuickNavRow extends StatelessWidget {
       runSpacing: 4,
       children: [
         _NavChip(
+          icon: Icons.account_balance_outlined,
+          label: l10n.pnlTitle,
+          route: AppRoutes.reportsProfitLoss,
+        ),
+        _NavChip(
           icon: Icons.local_shipping_outlined,
           label: l10n.reportShippingTitle,
           route: AppRoutes.reportsShipping,
@@ -250,6 +255,16 @@ class _KpiGrid extends StatelessWidget {
             value: '${kpis.grossMarginPct.toStringAsFixed(1)}%',
             icon: Icons.percent,
             color: Colors.teal.shade700,
+          ),
+      (w) => KpiCard(
+            width: w,
+            label: l10n.pnlNetProfit,
+            value: formatCompactCurrency(context, kpis.netProfit),
+            icon: kpis.netProfit >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
+            color: kpis.netProfit >= 0 ? positive : negative,
+            delta: l10n.pnlMarginOf(kpis.netMarginPct.toStringAsFixed(1)),
+            deltaColor: kpis.netProfit >= 0 ? positive : negative,
+            onTap: () => context.push(AppRoutes.reportsProfitLoss),
           ),
       (w) => KpiCard(
             width: w,

@@ -557,6 +557,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.executive_analytics.get_executive_overview';
   static const getB2bAnalytics =
       '/api/method/jarz_pos.api.b2b_analytics.get_b2b_analytics';
+  static const getProfitAndLoss =
+      '/api/method/jarz_pos.api.financial_report.get_profit_and_loss';
 
   // ── Settings ──────────────────────────────────────────────────────────
   static const getReceiptConfig =

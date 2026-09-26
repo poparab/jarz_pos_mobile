@@ -42,6 +42,9 @@ class ExecutiveKpis with _$ExecutiveKpis {
     @JsonKey(name: 'net_shipping_pl') @Default(0) double netShippingPl,
     @JsonKey(name: 'total_customers') @Default(0) int customers,
     @JsonKey(name: 'critical_stock') @Default(0) int criticalStock,
+    // Ledger P&L, added 2026-09 (absent on older backends → 0).
+    @JsonKey(name: 'net_profit') @Default(0) double netProfit,
+    @JsonKey(name: 'net_margin') @Default(0) double netMarginPct,
   }) = _ExecutiveKpis;
 
   factory ExecutiveKpis.fromJson(Map<String, dynamic> json) =>

@@ -560,6 +560,7 @@ class AppDrawer extends ConsumerWidget {
           AppRoutes.reportsCustomer,
           AppRoutes.reportsExecutive,
           AppRoutes.reportsB2b,
+          AppRoutes.reportsProfitLoss,
           AppRoutes.wooSync,
           AppRoutes.users,
         ],

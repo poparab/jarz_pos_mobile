@@ -15612,4 +15612,147 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get userAdminDiscard => 'Discard';
+
+  @override
+  String get pnlTitle => 'Profit & Loss';
+
+  @override
+  String get pnlSubtitle =>
+      'Revenue from B2B vs B2C, every expense, and the net profit, checked against the books';
+
+  @override
+  String get pnlTotalRevenue => 'Total revenue';
+
+  @override
+  String get pnlB2cRevenue => 'B2C revenue';
+
+  @override
+  String get pnlB2bRevenue => 'B2B revenue';
+
+  @override
+  String get pnlGrossProfit => 'Gross profit';
+
+  @override
+  String get pnlTotalExpenses => 'Total expenses';
+
+  @override
+  String get pnlNetProfit => 'Net profit';
+
+  @override
+  String get pnlShippingNet => 'Shipping difference';
+
+  @override
+  String pnlMarginOf(String pct) {
+    return '$pct% margin';
+  }
+
+  @override
+  String get pnlRevenueTrend => 'Revenue by channel';
+
+  @override
+  String get pnlChannelB2c => 'B2C';
+
+  @override
+  String get pnlChannelB2b => 'B2B';
+
+  @override
+  String get pnlChannelStaff => 'Staff';
+
+  @override
+  String get pnlChannelSamples => 'Samples';
+
+  @override
+  String get pnlChannelAdjustments => 'Ledger adjustments';
+
+  @override
+  String get pnlChannelOther => 'Other';
+
+  @override
+  String get pnlShippingIncome => 'Shipping income';
+
+  @override
+  String get pnlShippingExpense => 'Shipping expense';
+
+  @override
+  String get pnlChannelSplit => 'B2B vs B2C';
+
+  @override
+  String pnlOrdersCount(int count) {
+    return '$count orders';
+  }
+
+  @override
+  String pnlReturnsCount(int count) {
+    return '$count returns';
+  }
+
+  @override
+  String get pnlStatement => 'Profit & loss statement';
+
+  @override
+  String get pnlSales => 'Sales';
+
+  @override
+  String get pnlCostOfSales => 'Cost of sales';
+
+  @override
+  String get pnlRecurringExpenses => 'Recurring expenses';
+
+  @override
+  String get pnlOtherExpenses => 'Other expenses';
+
+  @override
+  String get pnlRevenueVsExpenses => 'Revenue vs expenses';
+
+  @override
+  String get pnlExpenses => 'Expenses';
+
+  @override
+  String get pnlShippingTitle => 'Shipping: charged vs paid';
+
+  @override
+  String get pnlShippingDifference => 'Difference';
+
+  @override
+  String pnlPerDelivery(String income, String expense, int count) {
+    return 'Per delivery: $income charged, $expense paid ($count deliveries)';
+  }
+
+  @override
+  String pnlRecurringPosted(String posted, String due) {
+    return '$posted posted of $due due for these months';
+  }
+
+  @override
+  String get pnlExpenseMix => 'Where the money went';
+
+  @override
+  String get pnlLedgerMatches => 'Matches the ledger';
+
+  @override
+  String pnlLedgerMismatch(String amount) {
+    return 'Differs from the ledger by $amount';
+  }
+
+  @override
+  String pnlWarnCogs(String pct) {
+    return 'Cost of goods is recorded for only $pct% of orders in this period, so profit here is overstated.';
+  }
+
+  @override
+  String pnlWarnShipping(String pct) {
+    return 'Only $pct% of the courier cost recorded on orders has reached the books, so shipping expense is understated.';
+  }
+
+  @override
+  String pnlWarnRecurring(String posted, String due) {
+    return 'Recurring expenses: $posted recorded of $due due for the months in this range.';
+  }
+
+  @override
+  String get pnlNoteShippingInFreight =>
+      'Before September 2026 shipping income was booked inside the courier expense account. It is shown separately here.';
+
+  @override
+  String get pnlRunningTotal => 'Running total for the period';
 }

@@ -41,6 +41,7 @@ import '../features/partner_settlements/presentation/partner_settlements_screen.
 import '../features/reports/presentation/screens/customer_segments_screen.dart';
 import '../features/reports/presentation/screens/velocity_alerts_screen.dart';
 import '../features/reports/presentation/screens/warehouse_alignment_screen.dart';
+import '../features/reports/presentation/screens/profit_and_loss_screen.dart';
 import '../features/woo_sync/presentation/screens/woo_duplicates_screen.dart';
 import '../features/woo_sync/presentation/screens/woo_sync_screen.dart';
 import '../features/expenses/presentation/expenses_screen.dart';
@@ -636,6 +637,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'reports-b2b',
         builder: (context, state) =>
             const PhoneLandscapeScope(child: B2bSalesClientsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsProfitLoss,
+        name: 'reports-profit-loss',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: ProfitAndLossScreen()),
       ),
       GoRoute(
         path: AppRoutes.masterOrders,

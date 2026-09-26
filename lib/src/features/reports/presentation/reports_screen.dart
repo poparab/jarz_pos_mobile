@@ -43,6 +43,16 @@ class ReportsScreen extends ConsumerWidget {
         );
 
     final destinations = <_ReportDestination>[
+      // First: the one report that answers "did we make money?". Same
+      // `_ensure_jarz_manager` gate as the other analytics dashboards.
+      _ReportDestination(
+        icon: Icons.account_balance_outlined,
+        color: Colors.green.shade800,
+        title: l10n.pnlTitle,
+        subtitle: l10n.pnlSubtitle,
+        onTap: () => context.push(AppRoutes.reportsProfitLoss),
+        visible: canViewAllReports,
+      ),
       _ReportDestination(
         icon: Icons.local_shipping_outlined,
         color: Colors.indigo,

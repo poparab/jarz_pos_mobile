@@ -15603,4 +15603,147 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get userAdminDiscard => 'تجاهل';
+
+  @override
+  String get pnlTitle => 'الأرباح والخسائر';
+
+  @override
+  String get pnlSubtitle =>
+      'إيرادات الشركات والأفراد، كل المصروفات، وصافي الربح، متطابقة مع الدفاتر';
+
+  @override
+  String get pnlTotalRevenue => 'إجمالي الإيرادات';
+
+  @override
+  String get pnlB2cRevenue => 'إيرادات الأفراد (B2C)';
+
+  @override
+  String get pnlB2bRevenue => 'إيرادات الشركات (B2B)';
+
+  @override
+  String get pnlGrossProfit => 'مجمل الربح';
+
+  @override
+  String get pnlTotalExpenses => 'إجمالي المصروفات';
+
+  @override
+  String get pnlNetProfit => 'صافي الربح';
+
+  @override
+  String get pnlShippingNet => 'فرق الشحن';
+
+  @override
+  String pnlMarginOf(String pct) {
+    return 'هامش $pct%';
+  }
+
+  @override
+  String get pnlRevenueTrend => 'الإيرادات حسب القناة';
+
+  @override
+  String get pnlChannelB2c => 'أفراد';
+
+  @override
+  String get pnlChannelB2b => 'شركات';
+
+  @override
+  String get pnlChannelStaff => 'موظفين';
+
+  @override
+  String get pnlChannelSamples => 'عينات';
+
+  @override
+  String get pnlChannelAdjustments => 'تسويات في الدفاتر';
+
+  @override
+  String get pnlChannelOther => 'أخرى';
+
+  @override
+  String get pnlShippingIncome => 'إيراد الشحن';
+
+  @override
+  String get pnlShippingExpense => 'مصروف الشحن';
+
+  @override
+  String get pnlChannelSplit => 'الشركات مقابل الأفراد';
+
+  @override
+  String pnlOrdersCount(int count) {
+    return '$count طلب';
+  }
+
+  @override
+  String pnlReturnsCount(int count) {
+    return '$count مرتجع';
+  }
+
+  @override
+  String get pnlStatement => 'قائمة الأرباح والخسائر';
+
+  @override
+  String get pnlSales => 'المبيعات';
+
+  @override
+  String get pnlCostOfSales => 'تكلفة المبيعات';
+
+  @override
+  String get pnlRecurringExpenses => 'المصروفات الثابتة';
+
+  @override
+  String get pnlOtherExpenses => 'مصروفات أخرى';
+
+  @override
+  String get pnlRevenueVsExpenses => 'الإيرادات مقابل المصروفات';
+
+  @override
+  String get pnlExpenses => 'المصروفات';
+
+  @override
+  String get pnlShippingTitle => 'الشحن: المحصّل مقابل المدفوع';
+
+  @override
+  String get pnlShippingDifference => 'الفرق';
+
+  @override
+  String pnlPerDelivery(String income, String expense, int count) {
+    return 'لكل توصيلة: $income محصّل، $expense مدفوع ($count توصيلة)';
+  }
+
+  @override
+  String pnlRecurringPosted(String posted, String due) {
+    return 'اتسجل $posted من $due مستحق للشهور دي';
+  }
+
+  @override
+  String get pnlExpenseMix => 'الفلوس راحت فين';
+
+  @override
+  String get pnlLedgerMatches => 'مطابق للدفاتر';
+
+  @override
+  String pnlLedgerMismatch(String amount) {
+    return 'مختلف عن الدفاتر بـ $amount';
+  }
+
+  @override
+  String pnlWarnCogs(String pct) {
+    return 'تكلفة البضاعة متسجلة لـ $pct% بس من الطلبات في الفترة دي، فالربح هنا أعلى من الحقيقي.';
+  }
+
+  @override
+  String pnlWarnShipping(String pct) {
+    return '$pct% بس من تكلفة المناديب المسجلة على الطلبات وصلت للدفاتر، فمصروف الشحن أقل من الحقيقي.';
+  }
+
+  @override
+  String pnlWarnRecurring(String posted, String due) {
+    return 'المصروفات الثابتة: اتسجل $posted من $due مستحق للشهور دي.';
+  }
+
+  @override
+  String get pnlNoteShippingInFreight =>
+      'قبل سبتمبر ٢٠٢٦ إيراد الشحن كان بيتسجل جوه حساب مصاريف المناديب، وهنا بيظهر لوحده.';
+
+  @override
+  String get pnlRunningTotal => 'الإجمالي التراكمي للفترة';
 }

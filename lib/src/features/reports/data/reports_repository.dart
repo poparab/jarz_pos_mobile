@@ -9,6 +9,7 @@ import 'models/product_analytics.dart';
 import 'models/customer_analytics.dart';
 import 'models/executive_overview.dart';
 import 'models/b2b_sales_clients.dart';
+import 'models/profit_and_loss.dart';
 
 final reportsRepositoryProvider = Provider<ReportsRepository>((ref) {
   final dio = ref.watch(dioProvider);
@@ -129,5 +130,16 @@ class ReportsRepository {
       data: {'date_from': dateFrom, 'date_to': dateTo},
     );
     return B2bSalesAnalytics.fromJson(_asMap(response));
+  }
+
+  Future<ProfitAndLoss> fetchProfitAndLoss({
+    required String dateFrom,
+    required String dateTo,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.getProfitAndLoss,
+      data: {'date_from': dateFrom, 'date_to': dateTo},
+    );
+    return ProfitAndLoss.fromJson(_asMap(response));
   }
 }

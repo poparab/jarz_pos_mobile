@@ -33,6 +33,7 @@ import 'package:jarz_pos/src/features/reports/data/models/product_analytics.dart
 import 'package:jarz_pos/src/features/reports/data/models/customer_analytics.dart';
 import 'package:jarz_pos/src/features/reports/data/models/executive_overview.dart';
 import 'package:jarz_pos/src/features/reports/data/models/b2b_sales_clients.dart';
+import 'package:jarz_pos/src/features/reports/data/models/profit_and_loss.dart';
 import 'package:jarz_pos/src/features/reports/state/reports_providers.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/shipping_analytics_screen.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/inventory_intelligence_screen.dart';
@@ -40,6 +41,7 @@ import 'package:jarz_pos/src/features/reports/presentation/screens/product_analy
 import 'package:jarz_pos/src/features/reports/presentation/screens/customer_analytics_screen.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/executive_overview_screen.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/b2b_sales_clients_screen.dart';
+import 'package:jarz_pos/src/features/reports/presentation/screens/profit_and_loss_screen.dart';
 
 // Phone-width, very-tall render surface (logical px). Tall enough to capture the
 // KPI grid plus the first couple of data sections/charts in one image.
@@ -255,6 +257,30 @@ void main() {
       name: 'b2b_sales_clients',
       screen: const B2bSalesClientsScreen(),
       override: b2bSalesClientsProvider.overrideWith((ref, range) => model),
+    );
+  });
+
+  // Captured from PRODUCTION, 2026-09-01..26 (ledger-reconciled, B2B split).
+  testWidgets('Profit & Loss renders fixture', (tester) async {
+    final model = ProfitAndLoss.fromJson(_loadFixture('profit_and_loss'));
+    await _renderDashboard(
+      tester,
+      name: 'profit_and_loss',
+      screen: const ProfitAndLossScreen(),
+      override: profitAndLossProvider.overrideWith((ref, range) => model),
+    );
+  });
+
+  // PRODUCTION July 2026: no stock and no courier cost posted, so the
+  // incomplete-books warnings must lead the page.
+  testWidgets('Profit & Loss renders incomplete-books fixture', (tester) async {
+    final model =
+        ProfitAndLoss.fromJson(_loadFixture('profit_and_loss_incomplete'));
+    await _renderDashboard(
+      tester,
+      name: 'profit_and_loss_incomplete',
+      screen: const ProfitAndLossScreen(),
+      override: profitAndLossProvider.overrideWith((ref, range) => model),
     );
   });
 }

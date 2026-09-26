@@ -77,6 +77,7 @@ abstract final class AppRoutes {
   static const reportsCustomer = '/reports/customer';
   static const reportsExecutive = '/reports/executive';
   static const reportsB2b = '/reports/b2b';
+  static const reportsProfitLoss = '/reports/profit-loss';
   static const masterOrders = '/master-orders';
   static const instapayReconciliation = '/instapay-reconciliation';
   static const profile = '/profile';
