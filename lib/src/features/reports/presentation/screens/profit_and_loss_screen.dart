@@ -300,7 +300,7 @@ class _RevenueByChannelCard extends StatelessWidget {
     final theme = Theme.of(context);
     final points = data.trend;
     final labels = [
-      for (final p in points) _bucketLabel(p.date, data.granularity),
+      for (final p in points) _bucketLabel(context, p.date, data.granularity),
     ];
 
     var maxY = 0.0;
@@ -605,7 +605,7 @@ class _RevenueVsExpensesCard extends StatelessWidget {
     final theme = Theme.of(context);
     final points = data.trend;
     final labels = [
-      for (final p in points) _bucketLabel(p.date, data.granularity),
+      for (final p in points) _bucketLabel(context, p.date, data.granularity),
     ];
     final revenueColor = theme.colorScheme.primary;
 
@@ -1245,12 +1245,13 @@ String _pct(double v) => v.toStringAsFixed(v.abs() >= 10 ? 0 : 1);
 
 String _compact(num value) => NumberFormat.compact().format(value);
 
-String _bucketLabel(String raw, String granularity) {
+String _bucketLabel(BuildContext context, String raw, String granularity) {
   final d = DateTime.tryParse(raw);
   if (d == null) return raw;
+  final locale = context.l10n.localeName;
   return granularity == 'month'
-      ? DateFormat('MMM yy').format(d)
-      : DateFormat('M/d').format(d);
+      ? DateFormat('MMM yy', locale).format(d)
+      : DateFormat('M/d', locale).format(d);
 }
 
 Color _channelColor(String channel) => switch (channel) {
