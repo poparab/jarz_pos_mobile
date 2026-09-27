@@ -89,6 +89,10 @@ class ReportDateRangeBar extends ConsumerWidget {
                   onTap: () => setRange(ReportRange.thisMonth()),
                 ),
                 _QuickChip(
+                  label: l10n.reportsRangeLastMonth,
+                  onTap: () => setRange(ReportRange.lastMonth()),
+                ),
+                _QuickChip(
                   label: l10n.reportsRangeLast30Days,
                   onTap: () => setRange(ReportRange.lastDays(30)),
                 ),

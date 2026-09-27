@@ -228,11 +228,20 @@ _$ShippingCustomBreakdownImpl _$$ShippingCustomBreakdownImplFromJson(
           )
           .toList() ??
       const <ShippingCustomBreakdownRow>[],
+  byArea:
+      (json['by_area'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList() ??
+      const <JsonMap>[],
 );
 
 Map<String, dynamic> _$$ShippingCustomBreakdownImplToJson(
   _$ShippingCustomBreakdownImpl instance,
-) => <String, dynamic>{'summary': instance.summary, 'rows': instance.rows};
+) => <String, dynamic>{
+  'summary': instance.summary,
+  'rows': instance.rows,
+  'by_area': instance.byArea,
+};
 
 _$ShippingCustomBreakdownSummaryImpl
 _$$ShippingCustomBreakdownSummaryImplFromJson(Map<String, dynamic> json) =>
@@ -242,6 +251,17 @@ _$$ShippingCustomBreakdownSummaryImplFromJson(Map<String, dynamic> json) =>
       rejected: (json['rejected'] as num?)?.toInt() ?? 0,
       pending: (json['pending'] as num?)?.toInt() ?? 0,
       approvalRate: (json['approval_rate'] as num?)?.toDouble() ?? 0,
+      approvedExtra: (json['approved_extra'] as num?)?.toDouble() ?? 0,
+      approvedSaved: (json['approved_saved'] as num?)?.toDouble() ?? 0,
+      netEffect: (json['net_effect'] as num?)?.toDouble() ?? 0,
+      netEffectPct: (json['net_effect_pct'] as num?)?.toDouble() ?? 0,
+      increases: (json['increases'] as num?)?.toInt() ?? 0,
+      decreases: (json['decreases'] as num?)?.toInt() ?? 0,
+      avgIncrease: (json['avg_increase'] as num?)?.toDouble() ?? 0,
+      maxIncreasePct: (json['max_increase_pct'] as num?)?.toDouble() ?? 0,
+      pendingExtra: (json['pending_extra'] as num?)?.toDouble() ?? 0,
+      deliveryOrders: (json['delivery_orders'] as num?)?.toInt() ?? 0,
+      exceptionRatePct: (json['exception_rate_pct'] as num?)?.toDouble() ?? 0,
     );
 
 Map<String, dynamic> _$$ShippingCustomBreakdownSummaryImplToJson(
@@ -252,6 +272,17 @@ Map<String, dynamic> _$$ShippingCustomBreakdownSummaryImplToJson(
   'rejected': instance.rejected,
   'pending': instance.pending,
   'approval_rate': instance.approvalRate,
+  'approved_extra': instance.approvedExtra,
+  'approved_saved': instance.approvedSaved,
+  'net_effect': instance.netEffect,
+  'net_effect_pct': instance.netEffectPct,
+  'increases': instance.increases,
+  'decreases': instance.decreases,
+  'avg_increase': instance.avgIncrease,
+  'max_increase_pct': instance.maxIncreasePct,
+  'pending_extra': instance.pendingExtra,
+  'delivery_orders': instance.deliveryOrders,
+  'exception_rate_pct': instance.exceptionRatePct,
 };
 
 _$ShippingCustomBreakdownRowImpl _$$ShippingCustomBreakdownRowImplFromJson(

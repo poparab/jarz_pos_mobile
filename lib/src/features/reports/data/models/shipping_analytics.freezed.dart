@@ -2149,7 +2149,9 @@ mixin _$ShippingCustomBreakdown {
   ShippingCustomBreakdownSummary get summary =>
       throw _privateConstructorUsedError;
   List<ShippingCustomBreakdownRow> get rows =>
-      throw _privateConstructorUsedError;
+      throw _privateConstructorUsedError; // Approved overrides grouped by area, largest net extra first (top 5).
+  @JsonKey(name: 'by_area')
+  List<JsonMap> get byArea => throw _privateConstructorUsedError;
 
   /// Serializes this ShippingCustomBreakdown to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -2171,6 +2173,7 @@ abstract class $ShippingCustomBreakdownCopyWith<$Res> {
   $Res call({
     ShippingCustomBreakdownSummary summary,
     List<ShippingCustomBreakdownRow> rows,
+    @JsonKey(name: 'by_area') List<JsonMap> byArea,
   });
 
   $ShippingCustomBreakdownSummaryCopyWith<$Res> get summary;
@@ -2193,7 +2196,11 @@ class _$ShippingCustomBreakdownCopyWithImpl<
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? summary = null, Object? rows = null}) {
+  $Res call({
+    Object? summary = null,
+    Object? rows = null,
+    Object? byArea = null,
+  }) {
     return _then(
       _value.copyWith(
             summary: null == summary
@@ -2204,6 +2211,10 @@ class _$ShippingCustomBreakdownCopyWithImpl<
                 ? _value.rows
                 : rows // ignore: cast_nullable_to_non_nullable
                       as List<ShippingCustomBreakdownRow>,
+            byArea: null == byArea
+                ? _value.byArea
+                : byArea // ignore: cast_nullable_to_non_nullable
+                      as List<JsonMap>,
           )
           as $Val,
     );
@@ -2234,6 +2245,7 @@ abstract class _$$ShippingCustomBreakdownImplCopyWith<$Res>
   $Res call({
     ShippingCustomBreakdownSummary summary,
     List<ShippingCustomBreakdownRow> rows,
+    @JsonKey(name: 'by_area') List<JsonMap> byArea,
   });
 
   @override
@@ -2257,7 +2269,11 @@ class __$$ShippingCustomBreakdownImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? summary = null, Object? rows = null}) {
+  $Res call({
+    Object? summary = null,
+    Object? rows = null,
+    Object? byArea = null,
+  }) {
     return _then(
       _$ShippingCustomBreakdownImpl(
         summary: null == summary
@@ -2268,6 +2284,10 @@ class __$$ShippingCustomBreakdownImplCopyWithImpl<$Res>
             ? _value._rows
             : rows // ignore: cast_nullable_to_non_nullable
                   as List<ShippingCustomBreakdownRow>,
+        byArea: null == byArea
+            ? _value._byArea
+            : byArea // ignore: cast_nullable_to_non_nullable
+                  as List<JsonMap>,
       ),
     );
   }
@@ -2280,7 +2300,9 @@ class _$ShippingCustomBreakdownImpl implements _ShippingCustomBreakdown {
     this.summary = const ShippingCustomBreakdownSummary(),
     final List<ShippingCustomBreakdownRow> rows =
         const <ShippingCustomBreakdownRow>[],
-  }) : _rows = rows;
+    @JsonKey(name: 'by_area') final List<JsonMap> byArea = const <JsonMap>[],
+  }) : _rows = rows,
+       _byArea = byArea;
 
   factory _$ShippingCustomBreakdownImpl.fromJson(Map<String, dynamic> json) =>
       _$$ShippingCustomBreakdownImplFromJson(json);
@@ -2297,9 +2319,20 @@ class _$ShippingCustomBreakdownImpl implements _ShippingCustomBreakdown {
     return EqualUnmodifiableListView(_rows);
   }
 
+  // Approved overrides grouped by area, largest net extra first (top 5).
+  final List<JsonMap> _byArea;
+  // Approved overrides grouped by area, largest net extra first (top 5).
+  @override
+  @JsonKey(name: 'by_area')
+  List<JsonMap> get byArea {
+    if (_byArea is EqualUnmodifiableListView) return _byArea;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_byArea);
+  }
+
   @override
   String toString() {
-    return 'ShippingCustomBreakdown(summary: $summary, rows: $rows)';
+    return 'ShippingCustomBreakdown(summary: $summary, rows: $rows, byArea: $byArea)';
   }
 
   @override
@@ -2308,7 +2341,8 @@ class _$ShippingCustomBreakdownImpl implements _ShippingCustomBreakdown {
         (other.runtimeType == runtimeType &&
             other is _$ShippingCustomBreakdownImpl &&
             (identical(other.summary, summary) || other.summary == summary) &&
-            const DeepCollectionEquality().equals(other._rows, _rows));
+            const DeepCollectionEquality().equals(other._rows, _rows) &&
+            const DeepCollectionEquality().equals(other._byArea, _byArea));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2317,6 +2351,7 @@ class _$ShippingCustomBreakdownImpl implements _ShippingCustomBreakdown {
     runtimeType,
     summary,
     const DeepCollectionEquality().hash(_rows),
+    const DeepCollectionEquality().hash(_byArea),
   );
 
   /// Create a copy of ShippingCustomBreakdown
@@ -2340,6 +2375,7 @@ abstract class _ShippingCustomBreakdown implements ShippingCustomBreakdown {
   const factory _ShippingCustomBreakdown({
     final ShippingCustomBreakdownSummary summary,
     final List<ShippingCustomBreakdownRow> rows,
+    @JsonKey(name: 'by_area') final List<JsonMap> byArea,
   }) = _$ShippingCustomBreakdownImpl;
 
   factory _ShippingCustomBreakdown.fromJson(Map<String, dynamic> json) =
@@ -2348,7 +2384,10 @@ abstract class _ShippingCustomBreakdown implements ShippingCustomBreakdown {
   @override
   ShippingCustomBreakdownSummary get summary;
   @override
-  List<ShippingCustomBreakdownRow> get rows;
+  List<ShippingCustomBreakdownRow> get rows; // Approved overrides grouped by area, largest net extra first (top 5).
+  @override
+  @JsonKey(name: 'by_area')
+  List<JsonMap> get byArea;
 
   /// Create a copy of ShippingCustomBreakdown
   /// with the given fields replaced by the non-null parameter values.
@@ -2371,7 +2410,27 @@ mixin _$ShippingCustomBreakdownSummary {
   int get rejected => throw _privateConstructorUsedError;
   int get pending => throw _privateConstructorUsedError;
   @JsonKey(name: 'approval_rate')
-  double get approvalRate => throw _privateConstructorUsedError;
+  double get approvalRate => throw _privateConstructorUsedError; // Money view of APPROVED overrides vs each area's standard courier rate.
+  @JsonKey(name: 'approved_extra')
+  double get approvedExtra => throw _privateConstructorUsedError;
+  @JsonKey(name: 'approved_saved')
+  double get approvedSaved => throw _privateConstructorUsedError;
+  @JsonKey(name: 'net_effect')
+  double get netEffect => throw _privateConstructorUsedError;
+  @JsonKey(name: 'net_effect_pct')
+  double get netEffectPct => throw _privateConstructorUsedError;
+  int get increases => throw _privateConstructorUsedError;
+  int get decreases => throw _privateConstructorUsedError;
+  @JsonKey(name: 'avg_increase')
+  double get avgIncrease => throw _privateConstructorUsedError;
+  @JsonKey(name: 'max_increase_pct')
+  double get maxIncreasePct => throw _privateConstructorUsedError;
+  @JsonKey(name: 'pending_extra')
+  double get pendingExtra => throw _privateConstructorUsedError;
+  @JsonKey(name: 'delivery_orders')
+  int get deliveryOrders => throw _privateConstructorUsedError;
+  @JsonKey(name: 'exception_rate_pct')
+  double get exceptionRatePct => throw _privateConstructorUsedError;
 
   /// Serializes this ShippingCustomBreakdownSummary to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -2400,6 +2459,17 @@ abstract class $ShippingCustomBreakdownSummaryCopyWith<$Res> {
     int rejected,
     int pending,
     @JsonKey(name: 'approval_rate') double approvalRate,
+    @JsonKey(name: 'approved_extra') double approvedExtra,
+    @JsonKey(name: 'approved_saved') double approvedSaved,
+    @JsonKey(name: 'net_effect') double netEffect,
+    @JsonKey(name: 'net_effect_pct') double netEffectPct,
+    int increases,
+    int decreases,
+    @JsonKey(name: 'avg_increase') double avgIncrease,
+    @JsonKey(name: 'max_increase_pct') double maxIncreasePct,
+    @JsonKey(name: 'pending_extra') double pendingExtra,
+    @JsonKey(name: 'delivery_orders') int deliveryOrders,
+    @JsonKey(name: 'exception_rate_pct') double exceptionRatePct,
   });
 }
 
@@ -2426,6 +2496,17 @@ class _$ShippingCustomBreakdownSummaryCopyWithImpl<
     Object? rejected = null,
     Object? pending = null,
     Object? approvalRate = null,
+    Object? approvedExtra = null,
+    Object? approvedSaved = null,
+    Object? netEffect = null,
+    Object? netEffectPct = null,
+    Object? increases = null,
+    Object? decreases = null,
+    Object? avgIncrease = null,
+    Object? maxIncreasePct = null,
+    Object? pendingExtra = null,
+    Object? deliveryOrders = null,
+    Object? exceptionRatePct = null,
   }) {
     return _then(
       _value.copyWith(
@@ -2449,6 +2530,50 @@ class _$ShippingCustomBreakdownSummaryCopyWithImpl<
                 ? _value.approvalRate
                 : approvalRate // ignore: cast_nullable_to_non_nullable
                       as double,
+            approvedExtra: null == approvedExtra
+                ? _value.approvedExtra
+                : approvedExtra // ignore: cast_nullable_to_non_nullable
+                      as double,
+            approvedSaved: null == approvedSaved
+                ? _value.approvedSaved
+                : approvedSaved // ignore: cast_nullable_to_non_nullable
+                      as double,
+            netEffect: null == netEffect
+                ? _value.netEffect
+                : netEffect // ignore: cast_nullable_to_non_nullable
+                      as double,
+            netEffectPct: null == netEffectPct
+                ? _value.netEffectPct
+                : netEffectPct // ignore: cast_nullable_to_non_nullable
+                      as double,
+            increases: null == increases
+                ? _value.increases
+                : increases // ignore: cast_nullable_to_non_nullable
+                      as int,
+            decreases: null == decreases
+                ? _value.decreases
+                : decreases // ignore: cast_nullable_to_non_nullable
+                      as int,
+            avgIncrease: null == avgIncrease
+                ? _value.avgIncrease
+                : avgIncrease // ignore: cast_nullable_to_non_nullable
+                      as double,
+            maxIncreasePct: null == maxIncreasePct
+                ? _value.maxIncreasePct
+                : maxIncreasePct // ignore: cast_nullable_to_non_nullable
+                      as double,
+            pendingExtra: null == pendingExtra
+                ? _value.pendingExtra
+                : pendingExtra // ignore: cast_nullable_to_non_nullable
+                      as double,
+            deliveryOrders: null == deliveryOrders
+                ? _value.deliveryOrders
+                : deliveryOrders // ignore: cast_nullable_to_non_nullable
+                      as int,
+            exceptionRatePct: null == exceptionRatePct
+                ? _value.exceptionRatePct
+                : exceptionRatePct // ignore: cast_nullable_to_non_nullable
+                      as double,
           )
           as $Val,
     );
@@ -2470,6 +2595,17 @@ abstract class _$$ShippingCustomBreakdownSummaryImplCopyWith<$Res>
     int rejected,
     int pending,
     @JsonKey(name: 'approval_rate') double approvalRate,
+    @JsonKey(name: 'approved_extra') double approvedExtra,
+    @JsonKey(name: 'approved_saved') double approvedSaved,
+    @JsonKey(name: 'net_effect') double netEffect,
+    @JsonKey(name: 'net_effect_pct') double netEffectPct,
+    int increases,
+    int decreases,
+    @JsonKey(name: 'avg_increase') double avgIncrease,
+    @JsonKey(name: 'max_increase_pct') double maxIncreasePct,
+    @JsonKey(name: 'pending_extra') double pendingExtra,
+    @JsonKey(name: 'delivery_orders') int deliveryOrders,
+    @JsonKey(name: 'exception_rate_pct') double exceptionRatePct,
   });
 }
 
@@ -2496,6 +2632,17 @@ class __$$ShippingCustomBreakdownSummaryImplCopyWithImpl<$Res>
     Object? rejected = null,
     Object? pending = null,
     Object? approvalRate = null,
+    Object? approvedExtra = null,
+    Object? approvedSaved = null,
+    Object? netEffect = null,
+    Object? netEffectPct = null,
+    Object? increases = null,
+    Object? decreases = null,
+    Object? avgIncrease = null,
+    Object? maxIncreasePct = null,
+    Object? pendingExtra = null,
+    Object? deliveryOrders = null,
+    Object? exceptionRatePct = null,
   }) {
     return _then(
       _$ShippingCustomBreakdownSummaryImpl(
@@ -2519,6 +2666,50 @@ class __$$ShippingCustomBreakdownSummaryImplCopyWithImpl<$Res>
             ? _value.approvalRate
             : approvalRate // ignore: cast_nullable_to_non_nullable
                   as double,
+        approvedExtra: null == approvedExtra
+            ? _value.approvedExtra
+            : approvedExtra // ignore: cast_nullable_to_non_nullable
+                  as double,
+        approvedSaved: null == approvedSaved
+            ? _value.approvedSaved
+            : approvedSaved // ignore: cast_nullable_to_non_nullable
+                  as double,
+        netEffect: null == netEffect
+            ? _value.netEffect
+            : netEffect // ignore: cast_nullable_to_non_nullable
+                  as double,
+        netEffectPct: null == netEffectPct
+            ? _value.netEffectPct
+            : netEffectPct // ignore: cast_nullable_to_non_nullable
+                  as double,
+        increases: null == increases
+            ? _value.increases
+            : increases // ignore: cast_nullable_to_non_nullable
+                  as int,
+        decreases: null == decreases
+            ? _value.decreases
+            : decreases // ignore: cast_nullable_to_non_nullable
+                  as int,
+        avgIncrease: null == avgIncrease
+            ? _value.avgIncrease
+            : avgIncrease // ignore: cast_nullable_to_non_nullable
+                  as double,
+        maxIncreasePct: null == maxIncreasePct
+            ? _value.maxIncreasePct
+            : maxIncreasePct // ignore: cast_nullable_to_non_nullable
+                  as double,
+        pendingExtra: null == pendingExtra
+            ? _value.pendingExtra
+            : pendingExtra // ignore: cast_nullable_to_non_nullable
+                  as double,
+        deliveryOrders: null == deliveryOrders
+            ? _value.deliveryOrders
+            : deliveryOrders // ignore: cast_nullable_to_non_nullable
+                  as int,
+        exceptionRatePct: null == exceptionRatePct
+            ? _value.exceptionRatePct
+            : exceptionRatePct // ignore: cast_nullable_to_non_nullable
+                  as double,
       ),
     );
   }
@@ -2534,6 +2725,17 @@ class _$ShippingCustomBreakdownSummaryImpl
     this.rejected = 0,
     this.pending = 0,
     @JsonKey(name: 'approval_rate') this.approvalRate = 0,
+    @JsonKey(name: 'approved_extra') this.approvedExtra = 0,
+    @JsonKey(name: 'approved_saved') this.approvedSaved = 0,
+    @JsonKey(name: 'net_effect') this.netEffect = 0,
+    @JsonKey(name: 'net_effect_pct') this.netEffectPct = 0,
+    this.increases = 0,
+    this.decreases = 0,
+    @JsonKey(name: 'avg_increase') this.avgIncrease = 0,
+    @JsonKey(name: 'max_increase_pct') this.maxIncreasePct = 0,
+    @JsonKey(name: 'pending_extra') this.pendingExtra = 0,
+    @JsonKey(name: 'delivery_orders') this.deliveryOrders = 0,
+    @JsonKey(name: 'exception_rate_pct') this.exceptionRatePct = 0,
   });
 
   factory _$ShippingCustomBreakdownSummaryImpl.fromJson(
@@ -2555,10 +2757,44 @@ class _$ShippingCustomBreakdownSummaryImpl
   @override
   @JsonKey(name: 'approval_rate')
   final double approvalRate;
+  // Money view of APPROVED overrides vs each area's standard courier rate.
+  @override
+  @JsonKey(name: 'approved_extra')
+  final double approvedExtra;
+  @override
+  @JsonKey(name: 'approved_saved')
+  final double approvedSaved;
+  @override
+  @JsonKey(name: 'net_effect')
+  final double netEffect;
+  @override
+  @JsonKey(name: 'net_effect_pct')
+  final double netEffectPct;
+  @override
+  @JsonKey()
+  final int increases;
+  @override
+  @JsonKey()
+  final int decreases;
+  @override
+  @JsonKey(name: 'avg_increase')
+  final double avgIncrease;
+  @override
+  @JsonKey(name: 'max_increase_pct')
+  final double maxIncreasePct;
+  @override
+  @JsonKey(name: 'pending_extra')
+  final double pendingExtra;
+  @override
+  @JsonKey(name: 'delivery_orders')
+  final int deliveryOrders;
+  @override
+  @JsonKey(name: 'exception_rate_pct')
+  final double exceptionRatePct;
 
   @override
   String toString() {
-    return 'ShippingCustomBreakdownSummary(total: $total, approved: $approved, rejected: $rejected, pending: $pending, approvalRate: $approvalRate)';
+    return 'ShippingCustomBreakdownSummary(total: $total, approved: $approved, rejected: $rejected, pending: $pending, approvalRate: $approvalRate, approvedExtra: $approvedExtra, approvedSaved: $approvedSaved, netEffect: $netEffect, netEffectPct: $netEffectPct, increases: $increases, decreases: $decreases, avgIncrease: $avgIncrease, maxIncreasePct: $maxIncreasePct, pendingExtra: $pendingExtra, deliveryOrders: $deliveryOrders, exceptionRatePct: $exceptionRatePct)';
   }
 
   @override
@@ -2573,7 +2809,29 @@ class _$ShippingCustomBreakdownSummaryImpl
                 other.rejected == rejected) &&
             (identical(other.pending, pending) || other.pending == pending) &&
             (identical(other.approvalRate, approvalRate) ||
-                other.approvalRate == approvalRate));
+                other.approvalRate == approvalRate) &&
+            (identical(other.approvedExtra, approvedExtra) ||
+                other.approvedExtra == approvedExtra) &&
+            (identical(other.approvedSaved, approvedSaved) ||
+                other.approvedSaved == approvedSaved) &&
+            (identical(other.netEffect, netEffect) ||
+                other.netEffect == netEffect) &&
+            (identical(other.netEffectPct, netEffectPct) ||
+                other.netEffectPct == netEffectPct) &&
+            (identical(other.increases, increases) ||
+                other.increases == increases) &&
+            (identical(other.decreases, decreases) ||
+                other.decreases == decreases) &&
+            (identical(other.avgIncrease, avgIncrease) ||
+                other.avgIncrease == avgIncrease) &&
+            (identical(other.maxIncreasePct, maxIncreasePct) ||
+                other.maxIncreasePct == maxIncreasePct) &&
+            (identical(other.pendingExtra, pendingExtra) ||
+                other.pendingExtra == pendingExtra) &&
+            (identical(other.deliveryOrders, deliveryOrders) ||
+                other.deliveryOrders == deliveryOrders) &&
+            (identical(other.exceptionRatePct, exceptionRatePct) ||
+                other.exceptionRatePct == exceptionRatePct));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2585,6 +2843,17 @@ class _$ShippingCustomBreakdownSummaryImpl
     rejected,
     pending,
     approvalRate,
+    approvedExtra,
+    approvedSaved,
+    netEffect,
+    netEffectPct,
+    increases,
+    decreases,
+    avgIncrease,
+    maxIncreasePct,
+    pendingExtra,
+    deliveryOrders,
+    exceptionRatePct,
   );
 
   /// Create a copy of ShippingCustomBreakdownSummary
@@ -2614,6 +2883,17 @@ abstract class _ShippingCustomBreakdownSummary
     final int rejected,
     final int pending,
     @JsonKey(name: 'approval_rate') final double approvalRate,
+    @JsonKey(name: 'approved_extra') final double approvedExtra,
+    @JsonKey(name: 'approved_saved') final double approvedSaved,
+    @JsonKey(name: 'net_effect') final double netEffect,
+    @JsonKey(name: 'net_effect_pct') final double netEffectPct,
+    final int increases,
+    final int decreases,
+    @JsonKey(name: 'avg_increase') final double avgIncrease,
+    @JsonKey(name: 'max_increase_pct') final double maxIncreasePct,
+    @JsonKey(name: 'pending_extra') final double pendingExtra,
+    @JsonKey(name: 'delivery_orders') final int deliveryOrders,
+    @JsonKey(name: 'exception_rate_pct') final double exceptionRatePct,
   }) = _$ShippingCustomBreakdownSummaryImpl;
 
   factory _ShippingCustomBreakdownSummary.fromJson(Map<String, dynamic> json) =
@@ -2629,7 +2909,38 @@ abstract class _ShippingCustomBreakdownSummary
   int get pending;
   @override
   @JsonKey(name: 'approval_rate')
-  double get approvalRate;
+  double get approvalRate; // Money view of APPROVED overrides vs each area's standard courier rate.
+  @override
+  @JsonKey(name: 'approved_extra')
+  double get approvedExtra;
+  @override
+  @JsonKey(name: 'approved_saved')
+  double get approvedSaved;
+  @override
+  @JsonKey(name: 'net_effect')
+  double get netEffect;
+  @override
+  @JsonKey(name: 'net_effect_pct')
+  double get netEffectPct;
+  @override
+  int get increases;
+  @override
+  int get decreases;
+  @override
+  @JsonKey(name: 'avg_increase')
+  double get avgIncrease;
+  @override
+  @JsonKey(name: 'max_increase_pct')
+  double get maxIncreasePct;
+  @override
+  @JsonKey(name: 'pending_extra')
+  double get pendingExtra;
+  @override
+  @JsonKey(name: 'delivery_orders')
+  int get deliveryOrders;
+  @override
+  @JsonKey(name: 'exception_rate_pct')
+  double get exceptionRatePct;
 
   /// Create a copy of ShippingCustomBreakdownSummary
   /// with the given fields replaced by the non-null parameter values.

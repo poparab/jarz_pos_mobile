@@ -140,6 +140,8 @@ class ShippingCustomBreakdown with _$ShippingCustomBreakdown {
     ShippingCustomBreakdownSummary summary,
     @Default(<ShippingCustomBreakdownRow>[])
     List<ShippingCustomBreakdownRow> rows,
+    // Approved overrides grouped by area, largest net extra first (top 5).
+    @JsonKey(name: 'by_area') @Default(<JsonMap>[]) List<JsonMap> byArea,
   }) = _ShippingCustomBreakdown;
 
   factory ShippingCustomBreakdown.fromJson(Map<String, dynamic> json) =>
@@ -154,6 +156,18 @@ class ShippingCustomBreakdownSummary with _$ShippingCustomBreakdownSummary {
     @Default(0) int rejected,
     @Default(0) int pending,
     @JsonKey(name: 'approval_rate') @Default(0) double approvalRate,
+    // Money view of APPROVED overrides vs each area's standard courier rate.
+    @JsonKey(name: 'approved_extra') @Default(0) double approvedExtra,
+    @JsonKey(name: 'approved_saved') @Default(0) double approvedSaved,
+    @JsonKey(name: 'net_effect') @Default(0) double netEffect,
+    @JsonKey(name: 'net_effect_pct') @Default(0) double netEffectPct,
+    @Default(0) int increases,
+    @Default(0) int decreases,
+    @JsonKey(name: 'avg_increase') @Default(0) double avgIncrease,
+    @JsonKey(name: 'max_increase_pct') @Default(0) double maxIncreasePct,
+    @JsonKey(name: 'pending_extra') @Default(0) double pendingExtra,
+    @JsonKey(name: 'delivery_orders') @Default(0) int deliveryOrders,
+    @JsonKey(name: 'exception_rate_pct') @Default(0) double exceptionRatePct,
   }) = _ShippingCustomBreakdownSummary;
 
   factory ShippingCustomBreakdownSummary.fromJson(Map<String, dynamic> json) =>

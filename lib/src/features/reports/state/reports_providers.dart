@@ -39,6 +39,14 @@ class ReportRange {
     return ReportRange(from: DateTime(n.year, n.month, 1), to: DateTime(n.year, n.month, n.day));
   }
 
+  /// The previous calendar month, 1st to its last day.
+  factory ReportRange.lastMonth([DateTime? now]) {
+    final n = now ?? DateTime.now();
+    // Day 0 of this month is the last day of the previous one.
+    final end = DateTime(n.year, n.month, 0);
+    return ReportRange(from: DateTime(end.year, end.month, 1), to: end);
+  }
+
   /// The trailing [days] days ending today (inclusive).
   factory ReportRange.lastDays(int days, [DateTime? now]) {
     final n = now ?? DateTime.now();

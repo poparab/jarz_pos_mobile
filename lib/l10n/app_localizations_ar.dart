@@ -15783,4 +15783,79 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get expensesPeriodJournalEntries => 'قيود توزيع الفترة';
+
+  @override
+  String get reportsRangeLastMonth => 'الشهر اللي فات';
+
+  @override
+  String reportShowAllCount(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get reportShowLess => 'عرض أقل';
+
+  @override
+  String get reportOverridesTitle => 'تعديلات تكلفة المناديب';
+
+  @override
+  String get reportOverridesHint =>
+      'التعديلات المعتمدة على اللي اتدفع للمندوب، مقارنةً بسعر المنطقة الأساسي';
+
+  @override
+  String get reportOverridesNetExtra => 'صافي الزيادة المدفوعة';
+
+  @override
+  String reportOverridesVsStandard(String pct) {
+    return '$pct% فوق السعر الأساسي للطلبات دي';
+  }
+
+  @override
+  String get reportOverridesExtraPaid => 'مدفوع فوق الأساسي';
+
+  @override
+  String reportOverridesIncreases(int count, String avg) {
+    return '$count طلب، متوسط +$avg';
+  }
+
+  @override
+  String get reportOverridesSaved => 'مدفوع أقل من الأساسي';
+
+  @override
+  String reportOverridesDecreases(int count) {
+    return '$count طلب';
+  }
+
+  @override
+  String get reportOverridesShare => 'طلبات عليها تعديل';
+
+  @override
+  String reportOverridesShareOf(int count, int total) {
+    return '$count من $total توصيلة';
+  }
+
+  @override
+  String get reportOverridesDecisions => 'القرارات';
+
+  @override
+  String reportOverridesDecisionsValue(
+    int approved,
+    int rejected,
+    int pending,
+  ) {
+    return '$approved اتوافق · $rejected اترفض · $pending مستني';
+  }
+
+  @override
+  String reportOverridesPendingExtra(String amount) {
+    return 'الطلبات المستنية هتزود $amount';
+  }
+
+  @override
+  String get reportOverridesByArea => 'الزيادة بتروح فين';
+
+  @override
+  String reportOverridesLargest(String pct) {
+    return 'أكبر تعديل: +$pct%';
+  }
 }

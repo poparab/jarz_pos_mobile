@@ -165,13 +165,24 @@ class _NavChip extends StatelessWidget {
 // Priority alerts
 // ─────────────────────────────────────────────────────────────────────────
 
-class _AlertsSection extends StatelessWidget {
+/// Priority alerts, three at a time; the rest behind "Show all".
+class _AlertsSection extends StatefulWidget {
   final List<JsonMap> alerts;
   const _AlertsSection({required this.alerts});
 
   @override
+  State<_AlertsSection> createState() => _AlertsSectionState();
+}
+
+class _AlertsSectionState extends State<_AlertsSection> {
+  static const _collapsedCount = 3;
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
-    if (alerts.isEmpty) return const SizedBox.shrink();
+    final all = widget.alerts;
+    if (all.isEmpty) return const SizedBox.shrink();
+    final alerts = _expanded ? all : all.take(_collapsedCount).toList();
     final l10n = context.l10n;
     final theme = Theme.of(context);
 
@@ -202,6 +213,18 @@ class _AlertsSection extends StatelessWidget {
             ),
           );
         }),
+        if (all.length > _collapsedCount)
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton(
+              onPressed: () => setState(() => _expanded = !_expanded),
+              child: Text(
+                _expanded
+                    ? l10n.reportShowLess
+                    : l10n.reportShowAllCount(all.length),
+              ),
+            ),
+          ),
         const SizedBox(height: 12),
       ],
     );

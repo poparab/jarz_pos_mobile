@@ -98,7 +98,12 @@ class _DataView extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 8, 24),
             children: [
-              _KpiGrid(kpis: data.summaryKpis, maxWidth: constraints.maxWidth),
+              // The ListView pads 8 on each side: measuring the full width made
+              // two cards 8px too wide to share a row, so they stacked one per row.
+              _KpiGrid(
+                kpis: data.summaryKpis,
+                maxWidth: constraints.maxWidth - 16,
+              ),
               if (data.alerts.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 _AlertsCard(alerts: data.alerts),
@@ -211,8 +216,9 @@ class _KpiGrid extends StatelessWidget {
 
     const spacing = 8.0;
     final crossCount = (maxWidth / 180).floor().clamp(2, 4);
+    // floorToDouble: fractional widths can still round past the row.
     final cardWidth =
-        (maxWidth - spacing * (crossCount - 1)) / crossCount;
+        ((maxWidth - spacing * (crossCount - 1)) / crossCount).floorToDouble();
 
     return Wrap(
       spacing: spacing,
@@ -251,14 +257,25 @@ IconData _alertIcon(String type) {
   }
 }
 
-class _AlertsCard extends StatelessWidget {
+/// Alerts, three at a time: a long list here buried the dashboard below it.
+class _AlertsCard extends StatefulWidget {
   final List<ShippingAlert> alerts;
   const _AlertsCard({required this.alerts});
+
+  @override
+  State<_AlertsCard> createState() => _AlertsCardState();
+}
+
+class _AlertsCardState extends State<_AlertsCard> {
+  static const _collapsedCount = 3;
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    final alerts = widget.alerts;
+    final shown = _expanded ? alerts : alerts.take(_collapsedCount).toList();
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -273,7 +290,7 @@ class _AlertsCard extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            for (final a in alerts)
+            for (final a in shown)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
@@ -292,6 +309,18 @@ class _AlertsCard extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+              ),
+            if (alerts.length > _collapsedCount)
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: TextButton(
+                  onPressed: () => setState(() => _expanded = !_expanded),
+                  child: Text(
+                    _expanded
+                        ? l10n.reportShowLess
+                        : l10n.reportShowAllCount(alerts.length),
+                  ),
                 ),
               ),
           ],
@@ -581,10 +610,8 @@ class _TrendLineChart extends StatelessWidget {
 /// A pie / donut chart.
 class _PieChartView extends StatelessWidget {
   final List<_PieSlice> slices;
-  final double centerSpaceRadius;
   const _PieChartView({
     required this.slices,
-    this.centerSpaceRadius = 0,
   });
 
   @override
@@ -593,7 +620,7 @@ class _PieChartView extends StatelessWidget {
     return PieChart(
       PieChartData(
         sectionsSpace: 2,
-        centerSpaceRadius: centerSpaceRadius,
+        centerSpaceRadius: 0,
         sections: [
           for (final s in slices)
             PieChartSectionData(
@@ -1148,6 +1175,9 @@ class _MiniStat extends StatelessWidget {
 // Shipping overrides (donut + table)
 // ─────────────────────────────────────────────────────────────────────────
 
+/// Courier-cost overrides as money, not as a list of orders: how much more
+/// (or less) was paid than each area's standard rate, how often it happens,
+/// and where. The per-order approvals live on the Manager Dashboard.
 class _OverridesSection extends StatelessWidget {
   final ShippingCustomBreakdown breakdown;
   const _OverridesSection({required this.breakdown});
@@ -1157,101 +1187,187 @@ class _OverridesSection extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final s = breakdown.summary;
-    final approvedColor = Colors.green.shade700;
-    final rejectedColor = theme.colorScheme.error;
-    final pendingColor = Colors.orange.shade800;
-    final donutEmpty = s.total == 0;
+    final extraColor = theme.colorScheme.error;
+    final savedColor = Colors.green.shade700;
+    final netColor = s.netEffect > 0 ? extraColor : savedColor;
+    String pct(double v) => v.toStringAsFixed(v.abs() >= 10 ? 0 : 1);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ReportChartCard(
-          title: l10n.reportShippingOverrides,
-          isEmpty: donutEmpty,
-          emptyText: l10n.reportNoData,
-          child: _PieChartView(
-            centerSpaceRadius: 40,
-            slices: [
-              _PieSlice('', s.approved.toDouble(), approvedColor),
-              _PieSlice('', s.rejected.toDouble(), rejectedColor),
-              _PieSlice('', s.pending.toDouble(), pendingColor),
-            ],
-          ),
-        ),
-        if (!donutEmpty)
-          _LegendRow(items: [
-            MapEntry('Approved', approvedColor),
-            MapEntry('Rejected', rejectedColor),
-            MapEntry('Pending', pendingColor),
-          ]),
-        const SizedBox(height: 8),
-        Card(
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.reportOverridesTitle,
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              l10n.reportOverridesHint,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(l10n.reportOverridesNetExtra,
+                style: theme.textTheme.labelMedium),
+            Text(
+              formatCurrency(context, s.netEffect),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: netColor,
+              ),
+            ),
+            Text(
+              l10n.reportOverridesVsStandard(pct(s.netEffectPct)),
+              style: theme.textTheme.labelSmall,
+            ),
+            const Divider(height: 20),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final r in breakdown.rows)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  if (r.isLargeOverride) ...[
-                                    Icon(
-                                      Icons.priority_high,
-                                      size: 14,
-                                      color: theme.colorScheme.error,
-                                    ),
-                                    const SizedBox(width: 2),
-                                  ],
-                                  Flexible(
-                                    child: Text(
-                                      r.displayId,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: theme.textTheme.bodySmall,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                '${r.territory} · ${r.status}',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            formatCurrency(context, r.delta),
-                            textAlign: TextAlign.end,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: r.delta >= 0
-                                  ? theme.colorScheme.error
-                                  : approvedColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                _OverrideStat(
+                  label: l10n.reportOverridesExtraPaid,
+                  value: formatCurrency(context, s.approvedExtra),
+                  sub: l10n.reportOverridesIncreases(
+                    s.increases,
+                    formatCurrency(context, s.avgIncrease),
                   ),
+                  color: extraColor,
+                ),
+                const SizedBox(width: 8),
+                _OverrideStat(
+                  label: l10n.reportOverridesSaved,
+                  value: formatCurrency(context, s.approvedSaved),
+                  sub: l10n.reportOverridesDecreases(s.decreases),
+                  color: savedColor,
+                ),
               ],
             ),
-          ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _OverrideStat(
+                  label: l10n.reportOverridesShare,
+                  value: '${pct(s.exceptionRatePct)}%',
+                  sub: l10n.reportOverridesShareOf(s.approved, s.deliveryOrders),
+                ),
+                const SizedBox(width: 8),
+                _OverrideStat(
+                  label: l10n.reportOverridesDecisions,
+                  value: '${pct(s.approvalRate)}%',
+                  sub: l10n.reportOverridesDecisionsValue(
+                    s.approved,
+                    s.rejected,
+                    s.pending,
+                  ),
+                ),
+              ],
+            ),
+            if (s.maxIncreasePct > 0)
+              Text(
+                l10n.reportOverridesLargest(pct(s.maxIncreasePct)),
+                style: theme.textTheme.labelSmall,
+              ),
+            if (s.pending > 0 && s.pendingExtra != 0)
+              Text(
+                l10n.reportOverridesPendingExtra(
+                  formatCurrency(context, s.pendingExtra),
+                ),
+                style: theme.textTheme.labelSmall
+                    ?.copyWith(color: Colors.orange.shade800),
+              ),
+            if (breakdown.byArea.isNotEmpty) ...[
+              const Divider(height: 20),
+              Text(
+                l10n.reportOverridesByArea,
+                style: theme.textTheme.labelMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              for (final a in breakdown.byArea)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${a['territory'] ?? ''}',
+                          style: theme.textTheme.bodySmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        l10n.reportOverridesDecreases(
+                          (a['count'] as num?)?.toInt() ?? 0,
+                        ),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        formatCurrency(
+                          context,
+                          (a['net'] as num?)?.toDouble() ?? 0,
+                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: extraColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ],
         ),
-      ],
+      ),
+    );
+  }
+}
+
+class _OverrideStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final String sub;
+  final Color? color;
+  const _OverrideStat({
+    required this.label,
+    required this.value,
+    required this.sub,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final muted = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: muted),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            Text(sub, style: muted),
+          ],
+        ),
+      ),
     );
   }
 }

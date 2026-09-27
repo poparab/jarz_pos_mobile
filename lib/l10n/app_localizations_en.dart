@@ -15794,4 +15794,79 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get expensesPeriodJournalEntries => 'Period journal entries';
+
+  @override
+  String get reportsRangeLastMonth => 'Last Month';
+
+  @override
+  String reportShowAllCount(int count) {
+    return 'Show all ($count)';
+  }
+
+  @override
+  String get reportShowLess => 'Show less';
+
+  @override
+  String get reportOverridesTitle => 'Courier cost overrides';
+
+  @override
+  String get reportOverridesHint =>
+      'Approved changes to what a courier was paid, compared with the area\'s standard rate';
+
+  @override
+  String get reportOverridesNetExtra => 'Net extra paid';
+
+  @override
+  String reportOverridesVsStandard(String pct) {
+    return '$pct% above the standard rate on these orders';
+  }
+
+  @override
+  String get reportOverridesExtraPaid => 'Paid above standard';
+
+  @override
+  String reportOverridesIncreases(int count, String avg) {
+    return '$count orders, avg +$avg';
+  }
+
+  @override
+  String get reportOverridesSaved => 'Paid below standard';
+
+  @override
+  String reportOverridesDecreases(int count) {
+    return '$count orders';
+  }
+
+  @override
+  String get reportOverridesShare => 'Orders with an override';
+
+  @override
+  String reportOverridesShareOf(int count, int total) {
+    return '$count of $total deliveries';
+  }
+
+  @override
+  String get reportOverridesDecisions => 'Decisions';
+
+  @override
+  String reportOverridesDecisionsValue(
+    int approved,
+    int rejected,
+    int pending,
+  ) {
+    return '$approved approved · $rejected rejected · $pending pending';
+  }
+
+  @override
+  String reportOverridesPendingExtra(String amount) {
+    return 'Pending requests would add $amount';
+  }
+
+  @override
+  String get reportOverridesByArea => 'Where the extra goes';
+
+  @override
+  String reportOverridesLargest(String pct) {
+    return 'Largest single override: +$pct%';
+  }
 }

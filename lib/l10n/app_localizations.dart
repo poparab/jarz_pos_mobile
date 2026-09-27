@@ -25912,6 +25912,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Period journal entries'**
   String get expensesPeriodJournalEntries;
+
+  /// No description provided for @reportsRangeLastMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Month'**
+  String get reportsRangeLastMonth;
+
+  /// No description provided for @reportShowAllCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String reportShowAllCount(int count);
+
+  /// No description provided for @reportShowLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get reportShowLess;
+
+  /// No description provided for @reportOverridesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier cost overrides'**
+  String get reportOverridesTitle;
+
+  /// No description provided for @reportOverridesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved changes to what a courier was paid, compared with the area\'\'s standard rate'**
+  String get reportOverridesHint;
+
+  /// No description provided for @reportOverridesNetExtra.
+  ///
+  /// In en, this message translates to:
+  /// **'Net extra paid'**
+  String get reportOverridesNetExtra;
+
+  /// No description provided for @reportOverridesVsStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}% above the standard rate on these orders'**
+  String reportOverridesVsStandard(String pct);
+
+  /// No description provided for @reportOverridesExtraPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid above standard'**
+  String get reportOverridesExtraPaid;
+
+  /// No description provided for @reportOverridesIncreases.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} orders, avg +{avg}'**
+  String reportOverridesIncreases(int count, String avg);
+
+  /// No description provided for @reportOverridesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid below standard'**
+  String get reportOverridesSaved;
+
+  /// No description provided for @reportOverridesDecreases.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} orders'**
+  String reportOverridesDecreases(int count);
+
+  /// No description provided for @reportOverridesShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders with an override'**
+  String get reportOverridesShare;
+
+  /// No description provided for @reportOverridesShareOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total} deliveries'**
+  String reportOverridesShareOf(int count, int total);
+
+  /// No description provided for @reportOverridesDecisions.
+  ///
+  /// In en, this message translates to:
+  /// **'Decisions'**
+  String get reportOverridesDecisions;
+
+  /// No description provided for @reportOverridesDecisionsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{approved} approved · {rejected} rejected · {pending} pending'**
+  String reportOverridesDecisionsValue(int approved, int rejected, int pending);
+
+  /// No description provided for @reportOverridesPendingExtra.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending requests would add {amount}'**
+  String reportOverridesPendingExtra(String amount);
+
+  /// No description provided for @reportOverridesByArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the extra goes'**
+  String get reportOverridesByArea;
+
+  /// No description provided for @reportOverridesLargest.
+  ///
+  /// In en, this message translates to:
+  /// **'Largest single override: +{pct}%'**
+  String reportOverridesLargest(String pct);
 }
 
 class _AppLocalizationsDelegate
