@@ -216,6 +216,25 @@ jobs:
           echo "${{ steps.plan.outputs.support_note }}"
           exit 1
 
+      # ── Production patch base, resolved before any setup ─────────────────
+      #
+      # A patch reaches only devices on the release it was built against, so
+      # production must patch the build /pos/download/ serves. That used to be
+      # inferred inside the publish step from `gh run list` + log scraping, and
+      # on 2026-09-30 the list returned an older window: the patch targeted
+      # 1.0.0+552 instead of 1.0.0+600 and Shorebird refused it for native
+      # diffs, ~9 minutes in. scripts/resolve_prod_patch_base.ps1 reads the
+      # page's single record instead, and runs here so a wrong or undecidable
+      # base fails in seconds.
+      - name: Resolve production patch base release
+        id: patch_base
+        if: steps.plan.outputs.release_type == 'shorebird_patch' && steps.plan.outputs.target_environment == 'production'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_RELEASE: ${{ inputs.release_version }}
+        run: ./scripts/resolve_prod_patch_base.ps1 -RequestedVersion "$env:REQUESTED_RELEASE"
+
       - name: Set up Java
         if: steps.plan.outputs.release_type != 'none'
         uses: actions/setup-java@v5
@@ -392,43 +411,18 @@ jobs:
         run: |
           $targetEnvironment = '${{ steps.plan.outputs.target_environment }}'
           $releaseVersion = '${{ inputs.release_version }}'
-          if ([string]::IsNullOrWhiteSpace($releaseVersion) -or ($targetEnvironment -eq 'production' -and $releaseVersion -eq 'latest')) {
-            if ($targetEnvironment -eq 'production') {
-              $runList = gh run list `
-                --repo $env:GITHUB_REPOSITORY `
-                --workflow 'Android Release' `
-                --branch main `
-                --limit 30 `
-                --json databaseId,displayTitle,event,status,conclusion | ConvertFrom-Json
-              $candidateRun = @(
-                @($runList) |
-                  Where-Object {
-                    $_.event -eq 'workflow_dispatch' -and
-                    $_.status -eq 'completed' -and
-                    $_.conclusion -eq 'success' -and
-                    $_.displayTitle -like '* / production / full_apk / *'
-                  } |
-                  Sort-Object -Property databaseId -Descending
-              ) | Select-Object -First 1
-              if (-not $candidateRun) {
-                throw "Could not find a successful production full APK workflow run to derive release_version for this production patch."
-              }
-              $runLog = gh run view $candidateRun.databaseId --repo $env:GITHUB_REPOSITORY --log
-              $releaseMatch = [regex]::Match(
-                $runLog,
-                'SENTRY_RELEASE:\s+production-v(?<version>[0-9A-Za-z.+_-]+)-[0-9a-f]{7,40}'
-              )
-              if (-not $releaseMatch.Success) {
-                throw "Could not parse release_version from production APK workflow run $($candidateRun.databaseId)."
-              }
-              $releaseVersion = $releaseMatch.Groups['version'].Value
-              Write-Host "Resolved production patch release version: $releaseVersion"
-            }
-            else {
-              # Staging auto-releases on every push and testers track head, so 'latest' is safe there.
-              $releaseVersion = 'latest'
+          if ($targetEnvironment -eq 'production') {
+            # Resolved (and checked) by the "Resolve production patch base release" step.
+            $releaseVersion = '${{ steps.patch_base.outputs.release_version }}'
+            if ([string]::IsNullOrWhiteSpace($releaseVersion)) {
+              throw 'No production patch base was resolved; see the "Resolve production patch base release" step.'
             }
           }
+          elseif ([string]::IsNullOrWhiteSpace($releaseVersion)) {
+            # Staging auto-releases on every push and testers track head, so 'latest' is safe there.
+            $releaseVersion = 'latest'
+          }
+          Write-Host "Patching $targetEnvironment release $releaseVersion"
           .\scripts\shorebird_android.ps1 -Environment $targetEnvironment -Action patch -ReleaseVersion $releaseVersion -Track '${{ steps.plan.outputs.shorebird_track }}'
 
       - name: Name APK artifact

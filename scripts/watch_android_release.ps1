@@ -196,51 +196,16 @@ function Get-WorkflowRunState([string]$RunId) {
 }
 
 function Resolve-ProductionPatchReleaseVersion([string]$ExplicitReleaseVersion) {
-    $requestedVersion = ''
-    if (-not [string]::IsNullOrWhiteSpace($ExplicitReleaseVersion)) {
-        $requestedVersion = $ExplicitReleaseVersion.Trim()
+    # One implementation, shared with the workflow's "Resolve production patch
+    # base release" step: the build /pos/download/ serves, never a run list.
+    Write-Step 'Resolving the production patch base from the download page...'
+    $resolver = Join-Path $PSScriptRoot 'resolve_prod_patch_base.ps1'
+    $resolvedVersion = & $resolver -RequestedVersion $ExplicitReleaseVersion | Select-Object -Last 1
+    if ([string]::IsNullOrWhiteSpace("$resolvedVersion")) {
+        throw 'Could not resolve the production patch release version.'
     }
-    if ($requestedVersion -and $requestedVersion -ne 'latest') {
-        return $requestedVersion
-    }
-
-    Write-Step 'Resolving production patch release version from the latest successful production APK release...'
-    $runs = Invoke-GhJson -Arguments @(
-        'run', 'list',
-        '--workflow', $workflowName,
-        '--branch', 'main',
-        '--limit', '30',
-        '--json', 'databaseId,displayTitle,event,status,conclusion,url,createdAt'
-    )
-
-    $candidateRun = @(
-        @($runs) |
-            Where-Object {
-                $_.event -eq 'workflow_dispatch' -and
-                $_.status -eq 'completed' -and
-                $_.conclusion -eq 'success' -and
-                $_.displayTitle -like '* / production / full_apk / *'
-            } |
-            Sort-Object -Property databaseId -Descending
-    ) | Select-Object -First 1
-
-    if (-not $candidateRun) {
-        throw 'Could not find a successful production full APK workflow run to derive the Shorebird patch release version.'
-    }
-
-    Write-Info "Using production APK workflow run $($candidateRun.databaseId)"
-    $runLog = Invoke-Gh -Arguments @('run', 'view', "$($candidateRun.databaseId)", '--log')
-    $releaseMatch = [regex]::Match(
-        $runLog,
-        'SENTRY_RELEASE:\s+production-v(?<version>[0-9A-Za-z.+_-]+)-[0-9a-f]{7,40}'
-    )
-    if (-not $releaseMatch.Success) {
-        throw "Could not parse the production release version from workflow run $($candidateRun.databaseId)."
-    }
-
-    $resolvedVersion = $releaseMatch.Groups['version'].Value
     Write-Info "Resolved production patch release version: $resolvedVersion"
-    return $resolvedVersion
+    return "$resolvedVersion"
 }
 
 function Get-ExpectedRunTitle([string]$EventName, [string]$ResolvedReleaseType) {
