@@ -1583,6 +1583,10 @@
     }
   },
   "invoicePrinterNotConnectedHint": "الطابعة غير متصلة. افتح شاشة اختيار الطابعة من القائمة.",
+  "invoiceShareReceipt": "مشاركة الإيصال",
+  "invoiceSendReceiptWhatsApp": "إرسال عبر واتساب",
+  "invoiceReceiptShareFailed": "تعذّر مشاركة الإيصال",
+  "invoiceWhatsAppOpenFailed": "تعذّر فتح واتساب",
   "invoicePrintedSuccessfully": "تمت الطباعة بنجاح",
   "invoicePrinterDisconnected": "تم فصل الطابعة",
   "invoicePrintFailed": "فشلت الطباعة: {result}",

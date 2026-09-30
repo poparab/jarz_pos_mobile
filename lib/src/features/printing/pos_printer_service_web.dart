@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'printer_compatibility.dart';
 import 'printer_status.dart';
+import 'receipt/receipt_branding.dart';
 
 /// Data class for a printable invoice item (shared across mobile & web).
 class PrintableInvoiceItem {
@@ -162,6 +163,11 @@ class PosPrinterService extends ChangeNotifier {
   Future<PrintResult> printInvoice(PrintableInvoice inv) async => PrintResult.disconnected;
   Future<PrintResult> printBatchSheet(PrintableBatchSheet sheet) async => PrintResult.disconnected;
   Future<String> buildReceiptPreview(PrintableInvoice inv) async => 'Printing is not available on web.';
+
+  // Sharing: the web share path sends the text receipt only.
+  Future<ReceiptBranding> receiptBranding() async => const ReceiptBranding.defaults();
+  Future<Uint8List> renderReceiptPng(PrintableInvoice inv) async =>
+      throw UnsupportedError('Receipt images are not rendered on web.');
 }
 
 /// Print result enum (must mirror the one in pos_printer_service.dart).

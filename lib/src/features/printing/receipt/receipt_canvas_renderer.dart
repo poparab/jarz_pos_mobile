@@ -43,6 +43,56 @@ class ReceiptCanvasRenderer {
     int maxBandHeight = 200,
     int threshold = 200,
   }) async {
+    final image = await _renderImage(
+      inv: inv,
+      header: header,
+      footer: footer,
+      phone: phone,
+      website: website,
+    );
+    try {
+      return await _imageToBandedEscPos(image, maxBandHeight: maxBandHeight, threshold: threshold);
+    } finally {
+      image.dispose();
+    }
+  }
+
+  /// The same receipt as [render], encoded as a PNG instead of ESC/POS bands.
+  ///
+  /// This is what the customer receives when a receipt is shared: the paper
+  /// layout pixel for pixel, so what they see on WhatsApp and what the courier
+  /// hands over can never disagree. Unthresholded, so the logo keeps its
+  /// greys instead of the printer's 1-bit dither.
+  static Future<Uint8List> renderPng({
+    required PrintableInvoice inv,
+    required String header,
+    required String footer,
+    required String phone,
+    required String website,
+  }) async {
+    final image = await _renderImage(
+      inv: inv,
+      header: header,
+      footer: footer,
+      phone: phone,
+      website: website,
+    );
+    try {
+      final bd = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (bd == null) throw StateError('Receipt PNG encoding returned no data');
+      return bd.buffer.asUint8List();
+    } finally {
+      image.dispose();
+    }
+  }
+
+  static Future<ui.Image> _renderImage({
+    required PrintableInvoice inv,
+    required String header,
+    required String footer,
+    required String phone,
+    required String website,
+  }) async {
     ui.Image? logo;
     try {
       final data = await rootBundle.load('assets/images/logo.png');
@@ -56,15 +106,13 @@ class ReceiptCanvasRenderer {
       debugPrint('[ReceiptCanvasRenderer] logo load failed: $e');
     }
     try {
-      return await _buildBytes(
+      return await _paint(
         inv: inv,
         header: header,
         footer: footer,
         phone: phone,
         website: website,
         logo: logo,
-        maxBandHeight: maxBandHeight,
-        threshold: threshold,
       );
     } finally {
       logo?.dispose();
@@ -72,15 +120,13 @@ class ReceiptCanvasRenderer {
   }
 
   // ── Internal builder ───────────────────────────────────────────────────────
-  static Future<Uint8List> _buildBytes({
+  static Future<ui.Image> _paint({
     required PrintableInvoice inv,
     required String header,
     required String footer,
     required String phone,
     required String website,
     ui.Image? logo,
-    required int maxBandHeight,
-    required int threshold,
   }) async {
     // Two-pass approach:
     // Pass 1 — lay out all TextPainters and collect draw-ops with Y positions.
@@ -376,12 +422,10 @@ class ReceiptCanvasRenderer {
     }
 
     final picture = recorder.endRecording();
-    final image = await picture.toImage(_receiptW.toInt(), totalH.toInt());
-
     try {
-      return _imageToBandedEscPos(image, maxBandHeight: maxBandHeight, threshold: threshold);
+      return await picture.toImage(_receiptW.toInt(), totalH.toInt());
     } finally {
-      image.dispose();
+      picture.dispose();
     }
   }
 

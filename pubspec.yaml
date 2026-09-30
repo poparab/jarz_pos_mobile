@@ -84,6 +84,12 @@ dependencies:
   # the one person the rep tapped. Android/iOS only; guarded on web.
   flutter_native_contact_picker: ^0.0.11
 
+  # Receipt sharing: hands the rendered receipt PNG to the OS share sheet
+  # (WhatsApp, Messenger, Gmail...). wa.me can carry text but never a file, so
+  # the direct "Send via WhatsApp" action stays a url_launcher deep link and
+  # this is the only way the customer gets the receipt as an image.
+  share_plus: ^12.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

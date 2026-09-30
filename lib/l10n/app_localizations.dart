@@ -5052,6 +5052,30 @@ abstract class AppLocalizations {
   /// **'Printer not connected. Open Printer Selection from menu.'**
   String get invoicePrinterNotConnectedHint;
 
+  /// No description provided for @invoiceShareReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Share receipt'**
+  String get invoiceShareReceipt;
+
+  /// No description provided for @invoiceSendReceiptWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Send via WhatsApp'**
+  String get invoiceSendReceiptWhatsApp;
+
+  /// No description provided for @invoiceReceiptShareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not share the receipt'**
+  String get invoiceReceiptShareFailed;
+
+  /// No description provided for @invoiceWhatsAppOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open WhatsApp'**
+  String get invoiceWhatsAppOpenFailed;
+
   /// No description provided for @invoicePrintedSuccessfully.
   ///
   /// In en, this message translates to:

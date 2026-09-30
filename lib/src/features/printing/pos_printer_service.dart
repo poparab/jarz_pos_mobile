@@ -16,6 +16,7 @@ import '../../core/constants/api_endpoints.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'printer_compatibility.dart';
 import 'printer_status.dart';
+import 'receipt/receipt_branding.dart';
 import 'receipt/receipt_canvas_renderer.dart'
     if (dart.library.html) 'receipt/receipt_canvas_renderer_stub.dart';
 
@@ -460,6 +461,32 @@ class PosPrinterService extends ChangeNotifier {
     } finally {
       _receiptConfigLoaded = true;
     }
+  }
+
+  /// The shop lines the receipt is printed with, fetched once per session.
+  Future<ReceiptBranding> receiptBranding() async {
+    await _loadReceiptConfig();
+    return ReceiptBranding(
+      header: _receiptHeader,
+      footer: _receiptFooter,
+      phone: _receiptPhone,
+      website: _receiptWebsite,
+    );
+  }
+
+  /// The printed receipt as a PNG, for sharing with the customer.
+  ///
+  /// Needs no printer: same canvas as [printInvoice]'s bitmap path, encoded
+  /// as an image instead of ESC/POS bands.
+  Future<Uint8List> renderReceiptPng(PrintableInvoice inv) async {
+    await _loadReceiptConfig();
+    return ReceiptCanvasRenderer.renderPng(
+      inv: inv,
+      header: _receiptHeader,
+      footer: _receiptFooter,
+      phone: _receiptPhone,
+      website: _receiptWebsite,
+    );
   }
 
   Future<String> buildReceiptPreview(PrintableInvoice inv) async {

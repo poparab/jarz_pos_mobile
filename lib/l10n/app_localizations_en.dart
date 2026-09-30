@@ -3002,6 +3002,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Printer not connected. Open Printer Selection from menu.';
 
   @override
+  String get invoiceShareReceipt => 'Share receipt';
+
+  @override
+  String get invoiceSendReceiptWhatsApp => 'Send via WhatsApp';
+
+  @override
+  String get invoiceReceiptShareFailed => 'Could not share the receipt';
+
+  @override
+  String get invoiceWhatsAppOpenFailed => 'Could not open WhatsApp';
+
+  @override
   String get invoicePrintedSuccessfully => 'Printed successfully';
 
   @override

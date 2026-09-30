@@ -2989,6 +2989,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'الطابعة غير متصلة. افتح شاشة اختيار الطابعة من القائمة.';
 
   @override
+  String get invoiceShareReceipt => 'مشاركة الإيصال';
+
+  @override
+  String get invoiceSendReceiptWhatsApp => 'إرسال عبر واتساب';
+
+  @override
+  String get invoiceReceiptShareFailed => 'تعذّر مشاركة الإيصال';
+
+  @override
+  String get invoiceWhatsAppOpenFailed => 'تعذّر فتح واتساب';
+
+  @override
   String get invoicePrintedSuccessfully => 'تمت الطباعة بنجاح';
 
   @override

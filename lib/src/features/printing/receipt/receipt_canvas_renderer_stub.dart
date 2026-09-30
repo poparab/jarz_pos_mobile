@@ -16,4 +16,14 @@ class ReceiptCanvasRenderer {
   }) async {
     throw UnsupportedError('ReceiptCanvasRenderer is not supported on web.');
   }
+
+  static Future<Uint8List> renderPng({
+    required PrintableInvoice inv,
+    required String header,
+    required String footer,
+    required String phone,
+    required String website,
+  }) async {
+    throw UnsupportedError('ReceiptCanvasRenderer is not supported on web.');
+  }
 }

@@ -1583,6 +1583,10 @@
     }
   },
   "invoicePrinterNotConnectedHint": "Printer not connected. Open Printer Selection from menu.",
+  "invoiceShareReceipt": "Share receipt",
+  "invoiceSendReceiptWhatsApp": "Send via WhatsApp",
+  "invoiceReceiptShareFailed": "Could not share the receipt",
+  "invoiceWhatsAppOpenFailed": "Could not open WhatsApp",
   "invoicePrintedSuccessfully": "Printed successfully",
   "invoicePrinterDisconnected": "Printer disconnected",
   "invoicePrintFailed": "Print failed: {result}",
