@@ -9,6 +9,7 @@ import '../../data/models/credit_models.dart';
 import '../../data/models/settlement_models.dart';
 import '../../state/credit_providers.dart';
 import '../widgets/record_credit_payment_sheet.dart';
+import '../widgets/send_credit_receipts_sheet.dart';
 import '../widgets/settlement_terms_section.dart';
 
 /// One shop's credit account: the running balance, its open invoices oldest
@@ -117,6 +118,21 @@ class CreditAccountDetailScreen extends ConsumerWidget {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                 ),
+                if (invoices.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  // What the shop owes, sent to the shop: each unpaid order as
+                  // its own receipt, or all of them as one statement.
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.send),
+                    label: Text(l10n.creditSendToCustomer),
+                    onPressed: () => SendCreditReceiptsSheet.show(
+                      context,
+                      customerName: title,
+                      invoices: invoices,
+                      currency: currency,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 Text(
                   l10n.creditAccountOpenInvoicesTitle,

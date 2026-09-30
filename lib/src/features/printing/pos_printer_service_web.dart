@@ -5,6 +5,7 @@ import '../../core/constants/api_endpoints.dart';
 import 'printer_compatibility.dart';
 import 'printer_status.dart';
 import 'receipt/receipt_branding.dart';
+import 'receipt/receipt_statement.dart';
 
 /// Data class for a printable invoice item (shared across mobile & web).
 class PrintableInvoiceItem {
@@ -197,6 +198,8 @@ class PosPrinterService extends ChangeNotifier {
   }
   Future<Uint8List> renderReceiptPng(PrintableInvoice inv) async =>
       throw UnsupportedError('Receipt images are not rendered on web.');
+  Future<Uint8List> renderStatementPng(PrintableStatement statement) async =>
+      throw UnsupportedError('Statement images are not rendered on web.');
 }
 
 /// Print result enum (must mirror the one in pos_printer_service.dart).

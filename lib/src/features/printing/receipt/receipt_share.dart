@@ -37,7 +37,7 @@ Uri whatsappReceiptUri(String? phone, String text) {
 
 /// One-line caption that travels with the receipt image on the share sheet.
 String receiptShareCaption(PrintableInvoice inv, ReceiptBranding branding) {
-  final order = _orderLabel(inv);
+  final order = receiptOrderLabel(inv);
   return '${branding.header} — Order #$order';
 }
 
@@ -51,7 +51,7 @@ String buildReceiptShareText(PrintableInvoice inv, ReceiptBranding branding) {
   final isPaid = inv.outstanding <= 0.0001;
 
   sb.writeln('*${branding.header}*');
-  sb.writeln('Order #${_orderLabel(inv)}');
+  sb.writeln('Order #${receiptOrderLabel(inv)}');
   if ((inv.orderDate ?? '').isNotEmpty) sb.writeln('Order date: ${inv.orderDate}');
   final deliveryDate = inv.deliveryDateFormatted ?? '';
   final deliveryTime = inv.deliveryTimeRange ?? '';
@@ -68,26 +68,26 @@ String buildReceiptShareText(PrintableInvoice inv, ReceiptBranding branding) {
     if (!item.showPricing) {
       // Bundle contents: listed under their bundle, no money of their own.
       final indent = '   ' * (item.indentLevel > 0 ? item.indentLevel : 1);
-      sb.writeln('$indent- ${_qty(item.qty)} × ${item.name}');
+      sb.writeln('$indent- ${receiptQty(item.qty)} × ${item.name}');
       continue;
     }
-    sb.writeln('${_qty(item.qty)} × ${item.name} — ${_money(item.amount)}');
+    sb.writeln('${receiptQty(item.qty)} × ${item.name} — ${receiptMoney(item.amount)}');
     if ((item.description ?? '').isNotEmpty) sb.writeln('   ${item.description}');
   }
 
   sb.writeln();
   final grand = inv.total;
   if (inv.shipping > 0 && inv.shipping <= grand) {
-    sb.writeln('Subtotal: ${_money(grand - inv.shipping)}');
-    sb.writeln('Shipping: ${_money(inv.shipping)}');
+    sb.writeln('Subtotal: ${receiptMoney(grand - inv.shipping)}');
+    sb.writeln('Shipping: ${receiptMoney(inv.shipping)}');
   }
-  sb.writeln('*Total: ${_money(grand)}*');
+  sb.writeln('*Total: ${receiptMoney(grand)}*');
   if ((inv.paymentMethod ?? '').isNotEmpty) sb.writeln('Payment method: ${inv.paymentMethod}');
   if (isPaid) {
     sb.writeln('Status: PAID');
   } else {
     sb.writeln('Status: UNPAID');
-    if (inv.outstanding < grand - 0.0001) sb.writeln('Amount due: ${_money(inv.outstanding)}');
+    if (inv.outstanding < grand - 0.0001) sb.writeln('Amount due: ${receiptMoney(inv.outstanding)}');
   }
 
   final footer = [
@@ -102,12 +102,13 @@ String buildReceiptShareText(PrintableInvoice inv, ReceiptBranding branding) {
   return sb.toString().trimRight();
 }
 
-String _orderLabel(PrintableInvoice inv) =>
+/// Order number the customer knows the order by; the invoice id otherwise.
+String receiptOrderLabel(PrintableInvoice inv) =>
     (inv.orderNo ?? '').trim().isNotEmpty ? inv.orderNo!.trim() : inv.id;
 
-String _money(double v) => 'EGP ${v.toStringAsFixed(2)}';
+String receiptMoney(double v) => 'EGP ${v.toStringAsFixed(2)}';
 
-String _qty(double qty) {
+String receiptQty(double qty) {
   if ((qty - qty.round()).abs() < 0.0001) return qty.round().toString();
   return qty.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
 }

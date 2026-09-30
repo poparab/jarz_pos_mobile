@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' show XFile;
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import '../models/courier_run_progress.dart';
 import '../models/kanban_models.dart';
@@ -34,6 +34,7 @@ import 'custom_shipping_request_dialog.dart';
 import 'invoice_notes_sheet.dart';
 import '../../printing/pos_printer_provider.dart';
 import '../../printing/printable_invoice_mapper.dart';
+import '../../printing/receipt/receipt_delivery.dart';
 import '../../printing/receipt/receipt_share.dart';
 import '../../printing/pos_printer_service.dart'
     if (dart.library.html) '../../printing/pos_printer_service_web.dart';
@@ -381,31 +382,23 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     final branding = await printer.receiptBranding();
     final text = buildReceiptShareText(inv, branding);
 
-    XFile? image;
+    final files = <XFile>[];
     if (!kIsWeb) {
       try {
-        final png = await printer.renderReceiptPng(inv);
-        final order = (inv.orderNo ?? '').trim().isNotEmpty ? inv.orderNo!.trim() : inv.id;
-        image = XFile.fromData(png, name: 'receipt-$order.png', mimeType: 'image/png');
+        files.add(receiptImageFile(await printer.renderReceiptPng(inv), 'receipt-${receiptOrderLabel(inv)}'));
       } catch (e) {
         debugPrint('[InvoiceCard] receipt image render failed, sharing text: $e');
       }
     }
 
-    try {
-      await SharePlus.instance.share(
-        image != null
-            ? ShareParams(files: [image], text: receiptShareCaption(inv, branding))
-            : ShareParams(text: text),
-      );
-    } catch (e) {
-      // MissingPluginException on an install whose APK predates share_plus
-      // (a Shorebird patch carries the Dart but not the plugin): WhatsApp still
-      // works through url_launcher, so fall back to that rather than fail.
-      debugPrint('[InvoiceCard] share failed, falling back to WhatsApp: $e');
-      if (!mounted) return;
-      await _openReceiptOnWhatsApp(inv, text, messenger, l10n.invoiceReceiptShareFailed);
-    }
+    final shared = await shareReceiptContent(
+      files: files,
+      text: files.isNotEmpty ? receiptShareCaption(inv, branding) : text,
+    );
+    // No share sheet (a browser without Web Share): WhatsApp still works
+    // through url_launcher, so fall back to that rather than fail.
+    if (shared || !mounted) return;
+    await _openReceiptOnWhatsApp(inv, text, messenger, l10n.invoiceReceiptShareFailed, l10n.invoiceSendReceiptWhatsApp);
   }
 
   /// Opens the customer's WhatsApp chat with the text receipt composed.
@@ -422,38 +415,23 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       buildReceiptShareText(inv, branding),
       messenger,
       l10n.invoiceWhatsAppOpenFailed,
+      l10n.invoiceSendReceiptWhatsApp,
     );
   }
 
-  /// Launches the wa.me link; on failure says so, with a tap-to-open action.
-  ///
-  /// The action is not decoration: a browser (iPhone Safari above all) refuses
-  /// to open a window once the tap that started this is spent, and the invoice
-  /// fetch in between spends it. Tapping the action is a fresh gesture.
   Future<void> _openReceiptOnWhatsApp(
     PrintableInvoice inv,
     String text,
     ScaffoldMessengerState messenger,
     String failureMessage,
-  ) async {
+    String retryLabel,
+  ) {
     final phone = (inv.customerPhone ?? '').trim().isNotEmpty ? inv.customerPhone : widget.invoice.customerPhone;
-    final uri = whatsappReceiptUri(phone, text);
-    Future<bool> launch() async {
-      try {
-        return await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } catch (e) {
-        debugPrint('[InvoiceCard] WhatsApp launch failed: $e');
-        return false;
-      }
-    }
-
-    if (await launch() || !mounted) return;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(failureMessage),
-        duration: const Duration(seconds: 8),
-        action: SnackBarAction(label: context.l10n.invoiceSendReceiptWhatsApp, onPressed: launch),
-      ),
+    return openWhatsAppOrOfferRetry(
+      messenger: messenger,
+      uri: whatsappReceiptUri(phone, text),
+      failureMessage: failureMessage,
+      retryLabel: retryLabel,
     );
   }
 

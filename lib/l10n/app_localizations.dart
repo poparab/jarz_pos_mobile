@@ -20439,6 +20439,72 @@ abstract class AppLocalizations {
   /// **'Available {amount}'**
   String creditAccountAvailable(Object amount);
 
+  /// No description provided for @creditSendToCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to customer'**
+  String get creditSendToCustomer;
+
+  /// No description provided for @creditSendModeIndividual.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual receipts'**
+  String get creditSendModeIndividual;
+
+  /// No description provided for @creditSendModeConsolidated.
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidated statement'**
+  String get creditSendModeConsolidated;
+
+  /// No description provided for @creditSendModeIndividualHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One receipt for each order you choose.'**
+  String get creditSendModeIndividualHint;
+
+  /// No description provided for @creditSendModeConsolidatedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'All the orders you choose in one statement, with the total due.'**
+  String get creditSendModeConsolidatedHint;
+
+  /// No description provided for @creditSendSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get creditSendSelectAll;
+
+  /// No description provided for @creditSendSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{selected} of {total} selected'**
+  String creditSendSelectedCount(int selected, int total);
+
+  /// No description provided for @creditSendTotalDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Total due: {amount}'**
+  String creditSendTotalDue(String amount);
+
+  /// No description provided for @creditSendWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get creditSendWhatsApp;
+
+  /// No description provided for @creditSendShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get creditSendShare;
+
+  /// No description provided for @creditSendLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the orders. Try again.'**
+  String get creditSendLoadFailed;
+
   /// No description provided for @creditAccountFifoHint.
   ///
   /// In en, this message translates to:

@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../pos_printer_service.dart';
+import 'receipt_share.dart';
+import 'receipt_statement.dart';
 
 class ReceiptCanvasRenderer {
   // ── Constants ──────────────────────────────────────────────────────────────
@@ -77,6 +79,52 @@ class ReceiptCanvasRenderer {
       phone: phone,
       website: website,
     );
+    return _encodePng(image);
+  }
+
+  static Future<ui.Image> _renderImage({
+    required PrintableInvoice inv,
+    required String header,
+    required String footer,
+    required String phone,
+    required String website,
+  }) {
+    return _withLogo(
+      (logo) => _paint(
+        inv: inv,
+        header: header,
+        footer: footer,
+        phone: phone,
+        website: website,
+        logo: logo,
+      ),
+    );
+  }
+
+  /// Runs [draw] with the brand logo decoded at receipt width (null when the
+  /// asset cannot be read — the receipt still renders, with a text header).
+  static Future<ui.Image> _withLogo(Future<ui.Image> Function(ui.Image? logo) draw) async {
+    ui.Image? logo;
+    try {
+      final data = await rootBundle.load('assets/images/logo.png');
+      final codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(),
+        targetWidth: (_receiptW * 0.5).toInt(),
+      );
+      final frame = await codec.getNextFrame();
+      codec.dispose();
+      logo = frame.image;
+    } catch (e) {
+      debugPrint('[ReceiptCanvasRenderer] logo load failed: $e');
+    }
+    try {
+      return await draw(logo);
+    } finally {
+      logo?.dispose();
+    }
+  }
+
+  static Future<Uint8List> _encodePng(ui.Image image) async {
     try {
       final bd = await image.toByteData(format: ui.ImageByteFormat.png);
       if (bd == null) throw StateError('Receipt PNG encoding returned no data');
@@ -86,36 +134,161 @@ class ReceiptCanvasRenderer {
     }
   }
 
-  static Future<ui.Image> _renderImage({
-    required PrintableInvoice inv,
-    required String header,
+  /// A consolidated statement as a PNG, drawn in the receipt's own style:
+  /// logo, one block per order (lines, order total, paid, due), total due.
+  ///
+  /// Image only — a statement is sent to a customer, never printed, so there
+  /// is no ESC/POS twin to keep in step with.
+  static Future<Uint8List> renderStatementPng({
+    required PrintableStatement statement,
     required String footer,
     required String phone,
     required String website,
   }) async {
-    ui.Image? logo;
-    try {
-      final data = await rootBundle.load('assets/images/logo.png');
-      final codec = await ui.instantiateImageCodec(
-        data.buffer.asUint8List(),
-        targetWidth: (_receiptW * 0.5).toInt(),
-      );
-      final frame = await codec.getNextFrame();
-      logo = frame.image;
-    } catch (e) {
-      debugPrint('[ReceiptCanvasRenderer] logo load failed: $e');
-    }
-    try {
-      return await _paint(
-        inv: inv,
-        header: header,
+    final image = await _withLogo(
+      (logo) => _paintStatement(
+        st: statement,
         footer: footer,
         phone: phone,
         website: website,
         logo: logo,
-      );
+      ),
+    );
+    return _encodePng(image);
+  }
+
+  static TextPainter _textPainter(
+    String text,
+    double maxWidth, {
+    bool bold = false,
+    double fontSize = 22.0,
+    TextAlign align = TextAlign.start,
+  }) {
+    final hasArabic = _arabicRe.hasMatch(text);
+    return TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: const ui.Color(0xFF000000),
+          fontSize: fontSize,
+          fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+          fontFamily: hasArabic ? 'Tajawal' : 'Inter',
+          fontFamilyFallback: hasArabic
+              ? const ['Tajawal', 'Noto Naskh Arabic', 'Inter', 'Roboto']
+              : const ['Inter', 'Tajawal', 'Roboto'],
+          height: 1.25,
+        ),
+      ),
+      textDirection: ui.TextDirection.ltr,
+      textAlign: align,
+    )..layout(maxWidth: maxWidth);
+  }
+
+  static Future<ui.Image> _paintStatement({
+    required PrintableStatement st,
+    required String footer,
+    required String phone,
+    required String website,
+    ui.Image? logo,
+  }) async {
+    final ops = <_Op>[];
+    double y = 8.0;
+    const contentW = _receiptW - 2 * _padX;
+    const amountW = 150.0;
+
+    void line({double thickness = 1.0}) {
+      ops.add(_LineOp(y: y, thickness: thickness));
+      y += thickness + _lineGap;
+    }
+
+    void centered(String text, {bool bold = false, double fontSize = 22}) {
+      final painter = _textPainter(text, contentW, bold: bold, fontSize: fontSize, align: TextAlign.center);
+      ops.add(_TpOp(tp: painter, x: (_receiptW - painter.width) / 2, y: y));
+      y += painter.height + _lineGap;
+    }
+
+    // A label on the left and an amount flush right, on one row.
+    void row(
+      String label,
+      String amount, {
+      bool bold = false,
+      double fontSize = 20,
+      double indent = 0,
+      double amountWidth = amountW,
+    }) {
+      final l = _textPainter(label, contentW - amountWidth - _colGutter - indent, bold: bold, fontSize: fontSize);
+      final a = _textPainter(amount, amountWidth, bold: bold, fontSize: fontSize, align: TextAlign.right);
+      ops.add(_TpOp(tp: l, x: _padX + indent, y: y));
+      if (amount.isNotEmpty) ops.add(_TpOp(tp: a, x: _receiptW - _padX - a.width, y: y));
+      y += (l.height > a.height ? l.height : a.height) + _lineGap;
+    }
+
+    if (logo != null) {
+      const maxLogoH = 130.0;
+      final scale = maxLogoH / logo.height;
+      final drawW = (logo.width * scale).clamp(0.0, _receiptW * 0.75);
+      final drawH = (logo.height * scale).clamp(0.0, maxLogoH);
+      ops.add(_ImageOp(image: logo, x: (_receiptW - drawW) / 2, y: y, w: drawW, h: drawH));
+      y += drawH + 4;
+    }
+    y += _sectionGap;
+    line();
+    y += _sectionGap;
+
+    centered(statementTitle, bold: true, fontSize: 30);
+    if (st.customer.isNotEmpty) centered(st.customer, fontSize: 24);
+    centered('Date: ${st.dateLabel}', fontSize: 20);
+    y += _sectionGap;
+    line();
+
+    for (final entry in st.entries) {
+      final inv = entry.invoice;
+      y += _sectionGap;
+      row('Order #${receiptOrderLabel(inv)}', inv.orderDate ?? '', bold: true, fontSize: 24);
+      for (final item in inv.items) {
+        if (!item.showPricing) {
+          row('- ${receiptQty(item.qty)} × ${item.name}', '', indent: 24);
+          continue;
+        }
+        row('${receiptQty(item.qty)} × ${item.name}', receiptMoney(item.amount), indent: 8);
+      }
+      if (inv.shipping > 0 && inv.shipping <= inv.total) {
+        row('Shipping', receiptMoney(inv.shipping), indent: 8);
+      }
+      row('Order total', receiptMoney(inv.total));
+      if (entry.paid > 0.005) row('Paid', receiptMoney(entry.paid));
+      row('Due', receiptMoney(entry.outstanding), bold: true);
+      y += _sectionGap;
+      line();
+    }
+
+    y += _sectionGap;
+    // Wide amount column: a five-figure balance at this size must not wrap.
+    row('Total due', receiptMoney(st.totalDue), bold: true, fontSize: 30, amountWidth: contentW * 0.6);
+    final count = st.entries.length;
+    row(count == 1 ? '1 order' : '$count orders', '');
+    y += _sectionGap;
+    line();
+    if (footer.isNotEmpty) centered(footer, bold: true, fontSize: 20);
+    if (phone.isNotEmpty) centered('Call us $phone', fontSize: 20);
+    if (website.isNotEmpty) centered(website, fontSize: 20);
+    y += 24;
+
+    final totalH = y.ceilToDouble();
+    final recorder = ui.PictureRecorder();
+    final canvas = ui.Canvas(recorder, ui.Rect.fromLTWH(0, 0, _receiptW, totalH));
+    canvas.drawRect(
+      ui.Rect.fromLTWH(0, 0, _receiptW, totalH),
+      ui.Paint()..color = const ui.Color(0xFFFFFFFF),
+    );
+    for (final op in ops) {
+      op.paint(canvas);
+    }
+    final picture = recorder.endRecording();
+    try {
+      return await picture.toImage(_receiptW.toInt(), totalH.toInt());
     } finally {
-      logo?.dispose();
+      picture.dispose();
     }
   }
 

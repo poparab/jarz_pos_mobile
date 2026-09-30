@@ -12412,6 +12412,44 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get creditSendToCustomer => 'إرسال للعميل';
+
+  @override
+  String get creditSendModeIndividual => 'إيصالات منفصلة';
+
+  @override
+  String get creditSendModeConsolidated => 'كشف حساب مجمّع';
+
+  @override
+  String get creditSendModeIndividualHint => 'إيصال لكل طلب تختاره.';
+
+  @override
+  String get creditSendModeConsolidatedHint =>
+      'كل الطلبات اللي تختارها في كشف واحد بإجمالي المستحق.';
+
+  @override
+  String get creditSendSelectAll => 'تحديد الكل';
+
+  @override
+  String creditSendSelectedCount(int selected, int total) {
+    return '$selected من $total متحدد';
+  }
+
+  @override
+  String creditSendTotalDue(String amount) {
+    return 'إجمالي المستحق: $amount';
+  }
+
+  @override
+  String get creditSendWhatsApp => 'واتساب';
+
+  @override
+  String get creditSendShare => 'مشاركة';
+
+  @override
+  String get creditSendLoadFailed => 'مقدرناش نحمّل الطلبات. حاول تاني.';
+
+  @override
   String get creditAccountFifoHint => 'الدفعة بتقفل أقدم الفواتير الأول.';
 
   @override

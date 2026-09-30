@@ -17,6 +17,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'printer_compatibility.dart';
 import 'printer_status.dart';
 import 'receipt/receipt_branding.dart';
+import 'receipt/receipt_statement.dart';
 import 'receipt/receipt_canvas_renderer.dart'
     if (dart.library.html) 'receipt/receipt_canvas_renderer_stub.dart';
 
@@ -483,6 +484,17 @@ class PosPrinterService extends ChangeNotifier {
     return ReceiptCanvasRenderer.renderPng(
       inv: inv,
       header: _receiptHeader,
+      footer: _receiptFooter,
+      phone: _receiptPhone,
+      website: _receiptWebsite,
+    );
+  }
+
+  /// A consolidated statement of several orders as a PNG, for sharing.
+  Future<Uint8List> renderStatementPng(PrintableStatement statement) async {
+    await _loadReceiptConfig();
+    return ReceiptCanvasRenderer.renderStatementPng(
+      statement: statement,
       footer: _receiptFooter,
       phone: _receiptPhone,
       website: _receiptWebsite,

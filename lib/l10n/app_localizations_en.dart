@@ -12442,6 +12442,45 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get creditSendToCustomer => 'Send to customer';
+
+  @override
+  String get creditSendModeIndividual => 'Individual receipts';
+
+  @override
+  String get creditSendModeConsolidated => 'Consolidated statement';
+
+  @override
+  String get creditSendModeIndividualHint =>
+      'One receipt for each order you choose.';
+
+  @override
+  String get creditSendModeConsolidatedHint =>
+      'All the orders you choose in one statement, with the total due.';
+
+  @override
+  String get creditSendSelectAll => 'Select all';
+
+  @override
+  String creditSendSelectedCount(int selected, int total) {
+    return '$selected of $total selected';
+  }
+
+  @override
+  String creditSendTotalDue(String amount) {
+    return 'Total due: $amount';
+  }
+
+  @override
+  String get creditSendWhatsApp => 'WhatsApp';
+
+  @override
+  String get creditSendShare => 'Share';
+
+  @override
+  String get creditSendLoadFailed => 'Could not load the orders. Try again.';
+
+  @override
   String get creditAccountFifoHint =>
       'A payment clears the oldest invoices first.';
 
