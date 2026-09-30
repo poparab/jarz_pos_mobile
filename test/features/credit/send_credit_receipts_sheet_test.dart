@@ -114,4 +114,21 @@ void main() {
     expect(find.text('Could not load the orders. Try again.'), findsOneWidget);
     expect(find.text('3 of 3 selected'), findsOneWidget);
   });
+
+  testWidgets('a load that comes back short is refused, not sent misaligned', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        SendCreditReceiptsSheet(
+          customerName: 'Cafe Nour',
+          invoices: _invoices,
+          loadInvoices: (invoices) async => [_printable(invoices.first)],
+        ),
+      ),
+    );
+    await tester.tap(find.text('WhatsApp'));
+    await tester.pumpAndSettle();
+    expect(find.text('Could not load the orders. Try again.'), findsOneWidget);
+    final whatsapp = tester.widget<FilledButton>(find.ancestor(of: find.text('WhatsApp'), matching: find.byWidgetPredicate((w) => w is FilledButton)));
+    expect(whatsapp.onPressed, isNotNull);
+  });
 }

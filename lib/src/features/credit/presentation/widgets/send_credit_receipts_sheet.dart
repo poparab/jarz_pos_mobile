@@ -221,6 +221,9 @@ class _SendCreditReceiptsSheetState extends ConsumerState<SendCreditReceiptsShee
     final List<PrintableInvoice> printables;
     try {
       printables = await (widget.loadInvoices ?? _loadFromServer)(chosen);
+      if (printables.length != chosen.length) {
+        throw StateError('Loaded ${printables.length} of ${chosen.length} orders');
+      }
     } catch (e) {
       debugPrint('[SendCreditReceipts] load failed: $e');
       if (mounted) {
@@ -231,6 +234,9 @@ class _SendCreditReceiptsSheetState extends ConsumerState<SendCreditReceiptsShee
       }
       return;
     }
+    // Closing the sheet while the orders load is how a cashier changes their
+    // mind; nothing goes out after that.
+    if (!mounted) return;
 
     final branding = await printer.receiptBranding();
     final phone = printables
@@ -278,7 +284,9 @@ class _SendCreditReceiptsSheetState extends ConsumerState<SendCreditReceiptsShee
       }
     }
 
-    if (mounted) navigator.pop();
+    // Rendering is awaited too, so the same check again right before sending.
+    if (!mounted) return;
+    navigator.pop();
     final uri = whatsappReceiptUri(phone, text);
     if (channel == _Channel.share) {
       final shared = await shareReceiptContent(files: files, text: files.isNotEmpty ? caption : text);

@@ -255,6 +255,7 @@ class ReceiptCanvasRenderer {
       if (inv.shipping > 0 && inv.shipping <= inv.total) {
         row('Shipping', receiptMoney(inv.shipping), indent: 8);
       }
+      if (entry.discount > 0) row('Discount', '-${receiptMoney(entry.discount)}', indent: 8);
       row('Order total', receiptMoney(inv.total));
       if (entry.paid > 0.005) row('Paid', receiptMoney(entry.paid));
       row('Due', receiptMoney(entry.outstanding), bold: true);

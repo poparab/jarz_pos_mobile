@@ -17,6 +17,17 @@ class StatementEntry {
   const StatementEntry({required this.invoice, required this.outstanding});
 
   double get paid => (invoice.total - outstanding).clamp(0.0, invoice.total).toDouble();
+
+  /// What the listed lines and shipping come to above the order's total —
+  /// an order or promo discount, which has no line of its own. Without it a
+  /// discounted order's lines add up to more than the total printed under
+  /// them. Zero when they agree (or fall short, e.g. a rounding cent).
+  double get discount {
+    final lines = invoice.items.where((i) => i.showPricing).fold(0.0, (sum, i) => sum + i.amount);
+    final shipping = invoice.shipping > 0 && invoice.shipping <= invoice.total ? invoice.shipping : 0.0;
+    final over = lines + shipping - invoice.total;
+    return over > 0.005 ? over : 0.0;
+  }
 }
 
 class PrintableStatement {
@@ -64,6 +75,7 @@ String buildStatementShareText(PrintableStatement st, ReceiptBranding branding) 
     if (inv.shipping > 0 && inv.shipping <= inv.total) {
       sb.writeln('Shipping: ${receiptMoney(inv.shipping)}');
     }
+    if (entry.discount > 0) sb.writeln('Discount: -${receiptMoney(entry.discount)}');
     sb.writeln('Order total: ${receiptMoney(inv.total)}');
     if (entry.paid > 0.005) sb.writeln('Paid: ${receiptMoney(entry.paid)}');
     sb.writeln('Due: ${receiptMoney(entry.outstanding)}');

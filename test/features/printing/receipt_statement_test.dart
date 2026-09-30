@@ -49,6 +49,36 @@ void main() {
     expect(first, isNot(contains('Paid:')));
   });
 
+  test('a discounted order shows the discount so its lines add up to its total', () {
+    // Lines 2 × 250 = 500 + shipping 70 = 570, but the order came to 520.
+    final discounted = PrintableStatement(
+      customer: 'Cafe Nour',
+      date: DateTime(2026, 9, 30),
+      entries: [
+        StatementEntry(
+          invoice: PrintableInvoice(
+            id: 'ACC-SINV-2026-17003',
+            date: DateTime(2026, 9, 1),
+            customer: 'Cafe Nour',
+            total: 520,
+            paid: 0,
+            outstanding: 520,
+            shipping: 70,
+            orderNo: '17003',
+            items: [PrintableInvoiceItem(name: 'Mango Jar', qty: 2, rate: 250)],
+          ),
+          outstanding: 520,
+        ),
+      ],
+    );
+    expect(discounted.entries.single.discount, closeTo(50, 0.001));
+    expect(
+      buildStatementShareText(discounted, branding),
+      contains('Shipping: EGP 70.00\nDiscount: -EGP 50.00\nOrder total: EGP 520.00'),
+    );
+    expect(_statement.entries.first.discount, 0);
+  });
+
   test('individual receipts on WhatsApp go one after another in one message', () {
     final text = buildReceiptsBundleText([_order('17001', 570), _order('17002', 300)], branding);
     expect(RegExp(r'\*ORDER RECEIPT\*').allMatches(text).length, 2);
