@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import '../../core/constants/api_endpoints.dart';
 import 'printer_compatibility.dart';
 import 'printer_status.dart';
 import 'receipt/receipt_branding.dart';
@@ -120,7 +121,10 @@ class PrintableBatchSheet {
 /// Bluetooth printing is not available in web browsers.
 /// All methods are safe no-ops that report not available.
 class PosPrinterService extends ChangeNotifier {
-  PosPrinterService({Dio? dio, bool autoInit = true});
+  PosPrinterService({Dio? dio, bool autoInit = true}) : _dio = dio;
+
+  final Dio? _dio;
+  ReceiptBranding? _branding;
 
   final PrinterCompatibilitySettings compatibilitySettings =
       PrinterCompatibilitySettings();
@@ -165,7 +169,32 @@ class PosPrinterService extends ChangeNotifier {
   Future<String> buildReceiptPreview(PrintableInvoice inv) async => 'Printing is not available on web.';
 
   // Sharing: the web share path sends the text receipt only.
-  Future<ReceiptBranding> receiptBranding() async => const ReceiptBranding.defaults();
+  /// The shop lines from `get_receipt_config`, as the mobile service uses
+  /// them, so a receipt sent from the web says the same as one sent from a
+  /// phone. Falls back to the defaults field by field, once per session.
+  Future<ReceiptBranding> receiptBranding() async {
+    if (_branding != null) return _branding!;
+    const d = ReceiptBranding.defaults();
+    String pick(Object? v, String fallback) {
+      final t = (v ?? '').toString().replaceAll(RegExp(r'\s+'), ' ').trim();
+      return t.isNotEmpty ? t : fallback;
+    }
+
+    try {
+      final message = (await _dio?.get(ApiEndpoints.getReceiptConfig))?.data['message'];
+      if (message is Map) {
+        return _branding = ReceiptBranding(
+          header: pick(message['header'], d.header),
+          footer: pick(message['footer'], d.footer),
+          phone: pick(message['phone'], d.phone),
+          website: pick(message['website'], d.website),
+        );
+      }
+    } catch (e) {
+      debugPrint('[PosPrinterService/web] receipt config fetch failed, using defaults: $e');
+    }
+    return d;
+  }
   Future<Uint8List> renderReceiptPng(PrintableInvoice inv) async =>
       throw UnsupportedError('Receipt images are not rendered on web.');
 }

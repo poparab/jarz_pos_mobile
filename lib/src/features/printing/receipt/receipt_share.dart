@@ -16,6 +16,8 @@ String whatsappMsisdn(String? phone) {
   var digits = (phone ?? '').replaceAll(RegExp(r'\D'), '');
   if (digits.isEmpty) return '';
   if (digits.startsWith('00')) digits = digits.substring(2);
+  // "+20 0…": country code typed in front of the trunk zero.
+  if (digits.startsWith('200') && digits.length == 13) return '20${digits.substring(3)}';
   if (digits.startsWith('0') && digits.length == 11) return '20${digits.substring(1)}';
   if (digits.startsWith('20') && digits.length == 12) return digits;
   if (digits.length == 10 && digits.startsWith('1')) return '20$digits';
