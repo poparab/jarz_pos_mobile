@@ -18,6 +18,8 @@ class _FakePosRepository extends PosRepository {
   String? lastItemsProfile;
   String? lastBundlesProfile;
   String? lastAmendmentSourceInvoiceId;
+  /// Cart items handed to the last submitInvoiceAmendment call.
+  List<Map<String, dynamic>>? lastAmendmentItems;
   int itemsCalls = 0;
   int bundlesCalls = 0;
   int createInvoiceCalls = 0;
@@ -133,6 +135,7 @@ class _FakePosRepository extends PosRepository {
   }) async {
     submitInvoiceAmendmentCalls += 1;
     lastAmendmentSourceInvoiceId = sourceInvoiceId;
+    lastAmendmentItems = items;
     return {'replacement_invoice_id': 'INV-AMD-001'};
   }
 
@@ -2162,6 +2165,224 @@ void main() {
       },
     );
 
+    // ── Woo order 17748: the same bundle twice, rows without group keys ──────
+
+    test(
+      '17748: the same bundle twice rebuilds two cart lines of 8 + 2 each',
+      () async {
+        // Production failure 2026-09-30: every copy used to claim all 20 jars
+        // (defect A) and all of them landed in the 8-slot group (defect B), so
+        // the server refused with "expected 8 selection(s) from 'Medium',
+        // received 17".
+        repository.bundlesResult = [_royalFeastBundle()];
+
+        await notifier.startAmendmentDraft({
+          'name': 'ACC-SINV-2026-17748',
+          'pos_profile': 'Main POS',
+          'grand_total': 2070.0,
+          'items': [
+            {
+              'item_code': 'Chocolate Hazelnut Large',
+              'item_name': 'Chocolate Hazelnut Large',
+              'qty': 1,
+              'rate': 150.0,
+            },
+            _royalFeastParent(),
+            _mediumChild('Strawberry Medium', 2),
+            _mediumChild('Blueberry Medium', 1),
+            _mediumChild('Chocolate Hazelnut Medium', 2),
+            _mediumChild('Lotus Medium', 2),
+            _mediumChild('Pistachio Medium', 2),
+            _mediumChild('Molten Medium', 1),
+            _royalFeastParent(),
+            _mediumChild('Strawberry Medium', 1),
+            _mediumChild('Blueberry Medium', 1),
+            _mediumChild('Chocolate Hazelnut Medium', 3),
+            _mediumChild('Lotus Medium', 2),
+            _mediumChild('Pistachio Medium', 3),
+          ],
+        });
+
+        expect(notifier.state.error, isNull);
+        final cart = notifier.state.cartItems;
+        expect(cart, hasLength(3));
+        expect(cart[0]['item_code'], 'Chocolate Hazelnut Large');
+        expect(cart[0]['type'], 'item');
+
+        final first = cart[1];
+        final second = cart[2];
+        for (final bundle in [first, second]) {
+          expect(bundle['type'], 'bundle');
+          expect(bundle['_bundle_catalog_miss'], isNot(true));
+          expect(bundle['quantity'], 1);
+          expect(bundle['bundle_details']['bundle_id'], 'gf9k3rfeg5');
+          final selections = bundle['bundle_details']['selected_items'] as Map;
+          expect(selections.keys.toSet(), {'gf9h4g3bi2', 'gf9m0embuv'});
+          expect((selections['gf9h4g3bi2'] as List), hasLength(8));
+          expect((selections['gf9m0embuv'] as List), hasLength(2));
+        }
+
+        // Each copy keeps exactly its own 10 jars.
+        expect(_selectionCounts(first), {
+          'Strawberry Medium': 2,
+          'Blueberry Medium': 1,
+          'Chocolate Hazelnut Medium': 2,
+          'Lotus Medium': 2,
+          'Pistachio Medium': 2,
+          'Molten Medium': 1,
+        });
+        expect(_selectionCounts(second), {
+          'Strawberry Medium': 1,
+          'Blueberry Medium': 1,
+          'Chocolate Hazelnut Medium': 3,
+          'Lotus Medium': 2,
+          'Pistachio Medium': 3,
+        });
+
+        // Distribution is catalog order, children in invoice order: the 8-slot
+        // group fills first, overflow spills into the 2-slot group.
+        expect(_selectionCounts(first, 'gf9m0embuv'), {
+          'Pistachio Medium': 1,
+          'Molten Medium': 1,
+        });
+        expect(_selectionCounts(second, 'gf9m0embuv'), {
+          'Pistachio Medium': 2,
+        });
+
+        // The two copies must reach the server as two separate lines.
+        notifier.state = notifier.state.copyWith(
+          selectedProfile: const {'name': 'Main POS'},
+          isPickup: true,
+        );
+        await notifier.checkout();
+        expect(notifier.state.error, isNull);
+        expect(repository.submitInvoiceAmendmentCalls, 1);
+        final sent = repository.lastAmendmentItems!;
+        expect(sent.where((i) => i['type'] == 'bundle'), hasLength(2));
+      },
+    );
+
+    test(
+      'single bundle repeating an item group without keys splits 8 + 2',
+      () async {
+        repository.bundlesResult = [_royalFeastBundle()];
+
+        await notifier.startAmendmentDraft({
+          'name': 'INV-AMD-DUPGROUP-NOKEY',
+          'pos_profile': 'Main POS',
+          'items': [
+            _royalFeastParent(),
+            _mediumChild('Strawberry Medium', 4),
+            _mediumChild('Lotus Medium', 5),
+            _mediumChild('Molten Medium', 1),
+          ],
+        });
+
+        expect(notifier.state.cartItems, hasLength(1));
+        final bundle = notifier.state.cartItems.single;
+        final selections = bundle['bundle_details']['selected_items'] as Map;
+        expect((selections['gf9h4g3bi2'] as List), hasLength(8));
+        expect((selections['gf9m0embuv'] as List), hasLength(2));
+        expect(_selectionCounts(bundle, 'gf9h4g3bi2'), {
+          'Strawberry Medium': 4,
+          'Lotus Medium': 4,
+        });
+        expect(_selectionCounts(bundle, 'gf9m0embuv'), {
+          'Lotus Medium': 1,
+          'Molten Medium': 1,
+        });
+      },
+    );
+
+    test(
+      'persisted group keys win and unkeyed children fill the remaining slots',
+      () async {
+        repository.bundlesResult = [_royalFeastBundle()];
+
+        await notifier.startAmendmentDraft({
+          'name': 'INV-AMD-DUPGROUP-MIXED',
+          'pos_profile': 'Main POS',
+          'items': [
+            _royalFeastParent(),
+            // Listed first and unkeyed: must NOT grab the 2-slot group, which
+            // the keyed row below already owns.
+            _mediumChild('Strawberry Medium', 8),
+            _mediumChild('Lotus Medium', 2, groupKey: 'gf9m0embuv'),
+          ],
+        });
+
+        final bundle = notifier.state.cartItems.single;
+        expect(_selectionCounts(bundle, 'gf9h4g3bi2'), {
+          'Strawberry Medium': 8,
+        });
+        expect(_selectionCounts(bundle, 'gf9m0embuv'), {'Lotus Medium': 2});
+      },
+    );
+
+    test(
+      'more jars than the repeated groups hold still pile into the first group',
+      () async {
+        // Nothing is dropped: the server's validation must still refuse.
+        repository.bundlesResult = [_royalFeastBundle()];
+
+        await notifier.startAmendmentDraft({
+          'name': 'INV-AMD-DUPGROUP-OVER',
+          'pos_profile': 'Main POS',
+          'items': [
+            _royalFeastParent(),
+            _mediumChild('Strawberry Medium', 6),
+            _mediumChild('Lotus Medium', 5),
+          ],
+        });
+
+        final bundle = notifier.state.cartItems.single;
+        final selections = bundle['bundle_details']['selected_items'] as Map;
+        expect((selections['gf9h4g3bi2'] as List), hasLength(11));
+        expect(selections.containsKey('gf9m0embuv'), isFalse);
+      },
+    );
+
+    test(
+      'single bundle with unique groups rebuilds exactly as before',
+      () async {
+        await notifier.startAmendmentDraft({
+          'name': 'INV-AMD-UNIQUE',
+          'pos_profile': 'Main POS',
+          'items': [
+            // Children written before their parent still attach to it.
+            {
+              'item_code': 'ITEM-FRIES',
+              'item_name': 'Fries',
+              'qty': 1,
+              'is_bundle_child': 1,
+              'parent_bundle': 'BDL-1',
+            },
+            {
+              'item_code': 'BUNDLE-PARENT',
+              'item_name': 'Meal Deal',
+              'qty': 1,
+              'price_list_rate': 120,
+              'is_bundle_parent': 1,
+              'bundle_code': 'BDL-1',
+            },
+            {
+              'item_code': 'ITEM-BURGER',
+              'item_name': 'Burger',
+              'qty': 1,
+              'is_bundle_child': 1,
+              'parent_bundle': 'BDL-1',
+            },
+          ],
+        });
+
+        expect(notifier.state.cartItems, hasLength(1));
+        final bundle = notifier.state.cartItems.single;
+        expect(bundle['bundle_details']['bundle_id'], 'BDL-1');
+        expect(_selectionCounts(bundle, 'main'), {'ITEM-BURGER': 1});
+        expect(_selectionCounts(bundle, 'side'), {'ITEM-FRIES': 1});
+      },
+    );
+
     test(
       'B4: bundle with qty_mismatch (odd children) results in catalog-miss sentinel',
       () async {
@@ -2804,4 +3025,83 @@ void main() {
       }
     });
   });
+}
+
+// ── Jarz Royal Feast fixtures (Woo order 17748) ─────────────────────────────
+
+const _royalFeastMediumItems = [
+  {'id': 'Strawberry Medium', 'name': 'Strawberry Medium', 'price': 120.0},
+  {'id': 'Blueberry Medium', 'name': 'Blueberry Medium', 'price': 120.0},
+  {
+    'id': 'Chocolate Hazelnut Medium',
+    'name': 'Chocolate Hazelnut Medium',
+    'price': 120.0,
+  },
+  {'id': 'Lotus Medium', 'name': 'Lotus Medium', 'price': 120.0},
+  {'id': 'Pistachio Medium', 'name': 'Pistachio Medium', 'price': 120.0},
+  {'id': 'Molten Medium', 'name': 'Molten Medium', 'price': 120.0},
+];
+
+/// Catalog bundle listing the SAME item group twice: Medium x8 + Medium x2.
+Map<String, dynamic> _royalFeastBundle() => {
+  'id': 'gf9k3rfeg5',
+  'name': 'Jarz Royal Feast',
+  'erpnext_item': 'Jarz Royal Feast',
+  'price': 960.0,
+  'item_groups': [
+    {
+      'group_name': 'Medium',
+      'group_key': 'gf9h4g3bi2',
+      'quantity': 8,
+      'items': _royalFeastMediumItems,
+    },
+    {
+      'group_name': 'Medium',
+      'group_key': 'gf9m0embuv',
+      'quantity': 2,
+      'items': _royalFeastMediumItems,
+    },
+  ],
+};
+
+/// Parent row as get_invoice_details returns it for a Woo-imported order:
+/// a stale bundle_code that no longer matches the catalog id.
+Map<String, dynamic> _royalFeastParent() => {
+  'item_code': 'Jarz Royal Feast',
+  'item_name': 'Jarz Royal Feast',
+  'qty': 1,
+  'rate': 0,
+  'price_list_rate': 960.0,
+  'is_bundle_parent': 1,
+  'bundle_code': 'cdi1ojg75e',
+};
+
+/// Child row; Woo-imported rows carry empty bundle_group_key/name.
+Map<String, dynamic> _mediumChild(String item, int qty, {String? groupKey}) => {
+  'item_code': item,
+  'item_name': item,
+  'qty': qty,
+  'rate': 96.0,
+  'is_bundle_child': 1,
+  'parent_bundle': 'cdi1ojg75e',
+  'bundle_group_key': groupKey ?? '',
+  'bundle_group_name': groupKey == null ? '' : 'Medium',
+};
+
+/// Counts selected entries by item id, across all groups or only [groupKey].
+Map<String, int> _selectionCounts(
+  Map<String, dynamic> bundleCartItem, [
+  String? groupKey,
+]) {
+  final selections =
+      bundleCartItem['bundle_details']['selected_items'] as Map;
+  final counts = <String, int>{};
+  selections.forEach((key, entries) {
+    if (groupKey != null && key != groupKey) return;
+    for (final entry in entries as List) {
+      final id = (entry as Map)['id'].toString();
+      counts[id] = (counts[id] ?? 0) + 1;
+    }
+  });
+  return counts;
 }

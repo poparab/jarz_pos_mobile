@@ -3198,52 +3198,42 @@ class PosNotifier extends StateNotifier<PosState> {
     // Index the catalog groups by their key. A bundle may list the SAME item
     // group twice (e.g. "Medium x8" + "Medium x2"); those rows are only
     // distinguishable by key, never by their item membership.
+    final catalogGroups = <Map<String, dynamic>>[];
     final catalogGroupsByKey = <String, Map<String, dynamic>>{};
     final catalogGroupIndexByKey = <String, int>{};
     var catalogIndex = 0;
     for (final rawGroup in rawGroups.whereType<Map>()) {
       final group = Map<String, dynamic>.from(rawGroup);
       final key = groupKeyFor(group, catalogIndex);
+      catalogGroups.add(group);
       catalogGroupsByKey.putIfAbsent(key, () => group);
       catalogGroupIndexByKey.putIfAbsent(key, () => catalogIndex);
       catalogIndex += 1;
     }
 
-    for (final childItem in childItems) {
-      final itemCode = childItem['item_code']?.toString().trim() ?? '';
-      if (itemCode.isEmpty) continue;
+    // Per-bundle slot count each catalog group requires (same field the
+    // bundle editor reads). Missing/invalid -> 0, i.e. no capacity to
+    // distribute into, which falls back to the first-group behaviour.
+    int groupCapacity(int groupIndex) => _coerceInt(
+      catalogGroups[groupIndex]['quantity'] ??
+          catalogGroups[groupIndex]['required_quantity'],
+      fallback: 0,
+    );
 
-      final persistedGroupKey =
-          childItem['bundle_group_key']?.toString().trim() ?? '';
-      final persistedGroupName =
-          childItem['bundle_group_name']?.toString().trim() ?? '';
-
-      Map<String, dynamic>? matchedGroup;
-      Map<String, dynamic>? matchedItem;
-      var matchedGroupIndex = 0;
-
-      // The key the invoice recorded when the bundle was sold is authoritative —
-      // scanning group membership cannot tell two rows of the same item group
-      // apart and would collapse every child into the first one.
-      if (persistedGroupKey.isNotEmpty &&
-          catalogGroupsByKey.containsKey(persistedGroupKey)) {
-        matchedGroup = catalogGroupsByKey[persistedGroupKey];
-        matchedGroupIndex = catalogGroupIndexByKey[persistedGroupKey] ?? 0;
-        matchedItem = findItemInGroup(matchedGroup!, itemCode);
-      } else {
-        var groupIndex = 0;
-        for (final rawGroup in rawGroups.whereType<Map>()) {
-          final group = Map<String, dynamic>.from(rawGroup);
-          final candidate = findItemInGroup(group, itemCode);
-          if (candidate != null) {
-            matchedGroup = group;
-            matchedGroupIndex = groupIndex;
-            matchedItem = candidate;
-            break;
-          }
-          groupIndex += 1;
-        }
-      }
+    // Adds [count] copies of [itemCode] to the right selection bucket.
+    // [matchedGroup] is null on a catalog miss.
+    void place({
+      required Map<String, dynamic> childItem,
+      required String itemCode,
+      required String persistedGroupKey,
+      required String persistedGroupName,
+      required Map<String, dynamic>? matchedGroup,
+      required int matchedGroupIndex,
+      required int count,
+    }) {
+      final matchedItem = matchedGroup == null
+          ? null
+          : findItemInGroup(matchedGroup, itemCode);
 
       // Determine the selection key and whether we have a real catalog match.
       final bool hasCatalogMatch = matchedGroup != null;
@@ -3296,6 +3286,35 @@ class PosNotifier extends StateNotifier<PosState> {
               if (isDrift) '_catalog_drift': true,
             };
 
+      for (var index = 0; index < count; index++) {
+        selections
+            .putIfAbsent(selectionKey, () => [])
+            .add(Map<String, dynamic>.from(template));
+      }
+    }
+
+    // ── Pass 1: resolve every child (quantity + candidate groups) ──────────
+    final plans =
+        <
+          ({
+            Map<String, dynamic> childItem,
+            String itemCode,
+            String persistedGroupKey,
+            String persistedGroupName,
+            bool keyed,
+            List<int> candidates,
+            int perBundleQuantity,
+          })
+        >[];
+    for (final childItem in childItems) {
+      final itemCode = childItem['item_code']?.toString().trim() ?? '';
+      if (itemCode.isEmpty) continue;
+
+      final persistedGroupKey =
+          childItem['bundle_group_key']?.toString().trim() ?? '';
+      final persistedGroupName =
+          childItem['bundle_group_name']?.toString().trim() ?? '';
+
       final totalQuantity = _coerceInt(childItem['qty'], fallback: 1);
       // B3: use integer division (truncate) — if qty is not a clean multiple of
       // bundleQuantity the bundle reconstruction is indeterminate; return null
@@ -3310,10 +3329,150 @@ class PosNotifier extends StateNotifier<PosState> {
           ? (totalQuantity ~/ bundleQuantity).clamp(1, totalQuantity)
           : totalQuantity.clamp(1, totalQuantity);
 
-      for (var index = 0; index < perBundleQuantity; index++) {
-        selections
-            .putIfAbsent(selectionKey, () => [])
-            .add(Map<String, dynamic>.from(template));
+      // The key the invoice recorded when the bundle was sold is authoritative —
+      // scanning group membership cannot tell two rows of the same item group
+      // apart and would collapse every child into the first one.
+      final keyed =
+          persistedGroupKey.isNotEmpty &&
+          catalogGroupsByKey.containsKey(persistedGroupKey);
+      final candidates = <int>[];
+      if (!keyed) {
+        for (
+          var groupIndex = 0;
+          groupIndex < catalogGroups.length;
+          groupIndex++
+        ) {
+          if (findItemInGroup(catalogGroups[groupIndex], itemCode) != null) {
+            candidates.add(groupIndex);
+          }
+        }
+      }
+
+      plans.add((
+        childItem: childItem,
+        itemCode: itemCode,
+        persistedGroupKey: persistedGroupKey,
+        persistedGroupName: persistedGroupName,
+        keyed: keyed,
+        candidates: candidates,
+        perBundleQuantity: perBundleQuantity,
+      ));
+    }
+
+    // Slots already claimed per catalog group by children whose group is not
+    // in doubt: a persisted key, or an item that lives in exactly one group.
+    final filled = List<int>.filled(catalogGroups.length, 0);
+    for (final plan in plans) {
+      if (plan.keyed) {
+        final groupIndex = catalogGroupIndexByKey[plan.persistedGroupKey] ?? 0;
+        filled[groupIndex] += plan.perBundleQuantity;
+      } else if (plan.candidates.length == 1) {
+        filled[plan.candidates.first] += plan.perBundleQuantity;
+      }
+    }
+
+    // A child with no usable persisted key whose item sits in several catalog
+    // groups (the same item group listed twice, e.g. "Medium x8" + "Medium x2";
+    // WooCommerce-imported rows never carry bundle_group_key) is spread across
+    // those groups in catalog order, filling each only up to its required
+    // count. When the jars cannot fit at all, keep the historical behaviour —
+    // everything in the first matching group — so the server's validation
+    // refuses loudly instead of jars being dropped or silently reshuffled.
+    final ambiguousPlans = plans.where(
+      (plan) => !plan.keyed && plan.candidates.length > 1,
+    );
+    var distribute = false;
+    if (ambiguousPlans.isNotEmpty) {
+      final unionGroups = <int>{
+        for (final plan in ambiguousPlans) ...plan.candidates,
+      };
+      final freeCapacity = unionGroups.fold<int>(0, (total, groupIndex) {
+        final free = groupCapacity(groupIndex) - filled[groupIndex];
+        return total + (free > 0 ? free : 0);
+      });
+      final demand = ambiguousPlans.fold<int>(
+        0,
+        (total, plan) => total + plan.perBundleQuantity,
+      );
+      distribute = demand <= freeCapacity;
+    }
+
+    // ── Pass 2: place children in invoice order ─────────────────────────────
+    for (final plan in plans) {
+      if (plan.keyed) {
+        place(
+          childItem: plan.childItem,
+          itemCode: plan.itemCode,
+          persistedGroupKey: plan.persistedGroupKey,
+          persistedGroupName: plan.persistedGroupName,
+          matchedGroup: catalogGroupsByKey[plan.persistedGroupKey],
+          matchedGroupIndex:
+              catalogGroupIndexByKey[plan.persistedGroupKey] ?? 0,
+          count: plan.perBundleQuantity,
+        );
+        continue;
+      }
+
+      if (plan.candidates.isEmpty) {
+        place(
+          childItem: plan.childItem,
+          itemCode: plan.itemCode,
+          persistedGroupKey: plan.persistedGroupKey,
+          persistedGroupName: plan.persistedGroupName,
+          matchedGroup: null,
+          matchedGroupIndex: 0,
+          count: plan.perBundleQuantity,
+        );
+        continue;
+      }
+
+      if (!distribute || plan.candidates.length == 1) {
+        final groupIndex = plan.candidates.first;
+        place(
+          childItem: plan.childItem,
+          itemCode: plan.itemCode,
+          persistedGroupKey: plan.persistedGroupKey,
+          persistedGroupName: plan.persistedGroupName,
+          matchedGroup: catalogGroups[groupIndex],
+          matchedGroupIndex: groupIndex,
+          count: plan.perBundleQuantity,
+        );
+        continue;
+      }
+
+      var remaining = plan.perBundleQuantity;
+      for (final groupIndex in plan.candidates) {
+        if (remaining <= 0) break;
+        final free = groupCapacity(groupIndex) - filled[groupIndex];
+        if (free <= 0) continue;
+        final take = free < remaining ? free : remaining;
+        filled[groupIndex] += take;
+        remaining -= take;
+        place(
+          childItem: plan.childItem,
+          itemCode: plan.itemCode,
+          persistedGroupKey: plan.persistedGroupKey,
+          persistedGroupName: plan.persistedGroupName,
+          matchedGroup: catalogGroups[groupIndex],
+          matchedGroupIndex: groupIndex,
+          count: take,
+        );
+      }
+      if (remaining > 0) {
+        // Only reachable when two ambiguous items have different group sets;
+        // never drop jars — overflow into the first group so the server
+        // validation still refuses the edit loudly.
+        final groupIndex = plan.candidates.first;
+        filled[groupIndex] += remaining;
+        place(
+          childItem: plan.childItem,
+          itemCode: plan.itemCode,
+          persistedGroupKey: plan.persistedGroupKey,
+          persistedGroupName: plan.persistedGroupName,
+          matchedGroup: catalogGroups[groupIndex],
+          matchedGroupIndex: groupIndex,
+          count: remaining,
+        );
       }
     }
 
@@ -3426,6 +3585,60 @@ class PosNotifier extends StateNotifier<PosState> {
     final consumedBundleChildren = <int>{};
     final cartItems = <Map<String, dynamic>>[];
 
+    // Resolve every bundle-parent row once (catalog match + identity set).
+    final parentIndices = <int>[];
+    final parentBundleInfo = <int, Map<String, dynamic>?>{};
+    final parentIdentities = <int, Set<String>>{};
+    for (var index = 0; index < invoiceItems.length; index++) {
+      final item = invoiceItems[index];
+      if (_isBundleChildInvoiceItem(item) ||
+          !_isBundleParentInvoiceItem(item)) {
+        continue;
+      }
+      final matchedBundleInfo = _findBundleInfoForInvoiceItem(item, bundles);
+      parentIndices.add(index);
+      parentBundleInfo[index] = matchedBundleInfo;
+      parentIdentities[index] = <String>{
+        ..._invoiceBundleIdentities(item),
+        if (matchedBundleInfo != null)
+          ..._bundleCatalogIdentities(matchedBundleInfo),
+      }..removeWhere((value) => value.isEmpty);
+    }
+
+    // Assign each child row to exactly ONE parent. Invoice rows are always
+    // written parent-then-its-children, so a child belongs to the nearest
+    // PRECEDING parent whose identities contain its parent_bundle. Without
+    // this, an order holding the same bundle twice (Woo 17748) gave every copy
+    // all the children of both copies. A child with no matching preceding
+    // parent falls back to the first matching parent anywhere, which is what
+    // the single-instance path always did.
+    final childOwner = <int, int>{};
+    for (var childIndex = 0; childIndex < invoiceItems.length; childIndex++) {
+      final childItem = invoiceItems[childIndex];
+      if (!_isBundleChildInvoiceItem(childItem)) continue;
+      final parentBundle = childItem['parent_bundle']?.toString().trim() ?? '';
+      if (parentBundle.isEmpty) continue;
+
+      int? owner;
+      for (var p = parentIndices.length - 1; p >= 0; p--) {
+        final parentIndex = parentIndices[p];
+        if (parentIndex < childIndex &&
+            parentIdentities[parentIndex]!.contains(parentBundle)) {
+          owner = parentIndex;
+          break;
+        }
+      }
+      if (owner == null) {
+        for (final parentIndex in parentIndices) {
+          if (parentIdentities[parentIndex]!.contains(parentBundle)) {
+            owner = parentIndex;
+            break;
+          }
+        }
+      }
+      if (owner != null) childOwner[childIndex] = owner;
+    }
+
     for (var index = 0; index < invoiceItems.length; index++) {
       if (consumedBundleChildren.contains(index)) {
         continue;
@@ -3438,12 +3651,8 @@ class PosNotifier extends StateNotifier<PosState> {
 
       if (_isBundleParentInvoiceItem(item)) {
         final bundleCode = item['bundle_code']?.toString().trim() ?? '';
-        final matchedBundleInfo = _findBundleInfoForInvoiceItem(item, bundles);
-        final bundleIdentities = <String>{
-          ..._invoiceBundleIdentities(item),
-          if (matchedBundleInfo != null)
-            ..._bundleCatalogIdentities(matchedBundleInfo),
-        }..removeWhere((value) => value.isEmpty);
+        final matchedBundleInfo = parentBundleInfo[index];
+        final bundleIdentities = parentIdentities[index] ?? const <String>{};
         final childItems = <Map<String, dynamic>>[];
         final candidateChildIndices = <int>[];
         for (
@@ -3451,16 +3660,9 @@ class PosNotifier extends StateNotifier<PosState> {
           childIndex < invoiceItems.length;
           childIndex++
         ) {
-          if (childIndex == index) continue;
-          final childItem = invoiceItems[childIndex];
-          if (!_isBundleChildInvoiceItem(childItem)) continue;
-          final parentBundle =
-              childItem['parent_bundle']?.toString().trim() ?? '';
-          if (parentBundle.isNotEmpty &&
-              bundleIdentities.contains(parentBundle)) {
-            childItems.add(childItem);
-            candidateChildIndices.add(childIndex);
-          }
+          if (childOwner[childIndex] != index) continue;
+          childItems.add(invoiceItems[childIndex]);
+          candidateChildIndices.add(childIndex);
         }
 
         final bundleCartItem = _buildAmendmentBundleCartItem(
