@@ -33,18 +33,25 @@ class PaymentMethodDialog extends ConsumerWidget {
   /// is noise on the main flow.
   final bool showCreditWhenNotAllowed;
 
+  /// The order being edited is already on account. Its debt was granted when
+  /// it was placed, so switching the shop's credit off since then does not
+  /// take Credit away from the edit (the backend accepts it for the same
+  /// reason); the limit is still the server's call.
+  final bool alreadyOnCredit;
+
   const PaymentMethodDialog({
     super.key,
     this.customer = '',
     this.creditAllowedHint = false,
     this.showCreditWhenNotAllowed = false,
+    this.alreadyOnCredit = false,
   });
 
   /// Whether the Credit row is rendered at all. Rendering it is what triggers
   /// the profile lookup, so this is deliberately the narrow condition.
   bool get _showsCreditRow =>
       customer.trim().isNotEmpty &&
-      (creditAllowedHint || showCreditWhenNotAllowed);
+      (creditAllowedHint || showCreditWhenNotAllowed || alreadyOnCredit);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -112,7 +119,9 @@ class PaymentMethodDialog extends ConsumerWidget {
                   SizedBox(height: buttonSpacing),
                   _CreditPaymentOption(
                     customer: customer.trim(),
-                    showWhenNotAllowed: showCreditWhenNotAllowed,
+                    showWhenNotAllowed:
+                        showCreditWhenNotAllowed || alreadyOnCredit,
+                    alreadyOnCredit: alreadyOnCredit,
                   ),
                 ],
                 SizedBox(height: buttonSpacing),
@@ -145,6 +154,7 @@ class PaymentMethodDialog extends ConsumerWidget {
     String customer = '',
     bool creditAllowedHint = false,
     bool showCreditWhenNotAllowed = false,
+    bool alreadyOnCredit = false,
   }) {
     return showDialog<String>(
       context: context,
@@ -153,6 +163,7 @@ class PaymentMethodDialog extends ConsumerWidget {
         customer: customer,
         creditAllowedHint: creditAllowedHint,
         showCreditWhenNotAllowed: showCreditWhenNotAllowed,
+        alreadyOnCredit: alreadyOnCredit,
       ),
     );
   }
@@ -168,10 +179,12 @@ class PaymentMethodDialog extends ConsumerWidget {
 class _CreditPaymentOption extends ConsumerWidget {
   final String customer;
   final bool showWhenNotAllowed;
+  final bool alreadyOnCredit;
 
   const _CreditPaymentOption({
     required this.customer,
     required this.showWhenNotAllowed,
+    this.alreadyOnCredit = false,
   });
 
   @override
@@ -208,7 +221,7 @@ class _CreditPaymentOption extends ConsumerWidget {
     AppLocalizations l10n,
     CustomerCreditProfile profile,
   ) {
-    if (!profile.creditAllowed) {
+    if (!profile.creditAllowed && !alreadyOnCredit) {
       if (!showWhenNotAllowed) return const SizedBox.shrink();
       return _PaymentMethodButton(
         icon: Icons.schedule,

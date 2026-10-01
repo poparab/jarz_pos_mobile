@@ -15,6 +15,8 @@ import '../../../../core/websocket/websocket_service.dart';
 import '../../../../core/sync/offline_sync_service.dart';
 import '../../../../core/router.dart';
 import '../../state/courier_balances_provider.dart';
+import '../../../credit/data/models/credit_models.dart';
+import '../../../credit/state/credit_providers.dart';
 
 // Merged system status: connectivity, realtime, sync, couriers, partner chip
 // Removed unused system status imports (connectivity, sync, websocket) to satisfy analyzer.
@@ -345,6 +347,19 @@ class _PosScreenState extends ConsumerState<PosScreen>
         ref
             .read(posNotifierProvider.notifier)
             .startAmendmentDraft(amendmentInvoiceData);
+        // The edit's payment dialog always asks the live credit profile (the
+        // invoice carries no `credit_allowed` hint), so warm it now, as the
+        // customer search does when a shop is picked. A failure is the
+        // dialog's to render.
+        final amendmentCustomer =
+            amendmentInvoiceData['customer']?.toString().trim() ?? '';
+        if (amendmentCustomer.isNotEmpty) {
+          unawaited(
+            ref
+                .read(customerCreditProfileProvider(amendmentCustomer).future)
+                .catchError((Object _) => const CustomerCreditProfile()),
+          );
+        }
         return;
       }
 

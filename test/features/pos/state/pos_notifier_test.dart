@@ -1533,6 +1533,44 @@ void main() {
       expect(notifier.state.amendmentPaymentMethod, isNull);
     });
 
+    test('an on-account source marks its customer so Credit stays offered',
+        () async {
+      await notifier.startAmendmentDraft({
+        'name': 'ACC-SINV-2026-18900',
+        'pos_profile': 'Main POS',
+        'customer': 'Orbt speciality Coffee - 1',
+        'grand_total': 900,
+        'payment_method': 'Credit',
+        'items': [
+          {'item_code': 'ITEM-BURGER', 'item_name': 'Burger', 'qty': 1, 'rate': 900},
+        ],
+      });
+      expect(notifier.state.isAmendmentDraft, isTrue);
+      expect(
+        notifier.state.selectedCustomer?['amendment_on_credit'],
+        isTrue,
+      );
+      // A credit source is not "paid": the dialog must still open.
+      expect(notifier.state.amendmentLockedPaymentMethod, isNull);
+    });
+
+    test('a cash source does not carry the on-account mark', () async {
+      await notifier.startAmendmentDraft({
+        'name': 'ACC-SINV-2026-18901',
+        'pos_profile': 'Main POS',
+        'customer': 'Orbt speciality Coffee - 1',
+        'grand_total': 900,
+        'payment_method': 'Cash',
+        'items': [
+          {'item_code': 'ITEM-BURGER', 'item_name': 'Burger', 'qty': 1, 'rate': 900},
+        ],
+      });
+      expect(
+        notifier.state.selectedCustomer?['amendment_on_credit'],
+        isFalse,
+      );
+    });
+
     test(
       'startAmendmentDraft rebuilds bundle cart items from invoice rows',
       () async {

@@ -11,6 +11,7 @@ import '../data/models/pos_models.dart';
 import '../data/repositories/draft_cart_repository.dart';
 import '../data/repositories/pos_repository.dart';
 import '../domain/models/delivery_slot.dart';
+import '../../../core/constants/business_constants.dart';
 import '../../../core/utils/order_display_id.dart';
 
 // State for the POS screen
@@ -3798,6 +3799,16 @@ class PosNotifier extends StateNotifier<PosState> {
       'mobile_no': invoiceData['customer_phone']?.toString() ?? '',
       'selected_shipping_address_name': selectedShippingAddressName,
       'selected_shipping_address': selectedShippingAddress,
+      // The order being edited was taken on account. Kept on the customer so
+      // it drops with them if the edit moves the order to someone else; the
+      // payment dialog then keeps Credit for this order. See
+      // [PaymentMethodDialog.alreadyOnCredit].
+      'amendment_on_credit':
+          (invoiceData['payment_method'] ?? invoiceData['custom_payment_method'])
+              ?.toString()
+              .trim()
+              .toLowerCase() ==
+          PaymentModes.creditLower,
     };
   }
 

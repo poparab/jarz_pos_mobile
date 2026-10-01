@@ -217,6 +217,44 @@ void main() {
       expect(selected, 'untouched');
     });
 
+    testWidgets(
+        'editing an on-account order keeps Credit after the shop was switched off',
+        (tester) async {
+      // The backend accepts this (`_is_credit_debt_invoice(amended_from)`): the
+      // debt was granted when the order was placed, not by the edit.
+      final repository = _FakeCreditRepository(
+        const CustomerCreditProfile(creditAllowed: false, currency: 'EGP'),
+      );
+
+      String? selected;
+      await tester.pumpWidget(
+        _wrap(
+          repository: repository,
+          child: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                selected = await PaymentMethodDialog.show(
+                  context,
+                  customer: 'CUST-COFFEE',
+                  creditAllowedHint: true,
+                  alreadyOnCredit: true,
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('This customer is not approved for credit'), findsNothing);
+      await tester.tap(find.text('Credit (on account)'));
+      await tester.pumpAndSettle();
+      expect(selected, PaymentModes.credit);
+    });
+
     testWidgets('walk-in orders have no customer to put credit on',
         (tester) async {
       final repository = _FakeCreditRepository(

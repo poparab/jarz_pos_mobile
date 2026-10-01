@@ -1913,14 +1913,22 @@ class CartWidget extends ConsumerWidget {
       // profile itself. A B2B order also shows the row when the shop is NOT
       // approved, carrying the reason — a rep who expected credit has to know
       // why it is missing. B2C hides it instead of greying it on every sale.
+      // An edited order is rebuilt from its invoice, which carries neither the
+      // search row's `credit_allowed` nor the B2B flag, so it always asks the
+      // live profile (warmed by the POS screen when the edit opened).
       final creditCustomer = (state.selectedCustomer?['name'] ?? '')
           .toString()
           .trim();
       paymentMethod = await PaymentMethodDialog.show(
         context,
         customer: creditCustomer,
-        creditAllowedHint: state.selectedCustomer?['credit_allowed'] == true,
+        creditAllowedHint:
+            state.selectedCustomer?['credit_allowed'] == true ||
+            state.isAmendmentDraft,
         showCreditWhenNotAllowed: state.isB2bOrder,
+        alreadyOnCredit:
+            state.isAmendmentDraft &&
+            state.selectedCustomer?['amendment_on_credit'] == true,
       );
       if (paymentMethod == null) {
         return; // user cancelled the dialog
