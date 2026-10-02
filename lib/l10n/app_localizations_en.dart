@@ -15920,4 +15920,97 @@ class AppLocalizationsEn extends AppLocalizations {
   String reportOverridesLargest(String pct) {
     return 'Largest single override: +$pct%';
   }
+
+  @override
+  String get dealsTitle => 'Special prices';
+
+  @override
+  String get dealsSubtitle =>
+      'Deal prices for a set period, then back to normal';
+
+  @override
+  String get dealsNone => 'No active deals';
+
+  @override
+  String get dealsNew => 'New deal';
+
+  @override
+  String dealsHistory(int count) {
+    return 'Past deals ($count)';
+  }
+
+  @override
+  String get dealStatusActive => 'Active';
+
+  @override
+  String get dealStatusUpcoming => 'Upcoming';
+
+  @override
+  String get dealStatusExpired => 'Ended';
+
+  @override
+  String get dealStatusCancelled => 'Cancelled';
+
+  @override
+  String dealCategoryLabel(String group) {
+    return 'All $group';
+  }
+
+  @override
+  String dealRateVsNormal(String rate, String normal) {
+    return '$rate (normally $normal)';
+  }
+
+  @override
+  String get dealEditTitle => 'Edit deal';
+
+  @override
+  String get dealHelp =>
+      'This customer pays these prices on orders placed during the deal dates. After the last day, the normal price applies again automatically.';
+
+  @override
+  String get dealPickDates => 'Choose the deal dates';
+
+  @override
+  String get dealStartLocked =>
+      'A running deal keeps its start date. You can change the end date and the prices.';
+
+  @override
+  String get dealAddCategory => 'Add category';
+
+  @override
+  String get dealAddItem => 'Add item';
+
+  @override
+  String get dealRateLabel => 'Deal price';
+
+  @override
+  String dealNormalPrice(String amount) {
+    return 'Normal: $amount';
+  }
+
+  @override
+  String get dealEnd => 'End deal';
+
+  @override
+  String get dealEndConfirm =>
+      'End this deal today? New orders from this customer will use the normal price.';
+
+  @override
+  String get dealEnded => 'Deal ended';
+
+  @override
+  String get dealSaved => 'Deal saved';
+
+  @override
+  String get dealSaveFailed => 'Could not save the deal';
+
+  @override
+  String get dealNeedsDates => 'Choose the deal dates first';
+
+  @override
+  String get dealNeedsLines => 'Add at least one price';
+
+  @override
+  String get dealInvalidRate => 'Enter a valid price on every line';
 }

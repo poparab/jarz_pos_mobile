@@ -15908,4 +15908,96 @@ class AppLocalizationsAr extends AppLocalizations {
   String reportOverridesLargest(String pct) {
     return 'أكبر تعديل: +$pct%';
   }
+
+  @override
+  String get dealsTitle => 'أسعار خاصة';
+
+  @override
+  String get dealsSubtitle => 'سعر خاص لفترة محددة وبعدها يرجع السعر العادي';
+
+  @override
+  String get dealsNone => 'مفيش عروض شغالة';
+
+  @override
+  String get dealsNew => 'عرض جديد';
+
+  @override
+  String dealsHistory(int count) {
+    return 'عروض قديمة ($count)';
+  }
+
+  @override
+  String get dealStatusActive => 'شغال';
+
+  @override
+  String get dealStatusUpcoming => 'لسه هيبدأ';
+
+  @override
+  String get dealStatusExpired => 'خلص';
+
+  @override
+  String get dealStatusCancelled => 'اتلغى';
+
+  @override
+  String dealCategoryLabel(String group) {
+    return 'كل $group';
+  }
+
+  @override
+  String dealRateVsNormal(String rate, String normal) {
+    return '$rate (بدل $normal)';
+  }
+
+  @override
+  String get dealEditTitle => 'تعديل العرض';
+
+  @override
+  String get dealHelp =>
+      'العميل ده هيدفع الأسعار دي على الطلبات اللي تتعمل في فترة العرض. بعد آخر يوم السعر العادي بيرجع لوحده.';
+
+  @override
+  String get dealPickDates => 'اختار تواريخ العرض';
+
+  @override
+  String get dealStartLocked =>
+      'العرض الشغال بيفضل بنفس تاريخ البداية. تقدر تغير تاريخ النهاية والأسعار.';
+
+  @override
+  String get dealAddCategory => 'إضافة فئة';
+
+  @override
+  String get dealAddItem => 'إضافة صنف';
+
+  @override
+  String get dealRateLabel => 'سعر العرض';
+
+  @override
+  String dealNormalPrice(String amount) {
+    return 'العادي: $amount';
+  }
+
+  @override
+  String get dealEnd => 'إنهاء العرض';
+
+  @override
+  String get dealEndConfirm =>
+      'تنهي العرض ده النهارده؟ الطلبات الجديدة للعميل ده هتتحسب بالسعر العادي.';
+
+  @override
+  String get dealEnded => 'العرض انتهى';
+
+  @override
+  String get dealSaved => 'العرض اتحفظ';
+
+  @override
+  String get dealSaveFailed => 'مقدرناش نحفظ العرض';
+
+  @override
+  String get dealNeedsDates => 'اختار تواريخ العرض الأول';
+
+  @override
+  String get dealNeedsLines => 'ضيف سعر واحد على الأقل';
+
+  @override
+  String get dealInvalidRate => 'اكتب سعر صحيح في كل سطر';
 }

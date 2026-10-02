@@ -26110,6 +26110,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Largest single override: +{pct}%'**
   String reportOverridesLargest(String pct);
+
+  /// No description provided for @dealsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Special prices'**
+  String get dealsTitle;
+
+  /// No description provided for @dealsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deal prices for a set period, then back to normal'**
+  String get dealsSubtitle;
+
+  /// No description provided for @dealsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No active deals'**
+  String get dealsNone;
+
+  /// No description provided for @dealsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New deal'**
+  String get dealsNew;
+
+  /// No description provided for @dealsHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Past deals ({count})'**
+  String dealsHistory(int count);
+
+  /// No description provided for @dealStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get dealStatusActive;
+
+  /// No description provided for @dealStatusUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get dealStatusUpcoming;
+
+  /// No description provided for @dealStatusExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get dealStatusExpired;
+
+  /// No description provided for @dealStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get dealStatusCancelled;
+
+  /// No description provided for @dealCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'All {group}'**
+  String dealCategoryLabel(String group);
+
+  /// No description provided for @dealRateVsNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'{rate} (normally {normal})'**
+  String dealRateVsNormal(String rate, String normal);
+
+  /// No description provided for @dealEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit deal'**
+  String get dealEditTitle;
+
+  /// No description provided for @dealHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'This customer pays these prices on orders placed during the deal dates. After the last day, the normal price applies again automatically.'**
+  String get dealHelp;
+
+  /// No description provided for @dealPickDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the deal dates'**
+  String get dealPickDates;
+
+  /// No description provided for @dealStartLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'A running deal keeps its start date. You can change the end date and the prices.'**
+  String get dealStartLocked;
+
+  /// No description provided for @dealAddCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get dealAddCategory;
+
+  /// No description provided for @dealAddItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get dealAddItem;
+
+  /// No description provided for @dealRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Deal price'**
+  String get dealRateLabel;
+
+  /// No description provided for @dealNormalPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal: {amount}'**
+  String dealNormalPrice(String amount);
+
+  /// No description provided for @dealEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End deal'**
+  String get dealEnd;
+
+  /// No description provided for @dealEndConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'End this deal today? New orders from this customer will use the normal price.'**
+  String get dealEndConfirm;
+
+  /// No description provided for @dealEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Deal ended'**
+  String get dealEnded;
+
+  /// No description provided for @dealSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Deal saved'**
+  String get dealSaved;
+
+  /// No description provided for @dealSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the deal'**
+  String get dealSaveFailed;
+
+  /// No description provided for @dealNeedsDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the deal dates first'**
+  String get dealNeedsDates;
+
+  /// No description provided for @dealNeedsLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one price'**
+  String get dealNeedsLines;
+
+  /// No description provided for @dealInvalidRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid price on every line'**
+  String get dealInvalidRate;
 }
 
 class _AppLocalizationsDelegate

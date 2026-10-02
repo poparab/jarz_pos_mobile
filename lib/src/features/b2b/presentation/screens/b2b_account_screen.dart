@@ -14,6 +14,7 @@ import '../../../geo/presentation/widgets/location_link_field.dart'
     show LocationLinkValue;
 import '../../../credit/data/models/settlement_models.dart';
 import '../../../credit/presentation/widgets/credit_settings_section.dart';
+import '../../../pricing/presentation/widgets/customer_deals_section.dart';
 import '../../../credit/presentation/widgets/settlement_terms_section.dart';
 import '../../../journey/presentation/widgets/journey_notes_section.dart';
 import '../../../labels/models/label_models.dart' show LabelStatus;
@@ -1098,6 +1099,14 @@ class _AccountBody extends StatelessWidget {
               const SizedBox(height: 12),
               CreditSettingsSection(
                 key: const ValueKey('b2b-credit-settings'),
+                customer: party.name,
+                customerName: account.title,
+              ),
+              // Time-limited special prices. Needs a Customer: orders, and so
+              // deals, only exist once the Lead is converted.
+              const SizedBox(height: 12),
+              CustomerDealsSection(
+                key: const ValueKey('b2b-customer-deals'),
                 customer: party.name,
                 customerName: account.title,
               ),

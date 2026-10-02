@@ -632,6 +632,14 @@ abstract final class ApiEndpoints {
   static const assignCustomerToPriceList =
       '/api/method/jarz_pos.api.price_lists.assign_customer_to_price_list';
 
+  // ── Customer deals (time-limited special prices) ──────────────────────
+  static const getCustomerDeals =
+      '/api/method/jarz_pos.api.customer_deals.get_customer_deals';
+  static const saveCustomerDeal =
+      '/api/method/jarz_pos.api.customer_deals.save_customer_deal';
+  static const endCustomerDeal =
+      '/api/method/jarz_pos.api.customer_deals.end_customer_deal';
+
   // ── Leads (B2B prospect research) ─────────────────────────────────────
   static const getLeads = '/api/method/jarz_pos.api.leads.get_leads';
   static const getLead = '/api/method/jarz_pos.api.leads.get_lead';
