@@ -15960,7 +15960,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dealStartLocked =>
-      'العرض الشغال بيفضل بنفس تاريخ البداية. تقدر تغير تاريخ النهاية والأسعار.';
+      'العرض الشغال بيفضل بنفس تاريخ البداية والأسعار لأن في طلبات اتحسبت بيها. تقدر تغير تاريخ النهاية، أو تنهيه وتعمل عرض جديد.';
 
   @override
   String get dealAddCategory => 'إضافة فئة';
@@ -15981,7 +15981,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dealEndConfirm =>
-      'تنهي العرض ده النهارده؟ الطلبات الجديدة للعميل ده هتتحسب بالسعر العادي.';
+      'تنهي العرض ده؟ طلبات النهارده هتفضل بسعر العرض، ومن بكره العميل ده هيدفع السعر العادي.';
 
   @override
   String get dealEnded => 'العرض انتهى';

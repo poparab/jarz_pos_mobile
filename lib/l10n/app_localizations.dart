@@ -26198,7 +26198,7 @@ abstract class AppLocalizations {
   /// No description provided for @dealStartLocked.
   ///
   /// In en, this message translates to:
-  /// **'A running deal keeps its start date. You can change the end date and the prices.'**
+  /// **'A running deal keeps its start date and prices, because orders were already booked at them. You can change the end date, or end it and start a new deal.'**
   String get dealStartLocked;
 
   /// No description provided for @dealAddCategory.
@@ -26234,7 +26234,7 @@ abstract class AppLocalizations {
   /// No description provided for @dealEndConfirm.
   ///
   /// In en, this message translates to:
-  /// **'End this deal today? New orders from this customer will use the normal price.'**
+  /// **'End this deal? Orders placed today keep the deal price; from tomorrow this customer pays the normal price.'**
   String get dealEndConfirm;
 
   /// No description provided for @dealEnded.

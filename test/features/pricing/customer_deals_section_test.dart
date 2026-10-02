@@ -14,62 +14,72 @@ import 'package:jarz_pos/src/features/pricing/presentation/widgets/customer_deal
 /// wire shape both ways and what a rep (read-only) versus a manager sees.
 
 Map<String, dynamic> _payload({bool canEdit = true}) => {
-      'customer': 'Cafe Orbit',
-      'customer_name': 'Café Orbit',
-      'price_list': 'B2B Selling',
-      'today': '2026-10-02',
-      'can_edit': canEdit,
-      'deals': [
+  'customer': 'Cafe Orbit',
+  'customer_name': 'Café Orbit',
+  'price_list': 'B2B Selling',
+  'today': '2026-10-02',
+  'can_edit': canEdit,
+  'deals': [
+    {
+      'name': 'DEAL-00001',
+      'valid_from': '2026-10-01',
+      'valid_upto': '2026-10-15',
+      'status': 'active',
+      'editable': true,
+      'notes': 'Opening month',
+      'items': [
         {
-          'name': 'DEAL-00001',
-          'valid_from': '2026-10-01',
-          'valid_upto': '2026-10-15',
-          'status': 'active',
-          'editable': true,
-          'notes': 'Opening month',
-          'items': [
-            {
-              'item_group': 'Large',
-              'item_code': null,
-              'label': 'Large',
-              'rate': 80,
-              'normal_rate': 92,
-            },
-            {
-              'item_group': null,
-              'item_code': 'Molten Medium',
-              'label': 'Molten Medium',
-              'rate': 60,
-              'normal_rate': 77,
-            },
-          ],
+          'item_group': 'Large',
+          'item_code': null,
+          'label': 'Large',
+          'rate': 80,
+          'normal_rate': 92,
         },
         {
-          'name': 'DEAL-00000',
-          'valid_from': '2026-09-01',
-          'valid_upto': '2026-09-10',
-          'status': 'expired',
-          'editable': false,
-          'items': [
-            {'item_group': 'Medium', 'label': 'Medium', 'rate': 70},
-          ],
+          'item_group': null,
+          'item_code': 'Molten Medium',
+          'label': 'Molten Medium',
+          'rate': 60,
+          'normal_rate': 77,
         },
       ],
-      'catalog': {
-        'categories': [
-          {'item_group': 'Large', 'item_count': 10, 'normal_rate': 92},
-          {'item_group': 'Medium', 'item_count': 10, 'normal_rate': 77},
-        ],
-        'items': [
-          {
-            'item_code': 'Molten Medium',
-            'item_name': 'Molten Medium',
-            'item_group': 'Medium',
-            'normal_rate': 77,
-          },
-        ],
+    },
+    {
+      'name': 'DEAL-00002',
+      'valid_from': '2026-10-20',
+      'valid_upto': '2026-10-25',
+      'status': 'upcoming',
+      'editable': true,
+      'items': [
+        {'item_group': 'Medium', 'label': 'Medium', 'rate': 65},
+      ],
+    },
+    {
+      'name': 'DEAL-00000',
+      'valid_from': '2026-09-01',
+      'valid_upto': '2026-09-10',
+      'status': 'expired',
+      'editable': false,
+      'items': [
+        {'item_group': 'Medium', 'label': 'Medium', 'rate': 70},
+      ],
+    },
+  ],
+  'catalog': {
+    'categories': [
+      {'item_group': 'Large', 'item_count': 10, 'normal_rate': 92},
+      {'item_group': 'Medium', 'item_count': 10, 'normal_rate': 77},
+    ],
+    'items': [
+      {
+        'item_code': 'Molten Medium',
+        'item_name': 'Molten Medium',
+        'item_group': 'Medium',
+        'normal_rate': 77,
       },
-    };
+    ],
+  },
+};
 
 class _FakeDealsRepository extends CustomerDealsRepository {
   _FakeDealsRepository({this.canEdit = true, this.fail = false}) : super(Dio());
@@ -142,21 +152,24 @@ void main() {
     test('parses deals, lines and the catalog', () {
       final data = CustomerDeals.fromJson(_payload());
       expect(data.canEdit, isTrue);
-      expect(data.live.single.name, 'DEAL-00001');
+      expect(data.live.map((d) => d.name), ['DEAL-00001', 'DEAL-00002']);
       expect(data.history.single.status, CustomerDealStatus.expired);
-      final lines = data.live.single.items;
+      final lines = data.live.first.items;
       expect(lines.first.isCategory, isTrue);
       expect(lines.first.normalRate, 92);
       expect(lines.last.itemCode, 'Molten Medium');
-      expect(data.live.single.validUpto, DateTime(2026, 10, 15));
+      expect(data.live.first.validUpto, DateTime(2026, 10, 15));
       expect(data.normalRateFor(itemGroup: 'Medium'), 77);
       expect(data.normalRateFor(itemCode: 'Molten Medium'), 77);
     });
 
     test('a line sends exactly one target', () {
       expect(
-        const CustomerDealLine(itemGroup: 'Large', label: 'Large', rate: 80)
-            .toPayload(),
+        const CustomerDealLine(
+          itemGroup: 'Large',
+          label: 'Large',
+          rate: 80,
+        ).toPayload(),
         {'item_group': 'Large', 'rate': 80.0},
       );
       expect(
@@ -171,17 +184,16 @@ void main() {
     });
   });
 
-  testWidgets('shows live deals with the normal price beside each',
-      (tester) async {
+  testWidgets('shows live deals with the normal price beside each', (
+    tester,
+  ) async {
     await tester.pumpWidget(_app(_FakeDealsRepository()));
     await tester.pumpAndSettle();
 
     expect(find.text('Special prices'), findsOneWidget);
     expect(find.text('Active'), findsOneWidget);
-    expect(
-      find.textContaining('All Large: EGP'),
-      findsOneWidget,
-    );
+    expect(find.text('Upcoming'), findsOneWidget);
+    expect(find.textContaining('All Large: EGP'), findsOneWidget);
     expect(find.textContaining('normally EGP'), findsNWidgets(2));
     expect(find.text('Past deals (1)'), findsOneWidget);
     expect(find.byKey(const ValueKey('deals-new')), findsOneWidget);
@@ -217,8 +229,9 @@ void main() {
     expect(repo.saves, isEmpty);
   });
 
-  testWidgets('editing a running deal saves its dates and new prices',
-      (tester) async {
+  testWidgets('a running deal keeps its prices; only the end can move', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1200, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -227,33 +240,41 @@ void main() {
     await tester.pumpWidget(_app(repo));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.tap(find.byIcon(Icons.edit_outlined).first);
     await tester.pumpAndSettle();
     expect(find.text('Edit deal'), findsOneWidget);
     expect(
-      find.textContaining('A running deal keeps its start date'),
+      find.textContaining('A running deal keeps its start date and prices'),
       findsOneWidget,
     );
+    final rateFields = tester.widgetList<TextField>(
+      find.widgetWithText(TextField, 'Deal price'),
+    );
+    expect(rateFields, hasLength(2));
+    expect(rateFields.every((f) => f.enabled == false), isTrue);
+    expect(
+      tester
+          .widget<ButtonStyleButton>(
+            find.byKey(const ValueKey('deal-add-item')),
+          )
+          .onPressed,
+      isNull,
+    );
 
-    final firstRate = find.byType(TextField).first;
-    await tester.enterText(firstRate, '75');
     await tester.tap(find.byKey(const ValueKey('deal-save')));
     await tester.pumpAndSettle();
 
-    expect(repo.saves, hasLength(1));
     final save = repo.saves.single;
     expect(save['deal'], 'DEAL-00001');
     expect(save['from'], DateTime(2026, 10, 1));
     expect(save['to'], DateTime(2026, 10, 15));
     expect(save['items'], [
-      {'item_group': 'Large', 'rate': 75.0},
+      {'item_group': 'Large', 'rate': 80.0},
       {'item_code': 'Molten Medium', 'rate': 60.0},
     ]);
-    expect(find.text('Deal saved'), findsOneWidget);
   });
 
-  testWidgets('ending a deal asks first, then calls the server',
-      (tester) async {
+  testWidgets('an upcoming deal can change its prices', (tester) async {
     tester.view.physicalSize = const Size(1200, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -262,11 +283,42 @@ void main() {
     await tester.pumpWidget(_app(repo));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.tap(find.byIcon(Icons.edit_outlined).last);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Deal price'),
+      '62.5',
+    );
+    await tester.tap(find.byKey(const ValueKey('deal-save')));
+    await tester.pumpAndSettle();
+
+    final save = repo.saves.single;
+    expect(save['deal'], 'DEAL-00002');
+    expect(save['items'], [
+      {'item_group': 'Medium', 'rate': 62.5},
+    ]);
+    expect(find.text('Deal saved'), findsOneWidget);
+  });
+
+  testWidgets('ending a deal asks first, then calls the server', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final repo = _FakeDealsRepository();
+    await tester.pumpWidget(_app(repo));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.edit_outlined).first);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('deal-end')));
     await tester.pumpAndSettle();
-    expect(find.textContaining('End this deal today?'), findsOneWidget);
+    expect(
+      find.textContaining('Orders placed today keep the deal price'),
+      findsOneWidget,
+    );
 
     await tester.tap(find.widgetWithText(FilledButton, 'End deal'));
     await tester.pumpAndSettle();

@@ -291,7 +291,11 @@ class _CustomerDealSheetState extends ConsumerState<CustomerDealSheet> {
   String? _error;
 
   bool get _isEdit => widget.deal != null;
+
+  /// A running deal already priced orders, so the server keeps its start
+  /// date and its prices fixed; only the end date can move.
   bool get _startLocked => widget.deal?.status == CustomerDealStatus.active;
+  bool get _pricesLocked => _startLocked;
 
   static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
@@ -403,7 +407,7 @@ class _CustomerDealSheetState extends ConsumerState<CustomerDealSheet> {
     }
     final items = <CustomerDealLine>[];
     for (final line in _lines) {
-      final rate = double.tryParse(line.rate.text.trim().replaceAll(',', ''));
+      final rate = double.tryParse(line.rate.text.trim());
       if (rate == null || rate < 0) {
         setState(() => _error = l10n.dealInvalidRate);
         return;
@@ -567,12 +571,12 @@ class _CustomerDealSheetState extends ConsumerState<CustomerDealSheet> {
                       flex: 4,
                       child: TextField(
                         controller: line.rate,
-                        enabled: !_busy,
+                        enabled: !_busy && !_pricesLocked,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                         ],
                         decoration: InputDecoration(
                           labelText: l10n.dealRateLabel,
@@ -588,7 +592,7 @@ class _CustomerDealSheetState extends ConsumerState<CustomerDealSheet> {
                     ),
                     IconButton(
                       tooltip: l10n.commonDelete,
-                      onPressed: _busy
+                      onPressed: _busy || _pricesLocked
                           ? null
                           : () {
                               setState(() => _lines.remove(line));
@@ -608,13 +612,17 @@ class _CustomerDealSheetState extends ConsumerState<CustomerDealSheet> {
               children: [
                 OutlinedButton.icon(
                   key: const ValueKey('deal-add-category'),
-                  onPressed: _busy ? null : () => _addTarget(category: true),
+                  onPressed: _busy || _pricesLocked
+                      ? null
+                      : () => _addTarget(category: true),
                   icon: const Icon(Icons.category_outlined, size: 18),
                   label: Text(l10n.dealAddCategory),
                 ),
                 OutlinedButton.icon(
                   key: const ValueKey('deal-add-item'),
-                  onPressed: _busy ? null : () => _addTarget(category: false),
+                  onPressed: _busy || _pricesLocked
+                      ? null
+                      : () => _addTarget(category: false),
                   icon: const Icon(Icons.add_box_outlined, size: 18),
                   label: Text(l10n.dealAddItem),
                 ),

@@ -15973,7 +15973,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dealStartLocked =>
-      'A running deal keeps its start date. You can change the end date and the prices.';
+      'A running deal keeps its start date and prices, because orders were already booked at them. You can change the end date, or end it and start a new deal.';
 
   @override
   String get dealAddCategory => 'Add category';
@@ -15994,7 +15994,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dealEndConfirm =>
-      'End this deal today? New orders from this customer will use the normal price.';
+      'End this deal? Orders placed today keep the deal price; from tomorrow this customer pays the normal price.';
 
   @override
   String get dealEnded => 'Deal ended';
