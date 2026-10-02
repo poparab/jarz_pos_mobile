@@ -26,6 +26,7 @@ Map<String, dynamic> _payload({bool canEdit = true}) => {
       'valid_upto': '2026-10-15',
       'status': 'active',
       'editable': true,
+      'has_orders': true,
       'notes': 'Opening month',
       'items': [
         {
@@ -154,6 +155,8 @@ void main() {
       expect(data.canEdit, isTrue);
       expect(data.live.map((d) => d.name), ['DEAL-00001', 'DEAL-00002']);
       expect(data.history.single.status, CustomerDealStatus.expired);
+    expect(data.live.first.hasOrders, isTrue);
+    expect(data.live.last.hasOrders, isFalse);
       final lines = data.live.first.items;
       expect(lines.first.isCategory, isTrue);
       expect(lines.first.normalRate, 92);
@@ -324,6 +327,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.ended, ['DEAL-00001']);
-    expect(find.text('Deal ended'), findsOneWidget);
+    // The server kept it for today's orders, so the app says when it stops.
+    expect(find.textContaining('The deal ends tonight'), findsOneWidget);
   });
 }

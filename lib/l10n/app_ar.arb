@@ -5926,5 +5926,7 @@
   "dealSaveFailed": "مقدرناش نحفظ العرض",
   "dealNeedsDates": "اختار تواريخ العرض الأول",
   "dealNeedsLines": "ضيف سعر واحد على الأقل",
-  "dealInvalidRate": "اكتب سعر صحيح في كل سطر"
+  "dealInvalidRate": "اكتب سعر صحيح في كل سطر",
+  "dealCancelled": "العرض اتلغى",
+  "dealEndsTonight": "العرض هينتهي النهارده. من بكره العميل ده هيدفع السعر العادي."
 }

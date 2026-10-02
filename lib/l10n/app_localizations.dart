@@ -26272,6 +26272,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a valid price on every line'**
   String get dealInvalidRate;
+
+  /// No description provided for @dealCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Deal cancelled'**
+  String get dealCancelled;
+
+  /// No description provided for @dealEndsTonight.
+  ///
+  /// In en, this message translates to:
+  /// **'The deal ends tonight. From tomorrow this customer pays the normal price.'**
+  String get dealEndsTonight;
 }
 
 class _AppLocalizationsDelegate

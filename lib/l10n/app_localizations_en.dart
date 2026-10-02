@@ -16013,4 +16013,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dealInvalidRate => 'Enter a valid price on every line';
+
+  @override
+  String get dealCancelled => 'Deal cancelled';
+
+  @override
+  String get dealEndsTonight =>
+      'The deal ends tonight. From tomorrow this customer pays the normal price.';
 }

@@ -8972,5 +8972,7 @@
   "dealSaveFailed": "Could not save the deal",
   "dealNeedsDates": "Choose the deal dates first",
   "dealNeedsLines": "Add at least one price",
-  "dealInvalidRate": "Enter a valid price on every line"
+  "dealInvalidRate": "Enter a valid price on every line",
+  "dealCancelled": "Deal cancelled",
+  "dealEndsTonight": "The deal ends tonight. From tomorrow this customer pays the normal price."
 }

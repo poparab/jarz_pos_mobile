@@ -16000,4 +16000,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dealInvalidRate => 'اكتب سعر صحيح في كل سطر';
+
+  @override
+  String get dealCancelled => 'العرض اتلغى';
+
+  @override
+  String get dealEndsTonight =>
+      'العرض هينتهي النهارده. من بكره العميل ده هيدفع السعر العادي.';
 }

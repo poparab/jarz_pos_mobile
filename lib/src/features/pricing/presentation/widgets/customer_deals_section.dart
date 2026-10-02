@@ -292,10 +292,21 @@ class _CustomerDealSheetState extends ConsumerState<CustomerDealSheet> {
 
   bool get _isEdit => widget.deal != null;
 
-  /// A running deal already priced orders, so the server keeps its start
-  /// date and its prices fixed; only the end date can move.
-  bool get _startLocked => widget.deal?.status == CustomerDealStatus.active;
+  /// A running deal that already priced a booked order keeps its start date
+  /// and prices (the server enforces it); only the end date can move. Before
+  /// its first order it is still free to fix, e.g. a typo seen that morning.
+  bool get _startLocked =>
+      widget.deal?.status == CustomerDealStatus.active &&
+      widget.deal!.hasOrders;
   bool get _pricesLocked => _startLocked;
+
+  /// A deal with orders that already ends today has nothing left to end.
+  bool get _canEnd {
+    final deal = widget.deal;
+    if (deal == null) return false;
+    if (!deal.hasOrders) return true;
+    return _dateOnly(deal.validUpto).isAfter(_dateOnly(DateTime.now()));
+  }
 
   static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
@@ -473,12 +484,16 @@ class _CustomerDealSheetState extends ConsumerState<CustomerDealSheet> {
       _error = null;
     });
     try {
-      await ref
+      final ended = await ref
           .read(customerDealsRepositoryProvider)
           .endCustomerDeal(widget.deal!.name);
       ref.invalidate(customerDealsProvider(widget.data.customer));
       if (!mounted) return;
-      Navigator.of(context).pop(l10n.dealEnded);
+      Navigator.of(context).pop(
+        ended.status == CustomerDealStatus.cancelled
+            ? l10n.dealCancelled
+            : l10n.dealEndsTonight,
+      );
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -654,7 +669,7 @@ class _CustomerDealSheetState extends ConsumerState<CustomerDealSheet> {
                     )
                   : Text(l10n.commonSave),
             ),
-            if (_isEdit)
+            if (_isEdit && _canEnd)
               TextButton(
                 key: const ValueKey('deal-end'),
                 onPressed: _busy ? null : _end,

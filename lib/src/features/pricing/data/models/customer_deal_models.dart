@@ -71,6 +71,10 @@ class CustomerDeal {
   final DateTime validUpto;
   final CustomerDealStatus status;
   final bool editable;
+
+  /// A running deal that already priced a booked order: the server keeps its
+  /// start and prices fixed from then on.
+  final bool hasOrders;
   final String? notes;
   final String? createdBy;
   final List<CustomerDealLine> items;
@@ -81,6 +85,7 @@ class CustomerDeal {
     required this.validUpto,
     required this.status,
     required this.editable,
+    this.hasOrders = false,
     this.notes,
     this.createdBy,
     this.items = const [],
@@ -96,6 +101,7 @@ class CustomerDeal {
     validUpto: _date(json['valid_upto']),
     status: _status(json['status']),
     editable: json['editable'] == true,
+    hasOrders: json['has_orders'] == true,
     notes: _strOrNull(json['notes']),
     createdBy: _strOrNull(json['created_by']),
     items: (json['items'] as List? ?? const [])
