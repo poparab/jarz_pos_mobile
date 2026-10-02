@@ -1715,6 +1715,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
 
   Future<String?> _showPaymentMethodSheet(BuildContext context) async {
     String? selected = PaymentModes.cash;
+    // Kashier: an order taken as Cash that the customer then paid through a
+    // Kashier payment link (order 17783). Branch staff cannot see the Kashier
+    // dashboard, so only the line-manager tier is offered it -- and the
+    // backend (`pay_invoice`, mode "Kashier") enforces the same gate.
+    final canRecordKashier = ref.read(canActAsLineManagerProvider);
     return showModalBottomSheet<String>(
       context: context,
       isScrollControlled: false,
@@ -1759,6 +1764,16 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                   onChanged: (v) => setModalState(() => selected = v),
                   icon: Icons.payments_outlined,
                 ),
+                if (canRecordKashier)
+                  _paymentOptionTile(
+                    // Brand name, shown untranslated like "Kashier Card"
+                    // everywhere else in the app.
+                    title: 'Kashier',
+                    value: 'Kashier',
+                    groupValue: selected,
+                    onChanged: (v) => setModalState(() => selected = v),
+                    icon: Icons.credit_card,
+                  ),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
