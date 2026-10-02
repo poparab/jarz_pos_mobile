@@ -11633,6 +11633,36 @@ abstract class AppLocalizations {
   /// **'Request rejected'**
   String get requestsRejected;
 
+  /// No description provided for @requestsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get requestsEdit;
+
+  /// No description provided for @requestsEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit request'**
+  String get requestsEditTitle;
+
+  /// No description provided for @requestsSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get requestsSaveChanges;
+
+  /// No description provided for @requestsUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Request {name} updated'**
+  String requestsUpdated(Object name);
+
+  /// No description provided for @requestsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get requestsUnit;
+
   /// No description provided for @requestsReopen.
   ///
   /// In en, this message translates to:

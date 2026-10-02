@@ -253,6 +253,10 @@ abstract final class ApiEndpoints {
   // ── Purchase requests (team item requests) ────────────────────────────
   static const createItemRequest =
       '/api/method/jarz_pos.api.purchase_request.create_request';
+  static const getItemRequestForEdit =
+      '/api/method/jarz_pos.api.purchase_request.get_request_for_edit';
+  static const updateItemRequest =
+      '/api/method/jarz_pos.api.purchase_request.update_request';
   static const listItemRequests =
       '/api/method/jarz_pos.api.purchase_request.list_requests';
   static const stopItemRequest =

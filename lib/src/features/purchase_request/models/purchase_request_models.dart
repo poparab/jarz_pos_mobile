@@ -153,6 +153,10 @@ class ItemRequest {
   final DateTime? acknowledgedAt;
   final List<RequestLine> items;
 
+  /// Server-decided: the caller raised it (or is a buyer) and nobody has
+  /// accepted or bought against it yet.
+  final bool canEdit;
+
   const ItemRequest({
     required this.name,
     required this.transactionDate,
@@ -168,6 +172,7 @@ class ItemRequest {
     this.acknowledgedBy,
     this.acknowledgedAt,
     required this.items,
+    this.canEdit = false,
   });
 
   int get itemCount => items.length;
@@ -202,6 +207,7 @@ class ItemRequest {
           .whereType<Map>()
           .map((e) => RequestLine.fromJson(Map<String, dynamic>.from(e)))
           .toList(),
+      canEdit: json['can_edit'] == true,
     );
   }
 }
@@ -368,6 +374,36 @@ class ItemRequestCounts {
   }
 }
 
+/// One unit an item can be requested in (its stock UOM, or a conversion set
+/// on the Item — e.g. "Box" = 12 "Nos").
+class RequestUomOption {
+  final String uom;
+  final double conversionFactor;
+
+  const RequestUomOption({required this.uom, required this.conversionFactor});
+
+  factory RequestUomOption.fromJson(Map<String, dynamic> json) {
+    final factor = _toDouble(json['conversion_factor']);
+    return RequestUomOption(
+      uom: _toStr(json['uom']),
+      conversionFactor: factor == 0 ? 1 : factor,
+    );
+  }
+
+  /// Parses the `uoms` list the item search and edit endpoints return,
+  /// dropping blanks and duplicates.
+  static List<RequestUomOption> listFromJson(dynamic raw) {
+    final seen = <String>{};
+    final out = <RequestUomOption>[];
+    for (final entry in (raw is List ? raw : const []).whereType<Map>()) {
+      final option = RequestUomOption.fromJson(Map<String, dynamic>.from(entry));
+      if (option.uom.isEmpty || !seen.add(option.uom)) continue;
+      out.add(option);
+    }
+    return out;
+  }
+}
+
 /// A line the user is about to request (pre-submit, client-side only).
 class DraftRequestLine {
   final String itemCode;
@@ -375,18 +411,28 @@ class DraftRequestLine {
   final String uom;
   final double qty;
 
+  /// Units the requester may pick from. Client-side only — never sent.
+  final List<RequestUomOption> uoms;
+
   const DraftRequestLine({
     required this.itemCode,
     required this.itemName,
     required this.uom,
     required this.qty,
+    this.uoms = const [],
   });
 
-  DraftRequestLine copyWith({double? qty, String? uom}) => DraftRequestLine(
+  DraftRequestLine copyWith({
+    double? qty,
+    String? uom,
+    List<RequestUomOption>? uoms,
+  }) =>
+      DraftRequestLine(
         itemCode: itemCode,
         itemName: itemName,
         uom: uom ?? this.uom,
         qty: qty ?? this.qty,
+        uoms: uoms ?? this.uoms,
       );
 
   Map<String, dynamic> toJson() => {

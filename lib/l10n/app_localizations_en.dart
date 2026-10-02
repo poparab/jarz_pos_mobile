@@ -6938,6 +6938,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get requestsRejected => 'Request rejected';
 
   @override
+  String get requestsEdit => 'Edit';
+
+  @override
+  String get requestsEditTitle => 'Edit request';
+
+  @override
+  String get requestsSaveChanges => 'Save changes';
+
+  @override
+  String requestsUpdated(Object name) {
+    return 'Request $name updated';
+  }
+
+  @override
+  String get requestsUnit => 'Unit';
+
+  @override
   String get requestsReopen => 'Reopen';
 
   @override

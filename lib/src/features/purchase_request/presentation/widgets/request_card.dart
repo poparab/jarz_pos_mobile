@@ -13,6 +13,7 @@ class RequestCard extends StatefulWidget {
   final VoidCallback? onReject;
   final VoidCallback? onReopen;
   final VoidCallback? onAccept;
+  final VoidCallback? onEdit;
 
   const RequestCard({
     super.key,
@@ -21,6 +22,7 @@ class RequestCard extends StatefulWidget {
     this.onReject,
     this.onReopen,
     this.onAccept,
+    this.onEdit,
   });
 
   @override
@@ -106,6 +108,7 @@ class _RequestCardState extends State<RequestCard> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final request = widget.request;
+    final canEdit = request.canEdit && widget.onEdit != null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -240,6 +243,20 @@ class _RequestCardState extends State<RequestCard> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          // Asked in a bigger unit (e.g. 2 Box): show it, since
+                          // the progress figure is always in the stock unit.
+                          if (line.uom.isNotEmpty &&
+                              line.uom != line.stockUom)
+                            Padding(
+                              padding:
+                                  const EdgeInsetsDirectional.only(end: 8),
+                              child: Text(
+                                '${_fmtQty(line.qty)} ${line.uom}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.outline,
+                                ),
+                              ),
+                            ),
                           Text(
                             l10n.requestsLineProgress(
                               _fmtQty(line.receivedQty),
@@ -268,19 +285,27 @@ class _RequestCardState extends State<RequestCard> {
                       ),
                     ),
                   ],
-                  if (widget.canReview) ...[
+                  if (widget.canReview || canEdit) ...[
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        if (request.status.isRejected &&
+                        if (canEdit)
+                          TextButton.icon(
+                            onPressed: widget.onEdit,
+                            icon: const Icon(Icons.edit_outlined, size: 16),
+                            label: Text(l10n.requestsEdit),
+                          ),
+                        if (widget.canReview &&
+                            request.status.isRejected &&
                             widget.onReopen != null)
                           TextButton.icon(
                             onPressed: widget.onReopen,
                             icon: const Icon(Icons.undo, size: 16),
                             label: Text(l10n.requestsReopen),
                           )
-                        else if (request.status.isOpen &&
+                        else if (widget.canReview &&
+                            request.status.isOpen &&
                             widget.onReject != null)
                           TextButton.icon(
                             onPressed: widget.onReject,

@@ -192,6 +192,37 @@ class PurchaseRequestNotifier extends StateNotifier<PurchaseRequestState> {
     }
   }
 
+  /// Saves an edit. The original is cancelled server-side and replaced by an
+  /// amended copy under a new name, so the card is swapped in place.
+  Future<ItemRequest?> updateRequest({
+    required String name,
+    required List<DraftRequestLine> items,
+    String? scheduleDate,
+    required String note,
+  }) async {
+    state = state.copyWith(isSubmitting: true, clearError: true);
+    try {
+      final updated = await _repository.updateRequest(
+        name: name,
+        items: items,
+        scheduleDate: scheduleDate,
+        note: note,
+      );
+      state = state.copyWith(
+        isSubmitting: false,
+        requests: [
+          for (final request in state.requests)
+            if (request.name == name) updated else request,
+        ],
+      );
+      _onChanged?.call();
+      return updated;
+    } catch (error) {
+      state = state.copyWith(isSubmitting: false, error: error.toString());
+      return null;
+    }
+  }
+
   Future<bool> stopRequest(String name, {String? reason}) async {
     try {
       final updated = await _repository.stopRequest(name, reason: reason);

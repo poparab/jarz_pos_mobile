@@ -236,6 +236,7 @@ class _PurchaseRequestsScreenState
             onReject: () => _reject(request),
             onReopen: () => _reopen(request),
             onAccept: () => _accept(request),
+            onEdit: () => NewRequestSheet.edit(context, request),
           );
         },
       ),

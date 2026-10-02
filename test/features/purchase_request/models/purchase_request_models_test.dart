@@ -307,6 +307,57 @@ void main() {
       expect(bumped.itemName, 'Tomatoes');
       expect(bumped.uom, 'Kg');
     });
+
+    test('unit options stay client-side and survive copyWith', () {
+      const line = DraftRequestLine(
+        itemCode: 'RM-CUPS',
+        itemName: 'Cups',
+        uom: 'Nos',
+        qty: 2,
+        uoms: [
+          RequestUomOption(uom: 'Nos', conversionFactor: 1),
+          RequestUomOption(uom: 'Box', conversionFactor: 50),
+        ],
+      );
+      final boxed = line.copyWith(uom: 'Box');
+      expect(boxed.uom, 'Box');
+      expect(boxed.uoms, hasLength(2));
+      expect(boxed.toJson(), {'item_code': 'RM-CUPS', 'qty': 2.0, 'uom': 'Box'});
+    });
+  });
+
+  group('RequestUomOption.listFromJson', () {
+    test('parses the search payload, dropping blanks and duplicates', () {
+      final options = RequestUomOption.listFromJson([
+        {'uom': 'Nos', 'conversion_factor': 1},
+        {'uom': 'Box', 'conversion_factor': '12'},
+        {'uom': 'Box', 'conversion_factor': 12},
+        {'uom': ''},
+        'junk',
+      ]);
+      expect(options.map((o) => o.uom), ['Nos', 'Box']);
+      expect(options[1].conversionFactor, 12);
+    });
+
+    test('a missing factor reads as 1, a non-list as empty', () {
+      expect(
+        RequestUomOption.listFromJson([
+          {'uom': 'Kg'},
+        ]).single.conversionFactor,
+        1,
+      );
+      expect(RequestUomOption.listFromJson(null), isEmpty);
+    });
+  });
+
+  group('ItemRequest.canEdit', () {
+    test('follows the server flag and defaults to false', () {
+      expect(
+        ItemRequest.fromJson({'name': 'MAT-MR-0001', 'can_edit': true}).canEdit,
+        isTrue,
+      );
+      expect(ItemRequest.fromJson({'name': 'MAT-MR-0001'}).canEdit, isFalse);
+    });
   });
 
   // ── ItemRequestPage ──────────────────────────────────────────────────

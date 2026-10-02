@@ -3708,6 +3708,16 @@
   "requestsRejectTitle": "Reject this request?",
   "requestsRejectReason": "Reason (optional)",
   "requestsRejected": "Request rejected",
+  "requestsEdit": "Edit",
+  "requestsEditTitle": "Edit request",
+  "requestsSaveChanges": "Save changes",
+  "requestsUpdated": "Request {name} updated",
+  "@requestsUpdated": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "requestsUnit": "Unit",
   "requestsReopen": "Reopen",
   "requestsReopened": "Request reopened",
   "requestsAccept": "Accept",

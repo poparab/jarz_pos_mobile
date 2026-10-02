@@ -6902,6 +6902,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get requestsRejected => 'الطلب اترفض';
 
   @override
+  String get requestsEdit => 'تعديل';
+
+  @override
+  String get requestsEditTitle => 'تعديل الطلب';
+
+  @override
+  String get requestsSaveChanges => 'احفظ التعديلات';
+
+  @override
+  String requestsUpdated(Object name) {
+    return 'الطلب $name اتعدّل';
+  }
+
+  @override
+  String get requestsUnit => 'الوحدة';
+
+  @override
   String get requestsReopen => 'افتحه تاني';
 
   @override

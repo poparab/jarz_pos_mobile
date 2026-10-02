@@ -75,6 +75,51 @@ class PurchaseRequestRepository {
     );
   }
 
+  /// The request plus each item's selectable units, keyed by item code.
+  Future<({ItemRequest request, Map<String, List<RequestUomOption>> uoms})>
+      getRequestForEdit(String name) async {
+    final response = await _dio.post(
+      ApiEndpoints.getItemRequestForEdit,
+      data: {'name': name},
+    );
+    final payload = _unwrap(response.data);
+    final rawUoms = payload['uoms'];
+    return (
+      request: ItemRequest.fromJson(
+        Map<String, dynamic>.from(payload['request'] as Map),
+      ),
+      uoms: {
+        if (rawUoms is Map)
+          for (final entry in rawUoms.entries)
+            entry.key.toString(): RequestUomOption.listFromJson(entry.value),
+      },
+    );
+  }
+
+  /// Saves an edit. The server cancels the original and submits an amended
+  /// copy, so the returned request carries a new name (`<old>-1`).
+  Future<ItemRequest> updateRequest({
+    required String name,
+    required List<DraftRequestLine> items,
+    String? scheduleDate,
+    required String note,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.updateItemRequest,
+      data: {
+        'name': name,
+        'items': items.map((e) => e.toJson()).toList(),
+        if (scheduleDate != null) 'schedule_date': scheduleDate,
+        // Always sent: an empty note is how the requester clears one.
+        'note': note.trim(),
+      },
+    );
+    final payload = _unwrap(response.data);
+    return ItemRequest.fromJson(
+      Map<String, dynamic>.from(payload['request'] as Map),
+    );
+  }
+
   Future<ItemRequest> stopRequest(String name, {String? reason}) async {
     final response = await _dio.post(
       ApiEndpoints.stopItemRequest,
