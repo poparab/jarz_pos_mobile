@@ -358,6 +358,18 @@ void main() {
       );
       expect(ItemRequest.fromJson({'name': 'MAT-MR-0001'}).canEdit, isFalse);
     });
+
+    test('is withheld when an item appears twice', () {
+      final request = ItemRequest.fromJson({
+        'name': 'MAT-MR-0001',
+        'can_edit': true,
+        'items': [
+          {'name': 'a', 'item_code': 'RM-CUPS'},
+          {'name': 'b', 'item_code': 'RM-CUPS'},
+        ],
+      });
+      expect(request.canEdit, isFalse);
+    });
   });
 
   // ── ItemRequestPage ──────────────────────────────────────────────────

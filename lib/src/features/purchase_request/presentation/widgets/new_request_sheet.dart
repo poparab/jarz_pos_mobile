@@ -257,6 +257,12 @@ class _NewRequestSheetState extends ConsumerState<NewRequestSheet> {
       messenger.showSnackBar(
         SnackBar(content: Text(context.userErrorMessage(error))),
       );
+      // A refused edit often means the request moved on elsewhere (accepted,
+      // bought, edited on another phone): refresh the list behind the sheet
+      // so its card stops offering Edit.
+      if (editing != null) {
+        unawaited(ref.read(purchaseRequestNotifierProvider.notifier).load());
+      }
       return;
     }
     messenger.showSnackBar(
@@ -279,10 +285,12 @@ class _NewRequestSheetState extends ConsumerState<NewRequestSheet> {
     // initial date is not before firstDate, so widen the range to include it.
     final first =
         (current != null && current.isBefore(today)) ? current : today;
+    final yearOut = today.add(const Duration(days: 365));
+    final last = (current != null && current.isAfter(yearOut)) ? current : yearOut;
     final picked = await showDatePicker(
       context: context,
       firstDate: first,
-      lastDate: today.add(const Duration(days: 365)),
+      lastDate: last,
       initialDate: current ?? today.add(const Duration(days: 3)),
     );
     if (picked != null) {

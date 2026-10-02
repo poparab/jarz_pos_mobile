@@ -241,6 +241,9 @@ class PurchaseRequestNotifier extends StateNotifier<PurchaseRequestState> {
       return true;
     } catch (error) {
       state = state.copyWith(error: error.toString());
+      // Usually the card is stale (edited or stopped elsewhere): refresh so
+      // it stops offering an action the server keeps refusing.
+      await load();
       return false;
     }
   }

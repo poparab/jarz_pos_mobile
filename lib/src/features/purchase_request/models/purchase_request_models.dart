@@ -189,6 +189,10 @@ class ItemRequest {
 
   factory ItemRequest.fromJson(Map<String, dynamic> json) {
     final rawStatus = _toStr(json['status']);
+    final items = ((json['items'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => RequestLine.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
     return ItemRequest(
       name: _toStr(json['name']),
       transactionDate: _toDate(json['transaction_date']),
@@ -203,11 +207,11 @@ class ItemRequest {
       isMine: json['is_mine'] == true,
       acknowledgedBy: _toNullableStr(json['acknowledged_by']),
       acknowledgedAt: _toDate(json['acknowledged_at']),
-      items: ((json['items'] as List?) ?? const [])
-          .whereType<Map>()
-          .map((e) => RequestLine.fromJson(Map<String, dynamic>.from(e)))
-          .toList(),
-      canEdit: json['can_edit'] == true,
+      items: items,
+      // The edit sheet holds one line per item; the server refuses a request
+      // listing an item twice, so do not offer Edit on one either.
+      canEdit: json['can_edit'] == true &&
+          items.map((l) => l.itemCode).toSet().length == items.length,
     );
   }
 }
