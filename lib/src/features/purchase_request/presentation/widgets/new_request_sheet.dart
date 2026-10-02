@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/widgets/item_title_with_arabic.dart';
 import '../../data/purchase_request_repository.dart';
 import '../../models/purchase_request_models.dart';
 import '../../state/purchase_request_notifier.dart';
@@ -370,7 +371,10 @@ class _NewRequestSheetState extends ConsumerState<NewRequestSheet> {
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
-      title: Text((item['item_name'] ?? code).toString()),
+      title: ItemTitleWithArabic(
+        title: (item['item_name'] ?? code).toString(),
+        arabicName: item['item_name_ar'],
+      ),
       subtitle: Text(
         // Showing stock here stops the most common wasteful request: asking
         // for something the branch already has.

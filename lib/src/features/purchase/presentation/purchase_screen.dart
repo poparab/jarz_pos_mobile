@@ -9,6 +9,7 @@ import '../../../core/localization/user_error_message.dart';
 import '../../../core/localization/localized_formatters.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
+import '../../../core/widgets/item_title_with_arabic.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../purchase/data/purchase_service.dart';
@@ -1280,7 +1281,10 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
         final onHand = _num(it['on_hand_qty']);
         final lastPaid = _num(it['last_purchase_rate']);
         return ListTile(
-          title: Text(itemL10n.commonNameWithCode(name, code)),
+          title: ItemTitleWithArabic(
+            title: itemL10n.commonNameWithCode(name, code),
+            arabicName: it['item_name_ar'],
+          ),
           // Stock and last-paid inline: a buyer choosing a price blind is the
           // single most common complaint about a bare item picker.
           subtitle: Row(
