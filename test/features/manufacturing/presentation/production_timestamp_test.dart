@@ -35,6 +35,71 @@ void main() {
       );
     });
 
+    test('a past day takes the batch start moment when it started that day',
+        () {
+      // 2026-10-04: a mix (produce_now) and a cake (start, then Finish) made
+      // together at 16:00. The cake finished at 23:59 and every jar dated that
+      // afternoon was refused as short of it.
+      expect(
+        finishScheduledAt(
+          DateTime(2026, 9, 7),
+          today,
+          explicitTime: false,
+          startedAt: DateTime(2026, 9, 7, 16, 0, 0),
+        ),
+        '2026-09-07 16:00:00',
+      );
+    });
+
+    test('keeps the seconds of the start, so it is never before the transfer',
+        () {
+      expect(
+        finishScheduledAt(
+          DateTime(2026, 9, 7, 0, 0),
+          today,
+          explicitTime: false,
+          startedAt: DateTime(2026, 9, 7, 9, 5, 42),
+        ),
+        '2026-09-07 09:05:42',
+      );
+    });
+
+    test('a past day other than the start day still falls back to 23:59', () {
+      expect(
+        finishScheduledAt(
+          DateTime(2026, 9, 7),
+          today,
+          explicitTime: false,
+          startedAt: DateTime(2026, 9, 6, 16, 0),
+        ),
+        '2026-09-07 23:59:00',
+      );
+    });
+
+    test('today still sends nothing even with a start moment', () {
+      expect(
+        finishScheduledAt(
+          DateTime(2026, 9, 8),
+          today,
+          explicitTime: false,
+          startedAt: DateTime(2026, 9, 8, 9, 0),
+        ),
+        isNull,
+      );
+    });
+
+    test('a chosen time beats the start moment', () {
+      expect(
+        finishScheduledAt(
+          DateTime(2026, 9, 7, 18, 30),
+          today,
+          explicitTime: true,
+          startedAt: DateTime(2026, 9, 7, 16, 0),
+        ),
+        '2026-09-07 18:30:00',
+      );
+    });
+
     test('midnight on a past day is still 23:59, not 00:00', () {
       // Midnight is the value a restored basket carries; honouring it would put
       // the Manufacture entry at the start of the day, before its transfer.

@@ -25,8 +25,15 @@ String _date(DateTime value) =>
 ///     inside one minute is the normal shape of recording a run that already
 ///     happened.
 ///
-/// A PAST day with no chosen time still needs an explicit stamp, and 23:59 is
-/// the safe end of it: after any transfer posted that day, whenever it was.
+/// A PAST day with no chosen time still needs an explicit stamp. When that day
+/// is the day the batch started, the stamp is the start moment itself
+/// ([startedAt], `jarz_started_at`) — the time the operator already gave once,
+/// on the Bases tab. Never before the transfer (equal is accepted), and it keeps
+/// a cake and a mix entered together on the same clock: stamping the cake at
+/// 23:59 while its mix kept 16:00 hid the cake from every jar made that day,
+/// and the jars were refused as short of a base sitting on the shelf
+/// (2026-10-04, Butter Biscuit). 23:59 remains only for a past day with no
+/// usable start on it: after any transfer posted that day, whenever it was.
 ///
 /// [explicitTime] must come from whether the operator actually picked a clock
 /// time — never from "a date is set". The picker seeds from a bare day and the
@@ -36,6 +43,7 @@ String? finishScheduledAt(
   DateTime day,
   DateTime today, {
   required bool explicitTime,
+  DateTime? startedAt,
 }) {
   if (explicitTime) {
     return '${_date(day)} ${_two(day.hour)}:${_two(day.minute)}:00';
@@ -43,6 +51,10 @@ String? finishScheduledAt(
   // Day-granular on purpose: [day] may carry a clock component from a default,
   // and comparing that against midnight would read today as a past day.
   if (!DateTime(day.year, day.month, day.day).isBefore(today)) return null;
+  if (startedAt != null && _date(startedAt) == _date(day)) {
+    return '${_date(startedAt)} ${_two(startedAt.hour)}:'
+        '${_two(startedAt.minute)}:${_two(startedAt.second)}';
+  }
   return '${_date(day)} 23:59:00';
 }
 

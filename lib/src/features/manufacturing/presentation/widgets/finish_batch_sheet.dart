@@ -132,11 +132,17 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
     return started;
   }
 
-  /// The calendar day the batch was started, or null when unparseable.
-  DateTime? get _startedOn {
+  /// The moment the batch was started (`jarz_started_at`, server wall clock),
+  /// or null when unparseable.
+  DateTime? get _startedMoment {
     final raw = widget.batch.startedAt;
     if (raw == null || raw.trim().isEmpty) return null;
-    final parsed = DateTime.tryParse(raw.trim().replaceFirst(' ', 'T'));
+    return DateTime.tryParse(raw.trim().replaceFirst(' ', 'T'));
+  }
+
+  /// The calendar day the batch was started, or null when unparseable.
+  DateTime? get _startedOn {
+    final parsed = _startedMoment;
     if (parsed == null) return null;
     return DateTime(parsed.year, parsed.month, parsed.day);
   }
@@ -353,6 +359,7 @@ class _FinishBatchSheetState extends ConsumerState<FinishBatchSheet> {
               // the output at the start of the day is what puts a Manufacture
               // entry before the transfer that fed it.
               explicitTime: hasExplicitPostingTime(_postingDate),
+              startedAt: _startedMoment,
             ),
             notes: notes.isEmpty ? null : notes,
             returnLeftover: _returnLeftover && _leftoverAfterThisFinish > 0,
