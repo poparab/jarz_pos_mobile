@@ -391,6 +391,108 @@ void main() {
       expect(userErrorMessageFor(ar, error), ar.userErrorValidationFallback);
     });
 
+    // Production, 2026-10-04: a floor inventory count was refused 7 times and
+    // the Arabic UI showed only "check the entered information". The server's
+    // sentence named the item, the quantity and the fix.
+    const countRefusal =
+        'Cannot submit this inventory count because the selected posting date '
+        'would make a later stock movement go negative. 115.0 units of Item '
+        'Blueberry Jar label 212 needed in Warehouse Raw Material - J on '
+        '2026-10-04 10:00:00 for Stock Entry MAT-STE-jarz-2026-00995 to '
+        'complete this transaction. Try a later posting date or increase the '
+        'counted quantity for the affected item.';
+
+    // What Frappe really sends when tracebacks are not allowed: no
+    // `exception` key, and `_server_messages` holds ERPNext's inner
+    // negative-stock line first and the endpoint's re-raised refusal last.
+    DioException countRefusalError() => dioError(
+          type: DioExceptionType.badResponse,
+          status: 417,
+          data: {
+            'exc_type': 'ValidationError',
+            '_server_messages': jsonEncode([
+              jsonEncode({
+                'message': '115.0 units of <a href="/desk/item/x">Item '
+                    'Blueberry Jar label 212</a> needed in Warehouse Raw '
+                    'Material - J for Stock Entry MAT-STE-jarz-2026-00995 to '
+                    'complete this transaction.',
+                'title': 'Insufficient Stock',
+                'raise_exception': 1,
+              }),
+              jsonEncode({
+                'message': countRefusal,
+                'title': 'Message',
+                'indicator': 'red',
+                'raise_exception': 1,
+              }),
+            ]),
+          },
+        );
+
+    test('an Arabic UI keeps an English server reason under the Arabic line',
+        () {
+      expect(countRefusal.length, greaterThan(240));
+      expect(
+        userErrorMessageFor(ar, countRefusalError()),
+        '${ar.userErrorValidationFallback}\n$countRefusal',
+      );
+    });
+
+    test('an English UI shows a long server reason verbatim', () {
+      expect(userErrorMessageFor(en, countRefusalError()), countRefusal);
+    });
+
+    test('ERPNext link markup is stripped from the server reason', () {
+      final error = dioError(
+        type: DioExceptionType.badResponse,
+        status: 417,
+        data: {
+          '_server_messages': jsonEncode([
+            jsonEncode({
+              'message': '115.0 units of <a href="/desk/item/Blueberry%20Jar'
+                  '%20label%20212" style="font-weight: bold;">Item Blueberry '
+                  'Jar label 212</a> needed in <a href="/desk/warehouse/Raw'
+                  '%20Material%20-%20J">Warehouse Raw Material - J</a> for '
+                  '<a href="/desk/stock-entry/MAT-STE-jarz-2026-00995">Stock '
+                  'Entry MAT-STE-jarz-2026-00995</a> to complete this '
+                  'transaction.',
+            }),
+          ]),
+        },
+      );
+      expect(
+        userErrorMessageFor(ar, error),
+        '${ar.userErrorValidationFallback}\n115.0 units of Item Blueberry Jar '
+        'label 212 needed in Warehouse Raw Material - J for Stock Entry '
+        'MAT-STE-jarz-2026-00995 to complete this transaction.',
+      );
+    });
+
+    test('an Arabic UI still drops an English reason carrying an identifier',
+        () {
+      final error = dioError(
+        type: DioExceptionType.badResponse,
+        status: 417,
+        data: {'exception': 'ValidationError: Value for stock_qty is invalid'},
+      );
+      expect(userErrorMessageFor(ar, error), ar.userErrorValidationFallback);
+    });
+
+    test('a presented Arabic-led reason survives a second pass', () {
+      final presented = userErrorMessageFor(ar, countRefusalError());
+      expect(userErrorMessageFor(ar, presented), presented);
+    });
+
+    test('an English reason longer than the validation limit is not shown', () {
+      final error = dioError(
+        type: DioExceptionType.badResponse,
+        status: 417,
+        data: {'exception': 'ValidationError: ${'Stock is short. ' * 60}'},
+      );
+      expect(userErrorMessageFor(ar, error), ar.userErrorValidationFallback);
+      expect(userErrorMessageFor(en, error), en.userErrorValidationFallback);
+    });
+
     test('an Exception wrapper is not sufficient to trust unknown text', () {
       expect(
         userErrorMessageFor(en, Exception('Not enough material in WIP')),

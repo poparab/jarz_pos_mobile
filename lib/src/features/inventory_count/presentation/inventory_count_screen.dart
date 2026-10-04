@@ -556,9 +556,15 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
     } catch (e) {
       if (!mounted) return;
       _debugLog('Submit reconciliation error', e);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
+      // A refusal here names the item, quantity and date to fix, which takes
+      // longer to read than the default four seconds.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.userErrorMessage(e)),
+          duration: const Duration(seconds: 15),
+          showCloseIcon: true,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }

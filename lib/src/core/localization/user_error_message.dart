@@ -59,6 +59,10 @@ String userErrorMessageFor(
     l10n.userErrorCustodyDisableWithBalance,
   };
   if (error is String && knownMessages.contains(error)) return error;
+  if (error is String &&
+      error.startsWith('${l10n.userErrorValidationFallback}\n')) {
+    return error;
+  }
   final category = _classify(error);
   if (error is! Error &&
       (category == _UserErrorCategory.unknown ||
@@ -297,6 +301,11 @@ _UserErrorCategory _classifyText(String? text) {
   return _UserErrorCategory.unknown;
 }
 
+/// A server refusal is the backend author's own explanation — it names the
+/// item, the warehouse, the quantities and the way out — so it may run well
+/// past the 240 characters allowed for unrecognised text.
+const _validationMaxLength = 800;
+
 String? _validationMessage(AppLocalizations l10n, Object? error) {
   final candidate = _firstCandidate(error);
   if (candidate == null) return null;
@@ -304,15 +313,31 @@ String? _validationMessage(AppLocalizations l10n, Object? error) {
   if (business != null) return business;
   // Frappe commonly sends ValidationError as HTTP 417, but status alone does
   // not make an arbitrary response body safe UI copy.
-  if (!_looksLikeValidation(candidate)) return null;
-  // An Arabic UI must not surface an English server sentence.
+  if (!_looksLikeValidation(candidate, maxLength: _validationMaxLength)) {
+    return null;
+  }
   if (_isArabic(l10n)) {
-    return _containsArabic(candidate) && !_containsEnglish(candidate)
-        ? candidate
-        : null;
+    if (_containsArabic(candidate) && !_containsEnglish(candidate)) {
+      return candidate;
+    }
+    // jarz_pos ships no Arabic translations, so nearly every refusal arrives
+    // in English. Dropping it left the operator with the generic line and no
+    // reason at all (a floor inventory count was retried 7 times on
+    // 2026-10-04). Keep the Arabic line and put the server's reason under it,
+    // unless it carries a code identifier rather than prose.
+    if (_hasCodeIdentifier(candidate)) return null;
+    return _withArabicLead(l10n, candidate);
   }
   return candidate;
 }
+
+/// The generic Arabic line followed by the server's own (English) reason.
+String _withArabicLead(AppLocalizations l10n, String reason) =>
+    '${l10n.userErrorValidationFallback}\n$reason';
+
+/// `customer_id`, `process_order`: a snake_case token marks internal text.
+bool _hasCodeIdentifier(String value) =>
+    RegExp(r'[A-Za-z0-9]+_[A-Za-z0-9_]+').hasMatch(value);
 
 String? _businessMessage(AppLocalizations l10n, String? candidate) {
   if (candidate == null || !_isSafeUserText(candidate)) return null;
@@ -415,9 +440,9 @@ String _safeFallback(AppLocalizations l10n, String? fallback) {
   return candidate;
 }
 
-bool _looksLikeValidation(String value) {
+bool _looksLikeValidation(String value, {int maxLength = 240}) {
   final normalized = value.toLowerCase();
-  if (!_isSafeUserText(value)) return false;
+  if (!_isSafeUserText(value, maxLength: maxLength)) return false;
   if (_hasAny(normalized, const [
     'invalid argument',
     'invalid parameter',
@@ -512,8 +537,13 @@ bool _isSafeUserText(String value, {int maxLength = 240}) {
   return !RegExp(r'[\u0000-\u0008\u000B\u000C\u000E-\u001F]').hasMatch(text);
 }
 
+/// Frappe's reason sits six levels below a DioException: response data →
+/// `_server_messages` (a JSON string) → list → entry (a JSON string) → map →
+/// `message`. A lower limit silently skipped `_server_messages` altogether.
+const _maxCandidateDepth = 8;
+
 String? _firstCandidate(Object? value, [int depth = 0]) {
-  if (value == null || depth > 5) return null;
+  if (value == null || depth > _maxCandidateDepth) return null;
   if (value is DioException) {
     return _firstCandidate(value.response?.data, depth + 1) ??
         _cleanCandidate(value.message, depth + 1);
@@ -539,7 +569,10 @@ String? _firstCandidate(Object? value, [int depth = 0]) {
       'exc',
       'data',
     ]) {
-      final candidate = _firstCandidate(value[key], depth + 1);
+      final raw = key == '_server_messages'
+          ? _raisingMessageFirst(value[key])
+          : value[key];
+      final candidate = _firstCandidate(raw, depth + 1);
       if (candidate != null) return candidate;
     }
     return null;
@@ -563,6 +596,18 @@ String? _firstCandidate(Object? value, [int depth = 0]) {
   return null;
 }
 
+/// Frappe appends every msgprint to `_server_messages` and stops at the one
+/// that raised, so the last entry is the refusal itself. Earlier entries are
+/// notes or an inner error the endpoint caught and re-raised with advice
+/// (inventory count: ERPNext's negative-stock line, then "try a later posting
+/// date").
+Object? _raisingMessageFirst(Object? serverMessages) {
+  final decoded =
+      serverMessages is String ? _decodeJson(serverMessages.trim()) : serverMessages;
+  if (decoded is List) return decoded.reversed.toList();
+  return serverMessages;
+}
+
 String? _rawErrorText(Object? value) {
   if (value == null) return null;
   if (value is String)
@@ -581,7 +626,7 @@ dynamic _decodeJson(String value) {
 }
 
 String? _cleanCandidate(String? raw, [int depth = 0]) {
-  if (raw == null || depth > 5) return null;
+  if (raw == null || depth > _maxCandidateDepth) return null;
   var text = raw.trim();
   if (text.isEmpty || text.length > 6000) return null;
   // Frappe's ValidationError prefix is the one supported server wrapper. Do
