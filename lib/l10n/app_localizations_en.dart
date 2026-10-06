@@ -10812,7 +10812,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get expensesAdvanceSalaryMonthHelp =>
-      'The cash leaves today’s drawer either way. This decides which month’s salary the advance is taken from — before pay day it is usually last month’s.';
+      'The cash is paid out on the advance date from the account above either way. This only decides which month’s salary it is deducted from — before pay day that is usually last month’s.';
 
   @override
   String get expensesAdvanceSalaryMonthRequired =>

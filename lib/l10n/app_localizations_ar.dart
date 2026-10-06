@@ -10766,7 +10766,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get expensesAdvanceSalaryMonthHelp =>
-      'النقدية تُصرف من درج اليوم في كل الأحوال. هذا يحدد مرتب أي شهر ستُخصم منه السلفة — قبل يوم القبض تكون عادةً من مرتب الشهر الماضي.';
+      'النقدية تُصرف في تاريخ السلفة من الحساب المختار في كل الأحوال. هذا يحدد فقط مرتب أي شهر ستُخصم منه السلفة — قبل يوم القبض تكون عادةً من مرتب الشهر الماضي.';
 
   @override
   String get expensesAdvanceSalaryMonthRequired =>

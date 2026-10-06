@@ -6329,7 +6329,7 @@
   "expensesAdvancePayFromLabel": "Pay from",
   "expensesAdvancePaymentSourceRequired": "Select a payment source",
   "expensesAdvanceSalaryMonthLabel": "Deduct from the salary of",
-  "expensesAdvanceSalaryMonthHelp": "The cash leaves today’s drawer either way. This decides which month’s salary the advance is taken from — before pay day it is usually last month’s.",
+  "expensesAdvanceSalaryMonthHelp": "The cash is paid out on the advance date from the account above either way. This only decides which month’s salary it is deducted from — before pay day that is usually last month’s.",
   "expensesAdvanceSalaryMonthRequired": "Choose which month’s salary this advance is from.",
   "expensesAdvanceSalaryMonthSuggested": "suggested",
   "expensesAdvanceSalaryMonthCardLabel": "Salary month",

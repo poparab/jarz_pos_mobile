@@ -4407,7 +4407,7 @@
   "expensesAdvancePayFromLabel": "الصرف من",
   "expensesAdvancePaymentSourceRequired": "اختر مصدر الصرف",
   "expensesAdvanceSalaryMonthLabel": "تُخصم من مرتب شهر",
-  "expensesAdvanceSalaryMonthHelp": "النقدية تُصرف من درج اليوم في كل الأحوال. هذا يحدد مرتب أي شهر ستُخصم منه السلفة — قبل يوم القبض تكون عادةً من مرتب الشهر الماضي.",
+  "expensesAdvanceSalaryMonthHelp": "النقدية تُصرف في تاريخ السلفة من الحساب المختار في كل الأحوال. هذا يحدد فقط مرتب أي شهر ستُخصم منه السلفة — قبل يوم القبض تكون عادةً من مرتب الشهر الماضي.",
   "expensesAdvanceSalaryMonthRequired": "اختر الشهر الذي ستُخصم السلفة من مرتبه.",
   "expensesAdvanceSalaryMonthSuggested": "مقترح",
   "expensesAdvanceSalaryMonthCardLabel": "شهر المرتب",
