@@ -17717,6 +17717,42 @@ abstract class AppLocalizations {
   /// **'Select a payment source'**
   String get expensesAdvancePaymentSourceRequired;
 
+  /// No description provided for @expensesAdvanceSalaryMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Deduct from the salary of'**
+  String get expensesAdvanceSalaryMonthLabel;
+
+  /// No description provided for @expensesAdvanceSalaryMonthHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The cash leaves today’s drawer either way. This decides which month’s salary the advance is taken from — before pay day it is usually last month’s.'**
+  String get expensesAdvanceSalaryMonthHelp;
+
+  /// No description provided for @expensesAdvanceSalaryMonthRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which month’s salary this advance is from.'**
+  String get expensesAdvanceSalaryMonthRequired;
+
+  /// No description provided for @expensesAdvanceSalaryMonthSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'suggested'**
+  String get expensesAdvanceSalaryMonthSuggested;
+
+  /// No description provided for @expensesAdvanceSalaryMonthCardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary month'**
+  String get expensesAdvanceSalaryMonthCardLabel;
+
+  /// No description provided for @expensesAdvanceSalaryMonthChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary of {month}'**
+  String expensesAdvanceSalaryMonthChip(String month);
+
   /// No description provided for @expensesAdvanceDateLabel.
   ///
   /// In en, this message translates to:

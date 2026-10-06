@@ -38,6 +38,13 @@ class EmployeeAdvanceCard extends StatelessWidget {
     final languageCode = Localizations.localeOf(context).languageCode;
     final paymentLabel = advance.localizedPaymentLabel(languageCode);
     final statusColor = _statusColor(theme);
+    // Only advances filed with an explicit salary month show one: a legacy row
+    // carries its posting month as a fallback, which is a guess, not a choice.
+    final salaryMonthDay =
+        advance.salaryMonthExplicit ? salaryMonthDate(advance.salaryMonth) : null;
+    final salaryMonthLabel = salaryMonthDay == null
+        ? null
+        : formatDate(context, salaryMonthDay, pattern: 'MMMM yyyy');
     final showActions =
         canApprove && advance.isPendingApproval && onApprove != null;
 
@@ -84,6 +91,14 @@ class EmployeeAdvanceCard extends StatelessWidget {
               children: [
                 if (advance.postingDate != null)
                   Text(formatDate(context, advance.postingDate!)),
+                if (salaryMonthLabel != null)
+                  Text(
+                    l10n.expensesAdvanceSalaryMonthChip(salaryMonthLabel),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 _StatusChip(
                   status: localizedAdvanceStatus(context, advance.status),
                   color: statusColor,
@@ -101,6 +116,11 @@ class EmployeeAdvanceCard extends StatelessWidget {
         children: [
           const Divider(),
           _InfoRow(label: l10n.expensesAdvanceIdLabel, value: advance.name),
+          if (salaryMonthLabel != null)
+            _InfoRow(
+              label: l10n.expensesAdvanceSalaryMonthCardLabel,
+              value: salaryMonthLabel,
+            ),
           if (advance.purpose != null && advance.purpose!.isNotEmpty)
             _InfoRow(
               label: l10n.expensesAdvancePurposeLabel,

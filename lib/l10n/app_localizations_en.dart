@@ -10808,6 +10808,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expensesAdvancePaymentSourceRequired => 'Select a payment source';
 
   @override
+  String get expensesAdvanceSalaryMonthLabel => 'Deduct from the salary of';
+
+  @override
+  String get expensesAdvanceSalaryMonthHelp =>
+      'The cash leaves today’s drawer either way. This decides which month’s salary the advance is taken from — before pay day it is usually last month’s.';
+
+  @override
+  String get expensesAdvanceSalaryMonthRequired =>
+      'Choose which month’s salary this advance is from.';
+
+  @override
+  String get expensesAdvanceSalaryMonthSuggested => 'suggested';
+
+  @override
+  String get expensesAdvanceSalaryMonthCardLabel => 'Salary month';
+
+  @override
+  String expensesAdvanceSalaryMonthChip(String month) {
+    return 'Salary of $month';
+  }
+
+  @override
   String get expensesAdvanceDateLabel => 'Advance date (optional)';
 
   @override

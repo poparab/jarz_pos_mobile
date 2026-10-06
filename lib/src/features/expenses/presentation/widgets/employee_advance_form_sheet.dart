@@ -21,11 +21,19 @@ class EmployeeAdvanceFormSheet extends ConsumerStatefulWidget {
   final List<ExpensePaymentSource> paymentSources;
   final String? currency;
 
+  /// Salary months the advance may be drawn against, newest first. Empty from
+  /// a backend that predates the field, in which case the picker is hidden and
+  /// the server applies its pay-day default.
+  final List<ExpenseMonthOption> salaryMonths;
+  final String? suggestedSalaryMonth;
+
   const EmployeeAdvanceFormSheet({
     super.key,
     required this.employees,
     required this.paymentSources,
     this.currency,
+    this.salaryMonths = const [],
+    this.suggestedSalaryMonth,
   });
 
   @override
@@ -48,6 +56,12 @@ class _EmployeeAdvanceFormSheetState
   /// Non-null always carries the clock time the operator picked: the picker
   /// asks for a day and a time, and returns nothing if either is cancelled.
   DateTime? _selectedDate;
+
+  /// Which salary the advance comes off. Deliberately starts EMPTY and is
+  /// required: the cash always leaves today's drawer, but before pay day it is
+  /// usually LAST month's salary paid early, and a silent default is exactly
+  /// how an advance ends up deducted from the wrong payslip.
+  String? _selectedSalaryMonth;
   bool _submitting = false;
 
   @override
@@ -177,6 +191,10 @@ class _EmployeeAdvanceFormSheetState
                   return null;
                 },
               ),
+              if (widget.salaryMonths.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _buildSalaryMonthField(context),
+              ],
               const SizedBox(height: 16),
               TextFormField(
                 controller: _purposeController,
@@ -306,12 +324,63 @@ class _EmployeeAdvanceFormSheetState
       payingAccount: source.account,
       posProfile: source.posProfile,
       postingDate: postingDate,
+      salaryMonth: _selectedSalaryMonth,
     );
     if (!mounted) return;
     setState(() => _submitting = false);
     if (advance != null) {
       Navigator.of(context).pop(advance);
     }
+  }
+
+  Widget _buildSalaryMonthField(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    return FormField<String>(
+      initialValue: _selectedSalaryMonth,
+      validator: (value) => (value == null || value.isEmpty)
+          ? l10n.expensesAdvanceSalaryMonthRequired
+          : null,
+      builder: (field) {
+        return InputDecorator(
+          decoration: InputDecoration(
+            labelText: l10n.expensesAdvanceSalaryMonthLabel,
+            helperText: l10n.expensesAdvanceSalaryMonthHelp,
+            helperMaxLines: 3,
+            errorText: field.errorText,
+            errorMaxLines: 2,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.event_note_outlined),
+          ),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: widget.salaryMonths.map((option) {
+              final date = salaryMonthDate(option.id);
+              final label = date == null
+                  ? option.label
+                  : formatDate(context, date, pattern: 'MMMM yyyy');
+              final suggested = option.id == widget.suggestedSalaryMonth;
+              return ChoiceChip(
+                label: Text(
+                  suggested
+                      ? '$label • ${l10n.expensesAdvanceSalaryMonthSuggested}'
+                      : label,
+                ),
+                selected: _selectedSalaryMonth == option.id,
+                labelStyle: suggested && _selectedSalaryMonth != option.id
+                    ? TextStyle(color: theme.colorScheme.primary)
+                    : null,
+                onSelected: (_) {
+                  setState(() => _selectedSalaryMonth = option.id);
+                  field.didChange(option.id);
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
   }
 
   String _extraLabel(ExpensePaymentSource source) {

@@ -83,6 +83,7 @@ class EmployeeAdvancesRepository {
     required String payingAccount,
     String? posProfile,
     String? postingDate,
+    String? salaryMonth,
   }) async {
     final body = <String, dynamic>{
       'employee': employee,
@@ -92,6 +93,8 @@ class EmployeeAdvancesRepository {
       if (posProfile != null && posProfile.isNotEmpty) 'pos_profile': posProfile,
       if (postingDate != null && postingDate.isNotEmpty)
         'posting_date': postingDate,
+      if (salaryMonth != null && salaryMonth.isNotEmpty)
+        'salary_month': salaryMonth,
     };
 
     final response = await _dio.post(

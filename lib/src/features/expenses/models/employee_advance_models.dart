@@ -49,6 +49,14 @@ String? _optionalString(dynamic value) {
   return raw.isEmpty ? null : raw;
 }
 
+/// First day of a `YYYY-MM` salary-month key, for locale-aware formatting
+/// (`formatDate(..., pattern: 'MMMM yyyy')`). Null for anything malformed.
+DateTime? salaryMonthDate(String? monthKey) {
+  final key = monthKey?.trim() ?? '';
+  if (!RegExp(r'^\d{4}-\d{2}$').hasMatch(key)) return null;
+  return DateTime.tryParse('$key-01');
+}
+
 /// One selectable employee in the request sheet.
 class AdvanceEmployeeOption {
   final String employee;
@@ -121,6 +129,13 @@ class EmployeeAdvance {
   final String? branch;
   final String? posProfile;
   final DateTime? postingDate;
+
+  /// `YYYY-MM` of the SALARY this advance is deducted from — not the day the
+  /// cash left the drawer ([postingDate]). Before pay day an advance is usually
+  /// last month's salary paid early. Legacy rows carry their posting month and
+  /// [salaryMonthExplicit] is false.
+  final String? salaryMonth;
+  final bool salaryMonthExplicit;
   final String? currency;
   final double amount;
   final double paidAmount;
@@ -150,6 +165,8 @@ class EmployeeAdvance {
     this.branch,
     this.posProfile,
     this.postingDate,
+    this.salaryMonth,
+    this.salaryMonthExplicit = false,
     this.currency,
     required this.amount,
     required this.paidAmount,
@@ -208,6 +225,9 @@ class EmployeeAdvance {
       branch: _optionalString(json['branch']),
       posProfile: _optionalString(json['pos_profile']),
       postingDate: _parseDate(json['posting_date']),
+      salaryMonth: _optionalString(json['salary_month']),
+      salaryMonthExplicit: json['salary_month_explicit'] == true ||
+          json['salary_month_explicit'] == 1,
       currency: _optionalString(json['currency']),
       amount: _parseAmount(json['amount']),
       paidAmount: _parseAmount(json['paid_amount']),
@@ -283,6 +303,14 @@ class EmployeeAdvanceBootstrap {
   final String? employeeFilter;
   final String? branchFilter;
   final List<ExpenseMonthOption> months;
+
+  /// Salary months a new advance may be drawn against (newest first). Empty
+  /// from a backend that predates the field — the form then hides the picker.
+  final List<ExpenseMonthOption> salaryMonths;
+
+  /// The likely answer (last month's salary until pay day). Only marked in the
+  /// form, never pre-selected: the requester has to choose.
+  final String? suggestedSalaryMonth;
   final List<AdvanceEmployeeOption> employees;
   final List<ExpensePaymentSource> paymentSources;
   final List<EmployeeAdvance> advances;
@@ -301,6 +329,8 @@ class EmployeeAdvanceBootstrap {
     this.employeeFilter,
     this.branchFilter,
     required this.months,
+    this.salaryMonths = const [],
+    this.suggestedSalaryMonth,
     required this.employees,
     required this.paymentSources,
     required this.advances,
@@ -338,6 +368,9 @@ class EmployeeAdvanceBootstrap {
       employeeFilter: _optionalString(appliedMap['employee']),
       branchFilter: _optionalString(appliedMap['branch']),
       months: rows('months').map(ExpenseMonthOption.fromJson).toList(),
+      salaryMonths:
+          rows('salary_months').map(ExpenseMonthOption.fromJson).toList(),
+      suggestedSalaryMonth: _optionalString(json['suggested_salary_month']),
       employees: rows('employees').map(AdvanceEmployeeOption.fromJson).toList(),
       paymentSources:
           rows('payment_sources').map(ExpensePaymentSource.fromJson).toList(),

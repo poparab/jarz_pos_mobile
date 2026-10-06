@@ -258,4 +258,54 @@ void main() {
       expect(bootstrap.statusFilter, isNull);
     });
   });
+
+  // ── Salary month ──────────────────────────────────────────────────────
+
+  group('salary month', () {
+    test('an advance carries the salary it is deducted from', () {
+      final advance = EmployeeAdvance.fromJson({
+        'name': 'HR-EAD-2026-00010',
+        'employee': 'HR-EMP-0001',
+        'posting_date': '2026-10-07',
+        'salary_month': '2026-09',
+        'salary_month_explicit': true,
+        'status': 'Draft',
+      });
+      expect(advance.salaryMonth, '2026-09');
+      expect(advance.salaryMonthExplicit, isTrue);
+      expect(advance.postingDate, DateTime(2026, 10, 7));
+    });
+
+    test('a legacy row is not marked explicit', () {
+      final advance = EmployeeAdvance.fromJson({
+        'name': 'HR-EAD-2026-00001',
+        'salary_month': '2026-09',
+      });
+      expect(advance.salaryMonthExplicit, isFalse);
+    });
+
+    test('bootstrap reads the options and the suggestion', () {
+      final bootstrap = EmployeeAdvanceBootstrap.fromJson({
+        'salary_months': [
+          {'id': '2026-10', 'label': 'October 2026'},
+          {'id': '2026-09', 'label': 'September 2026'},
+        ],
+        'suggested_salary_month': '2026-09',
+      });
+      expect(bootstrap.salaryMonths.map((m) => m.id), ['2026-10', '2026-09']);
+      expect(bootstrap.suggestedSalaryMonth, '2026-09');
+    });
+
+    test('an older backend yields no options, so the picker hides', () {
+      final bootstrap = EmployeeAdvanceBootstrap.fromJson({'success': true});
+      expect(bootstrap.salaryMonths, isEmpty);
+      expect(bootstrap.suggestedSalaryMonth, isNull);
+    });
+
+    test('salaryMonthDate', () {
+      expect(salaryMonthDate('2026-09'), DateTime(2026, 9, 1));
+      expect(salaryMonthDate('Sept'), isNull);
+      expect(salaryMonthDate(null), isNull);
+    });
+  });
 }

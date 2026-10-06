@@ -23,6 +23,8 @@ class EmployeeAdvancesState {
   final String selectedMonth;
   final String? statusFilter;
   final List<ExpenseMonthOption> months;
+  final List<ExpenseMonthOption> salaryMonths;
+  final String? suggestedSalaryMonth;
   final List<AdvanceEmployeeOption> employees;
   final List<ExpensePaymentSource> paymentSources;
   final List<EmployeeAdvance> advances;
@@ -41,6 +43,8 @@ class EmployeeAdvancesState {
     required this.selectedMonth,
     required this.statusFilter,
     required this.months,
+    this.salaryMonths = const [],
+    this.suggestedSalaryMonth,
     required this.employees,
     required this.paymentSources,
     required this.advances,
@@ -84,6 +88,8 @@ class EmployeeAdvancesState {
     String? statusFilter,
     bool? clearStatusFilter,
     List<ExpenseMonthOption>? months,
+    List<ExpenseMonthOption>? salaryMonths,
+    String? suggestedSalaryMonth,
     List<AdvanceEmployeeOption>? employees,
     List<ExpensePaymentSource>? paymentSources,
     List<EmployeeAdvance>? advances,
@@ -104,6 +110,8 @@ class EmployeeAdvancesState {
       statusFilter:
           clearStatusFilter == true ? null : statusFilter ?? this.statusFilter,
       months: months ?? this.months,
+      salaryMonths: salaryMonths ?? this.salaryMonths,
+      suggestedSalaryMonth: suggestedSalaryMonth ?? this.suggestedSalaryMonth,
       employees: employees ?? this.employees,
       paymentSources: paymentSources ?? this.paymentSources,
       advances: advances ?? this.advances,
@@ -155,6 +163,8 @@ class EmployeeAdvancesNotifier extends StateNotifier<EmployeeAdvancesState> {
         statusFilter: bootstrap.statusFilter,
         clearStatusFilter: bootstrap.statusFilter == null,
         months: months,
+        salaryMonths: bootstrap.salaryMonths,
+        suggestedSalaryMonth: bootstrap.suggestedSalaryMonth,
         employees: bootstrap.employees,
         paymentSources: bootstrap.paymentSources,
         advances: bootstrap.advances,
@@ -190,6 +200,7 @@ class EmployeeAdvancesNotifier extends StateNotifier<EmployeeAdvancesState> {
     required String payingAccount,
     String? posProfile,
     String? postingDate,
+    String? salaryMonth,
   }) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
@@ -200,6 +211,7 @@ class EmployeeAdvancesNotifier extends StateNotifier<EmployeeAdvancesState> {
         payingAccount: payingAccount,
         posProfile: posProfile,
         postingDate: postingDate,
+        salaryMonth: salaryMonth,
       );
       // Re-read from the server rather than splicing the row in: the summary
       // and the HRMS-derived status are both computed server-side.

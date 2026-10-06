@@ -10762,6 +10762,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get expensesAdvancePaymentSourceRequired => 'اختر مصدر الصرف';
 
   @override
+  String get expensesAdvanceSalaryMonthLabel => 'تُخصم من مرتب شهر';
+
+  @override
+  String get expensesAdvanceSalaryMonthHelp =>
+      'النقدية تُصرف من درج اليوم في كل الأحوال. هذا يحدد مرتب أي شهر ستُخصم منه السلفة — قبل يوم القبض تكون عادةً من مرتب الشهر الماضي.';
+
+  @override
+  String get expensesAdvanceSalaryMonthRequired =>
+      'اختر الشهر الذي ستُخصم السلفة من مرتبه.';
+
+  @override
+  String get expensesAdvanceSalaryMonthSuggested => 'مقترح';
+
+  @override
+  String get expensesAdvanceSalaryMonthCardLabel => 'شهر المرتب';
+
+  @override
+  String expensesAdvanceSalaryMonthChip(String month) {
+    return 'مرتب $month';
+  }
+
+  @override
   String get expensesAdvanceDateLabel => 'تاريخ السلفة (اختياري)';
 
   @override

@@ -306,6 +306,8 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen>
                   employees: advanceState.employees,
                   paymentSources: advanceState.paymentSources,
                   currency: advanceState.currency,
+                  salaryMonths: advanceState.salaryMonths,
+                  suggestedSalaryMonth: advanceState.suggestedSalaryMonth,
                 ),
               );
               if (advance != null && mounted) {
