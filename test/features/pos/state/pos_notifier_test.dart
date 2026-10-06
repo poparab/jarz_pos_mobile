@@ -24,6 +24,8 @@ class _FakePosRepository extends PosRepository {
   int bundlesCalls = 0;
   int createInvoiceCalls = 0;
   int submitInvoiceAmendmentCalls = 0;
+  /// When set, submitInvoiceAmendment throws it (e.g. a server refusal).
+  Object? amendmentError;
   /// custom_delivery_income sent with each createInvoice call, in order.
   final List<double?> createInvoiceDeliveryIncomes = [];
   /// required_delivery_datetime sent with each createInvoice call, in order.
@@ -136,6 +138,8 @@ class _FakePosRepository extends PosRepository {
     submitInvoiceAmendmentCalls += 1;
     lastAmendmentSourceInvoiceId = sourceInvoiceId;
     lastAmendmentItems = items;
+    final error = amendmentError;
+    if (error != null) throw error;
     return {'replacement_invoice_id': 'INV-AMD-001'};
   }
 
@@ -800,6 +804,99 @@ void main() {
         expect(notifier.state.drafts, isEmpty);
       },
     );
+  });
+
+  // Woo #17862 (2026-10-06): three refused edits were each reported as a
+  // success, and the cart and draft were thrown away.
+  group('PosNotifier.checkout - refused amendment', () {
+    late _FakePosRepository repository;
+
+    setUp(() {
+      repository = _FakePosRepository();
+    });
+
+    test(
+      'keeps the cart, draft and amendment context and surfaces the server reason',
+      () async {
+        const reason =
+            'This order is being edited by someone else. Try again in a minute.';
+        repository.amendmentError = const AmendmentRejectedException(
+          reason,
+          blockCode: 'invoice_locked',
+          requestId: 'req-17862',
+        );
+        final amendmentDraft = _makeDraft(
+          id: 'draft-refused',
+          label: 'Refused Edit',
+          customer: const {'customer_name': 'Refused Customer'},
+          amendmentSourceInvoiceId: 'ACC-SINV-2026-17862',
+          amendmentSourceGrandTotal: 50.0,
+        );
+        final draftRepo = _MutableDraftCartRepository(
+          initialDrafts: [amendmentDraft],
+        );
+        final notifier = PosNotifier(repository, draftRepo);
+        await Future<void>.delayed(Duration.zero);
+
+        notifier.state = notifier.state.copyWith(
+          selectedProfile: const {'name': 'Main POS'},
+          drafts: [DraftCartSummary.from(amendmentDraft)],
+          currentDraftId: amendmentDraft.id,
+          cartItems: List<Map<String, dynamic>>.from(amendmentDraft.cartItems),
+          selectedCustomer: amendmentDraft.customer,
+          isPickup: true,
+          isAmendmentDraft: true,
+          amendmentSourceInvoiceId: amendmentDraft.amendmentSourceInvoiceId,
+          amendmentSourceGrandTotal: amendmentDraft.amendmentSourceGrandTotal,
+        );
+
+        await notifier.checkout();
+
+        expect(repository.submitInvoiceAmendmentCalls, 1);
+        expect(notifier.state.error, reason);
+        expect(notifier.state.isLoading, isFalse);
+        expect(draftRepo.deletedIds, isEmpty);
+        expect(notifier.state.currentDraftId, amendmentDraft.id);
+        expect(notifier.state.cartItems, amendmentDraft.cartItems);
+        expect(
+          notifier.state.selectedCustomer?['customer_name'],
+          'Refused Customer',
+        );
+        expect(notifier.state.isAmendmentDraft, isTrue);
+        expect(notifier.state.amendmentSourceInvoiceId, 'ACC-SINV-2026-17862');
+
+        final rejection = notifier.amendmentRejection;
+        expect(rejection, isNotNull);
+        expect(rejection!.message, reason);
+        expect(rejection.blockCode, 'invoice_locked');
+
+        // The rejection is tied to the error it produced.
+        notifier.clearError();
+        expect(notifier.amendmentRejection, isNull);
+      },
+    );
+
+    test('a generic amendment failure is not reported as a refusal', () async {
+      repository.amendmentError = Exception('Network connection failed.');
+      final notifier = PosNotifier(repository, _FakeDraftCartRepository());
+      await Future<void>.delayed(Duration.zero);
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Main POS'},
+        cartItems: const [
+          {'item_code': 'ITEM-001', 'rate': 10.0, 'quantity': 1, 'type': 'item'},
+        ],
+        isPickup: true,
+        isAmendmentDraft: true,
+        amendmentSourceInvoiceId: 'INV-ORIG-NET',
+      );
+
+      await notifier.checkout();
+
+      expect(notifier.state.error, isNotNull);
+      expect(notifier.state.cartItems, hasLength(1));
+      expect(notifier.state.isAmendmentDraft, isTrue);
+      expect(notifier.amendmentRejection, isNull);
+    });
   });
 
   group('PosNotifier.abandonAmendmentDraft', () {

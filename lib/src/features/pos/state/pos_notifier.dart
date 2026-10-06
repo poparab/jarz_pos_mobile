@@ -573,6 +573,18 @@ class PosNotifier extends StateNotifier<PosState> {
   /// order and after a failed checkout.
   EmployeeCashOutcome get lastEmployeeCashOutcome => _lastEmployeeCashOutcome;
 
+  AmendmentRejectedException? _lastAmendmentRejection;
+
+  /// The server's refusal behind the current [PosState.error], when the error
+  /// is a refused order edit; null for every other error and once that error
+  /// is replaced or cleared. The UI shows its reason verbatim: the generic
+  /// presenter drops a sentence it cannot classify.
+  AmendmentRejectedException? get amendmentRejection {
+    final rejection = _lastAmendmentRejection;
+    if (rejection == null || state.error != rejection.toString()) return null;
+    return rejection;
+  }
+
   // Last customer-resolved B2B Supply list, keyed by customer|profile|purpose.
   String? _b2bSupplyResolutionKey;
   String? _b2bSupplyResolvedPriceList;
@@ -4242,6 +4254,7 @@ class PosNotifier extends StateNotifier<PosState> {
     bool posProfileOverride = false,
   }) async {
     _lastEmployeeCashOutcome = EmployeeCashOutcome.none;
+    _lastAmendmentRejection = null;
     if (state.cartItems.isEmpty) {
       state = state.copyWith(error: 'Cart is empty', clearError: false);
       return;
@@ -4582,23 +4595,37 @@ class PosNotifier extends StateNotifier<PosState> {
       if (kDebugMode) {
         debugPrint('❌ CHECKOUT ERROR: $e');
       }
+      // A server refusal (`success: false`) keeps the cart and the draft: the
+      // order was not changed, so staff must see why and be able to retry.
+      final rejection = e is AmendmentRejectedException ? e : null;
       // M3: Report amendment failures to Sentry with enough context to diagnose
-      // pricing drift or catalog-miss issues without a support call.
+      // pricing drift or catalog-miss issues without a support call. Scope
+      // contexts, not a Hint: a Hint never leaves the device.
       if (state.isAmendmentDraft) {
+        final sentryContext = <String, Object?>{
+          'amendment_source_invoice_id': state.amendmentSourceInvoiceId ?? '',
+          'cart_items_count': state.cartItems.length,
+          'amendment_source_grand_total': state.amendmentSourceGrandTotal ?? 0.0,
+          'server_refused': rejection != null,
+          if (rejection != null)
+            'amendment_block_code': rejection.blockCode ?? '',
+          if (rejection != null) 'request_id': rejection.requestId ?? '',
+        };
         unawaited(
           Sentry.captureException(
             e,
             stackTrace: stackTrace,
-            hint: Hint.withMap({
-              'amendment_source_invoice_id':
-                  state.amendmentSourceInvoiceId ?? '',
-              'cart_items_count': state.cartItems.length,
-              'amendment_source_grand_total':
-                  state.amendmentSourceGrandTotal ?? 0.0,
-            }),
+            withScope: (scope) {
+              scope.setContexts('amendment_failure', sentryContext);
+              final blockCode = rejection?.blockCode;
+              if (blockCode != null) {
+                scope.setTag('amendment_block_code', blockCode);
+              }
+            },
           ),
         );
       }
+      _lastAmendmentRejection = rejection;
       // No modal overlay; rely on inline progress UI
       state = state.copyWith(
         error: e.toString(),

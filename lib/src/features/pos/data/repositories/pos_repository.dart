@@ -10,6 +10,78 @@ import '../../../../core/utils/territory_label.dart';
 import '../../domain/models/delivery_slot.dart';
 import '../models/pos_models.dart';
 
+/// The server refused an order edit.
+///
+/// `submit_invoice_amendment` refuses with HTTP 200 and
+/// `{success: false, error, amendment_block_code}`, not with an error status.
+/// The app used to read that reply as a success, so it deleted the draft,
+/// cleared the cart and told staff the edit had gone through when nothing had
+/// changed (Woo #17862, three times on 2026-10-06).
+class AmendmentRejectedException implements Exception {
+  const AmendmentRejectedException(
+    this.message, {
+    this.blockCode,
+    this.requestId,
+    this.hasServerReason = true,
+  });
+
+  /// Fallback text when the server gave no reason.
+  static const defaultMessage = 'The order was not edited.';
+
+  /// The server's own explanation, or [defaultMessage].
+  final String message;
+
+  /// `amendment_block_code` (`invoice_locked`, `stale_source`, ...), if any.
+  final String? blockCode;
+
+  /// The server's `request_id`, for matching the refusal to its server log.
+  final String? requestId;
+
+  /// False when [message] is the client-side [defaultMessage].
+  final bool hasServerReason;
+
+  @override
+  String toString() => message;
+}
+
+/// Returns [reply] (the `message` of a `submit_invoice_amendment` response) if
+/// it reports a completed edit; throws [AmendmentRejectedException] otherwise.
+///
+/// Success means `success: true`. A reply with no `success` key at all is
+/// accepted only if it names the replacement invoice. Anything else, including
+/// `success: false`, is a refusal.
+Map<String, dynamic> requireCompletedAmendment(Object? reply) {
+  if (reply is! Map) {
+    throw const AmendmentRejectedException(
+      AmendmentRejectedException.defaultMessage,
+      hasServerReason: false,
+    );
+  }
+  final map = Map<String, dynamic>.from(reply);
+  final success = map['success'];
+  if (success == true) return map;
+
+  String? text(Object? value) {
+    final s = value?.toString().trim() ?? '';
+    return s.isEmpty ? null : s;
+  }
+
+  final hasInvoicePayload =
+      map['invoice'] is Map ||
+      text(map['replacement_invoice_id']) != null ||
+      text(map['invoice_name']) != null ||
+      text(map['name']) != null;
+  if (success == null && hasInvoicePayload) return map;
+
+  final reason = text(map['error']) ?? text(map['message']);
+  throw AmendmentRejectedException(
+    reason ?? AmendmentRejectedException.defaultMessage,
+    blockCode: text(map['amendment_block_code']),
+    requestId: text(map['request_id']),
+    hasServerReason: reason != null,
+  );
+}
+
 /// Price-list option key naming the order purposes a list is reserved for.
 const reservedForPurposesKey = 'reserved_for_purposes';
 
@@ -1148,9 +1220,17 @@ class PosRepository {
       );
 
       if (response.statusCode == 200) {
-        return response.data['message'];
+        // A refusal also arrives as 200: check `success`, not the status.
+        return requireCompletedAmendment(response.data['message']);
       }
       throw Exception('Failed to submit invoice amendment');
+    } on AmendmentRejectedException catch (e) {
+      if (kDebugMode) {
+        debugPrint(
+          '❌ INVOICE AMENDMENT REFUSED (${e.blockCode ?? 'no code'}): $e',
+        );
+      }
+      rethrow;
     } catch (e) {
       if (kDebugMode) {
         debugPrint('❌ INVOICE AMENDMENT ERROR: $e');

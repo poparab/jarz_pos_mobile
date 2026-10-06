@@ -27,6 +27,7 @@ import '../widgets/sales_partner_selector.dart';
 import '../widgets/item_grid_widget.dart';
 import '../widgets/cart_widget.dart';
 import '../widgets/courier_balances_dialog.dart';
+import '../utils/amendment_refusal_message.dart';
 // Kanban is navigated as a separate route to keep headers consistent
 // Printing
 import '../../../printing/pos_printer_provider.dart';
@@ -960,6 +961,12 @@ class _PosScreenState extends ConsumerState<PosScreen>
 
   Widget _buildError(BuildContext context, String error) {
     final l10n = context.l10n;
+    // A refused order edit carries the server's own reason; the generic
+    // presenter would reduce most of those sentences to "something went wrong".
+    final rejection = ref.read(posNotifierProvider.notifier).amendmentRejection;
+    final message = rejection != null
+        ? amendmentRefusalMessageFor(l10n, rejection.message)
+        : context.userErrorMessage(error);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -976,7 +983,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            context.userErrorMessage(error),
+            message,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),

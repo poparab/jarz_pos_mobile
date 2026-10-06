@@ -13,6 +13,7 @@ import '../../../../core/widgets/paste_icon_button.dart';
 import '../../state/pos_notifier.dart';
 import '../dialogs/payment_method_dialog.dart';
 import '../dialogs/territory_profile_mismatch_dialog.dart';
+import '../utils/amendment_refusal_message.dart';
 import 'bundle_selection_widget.dart';
 import 'delivery_slot_selection.dart';
 import 'staff_member_picker.dart';
@@ -2014,9 +2015,16 @@ class CartWidget extends ConsumerWidget {
         rawFailure,
         fallback: rawFailure,
       );
+      // A refused order edit (`success: false`) is shown with the server's
+      // reason as written; see [amendmentRefusalMessageFor].
+      final rejection = posNotifier.amendmentRejection;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.userErrorMessage(failure)),
+          content: Text(
+            rejection != null
+                ? amendmentRefusalMessageFor(l10n, rejection.message)
+                : context.userErrorMessage(failure),
+          ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );

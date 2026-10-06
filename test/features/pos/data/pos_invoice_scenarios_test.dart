@@ -182,6 +182,107 @@ void main() {
         expect(request['data']['suppress_legacy_delivery_charges'], equals(1));
         expect(request['data'].containsKey('delivery_charges_json'), isFalse);
       });
+
+      // Woo #17862 (2026-10-06): the server refused the edit with HTTP 200 and
+      // `success: false`, and the app reported a successful edit.
+      test('submitInvoiceAmendment - success:false throws the server reason', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manager.submit_invoice_amendment',
+          createSuccessResponse(data: {
+            'success': false,
+            'request_id': 'req-17862',
+            'error': 'The order changed since you opened it. Reopen it and edit again.',
+            'amendment_block_code': 'stale_source',
+          }),
+        );
+
+        await expectLater(
+          repository.submitInvoiceAmendment(
+            sourceInvoiceId: 'INV-ORIG-17862',
+            posProfile: 'Main POS',
+            items: [
+              {'item_code': 'ITEM-001', 'quantity': 1, 'rate': 50.0},
+            ],
+          ),
+          throwsA(
+            isA<AmendmentRejectedException>()
+                .having(
+                  (e) => e.message,
+                  'message',
+                  'The order changed since you opened it. Reopen it and edit again.',
+                )
+                .having((e) => e.blockCode, 'blockCode', 'stale_source')
+                .having((e) => e.requestId, 'requestId', 'req-17862')
+                .having((e) => e.hasServerReason, 'hasServerReason', isTrue),
+          ),
+        );
+      });
+
+      test('submitInvoiceAmendment - success:false with no reason uses the fallback', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manager.submit_invoice_amendment',
+          createSuccessResponse(data: {'success': false}),
+        );
+
+        await expectLater(
+          repository.submitInvoiceAmendment(
+            sourceInvoiceId: 'INV-ORIG-003',
+            posProfile: 'Main POS',
+            items: [
+              {'item_code': 'ITEM-001', 'quantity': 1, 'rate': 50.0},
+            ],
+          ),
+          throwsA(
+            isA<AmendmentRejectedException>()
+                .having(
+                  (e) => e.message,
+                  'message',
+                  AmendmentRejectedException.defaultMessage,
+                )
+                .having((e) => e.hasServerReason, 'hasServerReason', isFalse),
+          ),
+        );
+      });
+
+      test('submitInvoiceAmendment - a reply with no success flag and no invoice is a refusal', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manager.submit_invoice_amendment',
+          createSuccessResponse(data: {'request_id': 'req-empty'}),
+        );
+
+        await expectLater(
+          repository.submitInvoiceAmendment(
+            sourceInvoiceId: 'INV-ORIG-004',
+            posProfile: 'Main POS',
+            items: [
+              {'item_code': 'ITEM-001', 'quantity': 1, 'rate': 50.0},
+            ],
+          ),
+          throwsA(isA<AmendmentRejectedException>()),
+        );
+      });
+
+      test('submitInvoiceAmendment - success:true returns the reply unchanged', () async {
+        final reply = {
+          'success': true,
+          'replacement_invoice_id': 'INV-AMD-OK-001',
+          'invoice': {'name': 'INV-AMD-OK-001', 'grand_total': 50.0},
+        };
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manager.submit_invoice_amendment',
+          createSuccessResponse(data: reply),
+        );
+
+        final result = await repository.submitInvoiceAmendment(
+          sourceInvoiceId: 'INV-ORIG-005',
+          posProfile: 'Main POS',
+          items: [
+            {'item_code': 'ITEM-001', 'quantity': 1, 'rate': 50.0},
+          ],
+        );
+
+        expect(result, equals(reply));
+      });
     });
 
     group('Zero Shipping Override', () {

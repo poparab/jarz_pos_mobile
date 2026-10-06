@@ -15,6 +15,7 @@ import '../providers/courier_run_progress_provider.dart';
 import '../providers/kanban_provider.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../pos/domain/models/delivery_slot.dart';
+import '../../pos/presentation/utils/amendment_refusal_message.dart';
 import '../../pos/data/repositories/pos_repository.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/api_endpoints.dart';
@@ -3505,11 +3506,14 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         // Refresh the Kanban board so the card re-targets the new invoice
         ref.read(kanbanProvider.notifier).loadInvoices();
       } else {
-        final error = result['error']?.toString() ??
-            context.l10n.kanbanAmendmentFailed;
+        // `success: false` carries the server's reason (`error`). Show it as
+        // written: the generic presenter reduced most refusals to "something
+        // went wrong", and in Arabic dropped every English one.
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(userErrorMessageFor(_errorLocalizations, error)),
+            content: Text(
+              amendmentRefusalMessageFor(_errorLocalizations, result['error']),
+            ),
             backgroundColor: Colors.red,
           ),
         );
