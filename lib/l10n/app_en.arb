@@ -1585,6 +1585,7 @@
   "invoicePrinterNotConnectedHint": "Printer not connected. Open Printer Selection from menu.",
   "invoiceShareReceipt": "Share receipt",
   "invoiceSendReceiptWhatsApp": "Send via WhatsApp",
+  "invoiceSendReceiptWhatsAppCustomer": "WhatsApp to the customer’s number",
   "invoiceReceiptShareFailed": "Could not share the receipt",
   "invoiceWhatsAppOpenFailed": "Could not open WhatsApp",
   "invoicePrintedSuccessfully": "Printed successfully",

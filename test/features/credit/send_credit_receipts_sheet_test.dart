@@ -85,9 +85,18 @@ void main() {
     expect(find.text('One receipt for each order you choose.'), findsOneWidget);
 
     await tester.tap(find.text('WhatsApp'));
-    await tester.pumpAndSettle();
+    // The receipts are rendered as images on the engine; that work finishes
+    // on real time, never under the fake clock pumpAndSettle advances.
+    for (var i = 0; i < 20 && find.byType(SnackBar).evaluate().isEmpty; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await tester.pump();
+    }
     // Oldest first, the unticked order left out.
     expect(loaded, ['ACC-SINV-2026-00010', 'ACC-SINV-2026-00030']);
+    // No WhatsApp channel and no share sheet in a test: the images reached
+    // delivery, which says it could not open WhatsApp and offers a retry.
+    expect(find.text('Could not open WhatsApp'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
   });
 
   testWidgets('nothing ticked means nothing can be sent', (tester) async {

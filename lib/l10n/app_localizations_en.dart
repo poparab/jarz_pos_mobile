@@ -3008,6 +3008,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invoiceSendReceiptWhatsApp => 'Send via WhatsApp';
 
   @override
+  String get invoiceSendReceiptWhatsAppCustomer =>
+      'WhatsApp to the customer’s number';
+
+  @override
   String get invoiceReceiptShareFailed => 'Could not share the receipt';
 
   @override

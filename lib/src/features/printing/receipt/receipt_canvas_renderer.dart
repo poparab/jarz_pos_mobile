@@ -6,7 +6,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import '../pos_printer_service.dart';
+import '../printable_models.dart';
 import 'receipt_share.dart';
 import 'receipt_statement.dart';
 

@@ -5064,6 +5064,12 @@ abstract class AppLocalizations {
   /// **'Send via WhatsApp'**
   String get invoiceSendReceiptWhatsApp;
 
+  /// No description provided for @invoiceSendReceiptWhatsAppCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp to the customer’s number'**
+  String get invoiceSendReceiptWhatsAppCustomer;
+
   /// No description provided for @invoiceReceiptShareFailed.
   ///
   /// In en, this message translates to:

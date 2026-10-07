@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Receipt images handed to WhatsApp by WhatsAppShareChannel. -->
+<paths>
+    <cache-path name="receipt_share" path="receipt_share/" />
+</paths>

@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:share_plus/share_plus.dart' show XFile;
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import '../models/courier_run_progress.dart';
 import '../models/kanban_models.dart';
@@ -369,72 +368,45 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
     }
   }
 
-  /// Hands the receipt to the OS share sheet as the printed image, captioned.
+  /// Sends the receipt as the printed image, captioned.
   ///
   /// The image is the paper receipt pixel for pixel, so what the customer
-  /// sees and what the courier hands over agree. Web (and any device where
-  /// the render fails) shares the text receipt instead.
-  Future<void> _shareReceipt(BuildContext context) async {
+  /// sees and what the courier hands over agree. [toWhatsApp] opens WhatsApp's
+  /// own chat list so the cashier picks the chat or group; with [toCustomer]
+  /// it opens the customer's number instead. Otherwise the OS share sheet.
+  /// Only a failed render falls back to the text receipt.
+  Future<void> _sendReceipt(
+    BuildContext context, {
+    required bool toWhatsApp,
+    bool toCustomer = false,
+  }) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final printer = ref.read(posPrinterServiceProvider);
     messenger.showSnackBar(SnackBar(content: Text(l10n.invoicePreparingReceipt), duration: const Duration(seconds: 1)));
     final inv = await _buildPrintableInvoice(context);
     final branding = await printer.receiptBranding();
-    final text = buildReceiptShareText(inv, branding);
 
-    final files = <XFile>[];
-    if (!kIsWeb) {
-      try {
-        files.add(receiptImageFile(await printer.renderReceiptPng(inv), 'receipt-${receiptOrderLabel(inv)}'));
-      } catch (e) {
-        debugPrint('[InvoiceCard] receipt image render failed, sharing text: $e');
-      }
+    final files = <ReceiptImage>[];
+    try {
+      files.add(receiptImageFile(await printer.renderReceiptPng(inv), 'receipt-${receiptOrderLabel(inv)}'));
+    } catch (e) {
+      debugPrint('[InvoiceCard] receipt image render failed, sending text: $e');
     }
-
-    final shared = await shareReceiptContent(
-      files: files,
-      text: files.isNotEmpty ? receiptShareCaption(inv, branding) : text,
-    );
-    // No share sheet (a browser without Web Share): WhatsApp still works
-    // through url_launcher, so fall back to that rather than fail.
-    if (shared || !mounted) return;
-    await _openReceiptOnWhatsApp(inv, text, messenger, l10n.invoiceReceiptShareFailed, l10n.invoiceSendReceiptWhatsApp);
-  }
-
-  /// Opens the customer's WhatsApp chat with the text receipt composed.
-  ///
-  /// wa.me carries text, never a file — the image goes through [_shareReceipt].
-  Future<void> _sendReceiptWhatsApp(BuildContext context) async {
-    final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context);
-    final printer = ref.read(posPrinterServiceProvider);
-    final inv = await _buildPrintableInvoice(context);
-    final branding = await printer.receiptBranding();
-    await _openReceiptOnWhatsApp(
-      inv,
-      buildReceiptShareText(inv, branding),
-      messenger,
-      l10n.invoiceWhatsAppOpenFailed,
-      l10n.invoiceSendReceiptWhatsApp,
-    );
-  }
-
-  Future<void> _openReceiptOnWhatsApp(
-    PrintableInvoice inv,
-    String text,
-    ScaffoldMessengerState messenger,
-    String failureMessage,
-    String retryLabel,
-  ) {
-    final phone = (inv.customerPhone ?? '').trim().isNotEmpty ? inv.customerPhone : widget.invoice.customerPhone;
-    return openWhatsAppOrOfferRetry(
+    await deliverReceipt(
       messenger: messenger,
-      uri: whatsappReceiptUri(phone, text),
-      failureMessage: failureMessage,
-      retryLabel: retryLabel,
+      files: files,
+      caption: receiptShareCaption(inv, branding),
+      text: buildReceiptShareText(inv, branding),
+      toWhatsApp: toWhatsApp,
+      whatsappPhone: toCustomer ? _customerPhone(inv) : null,
+      failureMessage: toWhatsApp ? l10n.invoiceWhatsAppOpenFailed : l10n.invoiceReceiptShareFailed,
+      retryLabel: l10n.commonRetry,
     );
   }
+
+  String? _customerPhone([PrintableInvoice? inv]) =>
+      (inv?.customerPhone ?? '').trim().isNotEmpty ? inv!.customerPhone : widget.invoice.customerPhone;
 
   Future<PrintableInvoice> _buildPrintableInvoice(BuildContext context) async {
     final l10n = context.l10n;
@@ -829,9 +801,11 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             } else if (value == 'print') {
               await _printInvoice(context);
             } else if (value == 'share_receipt') {
-              await _shareReceipt(context);
+              await _sendReceipt(context, toWhatsApp: false);
             } else if (value == 'whatsapp_receipt') {
-              await _sendReceiptWhatsApp(context);
+              await _sendReceipt(context, toWhatsApp: true);
+            } else if (value == 'whatsapp_receipt_customer') {
+              await _sendReceipt(context, toWhatsApp: true, toCustomer: true);
             } else if (value == 'transfer_order') {
               await _transferOrder(context);
             } else if (value == 'change_delivery_slot') {
@@ -935,6 +909,20 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 ],
               ),
             ),
+            // Straight to the customer's own chat, for a number the phone has
+            // no chat with yet. Android only: a browser cannot attach the
+            // image to a chosen number, so web keeps the other two entries.
+            if (!kIsWeb && whatsappMsisdn(_customerPhone()).isNotEmpty)
+              PopupMenuItem(
+                value: 'whatsapp_receipt_customer',
+                child: Row(
+                  children: [
+                    const Icon(Icons.person_outline, size: 18),
+                    const SizedBox(width: 8),
+                    Text(l10n.invoiceSendReceiptWhatsAppCustomer),
+                  ],
+                ),
+              ),
             PopupMenuItem(
               value: 'share_receipt',
               child: Row(

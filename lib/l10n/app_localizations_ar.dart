@@ -2995,6 +2995,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get invoiceSendReceiptWhatsApp => 'إرسال عبر واتساب';
 
   @override
+  String get invoiceSendReceiptWhatsAppCustomer => 'واتساب على رقم العميل';
+
+  @override
   String get invoiceReceiptShareFailed => 'تعذّر مشاركة الإيصال';
 
   @override

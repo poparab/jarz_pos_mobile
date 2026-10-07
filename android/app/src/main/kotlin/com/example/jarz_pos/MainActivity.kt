@@ -6,6 +6,7 @@ import android.view.KeyEvent
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.plugins.util.GeneratedPluginRegister
+import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,6 +27,8 @@ class MainActivity : FlutterActivity() {
         // Manually register our custom plugin
         flutterEngine.plugins.add(ClassicPrinterChannel())
         flutterEngine.plugins.add(OrderAlertChannel())
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WhatsAppShareChannel.CHANNEL)
+            .setMethodCallHandler(WhatsAppShareChannel(this))
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {

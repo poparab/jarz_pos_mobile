@@ -1,7 +1,5 @@
-import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart' show XFile;
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
@@ -31,8 +29,9 @@ typedef CreditReceiptLoader = Future<List<PrintableInvoice>> Function(
   List<CreditInvoice> invoices,
 );
 
-/// Sends a credit customer's unpaid orders: each as its own receipt, or all
-/// of them as one consolidated statement, over WhatsApp or the share sheet.
+/// Sends a credit customer's unpaid orders: each as its own receipt image, or
+/// all of them as one consolidated statement image, over WhatsApp (where the
+/// cashier picks the chat or group) or the share sheet.
 ///
 /// Every open invoice starts ticked because "send them what they owe" is the
 /// common case; unticking is how one old dispute or a just-delivered order
@@ -239,14 +238,11 @@ class _SendCreditReceiptsSheetState extends ConsumerState<SendCreditReceiptsShee
     if (!mounted) return;
 
     final branding = await printer.receiptBranding();
-    final phone = printables
-        .map((p) => (p.customerPhone ?? '').trim())
-        .firstWhere((p) => p.isNotEmpty, orElse: () => '');
     final customer = widget.customerName.isNotEmpty ? widget.customerName : printables.first.customer;
 
     final String text;
     final String caption;
-    final files = <XFile>[];
+    final files = <ReceiptImage>[];
     if (mode == CreditSendMode.individual) {
       text = printables.length == 1
           ? buildReceiptShareText(printables.first, branding)
@@ -254,15 +250,13 @@ class _SendCreditReceiptsSheetState extends ConsumerState<SendCreditReceiptsShee
       caption = printables.length == 1
           ? receiptShareCaption(printables.first, branding)
           : '${branding.header} — $customer (${printables.length})';
-      if (channel == _Channel.share && !kIsWeb) {
-        try {
-          for (final inv in printables) {
-            files.add(receiptImageFile(await printer.renderReceiptPng(inv), 'receipt-${receiptOrderLabel(inv)}'));
-          }
-        } catch (e) {
-          debugPrint('[SendCreditReceipts] receipt render failed, sharing text: $e');
-          files.clear();
+      try {
+        for (final inv in printables) {
+          files.add(receiptImageFile(await printer.renderReceiptPng(inv), 'receipt-${receiptOrderLabel(inv)}'));
         }
+      } catch (e) {
+        debugPrint('[SendCreditReceipts] receipt render failed, sending text: $e');
+        files.clear();
       }
     } else {
       final statement = PrintableStatement(
@@ -275,35 +269,26 @@ class _SendCreditReceiptsSheetState extends ConsumerState<SendCreditReceiptsShee
       );
       text = buildStatementShareText(statement, branding);
       caption = '$statementTitle — $customer';
-      if (channel == _Channel.share && !kIsWeb) {
-        try {
-          files.add(receiptImageFile(await printer.renderStatementPng(statement), 'statement-${statement.dateLabel.replaceAll('/', '-')}'));
-        } catch (e) {
-          debugPrint('[SendCreditReceipts] statement render failed, sharing text: $e');
-        }
+      try {
+        files.add(receiptImageFile(await printer.renderStatementPng(statement), 'statement-${statement.dateLabel.replaceAll('/', '-')}'));
+      } catch (e) {
+        debugPrint('[SendCreditReceipts] statement render failed, sending text: $e');
       }
     }
 
     // Rendering is awaited too, so the same check again right before sending.
     if (!mounted) return;
     navigator.pop();
-    final uri = whatsappReceiptUri(phone, text);
-    if (channel == _Channel.share) {
-      final shared = await shareReceiptContent(files: files, text: files.isNotEmpty ? caption : text);
-      if (shared) return;
-      await openWhatsAppOrOfferRetry(
-        messenger: messenger,
-        uri: uri,
-        failureMessage: l10n.invoiceReceiptShareFailed,
-        retryLabel: l10n.invoiceSendReceiptWhatsApp,
-      );
-      return;
-    }
-    await openWhatsAppOrOfferRetry(
+    // No number on WhatsApp: a shop is usually reached through a group, so
+    // WhatsApp opens its own chat list and the cashier picks the chat.
+    await deliverReceipt(
       messenger: messenger,
-      uri: uri,
-      failureMessage: l10n.invoiceWhatsAppOpenFailed,
-      retryLabel: l10n.invoiceSendReceiptWhatsApp,
+      files: files,
+      caption: caption,
+      text: text,
+      toWhatsApp: channel == _Channel.whatsapp,
+      failureMessage: channel == _Channel.whatsapp ? l10n.invoiceWhatsAppOpenFailed : l10n.invoiceReceiptShareFailed,
+      retryLabel: l10n.commonRetry,
     );
   }
 

@@ -5,117 +5,11 @@ import '../../core/constants/api_endpoints.dart';
 import 'printer_compatibility.dart';
 import 'printer_status.dart';
 import 'receipt/receipt_branding.dart';
+import 'receipt/receipt_canvas_renderer.dart';
 import 'receipt/receipt_statement.dart';
 
-/// Data class for a printable invoice item (shared across mobile & web).
-class PrintableInvoiceItem {
-  final String name;
-  final double qty;
-  final double rate;
-  final double amount;
-  final bool showPricing;
-  final int indentLevel;
-  final bool bold;
-  final String? description;
-  PrintableInvoiceItem({
-    required this.name,
-    required this.qty,
-    required this.rate,
-    double? amount,
-    this.showPricing = true,
-    this.indentLevel = 0,
-    this.bold = false,
-    this.description,
-  }) : amount = amount ?? qty * rate;
-}
-
-/// Data class for a printable invoice (shared across mobile & web).
-class PrintableInvoice {
-  final String id;
-  final DateTime date;
-  final String customer;
-  final String? customerAddress;
-  final String? customerPhone;
-  final String? territory;
-  final DateTime? deliveryDateTime;
-  final double total;
-  final double paid;
-  final double outstanding;
-  final double shipping;
-  final List<PrintableInvoiceItem> items;
-  final String? orderNo;
-  final String? paymentMethod;
-  final String? orderDate;
-  final String? deliveryTimeRange;
-  final String? deliveryDateFormatted;
-  // True when outstanding moved to courier outstanding account but courier hasn't remitted yet.
-  final bool hasUnsettledCourierTxn;
-  PrintableInvoice({
-    required this.id,
-    required this.date,
-    required this.customer,
-    this.customerAddress,
-    this.customerPhone,
-    this.territory,
-    this.deliveryDateTime,
-    required this.total,
-    required this.paid,
-    required this.outstanding,
-    this.shipping = 0.0,
-    required this.items,
-    this.orderNo,
-    this.paymentMethod,
-    this.orderDate,
-    this.deliveryTimeRange,
-    this.deliveryDateFormatted,
-    this.hasUnsettledCourierTxn = false,
-  });
-}
-
-/// One material line on a batch sheet (shared across mobile & web).
-class PrintableBatchComponent {
-  final String name;
-  final double qty;
-  final String uom;
-  const PrintableBatchComponent({
-    required this.name,
-    required this.qty,
-    this.uom = '',
-  });
-}
-
-/// Data class for a printable batch sheet (shared across mobile & web).
-///
-/// Must mirror the mobile class field for field. The conditional import only
-/// resolves on a web build, so `flutter analyze` will never tell you this file
-/// has drifted — only `flutter build web` will.
-class PrintableBatchSheet {
-  final String workOrder;
-  final String itemName;
-  final String itemCode;
-  final double plannedQty;
-  final String uom;
-  final String? bom;
-  final DateTime? startedAt;
-  final String? startedBy;
-  final String? sopVersion;
-  final List<PrintableBatchComponent> components;
-  final String? notes;
-
-  const PrintableBatchSheet({
-    required this.workOrder,
-    required this.itemName,
-    this.itemCode = '',
-    required this.plannedQty,
-    this.uom = '',
-    this.bom,
-    this.startedAt,
-    this.startedBy,
-    this.sopVersion,
-    this.components = const [],
-    this.notes,
-  });
-}
+export 'printable_models.dart';
+import 'printable_models.dart';
 
 /// Web stub for PosPrinterService.
 ///
@@ -196,10 +90,31 @@ class PosPrinterService extends ChangeNotifier {
     }
     return d;
   }
-  Future<Uint8List> renderReceiptPng(PrintableInvoice inv) async =>
-      throw UnsupportedError('Receipt images are not rendered on web.');
-  Future<Uint8List> renderStatementPng(PrintableStatement statement) async =>
-      throw UnsupportedError('Statement images are not rendered on web.');
+
+  /// The receipt as a PNG — the same canvas the Android app prints and
+  /// shares, so a receipt sent from the browser looks like one sent from
+  /// the phone.
+  Future<Uint8List> renderReceiptPng(PrintableInvoice inv) async {
+    final b = await receiptBranding();
+    return ReceiptCanvasRenderer.renderPng(
+      inv: inv,
+      header: b.header,
+      footer: b.footer,
+      phone: b.phone,
+      website: b.website,
+    );
+  }
+
+  /// A consolidated statement of several orders as a PNG, for sharing.
+  Future<Uint8List> renderStatementPng(PrintableStatement statement) async {
+    final b = await receiptBranding();
+    return ReceiptCanvasRenderer.renderStatementPng(
+      statement: statement,
+      footer: b.footer,
+      phone: b.phone,
+      website: b.website,
+    );
+  }
 }
 
 /// Print result enum (must mirror the one in pos_printer_service.dart).
