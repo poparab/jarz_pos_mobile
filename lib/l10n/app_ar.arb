@@ -5694,6 +5694,19 @@
   "settlementOverdueAmountLabel": "متأخر",
   "settlementOverdueSinceLabel": "متأخر من",
   "settlementCollectNextDeliveryLabel": "يتحصل مع التوصيل الجاي",
+  "settlementByBranchTitle": "حسب الفرع",
+  "settlementUnassignedBranch": "فاتورة من غير فرع",
+  "settlementBranchLine": "مستحق دلوقتي {due} · مع التوصيل الجاي {next}",
+  "@settlementBranchLine": {
+    "placeholders": {
+      "due": {
+        "type": "String"
+      },
+      "next": {
+        "type": "String"
+      }
+    }
+  },
   "settlementRemindsLabel": "التذكير يروح لـ",
   "settlementRemindsAllManagers": "كل المديرين",
   "settlementNotesLabel": "الاتفاق",

@@ -384,6 +384,65 @@ void main() {
       expect(find.textContaining('1,200.50'), findsNWidgets(2));
     });
 
+    testWidgets('Invoice after Invoice lists what each branch owes',
+        (tester) async {
+      final json = _termsPayload(state: 'due_today');
+      (json['terms'] as Map<String, dynamic>)['cycle'] = 'Invoice after Invoice';
+      json['description'] = 'Pays the previous invoice on each delivery';
+      (json['status'] as Map<String, dynamic>)['branches'] = [
+        {
+          'branch': 'ADDR-HEL',
+          'branch_name': 'Heliopolis',
+          'unassigned': false,
+          'invoice_count': 1,
+          'open_balance': 500,
+          'due_now_amount': 0,
+          'overdue_amount': 0,
+          'collect_on_next_delivery': 500,
+        },
+        {
+          'branch': 'ADDR-MAD',
+          'branch_name': 'Madinaty',
+          'invoice_count': 2,
+          'open_balance': '160.00',
+          'due_now_amount': '100.00',
+          'overdue_amount': 100,
+          'collect_on_next_delivery': 60,
+        },
+        {
+          'branch': '',
+          'branch_name': null,
+          'unassigned': true,
+          'invoice_count': 1,
+          'due_now_amount': 30,
+          'collect_on_next_delivery': 0,
+        },
+        'garbage',
+      ];
+      final parsed = SettlementTermsResponse.fromJson(json);
+      expect(parsed.status.branches, hasLength(3));
+      expect(parsed.status.branches[1].dueNowAmount, 100.0);
+      expect(parsed.status.branches[2].unassigned, isTrue);
+
+      await pumpCard(tester, json);
+      expect(find.text('By branch'), findsOneWidget);
+      expect(find.text('Heliopolis'), findsOneWidget);
+      expect(find.text('Madinaty'), findsOneWidget);
+      expect(find.text('No branch on the invoice'), findsOneWidget);
+      expect(find.textContaining('next delivery'), findsNWidgets(3));
+    });
+
+    testWidgets('a single-branch shop shows no branch breakdown',
+        (tester) async {
+      final json = _termsPayload();
+      (json['status'] as Map<String, dynamic>)['branches'] = [
+        {'branch': 'A', 'branch_name': 'Only door', 'due_now_amount': 10},
+      ];
+      await pumpCard(tester, json);
+      expect(find.text('By branch'), findsNothing);
+      expect(find.text('Only door'), findsNothing);
+    });
+
     testWidgets('no terms with a balance: "Not scheduled" + Set terms',
         (tester) async {
       await pumpCard(tester, {

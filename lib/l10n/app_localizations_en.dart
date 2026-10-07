@@ -15191,6 +15191,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Collect with the next delivery';
 
   @override
+  String get settlementByBranchTitle => 'By branch';
+
+  @override
+  String get settlementUnassignedBranch => 'No branch on the invoice';
+
+  @override
+  String settlementBranchLine(String due, String next) {
+    return 'Due now $due · next delivery $next';
+  }
+
+  @override
   String get settlementRemindsLabel => 'Reminds';
 
   @override

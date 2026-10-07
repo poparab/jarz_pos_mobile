@@ -80,6 +80,9 @@ _$SettlementStatusImpl _$$SettlementStatusImplFromJson(
       ? const <String>[]
       : settlementStringList(json['upcoming_dates']),
   collectOnNextDelivery: creditDoubleOrNull(json['collect_on_next_delivery']),
+  branches: json['branches'] == null
+      ? const <SettlementBranchStatus>[]
+      : settlementBranchList(json['branches']),
 );
 
 Map<String, dynamic> _$$SettlementStatusImplToJson(

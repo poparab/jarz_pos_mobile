@@ -298,7 +298,8 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
       context: context,
       builder: (_) => _RenameBranchDialog(initial: delivery.displayName),
     );
-    final trimmed = name?.trim() ?? '';
+    // Same normalisation as the server: trimmed, inner runs of spaces collapsed.
+    final trimmed = (name ?? '').trim().split(RegExp(r'\s+')).join(' ');
     if (!mounted || name == null) return;
     if (trimmed.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

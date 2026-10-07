@@ -24881,6 +24881,24 @@ abstract class AppLocalizations {
   /// **'Collect with the next delivery'**
   String get settlementCollectNextDeliveryLabel;
 
+  /// No description provided for @settlementByBranchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'By branch'**
+  String get settlementByBranchTitle;
+
+  /// No description provided for @settlementUnassignedBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'No branch on the invoice'**
+  String get settlementUnassignedBranch;
+
+  /// No description provided for @settlementBranchLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Due now {due} · next delivery {next}'**
+  String settlementBranchLine(String due, String next);
+
   /// No description provided for @settlementRemindsLabel.
   ///
   /// In en, this message translates to:

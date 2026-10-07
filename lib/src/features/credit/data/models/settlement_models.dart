@@ -193,6 +193,13 @@ class SettlementStatus with _$SettlementStatus {
     /// shop settles when the NEXT order arrives.
     @JsonKey(name: 'collect_on_next_delivery', fromJson: creditDoubleOrNull)
     double? collectOnNextDelivery,
+
+    /// Invoice after Invoice only: the split per shop branch. Each door
+    /// settles on its own -- a delivery to one branch collects that branch's
+    /// previous invoice, never another's. Empty for the dated cycles.
+    @JsonKey(fromJson: settlementBranchList, includeToJson: false)
+    @Default(<SettlementBranchStatus>[])
+    List<SettlementBranchStatus> branches,
   }) = _SettlementStatus;
 
   factory SettlementStatus.fromJson(Map<String, dynamic> json) =>
@@ -474,7 +481,81 @@ List<String> normalizeMonthDays(Iterable<String> raw) {
   return [for (final d in sorted) '$d', if (last) monthDayLast];
 }
 
+/// One shop branch's part of an Invoice-after-Invoice status
+/// (`status.branches[]`).
+@immutable
+class SettlementBranchStatus {
+  final String branch;
+  final String branchName;
+
+  /// Invoices whose address matches none of the shop's branches. They fall
+  /// due on the next delivery to any branch.
+  final bool unassigned;
+  final int invoiceCount;
+  final double openBalance;
+  final double dueNowAmount;
+  final double overdueAmount;
+  final double collectOnNextDelivery;
+
+  const SettlementBranchStatus({
+    this.branch = '',
+    this.branchName = '',
+    this.unassigned = false,
+    this.invoiceCount = 0,
+    this.openBalance = 0,
+    this.dueNowAmount = 0,
+    this.overdueAmount = 0,
+    this.collectOnNextDelivery = 0,
+  });
+
+  factory SettlementBranchStatus.fromJson(Map<String, dynamic> json) =>
+      SettlementBranchStatus(
+        branch: settlementString(json['branch']),
+        branchName: settlementString(json['branch_name']),
+        unassigned: creditBool(json['unassigned']),
+        invoiceCount: creditIntOrNull(json['invoice_count']) ?? 0,
+        openBalance: creditDouble(json['open_balance']),
+        dueNowAmount: creditDouble(json['due_now_amount']),
+        overdueAmount: creditDouble(json['overdue_amount']),
+        collectOnNextDelivery: creditDouble(json['collect_on_next_delivery']),
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is SettlementBranchStatus &&
+      other.branch == branch &&
+      other.branchName == branchName &&
+      other.unassigned == unassigned &&
+      other.invoiceCount == invoiceCount &&
+      other.openBalance == openBalance &&
+      other.dueNowAmount == dueNowAmount &&
+      other.overdueAmount == overdueAmount &&
+      other.collectOnNextDelivery == collectOnNextDelivery;
+
+  @override
+  int get hashCode => Object.hash(
+    branch,
+    branchName,
+    unassigned,
+    invoiceCount,
+    openBalance,
+    dueNowAmount,
+    overdueAmount,
+    collectOnNextDelivery,
+  );
+}
+
 // ── Tolerant readers ─────────────────────────────────────────────────────
+
+/// `status.branches`, skipping anything that is not an object.
+List<SettlementBranchStatus> settlementBranchList(Object? value) {
+  if (value is! List) return const [];
+  return [
+    for (final row in value)
+      if (row is Map)
+        SettlementBranchStatus.fromJson(Map<String, dynamic>.from(row)),
+  ];
+}
 
 String settlementString(Object? value) {
   if (value == null) return '';

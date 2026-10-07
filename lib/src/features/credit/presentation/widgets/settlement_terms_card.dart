@@ -137,6 +137,48 @@ class SettlementTermsCard extends StatelessWidget {
                     ],
                   ),
                 ),
+              // Invoice after Invoice: each shop branch settles on its own,
+              // so with two or more doors say which one owes what.
+              if (status.branches.length > 1) ...[
+                const SizedBox(height: 8),
+                Text(
+                  l10n.settlementByBranchTitle,
+                  style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                ),
+                for (final branch in status.branches)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            branch.unassigned || branch.branchName.isEmpty
+                                ? l10n.settlementUnassignedBranch
+                                : branch.branchName,
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text(
+                            l10n.settlementBranchLine(
+                              money(branch.dueNowAmount),
+                              money(branch.collectOnNextDelivery),
+                            ),
+                            textAlign: TextAlign.end,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: branch.overdueAmount > 0.005
+                                  ? theme.colorScheme.error
+                                  : null,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
               if (terms.notes.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(

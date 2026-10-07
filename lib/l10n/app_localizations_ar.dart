@@ -15183,6 +15183,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settlementCollectNextDeliveryLabel => 'يتحصل مع التوصيل الجاي';
 
   @override
+  String get settlementByBranchTitle => 'حسب الفرع';
+
+  @override
+  String get settlementUnassignedBranch => 'فاتورة من غير فرع';
+
+  @override
+  String settlementBranchLine(String due, String next) {
+    return 'مستحق دلوقتي $due · مع التوصيل الجاي $next';
+  }
+
+  @override
   String get settlementRemindsLabel => 'التذكير يروح لـ';
 
   @override

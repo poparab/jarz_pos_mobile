@@ -8664,6 +8664,19 @@
   "settlementOverdueAmountLabel": "Overdue",
   "settlementOverdueSinceLabel": "Overdue since",
   "settlementCollectNextDeliveryLabel": "Collect with the next delivery",
+  "settlementByBranchTitle": "By branch",
+  "settlementUnassignedBranch": "No branch on the invoice",
+  "settlementBranchLine": "Due now {due} · next delivery {next}",
+  "@settlementBranchLine": {
+    "placeholders": {
+      "due": {
+        "type": "String"
+      },
+      "next": {
+        "type": "String"
+      }
+    }
+  },
   "settlementRemindsLabel": "Reminds",
   "settlementRemindsAllManagers": "All managers",
   "settlementNotesLabel": "Agreed terms",

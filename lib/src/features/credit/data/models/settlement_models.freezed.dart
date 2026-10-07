@@ -563,6 +563,13 @@ mixin _$SettlementStatus {
   @JsonKey(name: 'collect_on_next_delivery', fromJson: creditDoubleOrNull)
   double? get collectOnNextDelivery => throw _privateConstructorUsedError;
 
+  /// Invoice after Invoice only: the split per shop branch. Each door
+  /// settles on its own -- a delivery to one branch collects that branch's
+  /// previous invoice, never another's. Empty for the dated cycles.
+  @JsonKey(fromJson: settlementBranchList, includeToJson: false)
+  List<SettlementBranchStatus> get branches =>
+      throw _privateConstructorUsedError;
+
   /// Serializes this SettlementStatus to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -597,6 +604,8 @@ abstract class $SettlementStatusCopyWith<$Res> {
     List<String> upcomingDates,
     @JsonKey(name: 'collect_on_next_delivery', fromJson: creditDoubleOrNull)
     double? collectOnNextDelivery,
+    @JsonKey(fromJson: settlementBranchList, includeToJson: false)
+    List<SettlementBranchStatus> branches,
   });
 }
 
@@ -624,6 +633,7 @@ class _$SettlementStatusCopyWithImpl<$Res, $Val extends SettlementStatus>
     Object? oldestOverdueDate = null,
     Object? upcomingDates = null,
     Object? collectOnNextDelivery = freezed,
+    Object? branches = null,
   }) {
     return _then(
       _value.copyWith(
@@ -663,6 +673,10 @@ class _$SettlementStatusCopyWithImpl<$Res, $Val extends SettlementStatus>
                 ? _value.collectOnNextDelivery
                 : collectOnNextDelivery // ignore: cast_nullable_to_non_nullable
                       as double?,
+            branches: null == branches
+                ? _value.branches
+                : branches // ignore: cast_nullable_to_non_nullable
+                      as List<SettlementBranchStatus>,
           )
           as $Val,
     );
@@ -695,6 +709,8 @@ abstract class _$$SettlementStatusImplCopyWith<$Res>
     List<String> upcomingDates,
     @JsonKey(name: 'collect_on_next_delivery', fromJson: creditDoubleOrNull)
     double? collectOnNextDelivery,
+    @JsonKey(fromJson: settlementBranchList, includeToJson: false)
+    List<SettlementBranchStatus> branches,
   });
 }
 
@@ -721,6 +737,7 @@ class __$$SettlementStatusImplCopyWithImpl<$Res>
     Object? oldestOverdueDate = null,
     Object? upcomingDates = null,
     Object? collectOnNextDelivery = freezed,
+    Object? branches = null,
   }) {
     return _then(
       _$SettlementStatusImpl(
@@ -760,6 +777,10 @@ class __$$SettlementStatusImplCopyWithImpl<$Res>
             ? _value.collectOnNextDelivery
             : collectOnNextDelivery // ignore: cast_nullable_to_non_nullable
                   as double?,
+        branches: null == branches
+            ? _value._branches
+            : branches // ignore: cast_nullable_to_non_nullable
+                  as List<SettlementBranchStatus>,
       ),
     );
   }
@@ -786,7 +807,11 @@ class _$SettlementStatusImpl extends _SettlementStatus {
     final List<String> upcomingDates = const <String>[],
     @JsonKey(name: 'collect_on_next_delivery', fromJson: creditDoubleOrNull)
     this.collectOnNextDelivery,
+    @JsonKey(fromJson: settlementBranchList, includeToJson: false)
+    final List<SettlementBranchStatus> branches =
+        const <SettlementBranchStatus>[],
   }) : _upcomingDates = upcomingDates,
+       _branches = branches,
        super._();
 
   factory _$SettlementStatusImpl.fromJson(Map<String, dynamic> json) =>
@@ -828,9 +853,25 @@ class _$SettlementStatusImpl extends _SettlementStatus {
   @JsonKey(name: 'collect_on_next_delivery', fromJson: creditDoubleOrNull)
   final double? collectOnNextDelivery;
 
+  /// Invoice after Invoice only: the split per shop branch. Each door
+  /// settles on its own -- a delivery to one branch collects that branch's
+  /// previous invoice, never another's. Empty for the dated cycles.
+  final List<SettlementBranchStatus> _branches;
+
+  /// Invoice after Invoice only: the split per shop branch. Each door
+  /// settles on its own -- a delivery to one branch collects that branch's
+  /// previous invoice, never another's. Empty for the dated cycles.
+  @override
+  @JsonKey(fromJson: settlementBranchList, includeToJson: false)
+  List<SettlementBranchStatus> get branches {
+    if (_branches is EqualUnmodifiableListView) return _branches;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_branches);
+  }
+
   @override
   String toString() {
-    return 'SettlementStatus(state: $state, nextDueDate: $nextDueDate, nextDueAmount: $nextDueAmount, dueNowAmount: $dueNowAmount, overdueAmount: $overdueAmount, openBalance: $openBalance, oldestOverdueDate: $oldestOverdueDate, upcomingDates: $upcomingDates, collectOnNextDelivery: $collectOnNextDelivery)';
+    return 'SettlementStatus(state: $state, nextDueDate: $nextDueDate, nextDueAmount: $nextDueAmount, dueNowAmount: $dueNowAmount, overdueAmount: $overdueAmount, openBalance: $openBalance, oldestOverdueDate: $oldestOverdueDate, upcomingDates: $upcomingDates, collectOnNextDelivery: $collectOnNextDelivery, branches: $branches)';
   }
 
   @override
@@ -856,7 +897,8 @@ class _$SettlementStatusImpl extends _SettlementStatus {
               _upcomingDates,
             ) &&
             (identical(other.collectOnNextDelivery, collectOnNextDelivery) ||
-                other.collectOnNextDelivery == collectOnNextDelivery));
+                other.collectOnNextDelivery == collectOnNextDelivery) &&
+            const DeepCollectionEquality().equals(other._branches, _branches));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -872,6 +914,7 @@ class _$SettlementStatusImpl extends _SettlementStatus {
     oldestOverdueDate,
     const DeepCollectionEquality().hash(_upcomingDates),
     collectOnNextDelivery,
+    const DeepCollectionEquality().hash(_branches),
   );
 
   /// Create a copy of SettlementStatus
@@ -910,6 +953,8 @@ abstract class _SettlementStatus extends SettlementStatus {
     final List<String> upcomingDates,
     @JsonKey(name: 'collect_on_next_delivery', fromJson: creditDoubleOrNull)
     final double? collectOnNextDelivery,
+    @JsonKey(fromJson: settlementBranchList, includeToJson: false)
+    final List<SettlementBranchStatus> branches,
   }) = _$SettlementStatusImpl;
   const _SettlementStatus._() : super._();
 
@@ -946,6 +991,13 @@ abstract class _SettlementStatus extends SettlementStatus {
   @override
   @JsonKey(name: 'collect_on_next_delivery', fromJson: creditDoubleOrNull)
   double? get collectOnNextDelivery;
+
+  /// Invoice after Invoice only: the split per shop branch. Each door
+  /// settles on its own -- a delivery to one branch collects that branch's
+  /// previous invoice, never another's. Empty for the dated cycles.
+  @override
+  @JsonKey(fromJson: settlementBranchList, includeToJson: false)
+  List<SettlementBranchStatus> get branches;
 
   /// Create a copy of SettlementStatus
   /// with the given fields replaced by the non-null parameter values.
