@@ -2998,6 +2998,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get invoiceSendReceiptWhatsAppCustomer => 'واتساب على رقم العميل';
 
   @override
+  String get invoiceReceiptImageReady =>
+      'صورة الإيصال جاهزة — دوس إرسال عشان تشاركها';
+
+  @override
+  String get invoiceReceiptSendAction => 'إرسال';
+
+  @override
   String get invoiceReceiptShareFailed => 'تعذّر مشاركة الإيصال';
 
   @override

@@ -402,6 +402,8 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
       whatsappPhone: toCustomer ? _customerPhone(inv) : null,
       failureMessage: toWhatsApp ? l10n.invoiceWhatsAppOpenFailed : l10n.invoiceReceiptShareFailed,
       retryLabel: l10n.commonRetry,
+      imageReadyMessage: l10n.invoiceReceiptImageReady,
+      sendLabel: l10n.invoiceReceiptSendAction,
     );
   }
 

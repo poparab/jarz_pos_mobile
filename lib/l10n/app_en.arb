@@ -1586,6 +1586,8 @@
   "invoiceShareReceipt": "Share receipt",
   "invoiceSendReceiptWhatsApp": "Send via WhatsApp",
   "invoiceSendReceiptWhatsAppCustomer": "WhatsApp to the customer’s number",
+  "invoiceReceiptImageReady": "Receipt image ready — tap Send to share it",
+  "invoiceReceiptSendAction": "Send",
   "invoiceReceiptShareFailed": "Could not share the receipt",
   "invoiceWhatsAppOpenFailed": "Could not open WhatsApp",
   "invoicePrintedSuccessfully": "Printed successfully",

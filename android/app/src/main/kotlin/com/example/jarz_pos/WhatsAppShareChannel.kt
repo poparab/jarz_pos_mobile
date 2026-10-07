@@ -7,10 +7,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.core.content.FileProvider
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
+import java.util.concurrent.Executors
 
 /** Serves the receipt images in cache/receipt_share/ to the app they are sent to. */
 class ReceiptShareFileProvider : FileProvider()
@@ -37,7 +40,13 @@ class WhatsAppShareChannel(private val activity: Activity) : MethodChannel.Metho
         // A share is copied by WhatsApp when the cashier presses send; files
         // older than this belong to sends that finished long ago.
         private const val STALE_MS = 60 * 60 * 1000L
+
+        // One send at a time, off the main thread: a statement for a shop
+        // with many open orders is several PNGs to write.
+        private val io = Executors.newSingleThreadExecutor()
     }
+
+    private val main = Handler(Looper.getMainLooper())
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
@@ -62,12 +71,24 @@ class WhatsAppShareChannel(private val activity: Activity) : MethodChannel.Metho
             return
         }
 
-        val uris = try {
-            writeImages(images, names)
-        } catch (e: Exception) {
-            result.error("write_failed", e.message, null)
-            return
+        io.execute {
+            val uris = try {
+                writeImages(images, names)
+            } catch (e: Exception) {
+                main.post { result.error("write_failed", e.message, null) }
+                return@execute
+            }
+            main.post { launch(installed, uris, caption, jid, result) }
         }
+    }
+
+    private fun launch(
+        installed: List<String>,
+        uris: List<Uri>,
+        caption: String?,
+        jid: String?,
+        result: MethodChannel.Result,
+    ) {
         // Granted per package rather than through the intent's flags: with
         // both WhatsApps installed the second one is reached through a
         // chooser, whose initial intents do not carry their own grants.
@@ -87,6 +108,8 @@ class WhatsAppShareChannel(private val activity: Activity) : MethodChannel.Metho
             result.success("sent")
         } catch (e: ActivityNotFoundException) {
             result.success("not_installed")
+        } catch (e: Exception) {
+            result.error("launch_failed", e.message, null)
         }
     }
 

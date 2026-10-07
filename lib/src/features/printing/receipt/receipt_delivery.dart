@@ -39,9 +39,11 @@ const MethodChannel _whatsAppChannel = MethodChannel('jarz/whatsapp_share');
 /// WhatsApp then gets it composed through wa.me, the share sheet as text.
 ///
 /// When the share sheet cannot open — a browser refuses once the tap that
-/// started the send has been spent loading the invoice — a snackbar offers a
-/// retry, which is a fresh tap. That retry downloads the image in a browser
-/// that cannot share files at all, so the cashier can still attach it.
+/// started the send has been spent loading and drawing the receipt, which on
+/// an iPhone is nearly every time — a snackbar says the image is ready
+/// ([imageReadyMessage]) and its [sendLabel] action shares it on a fresh tap.
+/// A browser that cannot share files at all downloads the image instead, so
+/// the cashier can still attach it in WhatsApp Web.
 Future<void> deliverReceipt({
   required ScaffoldMessengerState messenger,
   required List<ReceiptImage> files,
@@ -51,6 +53,8 @@ Future<void> deliverReceipt({
   String? whatsappPhone,
   required String failureMessage,
   required String retryLabel,
+  required String imageReadyMessage,
+  required String sendLabel,
 }) async {
   if (files.isEmpty) {
     if (toWhatsApp) {
@@ -76,10 +80,10 @@ Future<void> deliverReceipt({
   if (await shareReceiptContent(files: files, text: caption, downloadFallback: false)) return;
   messenger.showSnackBar(
     SnackBar(
-      content: Text(failureMessage),
-      duration: const Duration(seconds: 8),
+      content: Text(imageReadyMessage),
+      duration: const Duration(seconds: 10),
       action: SnackBarAction(
-        label: retryLabel,
+        label: sendLabel,
         onPressed: () => shareReceiptContent(files: files, text: caption),
       ),
     ),

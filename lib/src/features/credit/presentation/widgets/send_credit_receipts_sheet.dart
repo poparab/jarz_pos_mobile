@@ -289,6 +289,8 @@ class _SendCreditReceiptsSheetState extends ConsumerState<SendCreditReceiptsShee
       toWhatsApp: channel == _Channel.whatsapp,
       failureMessage: channel == _Channel.whatsapp ? l10n.invoiceWhatsAppOpenFailed : l10n.invoiceReceiptShareFailed,
       retryLabel: l10n.commonRetry,
+      imageReadyMessage: l10n.invoiceReceiptImageReady,
+      sendLabel: l10n.invoiceReceiptSendAction,
     );
   }
 

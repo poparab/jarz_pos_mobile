@@ -3012,6 +3012,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'WhatsApp to the customer’s number';
 
   @override
+  String get invoiceReceiptImageReady =>
+      'Receipt image ready — tap Send to share it';
+
+  @override
+  String get invoiceReceiptSendAction => 'Send';
+
+  @override
   String get invoiceReceiptShareFailed => 'Could not share the receipt';
 
   @override

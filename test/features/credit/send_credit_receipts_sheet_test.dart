@@ -62,18 +62,31 @@ void main() {
 
   testWidgets('unticking an order drops it from the total and from what is sent', (tester) async {
     List<String>? loaded;
+    // Opened as a bottom sheet over a page, as the credit screen does: the
+    // send pops the sheet, and the outcome is reported on the page below.
     await tester.pumpWidget(
       _wrap(
-        SendCreditReceiptsSheet(
-          customerName: 'Cafe Nour',
-          invoices: _invoices,
-          loadInvoices: (invoices) async {
-            loaded = invoices.map((i) => i.invoice).toList();
-            return invoices.map(_printable).toList();
-          },
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              builder: (_) => SendCreditReceiptsSheet(
+                customerName: 'Cafe Nour',
+                invoices: _invoices,
+                loadInvoices: (invoices) async {
+                  loaded = invoices.map((i) => i.invoice).toList();
+                  return invoices.map(_printable).toList();
+                },
+              ),
+            ),
+            child: const Text('open'),
+          ),
         ),
       ),
     );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('credit-send-ACC-SINV-2026-00020')));
     await tester.pump();
@@ -91,12 +104,14 @@ void main() {
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
       await tester.pump();
     }
+    await tester.pumpAndSettle();
     // Oldest first, the unticked order left out.
     expect(loaded, ['ACC-SINV-2026-00010', 'ACC-SINV-2026-00030']);
-    // No WhatsApp channel and no share sheet in a test: the images reached
-    // delivery, which says it could not open WhatsApp and offers a retry.
-    expect(find.text('Could not open WhatsApp'), findsOneWidget);
-    expect(find.text('Retry'), findsOneWidget);
+    // The sheet is gone. No WhatsApp channel and no share sheet in a test, so
+    // the rendered images wait behind a Send tap.
+    expect(find.byType(SendCreditReceiptsSheet), findsNothing);
+    expect(find.text('Receipt image ready — tap Send to share it'), findsOneWidget);
+    expect(find.widgetWithText(SnackBarAction, 'Send'), findsOneWidget);
   });
 
   testWidgets('nothing ticked means nothing can be sent', (tester) async {

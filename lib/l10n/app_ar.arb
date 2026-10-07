@@ -1586,6 +1586,8 @@
   "invoiceShareReceipt": "مشاركة الإيصال",
   "invoiceSendReceiptWhatsApp": "إرسال عبر واتساب",
   "invoiceSendReceiptWhatsAppCustomer": "واتساب على رقم العميل",
+  "invoiceReceiptImageReady": "صورة الإيصال جاهزة — دوس إرسال عشان تشاركها",
+  "invoiceReceiptSendAction": "إرسال",
   "invoiceReceiptShareFailed": "تعذّر مشاركة الإيصال",
   "invoiceWhatsAppOpenFailed": "تعذّر فتح واتساب",
   "invoicePrintedSuccessfully": "تمت الطباعة بنجاح",
