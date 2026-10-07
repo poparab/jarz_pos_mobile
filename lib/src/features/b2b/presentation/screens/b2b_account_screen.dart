@@ -199,6 +199,9 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
             ),
             onUnlinkMapsBranch: (delivery) =>
                 _unlinkMapsBranch(detail, delivery),
+            onRenameBranch: (customer != null && customer.isNotEmpty)
+                ? (delivery) => _renameBranch(customer, delivery)
+                : null,
             // A delivery branch is a shipping Address on the Customer.
             onPromoteMapsBranch: (customer != null && customer.isNotEmpty)
                 ? (maps) => _promoteMapsBranch(detail, customer, maps)
@@ -282,6 +285,47 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
       addressName: null,
       successMessage: context.l10n.b2bBranchUnlinkedDone,
     );
+  }
+
+  /// Renames a delivery branch (its Address title, on every folded Address
+  /// row). Invoices point at the Address itself, so a branch keeps its whole
+  /// history and balance under the new name.
+  Future<void> _renameBranch(String customer, B2bBranch delivery) async {
+    final address = delivery.addressName;
+    if (address == null || address.isEmpty) return;
+    final l10n = context.l10n;
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => _RenameBranchDialog(initial: delivery.displayName),
+    );
+    final trimmed = name?.trim() ?? '';
+    if (!mounted || name == null) return;
+    if (trimmed.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.customerShippingAddressBranchNameRequired)),
+      );
+      return;
+    }
+    if (trimmed == delivery.displayName) return;
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(b2bRepositoryProvider)
+          .renameBranch(
+            customer: customer,
+            addressName: address,
+            branchName: trimmed,
+          );
+      if (!mounted) return;
+      _reload();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _sendBranchLink(
@@ -986,6 +1030,9 @@ class _AccountBody extends StatelessWidget {
   /// Turns a Google Maps branch into a delivery branch. Null with no Customer.
   final void Function(B2bBranch maps)? onPromoteMapsBranch;
 
+  /// Renames a delivery branch. Null with no Customer.
+  final void Function(B2bBranch delivery)? onRenameBranch;
+
   const _AccountBody({
     required this.account,
     required this.labels,
@@ -1004,6 +1051,7 @@ class _AccountBody extends StatelessWidget {
     this.onLinkMapsBranch,
     this.onUnlinkMapsBranch,
     this.onPromoteMapsBranch,
+    this.onRenameBranch,
   });
 
   @override
@@ -1081,6 +1129,7 @@ class _AccountBody extends StatelessWidget {
                 onLinkMaps: busy ? null : onLinkMapsBranch,
                 onUnlinkMaps: busy ? null : onUnlinkMapsBranch,
                 onPromoteMaps: busy ? null : onPromoteMapsBranch,
+                onRename: busy ? null : onRenameBranch,
               ),
             // Agreed payment terms, settable before the first order. Hidden
             // outright for a user who may not see them or on an older server.
@@ -1312,6 +1361,7 @@ class _BranchesSection extends ConsumerWidget {
   final void Function(B2bBranch maps, B2bBranch delivery)? onLinkMaps;
   final void Function(B2bBranch delivery)? onUnlinkMaps;
   final void Function(B2bBranch maps)? onPromoteMaps;
+  final void Function(B2bBranch delivery)? onRename;
 
   const _BranchesSection({
     required this.branches,
@@ -1322,6 +1372,7 @@ class _BranchesSection extends ConsumerWidget {
     this.onLinkMaps,
     this.onUnlinkMaps,
     this.onPromoteMaps,
+    this.onRename,
   });
 
   /// Google Maps branches still free to be combined with a delivery branch.
@@ -1410,6 +1461,8 @@ class _BranchesSection extends ConsumerWidget {
     ].where((s) => s.isNotEmpty).join(' · ');
 
     final actions = <PopupMenuEntry<_BranchAction>>[
+      if (onRename != null && (branch.addressName?.isNotEmpty ?? false))
+        _menuItem(_BranchAction.rename, Icons.edit_outlined, l10n.requestsEdit),
       if (branch.hasMaps && branch.mapsRow != null && onUnlinkMaps != null)
         _menuItem(
           _BranchAction.unlinkMaps,
@@ -1656,6 +1709,8 @@ class _BranchesSection extends ConsumerWidget {
   ) async {
     final l10n = context.l10n;
     switch (action) {
+      case _BranchAction.rename:
+        onRename?.call(branch);
       case _BranchAction.unlinkMaps:
         onUnlinkMaps?.call(branch);
       case _BranchAction.makeDelivery:
@@ -1797,7 +1852,65 @@ class _BranchesSection extends ConsumerWidget {
   }
 }
 
-enum _BranchAction { linkMaps, unlinkMaps, makeDelivery, sameAsExisting }
+/// Asks for a branch's new name. Owns its controller, so the field stays
+/// valid through the dialog's closing animation.
+class _RenameBranchDialog extends StatefulWidget {
+  final String initial;
+
+  const _RenameBranchDialog({required this.initial});
+
+  @override
+  State<_RenameBranchDialog> createState() => _RenameBranchDialogState();
+}
+
+class _RenameBranchDialogState extends State<_RenameBranchDialog> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initial,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(l10n.customerShippingAddressBranchNameLabel),
+      content: TextField(
+        key: const ValueKey('b2b-rename-branch-field'),
+        controller: _controller,
+        autofocus: true,
+        maxLength: 140,
+        textInputAction: TextInputAction.done,
+        decoration: InputDecoration(
+          labelText: l10n.customerShippingAddressBranchNameLabel,
+        ),
+        onSubmitted: (value) => Navigator.pop(context, value),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _controller.text),
+          child: Text(l10n.commonSave),
+        ),
+      ],
+    );
+  }
+}
+
+enum _BranchAction {
+  rename,
+  linkMaps,
+  unlinkMaps,
+  makeDelivery,
+  sameAsExisting,
+}
 
 /// Printed-label stock for this account, one row per flavour, straight off the
 /// account payload. Tapping a row opens the label's own detail screen; an

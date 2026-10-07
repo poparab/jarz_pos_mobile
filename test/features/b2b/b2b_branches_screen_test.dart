@@ -42,6 +42,24 @@ class _FakeRepo extends B2bRepository {
   List<B2bBranch> branches = _branches;
   String? customer = 'ILO-1';
   final List<String> links = [];
+  final List<String> renames = [];
+
+  @override
+  Future<String> renameBranch({
+    required String customer,
+    required String addressName,
+    required String branchName,
+  }) async {
+    renames.add('$customer:$addressName>$branchName');
+    branches = [
+      for (final b in branches)
+        if (b.addressName == addressName)
+          b.copyWith(branchName: branchName)
+        else
+          b,
+    ];
+    return branchName;
+  }
 
   @override
   Future<B2bBranchLinkResult> linkBranch({
@@ -466,6 +484,43 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(repo.links, ['d4>ILO-ZAYED']);
+    });
+
+    testWidgets('a delivery branch can be renamed', (tester) async {
+      bigScreen(tester);
+      final repo = _FakeRepo()..branches = unified;
+      await tester.pumpWidget(
+        _app(repo, const B2bAccountScreen(doctype: 'Customer', name: 'ILO-1')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Branch actions').at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
+      final field = find.byKey(const ValueKey('b2b-rename-branch-field'));
+      expect(tester.widget<TextField>(field).controller!.text, 'Zayed');
+      await tester.enterText(field, '  ILO Sheikh Zayed ');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.renames, ['ILO-1:ILO-ZAYED>ILO Sheikh Zayed']);
+      expect(find.text('ILO Sheikh Zayed'), findsOneWidget);
+      expect(find.text('Zayed'), findsNothing);
+    });
+
+    testWidgets('a Google Maps-only entry has no rename', (tester) async {
+      bigScreen(tester);
+      final repo = _FakeRepo()..branches = unified;
+      await tester.pumpWidget(
+        _app(repo, const B2bAccountScreen(doctype: 'Customer', name: 'ILO-1')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Branch actions').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Make it a delivery branch'), findsOneWidget);
+      expect(find.text('Edit'), findsNothing);
     });
 
     testWidgets('unlink sends an empty address', (tester) async {

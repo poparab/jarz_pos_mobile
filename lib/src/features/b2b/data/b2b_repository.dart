@@ -342,6 +342,28 @@ class B2bRepository {
     );
   }
 
+  /// Renames the delivery branch [addressName] of [customer]. The server
+  /// writes the label on every Address row folded into that branch and
+  /// refuses an empty name, the account's own name, or another branch's name.
+  /// Returns the name it stored.
+  Future<String> renameBranch({
+    required String customer,
+    required String addressName,
+    required String branchName,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.b2bRenameBranch,
+      data: {
+        'customer': customer,
+        'address_name': addressName,
+        'branch_name': branchName,
+      },
+    );
+    final raw = _unwrap(response);
+    final stored = raw is Map ? raw['branch_name']?.toString() : null;
+    return (stored == null || stored.isEmpty) ? branchName.trim() : stored;
+  }
+
   /// Pairs the Google Maps branch [mapsRow] of the account's Lead with the
   /// delivery branch [addressName]. A null / blank [addressName] unlinks the
   /// row, which also stops the server auto-matching it. Returns the account's
