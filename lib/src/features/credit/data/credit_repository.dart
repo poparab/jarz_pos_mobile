@@ -60,7 +60,8 @@ class CreditRepository {
 
   /// The shop branch each of [invoices] was delivered to, keyed by invoice
   /// name; an invoice matching none of a multi-branch shop's branches maps to
-  /// ''. Invoices outside the caller's POS Profiles are simply absent.
+  /// ''. Invoices outside the caller's POS Profiles are simply absent, and a
+  /// shop with a single branch answers nothing (its statement stays flat).
   Future<Map<String, String>> getInvoiceShopBranches({
     required String customer,
     required List<String> invoices,
@@ -73,6 +74,10 @@ class CreditRepository {
       final map = _payload(response, 'Failed to load shop branches');
       final rows = map['invoices'];
       if (rows is! Map) return const {};
+      // A shop with one door folds every order into it; naming that door on
+      // every section would only repeat the shop's name, so it stays flat.
+      final branchCount = num.tryParse('${map['branch_count'] ?? ''}') ?? 0;
+      if (branchCount <= 1) return const {};
       return {
         for (final e in rows.entries)
           e.key.toString(): e.value is Map ? ((e.value as Map)['branch_name'] ?? '').toString().trim() : '',
