@@ -155,4 +155,30 @@ void main() {
     final whatsapp = tester.widget<FilledButton>(find.ancestor(of: find.text('WhatsApp'), matching: find.byWidgetPredicate((w) => w is FilledButton)));
     expect(whatsapp.onPressed, isNotNull);
   });
+
+  testWidgets('a statement asks for the shop branch of each order; a failed lookup still sends it', (tester) async {
+    String? askedFor;
+    await tester.pumpWidget(
+      _wrap(
+        SendCreditReceiptsSheet(
+          customer: 'CUST-NOUR',
+          customerName: 'Cafe Nour',
+          invoices: _invoices,
+          loadInvoices: (invoices) async => invoices.map(_printable).toList(),
+          loadBranches: (customer, invoices) async {
+            askedFor = customer;
+            throw Exception('old server');
+          },
+        ),
+      ),
+    );
+    await tester.tap(find.text('WhatsApp'));
+    for (var i = 0; i < 20 && find.byType(SendCreditReceiptsSheet).evaluate().isNotEmpty; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(askedFor, 'CUST-NOUR');
+    expect(find.text('Could not load the orders. Try again.'), findsNothing);
+  });
 }

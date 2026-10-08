@@ -241,26 +241,51 @@ class ReceiptCanvasRenderer {
     y += _sectionGap;
     line();
 
-    for (final entry in st.entries) {
-      final inv = entry.invoice;
-      y += _sectionGap;
-      row('Order #${receiptOrderLabel(inv)}', inv.orderDate ?? '', bold: true, fontSize: 24);
-      for (final item in inv.items) {
-        if (!item.showPricing) {
-          row('- ${receiptQty(item.qty)} × ${item.name}', '', indent: 24);
-          continue;
+    // A shop with several branches gets one section per branch: its heading,
+    // its orders (each naming the branch too, so a cropped screenshot still
+    // says which door) and what that branch owes.
+    final sections = st.sections;
+    final branched = sections.first.branch.isNotEmpty || sections.length > 1;
+    for (final section in sections) {
+      if (branched) {
+        y += _sectionGap;
+        row(section.heading, '', bold: true, fontSize: 26);
+        line(thickness: 2);
+      }
+      for (final entry in section.entries) {
+        final inv = entry.invoice;
+        y += _sectionGap;
+        row('Order #${receiptOrderLabel(inv)}', entry.dateLabel, bold: true, fontSize: 24);
+        if (section.branch.isNotEmpty) row('Branch: ${section.branch}', '', fontSize: 18, indent: 8);
+        for (final item in inv.items) {
+          if (!item.showPricing) {
+            row('- ${receiptQty(item.qty)} × ${item.name}', '', indent: 24);
+            continue;
+          }
+          row('${receiptQty(item.qty)} × ${item.name}', receiptMoney(item.amount), indent: 8);
         }
-        row('${receiptQty(item.qty)} × ${item.name}', receiptMoney(item.amount), indent: 8);
+        if (inv.shipping > 0 && inv.shipping <= inv.total) {
+          row('Shipping', receiptMoney(inv.shipping), indent: 8);
+        }
+        if (entry.discount > 0) row('Discount', '-${receiptMoney(entry.discount)}', indent: 8);
+        row('Order total', receiptMoney(inv.total));
+        if (entry.paid > 0.005) row('Paid', receiptMoney(entry.paid));
+        row('Due', receiptMoney(entry.outstanding), bold: true);
+        y += _sectionGap;
+        line();
       }
-      if (inv.shipping > 0 && inv.shipping <= inv.total) {
-        row('Shipping', receiptMoney(inv.shipping), indent: 8);
+      if (branched) {
+        y += _sectionGap;
+        row(
+          section.branch.isEmpty ? 'Due' : '${section.branch} due',
+          receiptMoney(section.totalDue),
+          bold: true,
+          fontSize: 24,
+          amountWidth: contentW * 0.45,
+        );
+        y += _sectionGap;
+        line(thickness: 2);
       }
-      if (entry.discount > 0) row('Discount', '-${receiptMoney(entry.discount)}', indent: 8);
-      row('Order total', receiptMoney(inv.total));
-      if (entry.paid > 0.005) row('Paid', receiptMoney(entry.paid));
-      row('Due', receiptMoney(entry.outstanding), bold: true);
-      y += _sectionGap;
-      line();
     }
 
     y += _sectionGap;

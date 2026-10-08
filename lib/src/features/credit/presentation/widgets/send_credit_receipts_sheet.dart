@@ -11,6 +11,7 @@ import '../../../printing/printable_invoice_mapper.dart';
 import '../../../printing/receipt/receipt_delivery.dart';
 import '../../../printing/receipt/receipt_share.dart';
 import '../../../printing/receipt/receipt_statement.dart';
+import '../../data/credit_repository.dart';
 import '../../data/models/credit_models.dart';
 
 /// How the chosen orders go to the customer.
@@ -29,6 +30,13 @@ typedef CreditReceiptLoader = Future<List<PrintableInvoice>> Function(
   List<CreditInvoice> invoices,
 );
 
+/// The shop branch (delivery door) each invoice went to, by invoice name;
+/// '' or missing when it is not known.
+typedef CreditBranchLoader = Future<Map<String, String>> Function(
+  String customer,
+  List<CreditInvoice> invoices,
+);
+
 /// Sends a credit customer's unpaid orders: each as its own receipt image, or
 /// all of them as one consolidated statement image, over WhatsApp (where the
 /// cashier picks the chat or group) or the share sheet.
@@ -37,6 +45,8 @@ typedef CreditReceiptLoader = Future<List<PrintableInvoice>> Function(
 /// common case; unticking is how one old dispute or a just-delivered order
 /// is left out.
 class SendCreditReceiptsSheet extends ConsumerStatefulWidget {
+  /// The Customer record; used to look up which branch each order went to.
+  final String customer;
   final String customerName;
   final List<CreditInvoice> invoices;
   final String currency;
@@ -44,16 +54,22 @@ class SendCreditReceiptsSheet extends ConsumerStatefulWidget {
   /// Test seam; production loads each invoice's details from the server.
   final CreditReceiptLoader? loadInvoices;
 
+  /// Test seam; production asks the server for each order's shop branch.
+  final CreditBranchLoader? loadBranches;
+
   const SendCreditReceiptsSheet({
     super.key,
+    this.customer = '',
     required this.customerName,
     required this.invoices,
     this.currency = '',
     this.loadInvoices,
+    this.loadBranches,
   });
 
   static Future<void> show(
     BuildContext context, {
+    String customer = '',
     required String customerName,
     required List<CreditInvoice> invoices,
     String currency = '',
@@ -63,6 +79,7 @@ class SendCreditReceiptsSheet extends ConsumerStatefulWidget {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => SendCreditReceiptsSheet(
+        customer: customer,
         customerName: customerName,
         invoices: invoices,
         currency: currency,
@@ -259,12 +276,20 @@ class _SendCreditReceiptsSheetState extends ConsumerState<SendCreditReceiptsShee
         files.clear();
       }
     } else {
+      // A shop with several branches gets its statement grouped by branch.
+      // Without the branches (older server, network) it is still sent, flat.
+      final branches = await _branchesOf(chosen);
+      if (!mounted) return;
       final statement = PrintableStatement(
         customer: customer,
         date: DateTime.now(),
         entries: [
           for (var i = 0; i < printables.length; i++)
-            StatementEntry(invoice: printables[i], outstanding: chosen[i].outstandingAmount),
+            StatementEntry(
+              invoice: printables[i],
+              outstanding: chosen[i].outstandingAmount,
+              branch: branches[chosen[i].invoice] ?? '',
+            ),
         ],
       );
       text = buildStatementShareText(statement, branding);
@@ -292,6 +317,21 @@ class _SendCreditReceiptsSheetState extends ConsumerState<SendCreditReceiptsShee
       imageReadyMessage: l10n.invoiceReceiptImageReady,
       sendLabel: l10n.invoiceReceiptSendAction,
     );
+  }
+
+  Future<Map<String, String>> _branchesOf(List<CreditInvoice> invoices) async {
+    try {
+      final loader = widget.loadBranches;
+      if (loader != null) return await loader(widget.customer, invoices);
+      if (widget.customer.isEmpty) return const {};
+      return await ref.read(creditRepositoryProvider).getInvoiceShopBranches(
+            customer: widget.customer,
+            invoices: invoices.map((i) => i.invoice).toList(),
+          );
+    } catch (e) {
+      debugPrint('[SendCreditReceipts] branch lookup failed, statement stays flat: $e');
+      return const {};
+    }
   }
 
   /// Each order's full details — lines, shipping, delivery slot — the same

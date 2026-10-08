@@ -4,7 +4,14 @@ import 'package:jarz_pos/src/features/printing/receipt/receipt_branding.dart';
 import 'package:jarz_pos/src/features/printing/receipt/receipt_canvas_renderer.dart';
 import 'package:jarz_pos/src/features/printing/receipt/receipt_statement.dart';
 
-PrintableInvoice _order(String no, double total, {double shipping = 0, String date = '01/09/2026'}) => PrintableInvoice(
+PrintableInvoice _order(
+  String no,
+  double total, {
+  double shipping = 0,
+  String date = '01/09/2026',
+  DateTime? delivery,
+}) =>
+    PrintableInvoice(
       id: 'ACC-SINV-2026-$no',
       date: DateTime(2026, 9, 1),
       customer: 'Cafe Nour',
@@ -14,6 +21,7 @@ PrintableInvoice _order(String no, double total, {double shipping = 0, String da
       shipping: shipping,
       orderNo: no,
       orderDate: date,
+      deliveryDateTime: delivery,
       items: [
         PrintableInvoiceItem(name: 'Mango Jar', qty: 2, rate: (total - shipping) / 2),
         PrintableInvoiceItem(name: 'Berry Jar', qty: 1, rate: 0, showPricing: false, indentLevel: 1),
@@ -96,5 +104,83 @@ void main() {
     expect(png.sublist(0, 8), [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
     final width = (png[16] << 24) | (png[17] << 16) | (png[18] << 8) | png[19];
     expect(width, 576);
+  });
+
+  test('each order is dated by its delivery, not when it was booked', () {
+    final st = PrintableStatement(
+      customer: 'Cafe Nour',
+      date: DateTime(2026, 9, 30),
+      entries: [
+        StatementEntry(
+          invoice: _order('17005', 300, date: '01/09/2026', delivery: DateTime(2026, 9, 3, 14)),
+          outstanding: 300,
+        ),
+      ],
+    );
+    expect(st.entries.single.dateLabel, '03/09/2026');
+    expect(buildStatementShareText(st, branding), contains('*Order #17005* · 03/09/2026'));
+  });
+
+  group('a shop with several branches', () {
+    final branched = PrintableStatement(
+      customer: 'Cafe Nour',
+      date: DateTime(2026, 9, 30),
+      entries: [
+        StatementEntry(
+          invoice: _order('17011', 100, delivery: DateTime(2026, 9, 5)),
+          outstanding: 100,
+          branch: 'Madinaty',
+        ),
+        StatementEntry(
+          invoice: _order('17010', 200, delivery: DateTime(2026, 9, 2)),
+          outstanding: 200,
+          branch: 'Heliopolis',
+        ),
+        StatementEntry(
+          invoice: _order('17012', 50, delivery: DateTime(2026, 9, 1)),
+          outstanding: 50,
+        ),
+        StatementEntry(
+          invoice: _order('17013', 300, delivery: DateTime(2026, 9, 4)),
+          outstanding: 300,
+          branch: 'Heliopolis',
+        ),
+      ],
+    );
+
+    test('groups orders by branch, oldest delivery first, unknown last', () {
+      final sections = branched.sections;
+      expect(sections.map((s) => s.branch), ['Heliopolis', 'Madinaty', '']);
+      expect(sections.first.entries.map((e) => e.invoice.orderNo), ['17010', '17013']);
+      expect(sections.first.totalDue, 500);
+      expect(sections.last.heading, statementOtherBranchHeading);
+    });
+
+    test('names the branch on every section and every order, with its subtotal', () {
+      final text = buildStatementShareText(branched, branding);
+      expect(text, contains('*━━ Branch: Heliopolis ━━*'));
+      expect(text, contains('*━━ Branch: Madinaty ━━*'));
+      expect(text, contains('*━━ $statementOtherBranchHeading ━━*'));
+      expect(text, contains('*Order #17010* · 02/09/2026\nBranch: Heliopolis'));
+      expect(text, contains('*Heliopolis due: EGP 500.00*'));
+      expect(text, contains('*Madinaty due: EGP 100.00*'));
+      expect(text.indexOf('Branch: Heliopolis ━━'), lessThan(text.indexOf('Branch: Madinaty ━━')));
+      expect(text, contains('*Total due: EGP 650.00*\n4 orders'));
+    });
+
+    test('a single-branch statement stays flat', () {
+      expect(_statement.sections.single.branch, '');
+      expect(buildStatementShareText(_statement, branding), isNot(contains('Branch:')));
+    });
+
+    test('renders as one image', () async {
+      final png = await ReceiptCanvasRenderer.renderStatementPng(
+        statement: branched,
+        footer: 'Thank you for Your Order',
+        phone: '01061332266',
+        website: 'www.orderjarz.com',
+      );
+      expect(png.sublist(0, 4), [0x89, 0x50, 0x4E, 0x47]);
+    });
   });
 }

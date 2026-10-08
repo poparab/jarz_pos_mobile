@@ -76,6 +76,11 @@ abstract final class ApiEndpoints {
   static const updateCustomerCreditSettings =
       '/api/method/jarz_pos.api.credit.update_customer_credit_settings';
 
+  /// The shop branch (delivery door) each chosen invoice went to, for the
+  /// account statement's per-branch sections.
+  static const getInvoiceShopBranches =
+      '/api/method/jarz_pos.api.credit.get_invoice_shop_branches';
+
   // ── Settlement terms (B2B collection schedule + reminders) ─────────────
   // A schedule and reminders, never a gate: nothing here blocks an order.
   static const getSettlementTerms =

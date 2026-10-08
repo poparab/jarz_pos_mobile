@@ -58,6 +58,30 @@ class CreditRepository {
     }
   }
 
+  /// The shop branch each of [invoices] was delivered to, keyed by invoice
+  /// name; an invoice matching none of a multi-branch shop's branches maps to
+  /// ''. Invoices outside the caller's POS Profiles are simply absent.
+  Future<Map<String, String>> getInvoiceShopBranches({
+    required String customer,
+    required List<String> invoices,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.getInvoiceShopBranches,
+        data: {'customer': customer, 'invoices': json.encode(invoices)},
+      );
+      final map = _payload(response, 'Failed to load shop branches');
+      final rows = map['invoices'];
+      if (rows is! Map) return const {};
+      return {
+        for (final e in rows.entries)
+          e.key.toString(): e.value is Map ? ((e.value as Map)['branch_name'] ?? '').toString().trim() : '',
+      };
+    } on DioException catch (error) {
+      throw mapFrappeError(error, fallback: 'Failed to load shop branches');
+    }
+  }
+
   /// Switches credit on/off for one shop and sets its terms. A null [days] or
   /// [limit] leaves that value as it is on the server; a limit of 0 means no
   /// limit. Returns the refreshed profile.

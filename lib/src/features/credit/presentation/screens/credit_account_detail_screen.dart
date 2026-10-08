@@ -127,6 +127,7 @@ class CreditAccountDetailScreen extends ConsumerWidget {
                     label: Text(l10n.creditSendToCustomer),
                     onPressed: () => SendCreditReceiptsSheet.show(
                       context,
+                      customer: customer,
                       customerName: title,
                       invoices: invoices,
                       currency: currency,
