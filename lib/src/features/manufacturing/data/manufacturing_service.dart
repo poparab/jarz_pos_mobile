@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
@@ -11,6 +13,7 @@ import 'models/material_move_result.dart';
 import 'models/material_options.dart';
 import 'models/production_policy.dart';
 import 'models/production_suggestion.dart';
+import 'models/recipe_sheet.dart';
 import 'models/running_batch.dart';
 import 'models/sop.dart';
 
@@ -22,6 +25,11 @@ final manufacturingServiceProvider = Provider<ManufacturingService>((ref) {
 class ManufacturingService {
   static const _getMaterialOptionsEndpoint =
       '/api/method/jarz_pos.api.manufacturing.get_material_options';
+
+  /// Kept here rather than in `ApiEndpoints` so this feature ships as an OTA
+  /// patch: `core/**` changes force a full APK.
+  static const _getRecipeSheetEndpoint =
+      '/api/method/jarz_pos.api.sop.get_recipe_sheet';
   final Dio _dio;
   ManufacturingService(this._dio);
 
@@ -571,6 +579,29 @@ class ManufacturingService {
       };
     } catch (error) {
       throw _friendlyError(error, fallback: 'Failed to load the SOP list');
+    }
+  }
+
+  /// One combined recipe sheet per recipe family for every jar typed, e.g. all
+  /// Tiramisu sizes made together. [jars] maps item code to jar count; zero or
+  /// negative counts are dropped, and an empty request answers itself without
+  /// a call. Items without a recipe are simply absent from the answer.
+  Future<RecipeSheetResponse> getRecipeSheet(Map<String, int> jars) async {
+    final lines = [
+      for (final entry in jars.entries)
+        if (entry.value > 0) {'item_code': entry.key, 'qty': entry.value},
+    ];
+    if (lines.isEmpty) return RecipeSheetResponse.empty;
+    try {
+      final resp = await _dio.post(
+        _getRecipeSheetEndpoint,
+        // A JSON string, which `frappe.parse_json` reads whether the body
+        // arrives as form fields or as JSON.
+        data: {'lines': jsonEncode(lines)},
+      );
+      return RecipeSheetResponse.fromJson(_unwrapMap(resp.data));
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to load the recipe');
     }
   }
 

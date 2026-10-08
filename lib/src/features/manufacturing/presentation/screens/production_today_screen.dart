@@ -20,14 +20,14 @@ import '../../state/base_production_providers.dart';
 import '../../state/daily_plan_providers.dart';
 import '../../state/production_providers.dart';
 import '../../state/production_today_providers.dart';
+import '../../state/recipe_sheet_providers.dart';
 import '../../state/running_batches_notifier.dart';
-import '../../state/sop_providers.dart';
 import '../back_date_gate.dart';
 import '../production_timestamp.dart';
 import '../widgets/basket_shortage_banner.dart';
 import '../widgets/mixer_run_summary.dart';
 import '../widgets/production_format.dart';
-import '../widgets/view_sop_button.dart';
+import '../widgets/recipe_sheet_card.dart';
 
 /// Today — what is coming out of the kitchen.
 ///
@@ -142,10 +142,11 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
     final runningCount =
         ref.watch(runningBatchesProvider).valueOrNull?.length ?? 0;
     final canExecute = ref.watch(canExecuteProductionProvider);
-    // Empty while loading and on any failure, so a row only offers a recipe
-    // the server has confirmed exists.
-    final sopItems =
-        ref.watch(sopItemCodesProvider).valueOrNull ?? const <String>{};
+    // Holds the recipe sheet (and the SOP list behind it) for as long as the
+    // screen is up, without rebuilding it: the section that shows the sheet
+    // sits in a lazy list and would otherwise refetch every time it scrolled
+    // back into view.
+    ref.listen(recipeSheetProvider, (_, _) {});
 
     final template = templateAsync.valueOrNull;
     _maybeLoadSavedPlan(template);
@@ -259,12 +260,13 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
                                 onChanged: (qty) => ref
                                     .read(dailyPlanDraftProvider.notifier)
                                     .setQuantity(item.itemCode, qty.round()),
-                                onOpenRecipe:
-                                    sopItems.contains(item.itemCode)
-                                    ? () => _openRecipe(item)
-                                    : null,
                               ),
                           ],
+                  ),
+                  // Every size of a recipe typed above, as one sheet: the
+                  // kitchen makes them together, not one SOP per row.
+                  const RecipeSheetSection(
+                    padding: EdgeInsetsDirectional.only(top: 8),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -340,28 +342,6 @@ class _ProductionTodayScreenState extends ConsumerState<ProductionTodayScreen> {
       // A plan that will not load is not worth blocking a fresh entry on; the
       // save path surfaces the conflict if one exists.
     }
-  }
-
-  /// The jar's recipe, scaled to the jars typed on its row (1 when none are).
-  ///
-  /// By route, with the same launch-args shape the Bases row uses. A jar's BOM
-  /// makes one jar, so the batch count the server scales by IS the jar count.
-  void _openRecipe(DailyPlanItem item) {
-    final typed = int.tryParse(
-      _jarControllers[item.itemCode]?.text.trim() ?? '',
-    );
-    final jars = (typed == null || typed <= 0) ? 1 : typed;
-    final bom = (item.defaultBom ?? '').trim();
-    context.push(
-      AppRoutes.productionSop,
-      extra: <String, dynamic>{
-        'item_code': item.itemCode,
-        'item_name': item.itemName.isEmpty ? item.itemCode : item.itemName,
-        if (bom.isNotEmpty) 'bom': bom,
-        'batches': jars,
-        'for_jars': true,
-      },
-    );
   }
 
   Future<void> _refresh() async {
@@ -820,13 +800,9 @@ class _JarRow extends StatelessWidget {
     required this.plannedTarget,
     required this.controller,
     required this.onChanged,
-    this.onOpenRecipe,
   });
 
   final DailyPlanItem item;
-
-  /// Opens the jar's SOP. Null — no button — when the item has none.
-  final VoidCallback? onOpenRecipe;
 
   /// What the morning plan asked for, or 0. Shown, never typed in.
   final int plannedTarget;
@@ -860,8 +836,6 @@ class _JarRow extends StatelessWidget {
               ],
             ),
           ),
-          if (onOpenRecipe != null)
-            ViewSopButton(dense: true, onTap: onOpenRecipe),
           const SizedBox(width: 8),
           // Jars are counted one by one; a half jar is not a thing.
           _QtyField(

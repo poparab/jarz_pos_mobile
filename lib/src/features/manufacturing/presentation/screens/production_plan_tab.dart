@@ -18,8 +18,8 @@ import '../../state/daily_plan_providers.dart';
 import '../../state/plan_board_providers.dart';
 import '../../state/production_basket_notifier.dart';
 import '../../state/production_providers.dart';
+import '../../state/recipe_sheet_providers.dart';
 import '../../state/running_batches_notifier.dart';
-import '../../state/sop_providers.dart';
 import '../back_date_gate.dart';
 import '../production_timestamp.dart';
 import '../widgets/basket_shortage_banner.dart';
@@ -28,6 +28,7 @@ import '../widgets/material_options_panel.dart';
 import '../widgets/mixer_run_summary.dart';
 import '../widgets/plan_jar_row.dart';
 import '../widgets/production_format.dart';
+import '../widgets/recipe_sheet_card.dart';
 
 /// The day, in one list.
 ///
@@ -114,10 +115,9 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
     final rollupAsync = ref.watch(basketRollupProvider);
     final rollup = rollupAsync.valueOrNull;
     final shortages = _shortageItemCodes(rollup);
-    // Empty while loading and on any failure (an older backend has no such
-    // endpoint), which hides every recipe button rather than erroring.
-    final sopItems =
-        ref.watch(sopItemCodesProvider).valueOrNull ?? const <String>{};
+    // Holds the recipe sheet alive while the tab is up without rebuilding it;
+    // see the same line on the Today screen.
+    ref.listen(recipeSheetProvider, (_, _) {});
 
     // The quantities the heavy checks are actually describing. While a keystroke
     // is still settling this trails the fields by 400 ms, which is why nothing
@@ -202,6 +202,11 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
                   const SizedBox(height: 8),
                   BasketPickList(rollup: rollup),
                 ],
+                // The method for every recipe jar typed below, as one sheet,
+                // whatever state the pick list above is in.
+                const RecipeSheetSection(
+                  padding: EdgeInsetsDirectional.only(top: 8),
+                ),
                 const SizedBox(height: 8),
                 if (groups.isEmpty)
                   Padding(
@@ -228,7 +233,6 @@ class _ProductionPlanTabState extends ConsumerState<ProductionPlanTab> {
                           row: row,
                           quantity: draft.quantities[row.itemCode] ?? 0,
                           isShort: shortages.contains(row.itemCode),
-                          hasRecipe: sopItems.contains(row.itemCode),
                           plannedToday: planned[row.itemCode],
                           onQuantityChanged: (qty) =>
                               entry.setQuantity(row, qty),
