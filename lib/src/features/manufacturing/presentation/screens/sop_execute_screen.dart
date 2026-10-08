@@ -24,6 +24,7 @@ class SopLaunchArgs {
     this.itemName,
     this.bom,
     this.batches = 1.0,
+    this.forJars = false,
   });
 
   final String? workOrder;
@@ -31,6 +32,10 @@ class SopLaunchArgs {
   final String? itemName;
   final String? bom;
   final double batches;
+
+  /// Opened for a finished jar product (Today / Plan rows): the header counts
+  /// jars rather than batches. Absent from older callers, so false by default.
+  final bool forJars;
 
   factory SopLaunchArgs.fromExtra(Object? extra) {
     if (extra is SopLaunchArgs) return extra;
@@ -49,12 +54,18 @@ class SopLaunchArgs {
         ? rawBatches.toDouble()
         : double.tryParse((rawBatches ?? '').toString()) ?? 1.0;
 
+    final rawForJars = map['forJars'] ?? map['for_jars'];
+    final forJars = rawForJars == true ||
+        rawForJars == 1 ||
+        '$rawForJars'.toLowerCase() == 'true';
+
     return SopLaunchArgs(
       workOrder: str('workOrder') ?? str('work_order'),
       itemCode: str('itemCode') ?? str('item_code'),
       itemName: str('itemName') ?? str('item_name'),
       bom: str('bom'),
       batches: batches <= 0 ? 1.0 : batches,
+      forJars: forJars,
     );
   }
 
@@ -64,6 +75,7 @@ class SopLaunchArgs {
         if (itemName != null) 'itemName': itemName,
         if (bom != null) 'bom': bom,
         'batches': batches,
+        if (forJars) 'forJars': true,
       };
 
   bool get hasWorkOrder => (workOrder ?? '').isNotEmpty;
@@ -180,6 +192,7 @@ class SopExecuteScreen extends ConsumerWidget {
               document: document,
               executionKey: key,
               workOrder: args.hasWorkOrder ? args.workOrder : null,
+              forJars: args.forJars,
             );
           },
         ),
@@ -226,11 +239,17 @@ class _SopRunner extends ConsumerStatefulWidget {
     required this.document,
     required this.executionKey,
     required this.workOrder,
+    this.forJars = false,
   });
 
   final SopDocument document;
   final String executionKey;
   final String? workOrder;
+  final bool forJars;
+
+  /// Captures gate the pager only when there is a Work Order to record them
+  /// against; opened by item the SOP is being read, not executed.
+  bool get requireCaptures => (workOrder ?? '').isNotEmpty;
 
   @override
   ConsumerState<_SopRunner> createState() => _SopRunnerState();
@@ -265,7 +284,10 @@ class _SopRunnerState extends ConsumerState<_SopRunner> {
     if (!mounted) return;
     ref
         .read(sopExecutionProvider(widget.executionKey).notifier)
-        .bindSteps(widget.document.steps);
+        .bindSteps(
+          widget.document.steps,
+          requireCaptures: widget.requireCaptures,
+        );
   }
 
   SopExecutionNotifier get _notifier =>
@@ -286,7 +308,8 @@ class _SopRunnerState extends ConsumerState<_SopRunner> {
     final document = widget.document;
     final execution = ref.watch(sopExecutionProvider(widget.executionKey));
 
-    if (execution.steps.length != document.steps.length) {
+    if (execution.steps.length != document.steps.length ||
+        execution.requireCaptures != widget.requireCaptures) {
       // One frame, between first build and the post-frame bind.
       WidgetsBinding.instance.addPostFrameCallback((_) => _bind());
       return const Center(child: CircularProgressIndicator());
@@ -294,7 +317,11 @@ class _SopRunnerState extends ConsumerState<_SopRunner> {
 
     return Column(
       children: [
-        _SopHeader(document: document, execution: execution),
+        _SopHeader(
+          document: document,
+          execution: execution,
+          forJars: widget.forJars,
+        ),
         if (document.hasUnresolvedTokens)
           _UnresolvedTokensBanner(tokens: document.unresolvedTokens),
         Padding(
@@ -322,6 +349,7 @@ class _SopRunnerState extends ConsumerState<_SopRunner> {
                 step: step,
                 stepIndex: index,
                 progress: progress,
+                captureRequired: widget.requireCaptures,
                 onConfirmedChanged: (value) =>
                     _notifier.setConfirmed(index, value),
                 captureField: step.needsCapture
@@ -406,10 +434,15 @@ class _SopRunnerState extends ConsumerState<_SopRunner> {
 }
 
 class _SopHeader extends StatelessWidget {
-  const _SopHeader({required this.document, required this.execution});
+  const _SopHeader({
+    required this.document,
+    required this.execution,
+    this.forJars = false,
+  });
 
   final SopDocument document;
   final SopExecutionState execution;
+  final bool forJars;
 
   @override
   Widget build(BuildContext context) {
@@ -419,7 +452,15 @@ class _SopHeader extends StatelessWidget {
 
     final chips = <String>[
       if (document.batches > 0)
-        l10n.sopScaledFor(formatSopNumber(document.batches)),
+        forJars
+            // For a jar product the BOM makes one, so `units` is the jar
+            // count; `batches` is the fallback for a payload without it.
+            ? l10n.sopForJars(
+                formatSopNumber(
+                  document.units > 0 ? document.units : document.batches,
+                ),
+              )
+            : l10n.sopScaledFor(formatSopNumber(document.batches)),
       if (document.version > 0) l10n.sopVersionLabel(document.version),
       if (document.totalDurationMins > 0)
         l10n.sopTotalDuration(formatSopNumber(document.totalDurationMins)),

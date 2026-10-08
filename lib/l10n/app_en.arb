@@ -2151,6 +2151,7 @@
   "sopDurationMins": "{minutes} min",
   "sopTotalDuration": "About {minutes} min total",
   "sopScaledFor": "Scaled for {batches} batches",
+  "sopForJars": "For {count} jars",
   "sopEquipment": "Equipment",
   "sopExpectedYield": "Expected yield {percent}%",
   "sopVersionLabel": "Version {version}",

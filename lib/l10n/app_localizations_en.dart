@@ -4204,6 +4204,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String sopForJars(Object count) {
+    return 'For $count jars';
+  }
+
+  @override
   String get sopEquipment => 'Equipment';
 
   @override

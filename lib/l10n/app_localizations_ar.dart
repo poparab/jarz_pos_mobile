@@ -4188,6 +4188,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String sopForJars(Object count) {
+    return 'لـ $count برطمان';
+  }
+
+  @override
   String get sopEquipment => 'المعدات';
 
   @override

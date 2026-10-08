@@ -48,6 +48,56 @@ Future<void> _pump(WidgetTester tester, SopDocument document) async {
   await tester.pumpAndSettle();
 }
 
+/// Opened by item — Today / Plan / Bases — with no Work Order behind it.
+Future<void> _pumpItem(
+  WidgetTester tester,
+  SopDocument document, {
+  bool forJars = false,
+  double batches = 1,
+}) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        sopForItemProvider.overrideWith((ref, arg) async => document),
+      ],
+      child: MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SopExecuteScreen(
+          args: SopLaunchArgs(
+            itemCode: 'Tiramisu Large',
+            itemName: 'Tiramisu Large',
+            batches: batches,
+            forJars: forJars,
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+const _weighCoffee = SopStep(
+  stepNo: 1,
+  title: 'Weigh the coffee',
+  instructionText: 'Brew 600 g of liquid coffee.',
+  captureType: SopCapture.number,
+  captureLabel: 'Liquid coffee weighed (g)',
+  captureMin: 550,
+  captureMax: 650,
+);
+
+const _assemble = SopStep(
+  stepNo: 2,
+  title: 'Assemble',
+  instructionText: 'Layer the jars.',
+);
+
 /// `FilledButton.icon` builds a private subclass, which `find.byType` (an exact
 /// runtime-type match) would miss.
 Finder _filledButton(String label) => find.ancestor(
@@ -110,6 +160,83 @@ void main() {
     expect(find.textContaining('Scaled for 3 batches'), findsOneWidget);
     expect(find.textContaining('Version 2'), findsOneWidget);
     expect(find.textContaining('About 45 min total'), findsOneWidget);
+  });
+
+  testWidgets('a jar launch counts jars instead of batches', (tester) async {
+    await _pumpItem(
+      tester,
+      _document(steps: const [_assemble]).copyWith(batches: 4, units: 4),
+      forJars: true,
+      batches: 4,
+    );
+
+    expect(find.textContaining('For 4 jars'), findsOneWidget);
+    expect(find.textContaining('Scaled for'), findsNothing);
+  });
+
+  testWidgets('an item launch without the flag still says batches', (
+    tester,
+  ) async {
+    await _pumpItem(tester, _document(steps: const [_assemble]));
+
+    expect(find.textContaining('Scaled for 3 batches'), findsOneWidget);
+    expect(find.textContaining('For 3 jars'), findsNothing);
+  });
+
+  testWidgets('opened by item, a capture does not hold the operator', (
+    tester,
+  ) async {
+    await _pumpItem(
+      tester,
+      _document(steps: const [_weighCoffee, _assemble]),
+      forJars: true,
+    );
+
+    // The field is still there to use, but nothing will be recorded against
+    // a Work Order, so it is not demanded.
+    expect(find.text('Liquid coffee weighed (g)'), findsOneWidget);
+    expect(find.text('Record this before continuing'), findsNothing);
+    expect(_onPressed(tester, 'Next'), isNull);
+
+    await tester.tap(find.byType(Checkbox));
+    await tester.pumpAndSettle();
+
+    expect(_onPressed(tester, 'Next'), isNotNull);
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+    expect(find.text('Step 2 of 2'), findsOneWidget);
+  });
+
+  testWidgets('against a Work Order, the capture still gates the step', (
+    tester,
+  ) async {
+    await _pump(tester, _document(steps: const [_weighCoffee, _assemble]));
+
+    expect(find.text('Record this before continuing'), findsOneWidget);
+    await tester.tap(find.byType(Checkbox));
+    await tester.pumpAndSettle();
+    expect(_onPressed(tester, 'Next'), isNull);
+
+    await tester.enterText(find.byType(TextField), '600');
+    await tester.pumpAndSettle();
+    expect(_onPressed(tester, 'Next'), isNotNull);
+  });
+
+  test('launch args read the jar flag and default it off', () {
+    expect(
+      SopLaunchArgs.fromExtra(const {
+        'item_code': 'Tiramisu Large',
+        'batches': 6,
+        'for_jars': true,
+      }).forJars,
+      isTrue,
+    );
+    expect(
+      SopLaunchArgs.fromExtra(const {'item_code': 'X', 'batches': 2}).forJars,
+      isFalse,
+    );
+    const args = SopLaunchArgs(itemCode: 'X', batches: 2, forJars: true);
+    expect(SopLaunchArgs.fromExtra(args.toExtra()).forJars, isTrue);
   });
 
   testWidgets('shouts about tokens the server could not resolve',

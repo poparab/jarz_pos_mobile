@@ -2007,6 +2007,7 @@
   "sopDurationMins": "{minutes} دقيقة",
   "sopTotalDuration": "حوالي {minutes} دقيقة إجمالاً",
   "sopScaledFor": "محسوبة لـ {batches} تشغيلة",
+  "sopForJars": "لـ {count} برطمان",
   "sopEquipment": "المعدات",
   "sopExpectedYield": "الناتج المتوقع {percent}%",
   "sopVersionLabel": "إصدار {version}",

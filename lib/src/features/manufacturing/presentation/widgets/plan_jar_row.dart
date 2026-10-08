@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../data/models/production_suggestion.dart';
 import '../../state/plan_board_providers.dart';
 import 'production_format.dart';
 import 'status_chip.dart';
 import 'stock_elsewhere_note.dart';
+import 'view_sop_button.dart';
 
 /// One jar on the merged Plan tab: what the board knows, and what to make.
 ///
@@ -30,9 +33,14 @@ class PlanJarRow extends StatefulWidget {
     this.plannedToday,
     this.onUsePlanned,
     this.isShort = false,
+    this.hasRecipe = false,
   });
 
   final PlanRow row;
+
+  /// The item has an active SOP. Offered behind the caret, with the other
+  /// secondary details, so the closed row stays as slim as it is.
+  final bool hasRecipe;
 
   /// Jars planned for this flavour. Zero renders as an empty field: a typed 0
   /// and nothing typed at all mean the same thing here, and a field full of
@@ -161,6 +169,28 @@ class _PlanJarRowState extends State<PlanJarRow> {
     }
     if (_invalid) widget.onInvalidTextChanged?.call(null);
     widget.onQuantityChanged(int.tryParse(trimmed) ?? 0);
+  }
+
+  /// The recipe, scaled to the jars in the field (1 when it is empty).
+  ///
+  /// By route, with the launch-args shape the Bases row uses, so this row never
+  /// imports the SOP screen. The server scales by BOM runs; for a jar the BOM
+  /// makes one, so that is the jar count — divided through for one that does
+  /// not, so a 12-a-run product is not scaled twelve times over.
+  void _openRecipe(BuildContext context) {
+    final row = widget.row;
+    final jars = widget.quantity > 0 ? widget.quantity : 1;
+    final batches = row.bomQty > 0 ? jars / row.bomQty : jars.toDouble();
+    context.push(
+      AppRoutes.productionSop,
+      extra: <String, dynamic>{
+        'item_code': row.itemCode,
+        'item_name': row.displayName,
+        if (row.bomName.trim().isNotEmpty) 'bom': row.bomName.trim(),
+        'batches': batches,
+        'for_jars': true,
+      },
+    );
   }
 
   /// The figures, the code and the full offer are one tap away rather than on
@@ -329,6 +359,13 @@ class _PlanJarRowState extends State<PlanJarRow> {
           if (_expanded) ...[
             const SizedBox(height: 10),
             _RowDetails(row: row),
+            if (widget.hasRecipe) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: ViewSopButton(onTap: () => _openRecipe(context)),
+              ),
+            ],
             if (suggestion != null && suggestion.stockIsNegative) ...[
               const SizedBox(height: 8),
               _InlineWarning(

@@ -60,6 +60,22 @@ final sopForItemProvider =
       );
 });
 
+/// Item codes that have an active SOP — what decides whether a jar row offers
+/// its recipe.
+///
+/// Never errors: an older backend has no such endpoint, and a failure here must
+/// hide the recipe buttons rather than put an error on a production screen.
+/// Auto-disposed, so it is fetched once per visit to the screen watching it.
+final sopItemCodesProvider = FutureProvider.autoDispose<Set<String>>((
+  ref,
+) async {
+  try {
+    return await ref.read(manufacturingServiceProvider).listItemsWithSop();
+  } catch (_) {
+    return const <String>{};
+  }
+});
+
 /// The SOP version stamped on a Work Order when it started, not whatever is
 /// active now.
 final sopForWorkOrderProvider =
@@ -138,6 +154,7 @@ class SopExecutionState {
     this.steps = const <SopStep>[],
     this.currentIndex = 0,
     this.progress = const <int, SopStepProgress>{},
+    this.requireCaptures = true,
   });
 
   final List<SopStep> steps;
@@ -146,6 +163,12 @@ class SopExecutionState {
   /// Keyed by list index rather than `step_no`: the index is guaranteed unique
   /// within a document, a step number is not.
   final Map<int, SopStepProgress> progress;
+
+  /// False when the SOP is only being read — opened by item, with no Work
+  /// Order. Nothing is recorded anywhere then, and a range set for one batch
+  /// can be impossible to meet for a scaled run, so a missing capture must not
+  /// hold the operator on the step. Confirmation still gates.
+  final bool requireCaptures;
 
   int get total => steps.length;
   bool get isEmpty => steps.isEmpty;
@@ -163,7 +186,7 @@ class SopExecutionState {
     final recorded = progressAt(index);
     return steps[index].isSatisfied(
       confirmed: recorded.confirmed,
-      captured: recorded.hasCapture,
+      captured: recorded.hasCapture || !requireCaptures,
     );
   }
 
@@ -204,6 +227,7 @@ class SopExecutionState {
       steps: steps ?? this.steps,
       currentIndex: currentIndex ?? this.currentIndex,
       progress: progress ?? this.progress,
+      requireCaptures: requireCaptures,
     );
   }
 }
@@ -226,9 +250,18 @@ class SopExecutionNotifier
 
   /// Loads the step list. Idempotent — re-binding the same steps keeps the
   /// operator's place, so a rebuild never wipes a half-finished checklist.
-  void bindSteps(List<SopStep> steps) {
-    if (listEquals(state.steps, steps)) return;
-    state = SopExecutionState(steps: List<SopStep>.unmodifiable(steps));
+  ///
+  /// [requireCaptures] false is the read-only run (no Work Order): see
+  /// [SopExecutionState.requireCaptures].
+  void bindSteps(List<SopStep> steps, {bool requireCaptures = true}) {
+    if (listEquals(state.steps, steps) &&
+        state.requireCaptures == requireCaptures) {
+      return;
+    }
+    state = SopExecutionState(
+      steps: List<SopStep>.unmodifiable(steps),
+      requireCaptures: requireCaptures,
+    );
   }
 
   void setConfirmed(int index, bool confirmed) {

@@ -555,6 +555,25 @@ class ManufacturingService {
     }
   }
 
+  /// Item codes with an active SOP, so a row can offer its recipe without
+  /// fetching every item's document. `{"message": {"item_codes": [...]}}`.
+  Future<Set<String>> listItemsWithSop() async {
+    try {
+      final resp = await _dio.get(ApiEndpoints.listItemsWithSop);
+      final payload = resp.data;
+      final message = payload is Map ? payload['message'] : null;
+      final codes = message is Map ? message['item_codes'] : null;
+      if (codes is! List) return const <String>{};
+      return {
+        for (final code in codes)
+          if (code != null && code.toString().trim().isNotEmpty)
+            code.toString().trim(),
+      };
+    } catch (error) {
+      throw _friendlyError(error, fallback: 'Failed to load the SOP list');
+    }
+  }
+
   /// Returns the SOP version stamped on the Work Order when it started, not
   /// whatever is active now — otherwise editing an SOP silently rewrites the
   /// method every past batch was made by.

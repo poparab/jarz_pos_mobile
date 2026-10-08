@@ -6818,6 +6818,12 @@ abstract class AppLocalizations {
   /// **'Scaled for {batches} batches'**
   String sopScaledFor(Object batches);
 
+  /// No description provided for @sopForJars.
+  ///
+  /// In en, this message translates to:
+  /// **'For {count} jars'**
+  String sopForJars(Object count);
+
   /// No description provided for @sopEquipment.
   ///
   /// In en, this message translates to:

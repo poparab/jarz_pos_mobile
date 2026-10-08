@@ -192,6 +192,35 @@ void main() {
     });
   });
 
+  group('read-only run (no Work Order)', () {
+    test('a missing capture does not gate, confirmation still does', () {
+      notifier().bindSteps([
+        _step(no: 1, captureType: SopCapture.number, min: 550, max: 650),
+        _step(no: 2, captureType: SopCapture.photo),
+      ], requireCaptures: false);
+
+      expect(read().canAdvance, isFalse);
+      notifier().setConfirmed(0, true);
+      expect(read().canAdvance, isTrue);
+      expect(notifier().next(), isTrue);
+
+      notifier().setConfirmed(1, true);
+      expect(read().isComplete, isTrue);
+    });
+
+    test('re-binding with captures required restores the gate', () {
+      final steps = [_step(no: 1, captureType: SopCapture.number)];
+      notifier().bindSteps(steps, requireCaptures: false);
+      notifier().setConfirmed(0, true);
+      expect(read().canAdvance, isTrue);
+
+      notifier().bindSteps(steps);
+      expect(read().requireCaptures, isTrue);
+      notifier().setConfirmed(0, true);
+      expect(read().canAdvance, isFalse);
+    });
+  });
+
   group('bindSteps', () {
     test('re-binding the same steps keeps the operator in place', () {
       final steps = [_step(no: 1), _step(no: 2)];

@@ -452,6 +452,11 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.sop.record_sop_step_capture';
   static const listSops = '/api/method/jarz_pos.api.sop.list_sops';
 
+  /// Item codes that have an active SOP. Absent on an older backend — callers
+  /// treat any failure as "no item has one".
+  static const listItemsWithSop =
+      '/api/method/jarz_pos.api.sop.list_items_with_sop';
+
   /// Frappe core, not a jarz_pos method — SOP photo captures have to become a
   /// File on the site before `record_sop_step_capture` can reference a URL.
   static const uploadFile = '/api/method/upload_file';

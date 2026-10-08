@@ -18,6 +18,7 @@ class SopStepCard extends StatelessWidget {
     required this.progress,
     required this.onConfirmedChanged,
     this.captureField,
+    this.captureRequired = true,
   });
 
   final SopStep step;
@@ -28,6 +29,10 @@ class SopStepCard extends StatelessWidget {
   /// The Number / Temperature / Photo control for this step, when it has one.
   final Widget? captureField;
 
+  /// False when the SOP is only being read (no Work Order): the capture is
+  /// optional, so the step neither waits for it nor says it must be recorded.
+  final bool captureRequired;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -37,7 +42,7 @@ class SopStepCard extends StatelessWidget {
     final imageUrl = (step.imageUrl ?? '').trim();
     final satisfied = step.isSatisfied(
       confirmed: progress.confirmed,
-      captured: progress.hasCapture,
+      captured: progress.hasCapture || !captureRequired,
     );
 
     return SingleChildScrollView(
@@ -106,7 +111,7 @@ class SopStepCard extends StatelessWidget {
             const SizedBox(height: 20),
             captureField!,
           ],
-          if (step.needsCapture && !progress.hasCapture) ...[
+          if (captureRequired && step.needsCapture && !progress.hasCapture) ...[
             const SizedBox(height: 8),
             Text(
               l10n.sopCaptureRequired,
