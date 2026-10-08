@@ -3,18 +3,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/user_error_message.dart';
+import '../../data/models/base_item.dart';
 import '../../data/models/recipe_sheet.dart';
 import '../../domain/recipe_text.dart';
+import '../../state/base_production_providers.dart';
 import '../../state/recipe_sheet_providers.dart';
+import 'production_format.dart';
+
+/// Which screen's request a [RecipeSheetSection] follows.
+enum _RecipeSheetSource { jars, bases }
 
 /// The recipe for every SOP jar typed on the screen, inline.
 ///
-/// Watches [recipeSheetProvider], which follows the day's jar draft. Renders
-/// nothing until a jar with a recipe is typed; a thin bar on the first load
-/// only (a refresh keeps the previous sheet up, so it does not blink while a
-/// count settles); one compact line with Retry when the sheet will not load.
+/// The default constructor watches [recipeSheetProvider], which follows the
+/// day's jar draft; [RecipeSheetSection.bases] watches
+/// [baseRecipeSheetProvider], which follows the ticked rows on the Bases tab.
+/// Renders nothing until something with a recipe is asked for; a thin bar on
+/// the first load only (a refresh keeps the previous sheet up, so it does not
+/// blink while a count settles); one compact line with Retry when the sheet
+/// will not load.
 class RecipeSheetSection extends ConsumerWidget {
-  const RecipeSheetSection({super.key, this.padding = EdgeInsets.zero});
+  const RecipeSheetSection({super.key, this.padding = EdgeInsets.zero})
+    : _source = _RecipeSheetSource.jars;
+
+  /// The Bases tab: one sheet per ticked base, its amount read in the base's
+  /// stock UOM ("12.5 Kg") rather than as a jar count.
+  const RecipeSheetSection.bases({super.key, this.padding = EdgeInsets.zero})
+    : _source = _RecipeSheetSource.bases;
+
+  final _RecipeSheetSource _source;
 
   /// Applied only when something is shown, so an empty section leaves the
   /// screen's spacing exactly as it was.
@@ -28,11 +45,16 @@ class RecipeSheetSection extends ConsumerWidget {
   }
 
   Widget? _content(BuildContext context, WidgetRef ref) {
+    final bases = _source == _RecipeSheetSource.bases;
     // Checked first, synchronously: with nothing to ask for there is not even
     // a frame of progress bar.
-    if (ref.watch(recipeSheetJarsProvider).isEmpty) return null;
+    final nothingAsked = bases
+        ? ref.watch(baseRecipeSheetLinesProvider).isEmpty
+        : ref.watch(recipeSheetJarsProvider).isEmpty;
+    if (nothingAsked) return null;
 
-    final async = ref.watch(recipeSheetProvider);
+    final sheetProvider = bases ? baseRecipeSheetProvider : recipeSheetProvider;
+    final async = ref.watch(sheetProvider);
     final previous = async.hasError ? null : async.valueOrNull;
 
     if (async.isLoading && (previous == null || previous.isEmpty)) {
@@ -48,19 +70,30 @@ class RecipeSheetSection extends ConsumerWidget {
           async.error,
           fallback: context.l10n.commonError,
         ),
-        onRetry: () => ref.invalidate(recipeSheetProvider),
+        onRetry: () => ref.invalidate(sheetProvider),
       );
     }
 
     final response = previous;
     if (response == null || response.isEmpty) return null;
 
+    // A base is measured in its own stock UOM, which the Bases tab has already
+    // loaded. A base missing from that list still shows its number, unitless.
+    final uomByItem = bases
+        ? <String, String>{
+            for (final item
+                in ref.watch(baseItemsProvider).valueOrNull?.items ??
+                    const <BaseItem>[])
+              item.itemCode: item.stockUom,
+          }
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (var i = 0; i < response.sheets.length; i++) ...[
           if (i > 0) const SizedBox(height: 8),
-          RecipeSheetCard(sheet: response.sheets[i]),
+          RecipeSheetCard(sheet: response.sheets[i], uomByItem: uomByItem),
         ],
       ],
     );
@@ -103,9 +136,62 @@ class _RecipeSheetError extends StatelessWidget {
 /// thing on it: run totals per ingredient, then the method, with each size's
 /// per-jar portion on its own line.
 class RecipeSheetCard extends StatelessWidget {
-  const RecipeSheetCard({super.key, required this.sheet});
+  const RecipeSheetCard({super.key, required this.sheet, this.uomByItem});
 
   final RecipeSheet sheet;
+
+  /// Null for a jar sheet: "For 22 jars · 10 × Large".
+  ///
+  /// Set for a base sheet, where the amounts are weights rather than counts:
+  /// each one reads as a quantity in its item's stock UOM ("12.5 Kg"), looked
+  /// up here by item code. An item missing from the map shows its number alone.
+  final Map<String, String>? uomByItem;
+
+  /// "12.5 Kg": the same `{quantity} {uom}` string the Bases rows use, so no
+  /// new translation is needed.
+  String _measured(BuildContext context, double qty, String itemCode) {
+    final uom = uomByItem?[itemCode] ?? '';
+    return context.l10n.basesQtyValue(trimQty(qty, decimals: 3), uom).trim();
+  }
+
+  /// The run's amount, then each item in it.
+  ///
+  /// A base sheet is usually one base under its own name, so it is not
+  /// repeated as "12.5 Kg · Fudge Cake" beneath a title that already says so.
+  List<InlineSpan> _amountSpans(BuildContext context, TextStyle bold) {
+    final l10n = context.l10n;
+    if (uomByItem == null) {
+      return [
+        TextSpan(
+          text: l10n.sopForJars(formatRecipeCount(sheet.totalQty)),
+          style: bold,
+        ),
+        for (final item in sheet.items) ...[
+          const TextSpan(text: '  ·  '),
+          TextSpan(text: '${formatRecipeCount(item.qty)} × ', style: bold),
+          TextSpan(text: shortSizeName(item.displayName, sheet.title)),
+        ],
+      ];
+    }
+
+    final leadCode = sheet.items.isEmpty ? '' : sheet.items.first.itemCode;
+    final onlyItemIsTitle =
+        sheet.items.length == 1 &&
+        sheet.items.first.displayName.trim().toLowerCase() ==
+            sheet.title.trim().toLowerCase();
+    return [
+      TextSpan(text: _measured(context, sheet.totalQty, leadCode), style: bold),
+      if (!onlyItemIsTitle)
+        for (final item in sheet.items) ...[
+          const TextSpan(text: '  ·  '),
+          TextSpan(
+            text: '${_measured(context, item.qty, item.itemCode)} ',
+            style: bold,
+          ),
+          TextSpan(text: shortSizeName(item.displayName, sheet.title)),
+        ],
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,24 +229,7 @@ class RecipeSheetCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: l10n.sopForJars(formatRecipeCount(sheet.totalQty)),
-                    style: bold,
-                  ),
-                  for (final item in sheet.items) ...[
-                    const TextSpan(text: '  ·  '),
-                    TextSpan(
-                      text: '${formatRecipeCount(item.qty)} × ',
-                      style: bold,
-                    ),
-                    TextSpan(
-                      text: shortSizeName(item.displayName, sheet.title),
-                    ),
-                  ],
-                ],
-              ),
+              TextSpan(children: _amountSpans(context, bold)),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),

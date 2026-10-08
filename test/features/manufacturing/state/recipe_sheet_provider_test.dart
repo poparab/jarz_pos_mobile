@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/core/constants/api_endpoints.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/daily_plan_service.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/manufacturing_service.dart';
+import 'package:jarz_pos/src/features/manufacturing/data/models/base_item.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/recipe_sheet.dart';
+import 'package:jarz_pos/src/features/manufacturing/state/base_production_providers.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/daily_plan_providers.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/recipe_sheet_providers.dart';
 import 'package:jarz_pos/src/features/manufacturing/state/sop_providers.dart';
@@ -250,6 +252,117 @@ void main() {
     });
   });
 
+  group('baseRecipeSheetProvider', () {
+    ProviderContainer bases(MockDio dio) {
+      final container = ProviderContainer(
+        overrides: [
+          manufacturingServiceProvider.overrideWithValue(
+            ManufacturingService(dio),
+          ),
+          baseItemsProvider.overrideWith(_StubBaseItems.new),
+        ],
+      );
+      addTearDown(container.dispose);
+      // What the Bases tab does: keep the chain alive while it is up.
+      container.listen(baseRecipeSheetProvider, (_, _) {});
+      return container;
+    }
+
+    MockDio basesDio() =>
+        _dio(sopItems: ['Fudge Cake', 'Cheesecake Mix', 'Sponge Cake'])
+          ..setResponse(ApiEndpoints.previewBaseBatch, {'message': const {}});
+
+    test('only ticked, runnable bases with a recipe, in Kg', () async {
+      final dio = basesDio();
+      final container = bases(dio);
+      await container.read(sopItemCodesProvider.future);
+
+      container.read(baseSelectionProvider.notifier)
+        ..select('Fudge Cake')
+        ..select('Blueberry mix')
+        ..select('Sponge Cake');
+      // Ticked, has a recipe, fractional amount: asked for, as typed.
+      container.read(baseRunDraftProvider('Fudge Cake').notifier).setQty(12.5);
+      // Ticked and runnable, but no recipe.
+      container.read(baseRunDraftProvider('Blueberry mix').notifier).setQty(2);
+      // Has a recipe and an amount, but not ticked.
+      container
+          .read(baseRunDraftProvider('Cheesecake Mix').notifier)
+          .setQty(3.25);
+      // Ticked with a recipe, but nothing asked for: Sponge Cake stays at 0.
+
+      expect(
+        container.read(baseRecipeSheetLinesProvider),
+        BaseRecipeSheetLines({'Fudge Cake': 12.5}),
+      );
+
+      await Future<void>.delayed(_settle);
+      final sheet = await container.read(baseRecipeSheetProvider.future);
+      expect(sheet, isA<RecipeSheetResponse>());
+      final call = _sheetCalls(dio).single;
+      expect(_linesOf(call), [
+        {'item_code': 'Fudge Cake', 'qty': 12.5},
+      ]);
+
+      // A base without a recipe changing is not a new sheet.
+      container.read(baseRunDraftProvider('Blueberry mix').notifier).setQty(4);
+      await Future<void>.delayed(_settle);
+      expect(_sheetCalls(dio), hasLength(1));
+
+      // Retyping the same amount is not a new sheet either.
+      container.read(baseRunDraftProvider('Fudge Cake').notifier).setQty(12.5);
+      await Future<void>.delayed(_settle);
+      expect(_sheetCalls(dio), hasLength(1));
+
+      // Unticking the only qualifying base drops the sheet without a call.
+      container.read(baseSelectionProvider.notifier).toggle('Fudge Cake');
+      expect(container.read(baseRecipeSheetLinesProvider).isEmpty, isTrue);
+      expect(await container.read(baseRecipeSheetProvider.future), isNull);
+      expect(_sheetCalls(dio), hasLength(1));
+    });
+
+    test('nothing ticked with a recipe: null and no call', () async {
+      final dio = basesDio();
+      final container = bases(dio);
+      await container.read(sopItemCodesProvider.future);
+
+      container.read(baseSelectionProvider.notifier).select('Blueberry mix');
+      container.read(baseRunDraftProvider('Blueberry mix').notifier).setQty(2);
+      await Future<void>.delayed(_settle);
+
+      expect(await container.read(baseRecipeSheetProvider.future), isNull);
+      expect(_sheetCalls(dio), isEmpty);
+    });
+
+    test('the jar sheet is unaffected by a ticked base', () async {
+      final dio = basesDio();
+      final container = bases(dio);
+      container.listen(recipeSheetProvider, (_, _) {});
+      await container.read(sopItemCodesProvider.future);
+
+      container.read(baseSelectionProvider.notifier).select('Fudge Cake');
+      container.read(baseRunDraftProvider('Fudge Cake').notifier).setQty(9.258);
+      await Future<void>.delayed(_settle);
+
+      expect(await container.read(recipeSheetProvider.future), isNull);
+      expect(_linesOf(_sheetCalls(dio).single), [
+        {'item_code': 'Fudge Cake', 'qty': 9.258},
+      ]);
+    });
+  });
+
+  test('BaseRecipeSheetLines is value-equal and keeps fractions', () {
+    expect(
+      BaseRecipeSheetLines({'b': 2.5, 'a': 0.125, 'c': 0}),
+      BaseRecipeSheetLines({'a': 0.125, 'b': 2.5}),
+    );
+    expect(
+      BaseRecipeSheetLines({'a': 12.5}),
+      isNot(BaseRecipeSheetLines({'a': 12})),
+    );
+    expect(BaseRecipeSheetLines({'a': 0}).isEmpty, isTrue);
+  });
+
   test('RecipeSheetJars is value-equal regardless of key order', () {
     expect(
       RecipeSheetJars({'b': 2, 'a': 1, 'c': 0}),
@@ -260,4 +373,9 @@ void main() {
       RecipeSheetJars({'a': 1}),
     );
   });
+}
+
+class _StubBaseItems extends BaseItemsNotifier {
+  @override
+  Future<BaseItemsPage> build() async => const BaseItemsPage();
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +16,7 @@ import 'package:jarz_pos/src/features/manufacturing/data/models/production_polic
 import 'package:jarz_pos/src/features/manufacturing/data/models/recipe_sheet.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/models/running_batch.dart';
 import 'package:jarz_pos/src/features/manufacturing/data/repositories/production_basket_repository.dart';
+import 'package:jarz_pos/src/features/manufacturing/presentation/screens/base_production_tab.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/screens/production_today_screen.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/widgets/plan_jar_row.dart';
 import 'package:jarz_pos/src/features/manufacturing/presentation/widgets/recipe_sheet_card.dart';
@@ -242,6 +245,133 @@ Future<void> _typeJars(WidgetTester tester, int index, String value) async {
 int _sheetCalls(MockDio dio) =>
     dio.requestLog.where((r) => r['path'] == _recipeSheetPath).length;
 
+// ── Bases tab harness ───────────────────────────────────────────────────────
+
+/// What the server answers for one base: its own sheet, measured in Kg.
+Map<String, dynamic> _baseSheetJson({double qty = 9.258}) => {
+  'title': 'Fudge Cake',
+  'items': [
+    {'item_code': 'Fudge Cake', 'item_name': 'Fudge Cake', 'qty': qty},
+  ],
+  'total_qty': qty,
+  'ingredients': [
+    {
+      'item_code': 'Eggs',
+      'item_name': 'Eggs',
+      'qty': 30,
+      'uom': 'Nos',
+      'display': '30 pcs',
+    },
+  ],
+  'steps': [
+    {
+      'step_no': 1,
+      'title': 'Whisk the eggs',
+      'text': 'Whisk 30 eggs with 450 g sugar\nاخفق 30 بيضة مع 450 جرام سكر',
+      'per_item': null,
+    },
+  ],
+  'unresolved_tokens': const [],
+};
+
+/// A cake with a recipe, entered in eggs, and a mix without one.
+const _fudgeCake = BaseItem(
+  itemCode: 'Fudge Cake',
+  itemName: 'Fudge Cake',
+  stockUom: 'Kg',
+  defaultBom: 'BOM-Fudge Cake-004',
+  batchYield: 9.258,
+  onHand: 18.5,
+  entryMode: kBaseEntryBatch,
+  batchUnit: BaseBatchUnit(
+    itemCode: 'eggs',
+    itemName: 'eggs',
+    uom: 'piece',
+    qtyPerBatch: 30,
+  ),
+);
+
+const _blueberryMix = BaseItem(
+  itemCode: 'Blueberry mix',
+  itemName: 'Blueberry mix',
+  stockUom: 'Kg',
+  defaultBom: 'BOM-Blueberry mix-003',
+  batchYield: 2,
+  onHand: 0.58,
+  entryMode: kBaseEntryQuantity,
+);
+
+class _StubBasesPage extends BaseItemsNotifier {
+  @override
+  Future<BaseItemsPage> build() async =>
+      const BaseItemsPage(items: [_fudgeCake, _blueberryMix]);
+}
+
+Future<MockDio> _pumpBases(WidgetTester tester) async {
+  _useSize(tester, const Size(1200, 3000));
+  final dio = MockDio()
+    ..setResponse(ApiEndpoints.listItemsWithSop, {
+      'message': {
+        'item_codes': ['Fudge Cake'],
+      },
+    })
+    ..setResponse(
+      '/api/method/jarz_pos.api.manufacturing.get_material_options',
+      {
+        'message': {
+          'bom_name': 'BOM-x',
+          'qty': 1.0,
+          'components': <Map<String, dynamic>>[],
+        },
+      },
+    )
+    ..setResponse(ApiEndpoints.previewBaseBatch, {
+      'message': {
+        'item_code': 'Fudge Cake',
+        'bom_name': 'BOM-Fudge Cake-004',
+        'batches': 1.0,
+        'batch_yield': 9.258,
+        'item_qty': 9.258,
+        'stock_uom': 'Kg',
+        'components': const <Map<String, dynamic>>[],
+        'has_shortage': false,
+        'run_size_ok': true,
+        'has_sop': true,
+      },
+    })
+    ..setResponse(_recipeSheetPath, {
+      'message': {
+        'sheets': [_baseSheetJson()],
+      },
+    });
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        manufacturingServiceProvider.overrideWithValue(
+          ManufacturingService(dio),
+        ),
+        baseItemsProvider.overrideWith(_StubBasesPage.new),
+      ],
+      child: const MaterialApp(
+        localizationsDelegates: _localizations,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: BaseProductionTab()),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return dio;
+}
+
+/// Ticks a base by tapping its name, then lets the debounced calls land.
+Future<void> _tickBase(WidgetTester tester, String itemCode) async {
+  await tester.tap(find.text(itemCode).first);
+  await tester.pumpAndSettle();
+  await tester.pump(const Duration(milliseconds: 600));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   group('RecipeSheetCard', () {
     testWidgets('shows the run, the totals and every size', (tester) async {
@@ -354,6 +484,96 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(RecipeSheetCard), findsOneWidget);
+    });
+  });
+
+  group('Bases tab', () {
+    testWidgets('a base sheet reads its amount in Kg, not in jars', (
+      tester,
+    ) async {
+      _useSize(tester, const Size(360, 1200));
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: _localizations,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: RecipeSheetCard(
+                sheet: RecipeSheet.fromJson(_baseSheetJson(qty: 12.5)),
+                uomByItem: const {'Fudge Cake': 'Kg'},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final text = _allText(tester);
+      expect(text, contains('Fudge Cake · Work instructions'));
+      expect(text, contains('12.5 Kg'));
+      expect(text, isNot(contains('jars')));
+      expect(text, isNot(contains('×')));
+      expect(text, contains('30 pcs'));
+      expect(text, contains('Whisk 30 eggs with 450 g sugar'));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('nothing ticked: no sheet and no request', (tester) async {
+      final dio = await _pumpBases(tester);
+
+      expect(find.byType(RecipeSheetSection), findsOneWidget);
+      expect(find.byType(RecipeSheetCard), findsNothing);
+      expect(_sheetCalls(dio), 0);
+    });
+
+    testWidgets('ticking a base with a recipe shows its sheet below the rows', (
+      tester,
+    ) async {
+      final dio = await _pumpBases(tester);
+
+      await _tickBase(tester, 'Fudge Cake');
+
+      expect(find.byType(RecipeSheetCard), findsOneWidget);
+      final text = _allText(tester);
+      expect(text, contains('Fudge Cake · Work instructions'));
+      expect(text, contains('9.258 Kg'));
+      expect(text, isNot(contains('For 9')));
+      expect(text, contains('Whisk 30 eggs'));
+      // English tablet: the Arabic line is not shown.
+      expect(text, isNot(contains('اخفق')));
+
+      // Asked for the amount on the row, fraction and all, once.
+      expect(_sheetCalls(dio), 1);
+      final call = dio.requestLog.lastWhere(
+        (r) => r['path'] == _recipeSheetPath,
+      );
+      final lines =
+          jsonDecode((call['data'] as Map)['lines'] as String) as List;
+      expect(lines.single['item_code'], 'Fudge Cake');
+      expect((lines.single['qty'] as num).toDouble(), closeTo(9.258, 1e-9));
+
+      // Below the last row.
+      expect(
+        tester.getTopLeft(find.byType(RecipeSheetCard)).dy,
+        greaterThan(tester.getTopLeft(find.text('Blueberry mix')).dy),
+      );
+      expect(tester.takeException(), isNull);
+
+      // Unticking it takes the sheet away without another call.
+      await tester.tap(find.text('Fudge Cake').first);
+      await tester.pumpAndSettle();
+      expect(find.byType(RecipeSheetCard), findsNothing);
+      expect(_sheetCalls(dio), 1);
+    });
+
+    testWidgets('a ticked base without a recipe shows nothing', (tester) async {
+      final dio = await _pumpBases(tester);
+
+      await _tickBase(tester, 'Blueberry mix');
+
+      expect(find.byType(RecipeSheetCard), findsNothing);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(_sheetCalls(dio), 0);
     });
   });
 

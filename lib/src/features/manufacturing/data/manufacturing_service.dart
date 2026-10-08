@@ -583,12 +583,17 @@ class ManufacturingService {
   }
 
   /// One combined recipe sheet per recipe family for every jar typed, e.g. all
-  /// Tiramisu sizes made together. [jars] maps item code to jar count; zero or
-  /// negative counts are dropped, and an empty request answers itself without
-  /// a call. Items without a recipe are simply absent from the answer.
-  Future<RecipeSheetResponse> getRecipeSheet(Map<String, int> jars) async {
+  /// Tiramisu sizes made together. [quantities] maps item code to an amount:
+  /// a whole jar count for a jar, or a fractional amount in the item's stock
+  /// UOM for a base (12.5 Kg of Fudge Cake). Ints go out as ints, so a jar
+  /// request is byte-for-byte what it always was. Zero or negative amounts are
+  /// dropped, and an empty request answers itself without a call. Items
+  /// without a recipe are simply absent from the answer.
+  Future<RecipeSheetResponse> getRecipeSheet(
+    Map<String, num> quantities,
+  ) async {
     final lines = [
-      for (final entry in jars.entries)
+      for (final entry in quantities.entries)
         if (entry.value > 0) {'item_code': entry.key, 'qty': entry.value},
     ];
     if (lines.isEmpty) return RecipeSheetResponse.empty;

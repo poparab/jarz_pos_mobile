@@ -11,11 +11,13 @@ import '../../data/models/production_policy.dart';
 import '../../data/models/production_suggestion.dart' show ProductionStatus;
 import '../../state/base_production_providers.dart';
 import '../../state/production_providers.dart';
+import '../../state/recipe_sheet_providers.dart';
 import '../../state/running_batches_notifier.dart';
 import '../back_date_gate.dart';
 import '../production_timestamp.dart';
 import '../widgets/base_run_row.dart';
 import '../widgets/batch_date_bar.dart';
+import '../widgets/recipe_sheet_card.dart';
 
 /// "Make the bases the jars are built from."
 ///
@@ -93,6 +95,10 @@ class _Loaded extends ConsumerWidget {
       medium: 12,
       large: 12,
     );
+    // Holds the bases' recipe sheet alive while the tab is up without
+    // rebuilding it: the section sits low in a lazy list, and a sheet dropped
+    // whenever it scrolls out of view would refetch every time it came back.
+    ref.listen(baseRecipeSheetProvider, (_, _) {});
 
     return Column(
       children: [
@@ -139,6 +145,12 @@ class _Loaded extends ConsumerWidget {
                     const SizedBox(height: 8),
                   ],
                 ],
+                // The method for every ticked base with a recipe, one sheet
+                // per base: a mix and a cake are not made the same way.
+                // Nothing at all until one qualifies.
+                const RecipeSheetSection.bases(
+                  padding: EdgeInsetsDirectional.only(top: 4, bottom: 8),
+                ),
                 // Room for the action bar, so the last row is reachable rather
                 // than pinned under it.
                 const SizedBox(height: 72),
