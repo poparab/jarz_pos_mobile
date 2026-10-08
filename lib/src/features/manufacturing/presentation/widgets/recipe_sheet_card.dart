@@ -215,7 +215,7 @@ class RecipeSheetCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.menu_book, color: scheme.primary, size: 22),
+                Icon(Icons.menu_book_outlined, color: scheme.primary, size: 22),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
