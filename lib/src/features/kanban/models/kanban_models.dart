@@ -181,6 +181,9 @@ class InvoiceCard {
   /// Explicit backend verdict, when it sends one. Wins over the coordinates so
   /// the server can suppress the badge for addresses it knows are exempt.
   final bool? hasLocationPinFlag;
+  /// `location_link`: a Google Maps URL for the pin (or a legacy pasted Maps
+  /// link). Absent on older backends; blank collapses to null.
+  final String? locationLink;
 
   // ── Delivery outcome (courier lane M2) ────────────────────────────────
   // The four `custom_delivery_*` / `custom_delivered_at` fields COURIER_CONTRACTS
@@ -288,6 +291,7 @@ class InvoiceCard {
     this.geoSource,
     this.geoConfidence,
     this.hasLocationPinFlag,
+    this.locationLink,
     this.deliveredAt,
     this.deliveryFailureReason,
     this.deliveryAttemptNo,
@@ -466,6 +470,7 @@ class InvoiceCard {
         json['geo_confidence'] ?? json['custom_geo_confidence'],
       ),
       hasLocationPinFlag: _parseFlag(json['has_location_pin']),
+      locationLink: _nonEmpty(json['location_link']),
       // Both the flat alias and the raw `custom_*` fieldname are read, the same
       // way the geo block above does: the Kanban query may project either, and a
       // rename on one side must not silently blank the run progress.
@@ -583,6 +588,7 @@ class InvoiceCard {
       'geo_source': geoSource,
       'geo_confidence': geoConfidence,
       'has_location_pin': hasLocationPinFlag,
+      'location_link': locationLink,
       'delivered_at': deliveredAt,
       'delivery_failure_reason': deliveryFailureReason,
       'delivery_attempt_no': deliveryAttemptNo,
@@ -666,6 +672,7 @@ class InvoiceCard {
   String? geoSource,
   int? geoConfidence,
   bool? hasLocationPinFlag,
+  String? locationLink,
   String? deliveredAt,
   String? deliveryFailureReason,
   int? deliveryAttemptNo,
@@ -748,6 +755,7 @@ class InvoiceCard {
       geoSource: geoSource ?? this.geoSource,
       geoConfidence: geoConfidence ?? this.geoConfidence,
       hasLocationPinFlag: hasLocationPinFlag ?? this.hasLocationPinFlag,
+      locationLink: locationLink ?? this.locationLink,
       deliveredAt: deliveredAt ?? this.deliveredAt,
       deliveryFailureReason: clearDeliveryFailureReason
           ? null
@@ -894,6 +902,21 @@ class InvoiceCard {
     if (lat == null || lng == null) return false;
     if (lat == 0 && lng == 0) return false;
     return lat.abs() <= 90 && lng.abs() <= 180;
+  }
+
+  /// Where tapping the pin badge should navigate: the backend's
+  /// [locationLink] when it sent one, else a Maps search URL built from the
+  /// coordinates (older backends send coords but no link), else null.
+  String? get mapsUrl {
+    final link = locationLink?.trim();
+    if (link != null && link.isNotEmpty) return link;
+    if (!hasLocationPin) return null;
+    final lat = addressLatitude;
+    final lng = addressLongitude;
+    if (lat == null || lng == null) return null;
+    if (lat == 0 && lng == 0) return null;
+    return 'https://www.google.com/maps/search/?api=1&query='
+        '${lat.toStringAsFixed(6)},${lng.toStringAsFixed(6)}';
   }
 
   /// Whether the card should say anything about the pin at all.

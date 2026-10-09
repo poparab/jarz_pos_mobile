@@ -3091,7 +3091,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   /// The missing state is the one that matters: a courier sent out with no
   /// coordinates has nothing but a free-text address to work from. Tapping it
   /// opens the same address dialog as the menu action, so the fix is one tap
-  /// from the card rather than buried behind the overflow menu.
+  /// from the card rather than buried behind the overflow menu. When the card
+  /// carries a Maps URL ([InvoiceCard.mapsUrl]), tap opens the pin in Google
+  /// Maps instead and long-press opens the address dialog.
   ///
   /// Both icons (`location_on`, `location_searching`) are already used by the
   /// sub-territory chip on this card. That is deliberate — pulling a new glyph into
@@ -3110,10 +3112,22 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ? context.l10n.kanbanPinBadgePinnedTooltip
         : context.l10n.kanbanPinBadgeMissingTooltip;
 
+    // With a Maps URL, tap navigates and long-press edits the address. The
+    // tooltip's own long-press trigger is switched off in that case so it
+    // cannot compete with the edit gesture.
+    final mapsUrl = invoice.mapsUrl;
+    final hasMapsUrl = mapsUrl != null;
+
     return Tooltip(
       message: tooltip,
+      triggerMode: hasMapsUrl ? TooltipTriggerMode.manual : null,
       child: GestureDetector(
         onTap: transitioning
+            ? null
+            : hasMapsUrl
+                ? () => _openMapsUrl(mapsUrl)
+                : () => _editCustomerAddress(context),
+        onLongPress: transitioning || !hasMapsUrl
             ? null
             : () => _editCustomerAddress(context),
         child: Container(
@@ -3145,6 +3159,18 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ),
       ),
     );
+  }
+
+  /// Opens the pin in the Google Maps app (or the browser). A failed launch is
+  /// swallowed: nothing destructive should follow a tap on a status chip.
+  Future<void> _openMapsUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      // No Maps app / browser available — leave the card as it is.
+    }
   }
 
   /// Courier run progress — "Stop 3 · 7/12 delivered".

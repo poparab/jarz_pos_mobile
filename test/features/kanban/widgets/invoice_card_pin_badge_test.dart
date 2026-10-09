@@ -8,14 +8,17 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'package:jarz_pos/src/core/repositories/customer_address_repository.dart';
 import 'package:jarz_pos/src/core/network/user_service.dart';
 import 'package:jarz_pos/src/features/kanban/models/kanban_models.dart';
 import 'package:jarz_pos/src/features/kanban/providers/kanban_provider.dart';
+import 'package:jarz_pos/src/features/kanban/services/kanban_service.dart';
 import 'package:jarz_pos/src/features/kanban/widgets/invoice_card_widget.dart';
 import 'package:jarz_pos/src/features/manager/state/manager_providers.dart';
 
@@ -27,6 +30,32 @@ class _FakeKanbanNotifier extends StateNotifier<KanbanState>
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Records that the address editor was opened (its first step loads the
+/// customer's address book) and fails the load, so the editor stops at its
+/// error snackbar instead of reaching the network.
+class _FakeKanbanService implements KanbanService {
+  int addressBookLoads = 0;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == #getCustomerShippingAddresses) {
+      addressBookLoads++;
+      return Future<Map<String, dynamic>>.error(Exception('offline'));
+    }
+    return super.noSuchMethod(invocation);
+  }
+}
+
+class _FakeAddressRepository implements CustomerAddressRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == #getTerritories) {
+      return Future<List<Map<String, dynamic>>>.value(const []);
+    }
+    return super.noSuchMethod(invocation);
+  }
 }
 
 InvoiceCard _card({
@@ -58,7 +87,11 @@ InvoiceCard _card({
   );
 }
 
-Future<void> _pumpCard(WidgetTester tester, InvoiceCard invoice) async {
+Future<void> _pumpCard(
+  WidgetTester tester,
+  InvoiceCard invoice, {
+  _FakeKanbanService? service,
+}) async {
   tester.view.physicalSize = const Size(800, 1400);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
@@ -71,6 +104,10 @@ Future<void> _pumpCard(WidgetTester tester, InvoiceCard invoice) async {
         isLineManagerProvider.overrideWithValue(false),
         canActAsLineManagerProvider.overrideWithValue(false),
         managerAccessProvider.overrideWith((ref) => false),
+        kanbanServiceProvider
+            .overrideWithValue(service ?? _FakeKanbanService()),
+        customerAddressRepositoryProvider
+            .overrideWithValue(_FakeAddressRepository()),
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -92,6 +129,25 @@ Future<void> _pumpCard(WidgetTester tester, InvoiceCard invoice) async {
     ),
   );
   await tester.pump();
+}
+
+/// Captures url_launcher calls. In `flutter test` no platform plugin is
+/// registered, so `launchUrl` goes through the default method channel, which
+/// can be mocked without a new dependency.
+List<String> _mockUrlLauncher(WidgetTester tester) {
+  const channel = MethodChannel('plugins.flutter.io/url_launcher');
+  final launched = <String>[];
+  tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel,
+      (call) async {
+    if (call.method == 'launch') {
+      launched.add((call.arguments as Map)['url'] as String);
+      return true;
+    }
+    return true;
+  });
+  addTearDown(() => tester.binding.defaultBinaryMessenger
+      .setMockMethodCallHandler(channel, null));
+  return launched;
 }
 
 void main() {
@@ -157,6 +213,79 @@ void main() {
       expect(restored.addressLatitude, closeTo(30.0444, 1e-9));
     });
 
+    test('parses location_link and survives a round trip', () {
+      const link = 'https://www.google.com/maps/search/?api=1&query=30.0444,31.2357';
+      final card = InvoiceCard.fromJson({
+        'name': 'ACC-SINV-2026-00042',
+        'status': 'Ready',
+        'posting_date': '2026-08-05',
+        'grand_total': 450,
+        'items': const [],
+        'address_latitude': 30.0444,
+        'address_longitude': 31.2357,
+        'has_location_pin': 1,
+        'location_link': link,
+      });
+      expect(card.locationLink, link);
+      expect(card.mapsUrl, link);
+      expect(InvoiceCard.fromJson(card.toJson()).locationLink, link);
+    });
+
+    test('a legacy pasted link wins even without coordinates', () {
+      const link = 'https://maps.app.goo.gl/abc123';
+      final card = InvoiceCard.fromJson({
+        'name': 'ACC-SINV-2026-00042',
+        'status': 'Ready',
+        'posting_date': '2026-08-05',
+        'grand_total': 450,
+        'items': const [],
+        'location_link': link,
+      });
+      expect(card.mapsUrl, link);
+    });
+
+    test('absent or blank location_link reads as null', () {
+      final absent = InvoiceCard.fromJson({
+        'name': 'ACC-SINV-2026-00042',
+        'status': 'Ready',
+        'posting_date': '2026-08-05',
+        'grand_total': 450,
+        'items': const [],
+      });
+      expect(absent.locationLink, isNull);
+      expect(absent.mapsUrl, isNull);
+
+      final blank = InvoiceCard.fromJson({
+        'name': 'ACC-SINV-2026-00042',
+        'status': 'Ready',
+        'posting_date': '2026-08-05',
+        'grand_total': 450,
+        'items': const [],
+        'location_link': '  ',
+      });
+      expect(blank.locationLink, isNull);
+      expect(blank.mapsUrl, isNull);
+    });
+
+    test('mapsUrl falls back to the coordinates on an older backend', () {
+      expect(
+        _card(latitude: 30.0444, longitude: 31.2357).mapsUrl,
+        'https://www.google.com/maps/search/?api=1&query=30.044400,31.235700',
+      );
+    });
+
+    test('mapsUrl is null for Null Island, half pairs and a false flag', () {
+      expect(_card(latitude: 0, longitude: 0).mapsUrl, isNull);
+      expect(_card(latitude: 30.0444).mapsUrl, isNull);
+      expect(
+        _card(latitude: 30.0444, longitude: 31.2357, hasLocationPinFlag: false)
+            .mapsUrl,
+        isNull,
+      );
+      // A true flag with no coordinates and no link has nowhere to go.
+      expect(_card(hasLocationPinFlag: true).mapsUrl, isNull);
+    });
+
     test('pickups are never nagged about a pin', () {
       expect(_card(isPickup: true).showsLocationPinBadge, isFalse);
     });
@@ -203,6 +332,51 @@ void main() {
       expect(find.text('Pinned'), findsOneWidget);
       expect(find.text('No map pin'), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tapping a pinned badge opens the Maps URL', (tester) async {
+      final launched = _mockUrlLauncher(tester);
+      final service = _FakeKanbanService();
+      await _pumpCard(tester, _card(latitude: 30.0444, longitude: 31.2357),
+          service: service);
+
+      await tester.tap(find.text('Pinned'));
+      await tester.pump();
+
+      expect(launched, [
+        'https://www.google.com/maps/search/?api=1&query=30.044400,31.235700',
+      ]);
+      expect(service.addressBookLoads, 0);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('long-pressing a pinned badge opens the address editor',
+        (tester) async {
+      final launched = _mockUrlLauncher(tester);
+      final service = _FakeKanbanService();
+      await _pumpCard(tester, _card(latitude: 30.0444, longitude: 31.2357),
+          service: service);
+
+      await tester.longPress(find.text('Pinned'));
+      await tester.pump();
+
+      expect(launched, isEmpty);
+      expect(service.addressBookLoads, 1);
+      await tester.pump(const Duration(seconds: 5));
+    });
+
+    testWidgets('tapping an unpinned badge opens the address editor',
+        (tester) async {
+      final launched = _mockUrlLauncher(tester);
+      final service = _FakeKanbanService();
+      await _pumpCard(tester, _card(), service: service);
+
+      await tester.tap(find.text('No map pin'));
+      await tester.pump();
+
+      expect(launched, isEmpty);
+      expect(service.addressBookLoads, 1);
+      await tester.pump(const Duration(seconds: 5));
     });
 
     testWidgets('says nothing on a pickup order', (tester) async {
