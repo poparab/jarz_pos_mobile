@@ -654,7 +654,7 @@
   "addressPinSourceCourierVerified": "Courier check-in (verified)",
   "addressPinSourceManualOverride": "Manual correction",
   "addressPinSourceUnknown": "Unknown",
-  "rosterBulkSelectHint": "Long-press a day, then tap more days in the same row to add them to the selection.",
+  "rosterBulkSelectHint": "Tap days to select them. Tapping a day in someone else''s row starts a new selection for that person.",
   "rosterBulkSelectionCount": "{count, plural, =1{1 day selected for {name}} other{{count} days selected for {name}}}",
   "@rosterBulkSelectionCount": {
     "placeholders": {
@@ -9092,5 +9092,22 @@
   "followupsStatsTotal": "Follow-ups",
   "followupsStatsTouchedCustomers": "Customers followed up",
   "followupsStatsReorderRate": "Reorder rate",
-  "customerSegmentRegular": "Regulars"
+  "customerSegmentRegular": "Regulars",
+  "rosterViewWeek": "Week",
+  "rosterViewMonth": "Month",
+  "rosterPreviousWeek": "Previous week",
+  "rosterNextWeek": "Next week",
+  "rosterSelectDays": "Select days",
+  "rosterLegendButton": "What the colours mean",
+  "rosterMoreOptions": "More options",
+  "rosterCoverShiftSummary": "Cover shift: {shift}",
+  "@rosterCoverShiftSummary": {
+    "placeholders": {
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterUncoveredFix": "Fix",
+  "rosterUncoveredListTitle": "Days off with nobody covering"
 }

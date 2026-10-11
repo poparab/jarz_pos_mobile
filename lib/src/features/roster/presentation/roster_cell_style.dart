@@ -148,8 +148,9 @@ class RosterCellStyle {
   /// number for one, a lone dot for the other.
   final IconData? icon;
 
-  /// The text half — `OFF`, `HOL`, `—`, `·`, or empty for [working], where the
-  /// hours take the token's place.
+  /// The text half — `OFF`, `HOL`, `?`, `·`, or empty for [working], where the
+  /// hours take the token's place. This is the ONE thing a non-working grid
+  /// cell draws; [icon] is for the day sheet and the legend.
   final String token;
 
   /// The legend wording, reused verbatim as the cell's semantics label.
@@ -158,7 +159,8 @@ class RosterCellStyle {
   /// The shift type's own colour, for [working] only.
   final Color? accent;
 
-  /// The shift type's short code, for [working] only.
+  /// The shift type's short code, for [working] only. Shown in the day sheet
+  /// and the legend's shift strip; the grid cell no longer draws it.
   final String? shiftCode;
 
   bool get hasBorder => borderWidth > 0;
@@ -381,7 +383,9 @@ class RosterStyleResolver {
           borderColor: RosterColors.attentionLine,
           borderWidth: 1.5,
           icon: Icons.block,
-          token: '—',
+          // A question, not a dash: the cell's whole message is "nobody has
+          // decided this day yet", and a dash read as "nothing to see".
+          token: '?',
           label: l10n.rosterLegendNotRosteredFuture,
         );
       case RosterCellState.unrosteredPast:
@@ -403,7 +407,9 @@ class RosterStyleResolver {
       case RosterCellMarker.overtime:
         return RosterMarkerStyle(
           marker: marker,
-          icon: Icons.trending_up,
+          // A dot, because that is all the grid draws for it now: one small
+          // dot after the hours. The day sheet spells out the numbers.
+          icon: Icons.circle,
           label: l10n.rosterLegendMarkerOvertime,
           background: RosterColors.markerChip,
           foreground: RosterColors.markerInk,
@@ -451,15 +457,30 @@ class RosterStyleResolver {
   /// state's hue.
   static const Color selectionColor = Color(0xFF1A4FCC);
 
-  /// Every state, then every marker — the legend, in order.
+  /// The markers the GRID itself draws: the overtime dot after the hours,
+  /// the weekend glyph on the column header, and the selection tick.
   ///
-  /// Generated from the enums rather than hand-listed: this is what makes
-  /// "the legend describes the grid" a property of the code instead of a
-  /// promise somebody has to keep.
+  /// The cover and holiday-worked markers still exist — they are on the cell's
+  /// semantics label and spelled out in the day sheet — but the cell no longer
+  /// paints them, so the legend must not promise them. The cell was simplified
+  /// to one thing per day (the hours, or the state's token) because line
+  /// managers could not read a 56px box carrying a code, a branch token and up
+  /// to three glyphs.
+  static const List<RosterCellMarker> gridMarkers = <RosterCellMarker>[
+    RosterCellMarker.overtime,
+    RosterCellMarker.weekend,
+    RosterCellMarker.selected,
+  ];
+
+  /// Every state, then every marker the grid draws — the legend, in order.
+  ///
+  /// Generated from the enum and [gridMarkers] rather than hand-listed: this
+  /// is what makes "the legend describes the grid" a property of the code
+  /// instead of a promise somebody has to keep.
   List<RosterLegendEntry> legendEntries() => <RosterLegendEntry>[
     for (final state in RosterCellState.values)
       RosterLegendEntry.forState(styleFor(state)),
-    for (final marker in RosterCellMarker.values)
+    for (final marker in gridMarkers)
       RosterLegendEntry.forMarker(markerStyle(marker)),
   ];
 

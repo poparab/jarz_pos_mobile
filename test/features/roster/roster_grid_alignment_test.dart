@@ -8,6 +8,7 @@ import 'package:jarz_pos/src/features/roster/models/roster_models.dart';
 import 'package:jarz_pos/src/features/roster/presentation/roster_grid_metrics.dart';
 import 'package:jarz_pos/src/features/roster/presentation/roster_screen.dart';
 import 'package:jarz_pos/src/features/roster/presentation/roster_shift_palette.dart';
+import 'package:jarz_pos/src/features/roster/state/roster_providers.dart';
 
 /// The shift distribution grid must stay aligned with its names and dates.
 ///
@@ -32,8 +33,8 @@ String _employeeId(int index) =>
     'HR-EMP-${(index + 1).toString().padLeft(5, '0')}';
 
 /// A realistic mix of every cell shape the grid draws: working days on three
-/// shift types across two branches (with a corner code and a branch token),
-/// overtime days (a marker glyph), days off both covered and uncovered, a
+/// shift types across two branches, overtime days (the overtime dot), days
+/// off both covered and uncovered, a
 /// holiday, flagged cover days, and unrostered days. Anything that could change
 /// a cell's size is in here.
 RosterMonth _buildMonth() {
@@ -109,11 +110,14 @@ Future<void> _pumpGrid(
   RosterMonth month,
   Locale locale, {
   double textScale = 1.0,
+  List<String>? dates,
+  bool stretch = false,
+  Size physicalSize = const Size(1080, 2340),
 }) async {
-  // Phone-sized: the grid is far bigger than the screen, which is how it is
-  // really used. Offscreen cells are still laid out (neither scroll view here
-  // is lazy), and skipOffstage: false below finds them.
-  tester.view.physicalSize = const Size(1080, 2340);
+  // Phone-sized by default: the grid is far bigger than the screen, which is
+  // how it is really used. Offscreen cells are still laid out (neither scroll
+  // view here is lazy), and skipOffstage: false below finds them.
+  tester.view.physicalSize = physicalSize;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
 
@@ -139,6 +143,8 @@ Future<void> _pumpGrid(
             month: month,
             palette: RosterShiftPalette.fromMonth(month),
             coverIndex: RosterCoverIndex.fromMonth(month),
+            dates: dates,
+            stretchToWidth: stretch,
           ),
         ),
       ),
@@ -394,6 +400,94 @@ void main() {
           );
         });
       }
+    }
+  });
+  // Week view: seven (or fewer, at the month's edges) columns stretched to
+  // fill the screen. Stretching is exactly where the strips could disagree —
+  // each must take the SAME widened width — so it gets the same checks.
+  group('week view', () {
+    final weeks = rosterWeeksOfMonth(_month);
+    // A tablet in landscape, 1280dp wide: (1280 - 120) / 7 = 165dp a column.
+    const wide = Size(3840, 2400);
+
+    test('the fixture month has a clipped first week and full weeks', () {
+      expect(weeks.first, [_date(1), _date(2)]); // Thu 1st, Fri 2nd
+      expect(weeks[1], [for (var d = 3; d <= 9; d++) _date(d)]); // Sat-Fri
+    });
+
+    for (final locale in const [Locale('en'), Locale('ar')]) {
+      final dir = locale.languageCode == 'ar' ? 'RTL' : 'LTR';
+
+      for (final weekIndex in [0, 1]) {
+        testWidgets('$dir: week ${weekIndex + 1} stretches headers, totals '
+            'and cells to one width, and every cell lines up', (tester) async {
+          final week = weeks[weekIndex];
+          await _pumpGrid(
+            tester,
+            month,
+            locale,
+            dates: week,
+            stretch: true,
+            physicalSize: wide,
+          );
+
+          final expectedWidth = RosterGrid.columnWidth(
+            availableWidth: 1280,
+            dayCount: week.length,
+            stretch: true,
+          );
+          expect(expectedWidth, greaterThan(RosterGridMetrics.cellWidth));
+
+          // Only this week's days are drawn.
+          expect(
+            find.byKey(rosterGridHeaderKey(_date(20)), skipOffstage: false),
+            findsNothing,
+          );
+
+          for (final date in week) {
+            final header = _rect(tester, rosterGridHeaderKey(date));
+            final totals = _rect(tester, rosterGridTotalsKey(date));
+            expect(header.width, expectedWidth, reason: '$date header');
+            expect(totals.width, expectedWidth, reason: '$date totals');
+            expect(
+              (totals.left - header.left).abs(),
+              lessThanOrEqualTo(_tolerance),
+              reason: '$date: totals ${totals.left} vs header ${header.left}',
+            );
+            for (final employee in month.employees) {
+              final cell = _rect(
+                tester,
+                rosterGridCellKey(employee.employee, date),
+              );
+              expect(cell.width, expectedWidth);
+              expect(cell.height, RosterGridMetrics.rowHeight);
+              _expectAligned(
+                cell: cell,
+                name: _rect(tester, rosterGridNameKey(employee.employee)),
+                header: header,
+                where: '${employee.employee} / $date (week)',
+              );
+            }
+          }
+        });
+      }
+
+      testWidgets('$dir: on a phone a week keeps the minimum cell width', (
+        tester,
+      ) async {
+        // 360dp: (360 - 120) / 7 is 34dp, under the 56dp floor.
+        await _pumpGrid(tester, month, locale, dates: weeks[1], stretch: true);
+        for (final date in weeks[1]) {
+          expect(
+            _rect(tester, rosterGridHeaderKey(date)).width,
+            RosterGridMetrics.cellWidth,
+          );
+          expect(
+            _rect(tester, rosterGridCellKey(_employeeId(0), date)).width,
+            RosterGridMetrics.cellWidth,
+          );
+        }
+      });
     }
   });
 }

@@ -654,7 +654,7 @@
   "addressPinSourceCourierVerified": "تسجيل دخول المندوب (موثّق)",
   "addressPinSourceManualOverride": "تصحيح يدوي",
   "addressPinSourceUnknown": "غير معروف",
-  "rosterBulkSelectHint": "اضغط مطولاً على يوم، ثم اضغط على المزيد من الأيام في نفس الصف لإضافتها للتحديد.",
+  "rosterBulkSelectHint": "اضغط على الأيام لتحديدها. الضغط على يوم في صف شخص آخر يبدأ تحديداً جديداً له.",
   "rosterBulkSelectionCount": "{count, plural, =1{تم تحديد يوم واحد لـ {name}} other{تم تحديد {count} أيام لـ {name}}}",
   "@rosterBulkSelectionCount": {
     "placeholders": {
@@ -6034,5 +6034,15 @@
   "followupsStatsTotal": "إجمالي المتابعات",
   "followupsStatsTouchedCustomers": "عملاء اتعملهم متابعة",
   "followupsStatsReorderRate": "نسبة الطلب تاني",
-  "customerSegmentRegular": "منتظمين"
+  "customerSegmentRegular": "منتظمين",
+  "rosterViewWeek": "أسبوع",
+  "rosterViewMonth": "شهر",
+  "rosterPreviousWeek": "الأسبوع السابق",
+  "rosterNextWeek": "الأسبوع التالي",
+  "rosterSelectDays": "تحديد أيام",
+  "rosterLegendButton": "معنى الألوان",
+  "rosterMoreOptions": "خيارات إضافية",
+  "rosterCoverShiftSummary": "وردية التغطية: {shift}",
+  "rosterUncoveredFix": "معالجة",
+  "rosterUncoveredListTitle": "أيام إجازة بدون من يغطيها"
 }

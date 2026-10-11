@@ -6,9 +6,11 @@ import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/roster/models/roster_models.dart';
 import 'package:jarz_pos/src/features/roster/presentation/roster_screen.dart';
 import 'package:jarz_pos/src/features/roster/presentation/roster_shift_palette.dart';
+import 'package:jarz_pos/src/features/roster/presentation/widgets/roster_day_sheet.dart';
+import 'package:jarz_pos/src/features/roster/presentation/widgets/roster_legend.dart';
 import 'package:jarz_pos/src/features/roster/state/roster_providers.dart';
 
-/// One day cell, up close: what it draws in its bottom corners, and what a
+/// One day cell, up close: what it draws (one thing), and what a
 /// tap or long-press on it does.
 ///
 /// The alignment test (`roster_grid_alignment_test.dart`) proves where each
@@ -22,9 +24,9 @@ const _plainDay = '2026-10-05';
 const _crowdedDay = '2026-10-06';
 const _nextDay = '2026-10-07';
 
-/// The worst case for the bottom corners: a working day that is a cover day
-/// on a public holiday with overtime. That is the maximum of three corner
-/// markers, and it is a working day, so the branch token is drawn as well.
+/// The crowded day is a cover day on a public holiday with overtime: the case
+/// that used to pack a code chip, a branch token and three marker glyphs into
+/// one cell. It must now draw just the hours and the overtime dot.
 RosterMonth _month({String location = 'Nasr City'}) {
   Map<String, dynamic> working(String date, {bool crowded = false}) => {
     'date': date,
@@ -113,195 +115,128 @@ Finder _cell(String employee, String date) =>
 Finder _in(Finder cell, Finder matching) =>
     find.descendant(of: cell, matching: matching);
 
-/// The corner marker glyphs. The widget is private to the screen, so it is
-/// matched by name rather than by type.
-Finder _markers(Finder cell) => _in(
-  cell,
-  find.byWidgetPredicate((w) => w.runtimeType.toString() == '_MarkerGlyph'),
-);
-
 void main() {
-  group('bottom corners of a crowded cell', () {
-    // Asserted at the default text scale only. At 1.5x and above the grid's
-    // pinned NAME cells and DATE header cells overflow their fixed heights
-    // (a pre-existing bug, not the day cell's), so a whole-grid pump at that
-    // scale fails on those before this test could say anything about the
-    // corners. The day cell itself does not overflow at 2x.
+  group('a cell draws one thing', () {
     for (final locale in const [Locale('en'), Locale('ar')]) {
       final dir = locale.languageCode == 'ar' ? 'RTL' : 'LTR';
 
-      testWidgets('$dir: three markers never overlap the branch token, and '
-          'both stay inside the cell', (tester) async {
+      testWidgets('$dir: a crowded working day shows only its hours and the '
+          'overtime dot, inside the cell', (tester) async {
         await _pump(tester, locale: locale);
+        final grid = _month();
+        final code = RosterShiftPalette.fromMonth(
+          grid,
+        ).styleFor('Branch Opening').code;
 
         final cell = _cell(_employee, _crowdedDay);
         final cellRect = tester.getRect(cell);
-        final markers = _markers(cell);
-        expect(
-          markers,
-          findsNWidgets(3),
-          reason: 'cover + holiday worked + overtime is the worst case',
-        );
 
-        final token = _in(cell, find.text('NC'));
-        expect(token, findsOneWidget, reason: 'the branch token is drawn');
-        final tokenRect = tester.getRect(token);
+        // Cover + holiday worked + overtime used to draw a code chip, a
+        // branch token and three marker glyphs. Now: one number, one dot.
+        final texts = tester
+            .widgetList<Text>(_in(cell, find.byType(Text)))
+            .map((t) => t.data)
+            .toList();
+        expect(texts, hasLength(1), reason: 'drawn texts: $texts');
+        expect(texts.single, isNot('NC'));
+        expect(texts.single, isNot(code));
+        expect(_in(cell, find.text('NC')), findsNothing);
+        expect(_in(cell, find.text(code)), findsNothing);
 
-        final isRtl = locale.languageCode == 'ar';
-        for (var i = 0; i < 3; i++) {
-          final markerRect = tester.getRect(markers.at(i));
-          // deflate: the token's scaled edge lands EXACTLY on the first
-          // marker's, and Rect.overlaps is strict. A rounding change of
-          // 1e-12 must not read as a collision.
+        final dot = _in(cell, find.byType(RosterOvertimeDot));
+        expect(dot, findsOneWidget, reason: '12h against a 9h standard day');
+        final dotRect = tester.getRect(dot);
+        final hoursRect = tester.getRect(_in(cell, find.byType(Text)));
+        for (final rect in [dotRect, hoursRect]) {
           expect(
-            tokenRect.deflate(0.01).overlaps(markerRect),
-            isFalse,
-            reason:
-                'marker $i $markerRect overlaps the branch token $tokenRect',
-          );
-          expect(
-            cellRect.inflate(0.5).contains(markerRect.topLeft) &&
-                cellRect.inflate(0.5).contains(markerRect.bottomRight),
+            cellRect.inflate(0.5).contains(rect.topLeft) &&
+                cellRect.inflate(0.5).contains(rect.bottomRight),
             isTrue,
-            reason: 'marker $i $markerRect escapes the cell $cellRect',
-          );
-          // Which corner is which. "No overlap" alone would still pass with
-          // the token and the markers swapped — exactly the RTL mistake.
-          expect(
-            isRtl
-                ? tokenRect.center.dx > markerRect.center.dx
-                : tokenRect.center.dx < markerRect.center.dx,
-            isTrue,
-            reason:
-                '${isRtl ? "RTL" : "LTR"}: the token must sit at the start '
-                'corner and marker $i at the end corner',
-          );
-          // One baseline. Token and markers share the bottom edge, as they
-          // did when each was positioned at bottom: 2 on its own.
-          expect(
-            (tokenRect.bottom - markerRect.bottom).abs(),
-            lessThanOrEqualTo(0.5),
-            reason:
-                'token bottom ${tokenRect.bottom} vs marker $i bottom '
-                '${markerRect.bottom}',
+            reason: '$rect escapes the cell $cellRect',
           );
         }
+        // The dot comes AFTER the hours in reading order.
+        final isRtl = locale.languageCode == 'ar';
         expect(
-          cellRect.inflate(0.5).contains(tokenRect.topLeft) &&
-              cellRect.inflate(0.5).contains(tokenRect.bottomRight),
+          isRtl
+              ? dotRect.center.dx < hoursRect.center.dx
+              : dotRect.center.dx > hoursRect.center.dx,
           isTrue,
-          reason: 'branch token $tokenRect escapes the cell $cellRect',
         );
       });
     }
 
-    testWidgets('a token sits at the same height whether or not the day has '
-        'markers', (tester) async {
-      // The token is bottom-aligned at the cell's bottom inset. On a day with
-      // markers the shared row is as tall as a marker (13px) — centring its
-      // children lifted the 9px token about 2px, so a plain day and an
-      // overtime day side by side showed their tokens at different heights.
+    testWidgets('a plain working day has no overtime dot', (tester) async {
       await _pump(tester);
-
-      double gapBelowToken(String date) {
-        final cell = tester.getRect(_cell(_employee, date));
-        final token = tester.getRect(
-          _in(_cell(_employee, date), find.text('NC')),
-        );
-        return cell.bottom - token.bottom;
-      }
-
-      expect(_markers(_cell(_employee, _plainDay)), findsNothing);
-      expect(_markers(_cell(_employee, _crowdedDay)), findsNWidgets(3));
-      expect(
-        (gapBelowToken(_crowdedDay) - gapBelowToken(_plainDay)).abs(),
-        lessThanOrEqualTo(0.5),
-        reason:
-            'plain day gap ${gapBelowToken(_plainDay)} vs marker day gap '
-            '${gapBelowToken(_crowdedDay)}',
-      );
+      final cell = _cell(_employee, _plainDay);
+      expect(_in(cell, find.text('9')), findsOneWidget);
+      expect(_in(cell, find.byType(RosterOvertimeDot)), findsNothing);
     });
 
-    testWidgets('the branch token yields to the markers without vanishing', (
-      tester,
-    ) async {
-      // Two things the fix must not do. It must not shrink the common case: a
-      // plain working day has no markers competing for the corner, so its
-      // token is unscaled. And "does not overlap" must not be satisfied by
-      // scaling the token down to an unreadable speck. Measured when the fix
-      // landed: 18.4x9.0 plain, 13.0x6.4 with three markers (71%). The floor
-      // leaves room for font metrics to move, and fails long before illegible.
+    testWidgets('the Semantics label still says everything the cell no longer '
+        'draws', (tester) async {
+      final handle = tester.ensureSemantics();
       await _pump(tester);
-
-      final plain = tester.getRect(
-        _in(_cell(_employee, _plainDay), find.text('NC')),
-      );
-      final crowded = tester.getRect(
-        _in(_cell(_employee, _crowdedDay), find.text('NC')),
-      );
-      expect(_markers(_cell(_employee, _plainDay)), findsNothing);
-      expect(
-        crowded.height,
-        lessThanOrEqualTo(plain.height + 0.01),
-        reason: 'the crowded token can shrink, never grow',
-      );
-      expect(
-        crowded.height / plain.height,
-        greaterThanOrEqualTo(0.6),
-        reason:
-            'crowded token ${crowded.size} is under 60% of plain ${plain.size}',
-      );
+      final label = tester
+          .getSemantics(_cell(_employee, _crowdedDay))
+          .getSemanticsData()
+          .label;
+      expect(label, contains('Branch Opening'));
+      expect(label, contains('Nasr City'));
+      handle.dispose();
     });
   });
 
   group('a branch name with no letters in it', () {
-    testWidgets('renders its cells instead of throwing, and draws no label', (
-      tester,
-    ) async {
+    testWidgets('renders its cells instead of throwing', (tester) async {
       // A Shift Location named "-" (or " / ") used to throw a StateError from
-      // branchToken inside the day cell's build, so every cell rostered to that
-      // branch failed to render. It now yields no token: the markers still draw,
-      // the label does not.
+      // branchToken inside the day cell's build. The cell no longer draws a
+      // branch token at all; this guards the regression anyway.
       await _pump(tester, month: _month(location: ' - / '));
 
       expect(tester.takeException(), isNull);
-      final crowded = _cell(_employee, _crowdedDay);
-      expect(crowded, findsOneWidget);
-      expect(_markers(crowded), findsNWidgets(3));
-      expect(_in(crowded, find.text('')), findsNothing);
-      // Exactly one Text fewer than the same cell with a real branch: the label.
-      final withoutLabel = tester
-          .widgetList(_in(_cell(_employee, _plainDay), find.byType(Text)))
-          .length;
-      await _pump(tester);
-      final withLabel = tester
-          .widgetList(_in(_cell(_employee, _plainDay), find.byType(Text)))
-          .length;
-      expect(withoutLabel, withLabel - 1);
+      expect(_cell(_employee, _crowdedDay), findsOneWidget);
+      expect(_in(_cell(_employee, _crowdedDay), find.text('')), findsNothing);
     });
   });
 
   group('tapping and long-pressing a cell', () {
-    testWidgets('a long-press starts a selection on that person and day', (
-      tester,
-    ) async {
+    testWidgets('outside select mode a tap opens the day sheet and selects '
+        'nothing', (tester) async {
+      final container = await _pump(tester);
+
+      await tester.tap(_cell(_employee, _plainDay));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RosterDaySheet), findsOneWidget);
+      expect(container.read(rosterSelectionProvider), isNull);
+      expect(container.read(rosterSelectModeProvider), isFalse);
+    });
+
+    testWidgets('a long-press enters select mode and selects that person and '
+        'day', (tester) async {
       final container = await _pump(tester);
 
       await tester.longPress(_cell(_employee, _plainDay));
       await tester.pumpAndSettle();
 
+      expect(container.read(rosterSelectModeProvider), isTrue);
       final selection = container.read(rosterSelectionProvider);
       expect(selection, isNotNull);
       expect(selection!.employee, _employee);
       expect(selection.dates, {_plainDay});
+      expect(find.byType(RosterDaySheet), findsNothing);
     });
 
-    testWidgets('with a selection on the row, a tap adds a day and a second '
-        'tap removes it', (tester) async {
+    testWidgets('in select mode a tap adds a day, a second tap removes it, and '
+        'removing the last day leaves nothing selected', (tester) async {
       final container = await _pump(tester);
+      container.read(rosterSelectModeProvider.notifier).state = true;
+      await tester.pump();
 
-      await tester.longPress(_cell(_employee, _plainDay));
+      await tester.tap(_cell(_employee, _plainDay));
       await tester.pumpAndSettle();
+      expect(container.read(rosterSelectionProvider)!.dates, {_plainDay});
 
       await tester.tap(_cell(_employee, _nextDay));
       await tester.pumpAndSettle();
@@ -313,6 +248,27 @@ void main() {
       await tester.tap(_cell(_employee, _nextDay));
       await tester.pumpAndSettle();
       expect(container.read(rosterSelectionProvider)!.dates, {_plainDay});
+
+      await tester.tap(_cell(_employee, _plainDay));
+      await tester.pumpAndSettle();
+      expect(container.read(rosterSelectionProvider), isNull);
+      // Still in select mode: emptying the selection is not leaving it.
+      expect(container.read(rosterSelectModeProvider), isTrue);
+      expect(find.byType(RosterDaySheet), findsNothing);
+    });
+
+    testWidgets('in select mode, tapping another person starts a new '
+        'selection for them', (tester) async {
+      final container = await _pump(tester);
+
+      await tester.longPress(_cell(_employee, _plainDay));
+      await tester.pumpAndSettle();
+      await tester.tap(_cell(_other, _nextDay));
+      await tester.pumpAndSettle();
+
+      final selection = container.read(rosterSelectionProvider)!;
+      expect(selection.employee, _other);
+      expect(selection.dates, {_nextDay});
     });
 
     testWidgets('long-pressing another person moves the selection to them', (

@@ -1937,7 +1937,7 @@ abstract class AppLocalizations {
   /// No description provided for @rosterBulkSelectHint.
   ///
   /// In en, this message translates to:
-  /// **'Long-press a day, then tap more days in the same row to add them to the selection.'**
+  /// **'Tap days to select them. Tapping a day in someone else\'\'s row starts a new selection for that person.'**
   String get rosterBulkSelectHint;
 
   /// No description provided for @rosterBulkSelectionCount.
@@ -26830,6 +26830,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Regulars'**
   String get customerSegmentRegular;
+
+  /// No description provided for @rosterViewWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get rosterViewWeek;
+
+  /// No description provided for @rosterViewMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get rosterViewMonth;
+
+  /// No description provided for @rosterPreviousWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous week'**
+  String get rosterPreviousWeek;
+
+  /// No description provided for @rosterNextWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Next week'**
+  String get rosterNextWeek;
+
+  /// No description provided for @rosterSelectDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Select days'**
+  String get rosterSelectDays;
+
+  /// No description provided for @rosterLegendButton.
+  ///
+  /// In en, this message translates to:
+  /// **'What the colours mean'**
+  String get rosterLegendButton;
+
+  /// No description provided for @rosterMoreOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get rosterMoreOptions;
+
+  /// No description provided for @rosterCoverShiftSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover shift: {shift}'**
+  String rosterCoverShiftSummary(String shift);
+
+  /// No description provided for @rosterUncoveredFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix'**
+  String get rosterUncoveredFix;
+
+  /// No description provided for @rosterUncoveredListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Days off with nobody covering'**
+  String get rosterUncoveredListTitle;
 }
 
 class _AppLocalizationsDelegate

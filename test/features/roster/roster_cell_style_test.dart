@@ -302,10 +302,8 @@ void main() {
     ) async {
       final resolver = await _resolver(tester, today: DateTime(2026, 9, 12));
 
-      RosterCell cell(Map<String, dynamic> json) => RosterCell.fromJson({
-        'date': '2026-09-20',
-        ...json,
-      });
+      RosterCell cell(Map<String, dynamic> json) =>
+          RosterCell.fromJson({'date': '2026-09-20', ...json});
 
       expect(
         resolver.stateFor(
@@ -333,10 +331,7 @@ void main() {
         RosterCellState.offUncovered,
       );
       expect(
-        resolver.stateFor(
-          cell: cell({'is_holiday': true}),
-          date: '2026-09-20',
-        ),
+        resolver.stateFor(cell: cell({'is_holiday': true}), date: '2026-09-20'),
         RosterCellState.holiday,
       );
       // A holiday that is also worked is a working day with a marker, not a
@@ -406,11 +401,14 @@ void main() {
         isCover: true,
       );
 
-      expect(markers, containsAll(<RosterCellMarker>{
-        RosterCellMarker.overtime,
-        RosterCellMarker.cover,
-        RosterCellMarker.holidayWorked,
-      }));
+      expect(
+        markers,
+        containsAll(<RosterCellMarker>{
+          RosterCellMarker.overtime,
+          RosterCellMarker.cover,
+          RosterCellMarker.holidayWorked,
+        }),
+      );
       expect(markers.contains(RosterCellMarker.selected), isFalse);
     });
 
@@ -451,15 +449,17 @@ void main() {
   });
 
   group('the legend and the grid cannot drift apart', () {
-    testWidgets('legend entries are exactly the resolver\'s states + markers', (
-      tester,
-    ) async {
+    testWidgets('legend entries are exactly the resolver\'s states + the '
+        'markers the grid draws', (tester) async {
+      // Cover and holiday-worked are still markers (the day sheet and the
+      // Semantics label use them), but the plain grid cell no longer draws
+      // them, so the legend must not explain them either.
       final resolver = await _resolver(tester);
       final entries = resolver.legendEntries();
 
       expect(
         entries.length,
-        RosterCellState.values.length + RosterCellMarker.values.length,
+        RosterCellState.values.length + RosterStyleResolver.gridMarkers.length,
       );
       expect(
         entries.where((e) => e.state != null).map((e) => e.state).toSet(),
@@ -467,7 +467,15 @@ void main() {
       );
       expect(
         entries.where((e) => e.marker != null).map((e) => e.marker).toSet(),
-        RosterCellMarker.values.toSet(),
+        RosterStyleResolver.gridMarkers.toSet(),
+      );
+      expect(
+        RosterStyleResolver.gridMarkers,
+        isNot(contains(RosterCellMarker.cover)),
+      );
+      expect(
+        RosterStyleResolver.gridMarkers,
+        isNot(contains(RosterCellMarker.holidayWorked)),
       );
       // Nothing in the legend that is neither.
       expect(

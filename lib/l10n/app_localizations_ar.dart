@@ -1159,7 +1159,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rosterBulkSelectHint =>
-      'اضغط مطولاً على يوم، ثم اضغط على المزيد من الأيام في نفس الصف لإضافتها للتحديد.';
+      'اضغط على الأيام لتحديدها. الضغط على يوم في صف شخص آخر يبدأ تحديداً جديداً له.';
 
   @override
   String rosterBulkSelectionCount(int count, Object name) {
@@ -16303,4 +16303,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerSegmentRegular => 'منتظمين';
+
+  @override
+  String get rosterViewWeek => 'أسبوع';
+
+  @override
+  String get rosterViewMonth => 'شهر';
+
+  @override
+  String get rosterPreviousWeek => 'الأسبوع السابق';
+
+  @override
+  String get rosterNextWeek => 'الأسبوع التالي';
+
+  @override
+  String get rosterSelectDays => 'تحديد أيام';
+
+  @override
+  String get rosterLegendButton => 'معنى الألوان';
+
+  @override
+  String get rosterMoreOptions => 'خيارات إضافية';
+
+  @override
+  String rosterCoverShiftSummary(String shift) {
+    return 'وردية التغطية: $shift';
+  }
+
+  @override
+  String get rosterUncoveredFix => 'معالجة';
+
+  @override
+  String get rosterUncoveredListTitle => 'أيام إجازة بدون من يغطيها';
 }

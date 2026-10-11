@@ -1162,7 +1162,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rosterBulkSelectHint =>
-      'Long-press a day, then tap more days in the same row to add them to the selection.';
+      'Tap days to select them. Tapping a day in someone else\'s row starts a new selection for that person.';
 
   @override
   String rosterBulkSelectionCount(int count, Object name) {
@@ -16317,4 +16317,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerSegmentRegular => 'Regulars';
+
+  @override
+  String get rosterViewWeek => 'Week';
+
+  @override
+  String get rosterViewMonth => 'Month';
+
+  @override
+  String get rosterPreviousWeek => 'Previous week';
+
+  @override
+  String get rosterNextWeek => 'Next week';
+
+  @override
+  String get rosterSelectDays => 'Select days';
+
+  @override
+  String get rosterLegendButton => 'What the colours mean';
+
+  @override
+  String get rosterMoreOptions => 'More options';
+
+  @override
+  String rosterCoverShiftSummary(String shift) {
+    return 'Cover shift: $shift';
+  }
+
+  @override
+  String get rosterUncoveredFix => 'Fix';
+
+  @override
+  String get rosterUncoveredListTitle => 'Days off with nobody covering';
 }

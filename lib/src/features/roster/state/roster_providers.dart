@@ -69,8 +69,10 @@ class RosterSelection {
   }
 }
 
-/// Null when nothing is selected — the normal state, where a tap opens the
-/// single-cell sheet exactly as before.
+/// Null when nothing is selected. Outside select mode (see
+/// [rosterSelectModeProvider]) it is always null and a tap opens the
+/// single-cell sheet; in select mode a tap adds or removes a day here, and the
+/// bulk bar acts on whatever it holds.
 final rosterSelectionProvider = StateProvider<RosterSelection?>((ref) => null);
 
 /// Shift the visible month by [delta] months.
@@ -87,4 +89,138 @@ String shiftMonth(String month, int delta) {
   final shifted = DateTime(year, monthNumber + delta, 1);
   return '${shifted.year.toString().padLeft(4, '0')}-'
       '${shifted.month.toString().padLeft(2, '0')}';
+}
+
+/// Week or month. The grid always FETCHES a month (the backend serves months);
+/// this only decides how much of it is drawn at once.
+enum RosterViewMode { week, month }
+
+/// Week by default: a line manager plans the coming days, and a 31-column grid
+/// on a phone is a wall of cells they have to scroll to find today in.
+final rosterViewModeProvider = StateProvider<RosterViewMode>(
+  (ref) => RosterViewMode.week,
+);
+
+/// Any ISO date inside the week being shown, or null for "the default week"
+/// (today's week in the current month, otherwise the month's first week).
+///
+/// Stored as a date rather than a week index so it survives a month change:
+/// a date from another month simply stops matching and the default applies.
+final rosterWeekFocusProvider = StateProvider<String?>((ref) => null);
+
+/// Whether a tap selects days (true) or opens the day sheet (false).
+///
+/// A selection only ever exists while this is on: entering it is the visible
+/// "Select days" toggle, or a long-press as a shortcut.
+final rosterSelectModeProvider = StateProvider<bool>((ref) => false);
+
+/// `YYYY-MM-DD`, the key every roster payload uses for a day.
+String rosterIsoDate(DateTime date) =>
+    '${date.year.toString().padLeft(4, '0')}-'
+    '${date.month.toString().padLeft(2, '0')}-'
+    '${date.day.toString().padLeft(2, '0')}';
+
+/// The month's weeks, Saturday to Friday, clipped to the month.
+///
+/// Saturday-first because the Egyptian working week starts on Saturday (the
+/// weekend is Friday AND Saturday, see `isRosterWeekend`; a Saturday-first week
+/// keeps the Friday at its end). Clipping means the first and last weeks can be
+/// short: the grid only has this month's data, so a week never borrows days
+/// from the neighbouring month.
+///
+/// Calendar arithmetic is done in UTC: Egypt observes daylight saving, and a
+/// local-time `add(Duration(days: 1))` across the change lands an hour off and
+/// can repeat or skip a date.
+List<List<String>> rosterWeeksOfMonth(String month) {
+  final parts = month.split('-');
+  final year = parts.isNotEmpty ? int.tryParse(parts[0]) : null;
+  final monthNumber = parts.length > 1 ? int.tryParse(parts[1]) : null;
+  if (year == null || monthNumber == null) return const [];
+
+  final weeks = <List<String>>[];
+  var current = <String>[];
+  var day = DateTime.utc(year, monthNumber, 1);
+  while (day.month == monthNumber) {
+    if (day.weekday == DateTime.saturday && current.isNotEmpty) {
+      weeks.add(current);
+      current = <String>[];
+    }
+    current.add(rosterIsoDate(day));
+    day = day.add(const Duration(days: 1));
+  }
+  if (current.isNotEmpty) weeks.add(current);
+  return weeks;
+}
+
+/// The index into [rosterWeeksOfMonth] the grid opens on: the week holding
+/// [today] when [month] is the current month, else the first week.
+int rosterDefaultWeekIndex(String month, DateTime today) {
+  final weeks = rosterWeeksOfMonth(month);
+  final iso = rosterIsoDate(today);
+  for (var i = 0; i < weeks.length; i++) {
+    if (weeks[i].contains(iso)) return i;
+  }
+  return 0;
+}
+
+/// The week to draw: the one containing [focus] if it is in [month], else the
+/// default week.
+int rosterVisibleWeekIndex(String month, String? focus, DateTime today) {
+  final weeks = rosterWeeksOfMonth(month);
+  if (focus != null) {
+    for (var i = 0; i < weeks.length; i++) {
+      if (weeks[i].contains(focus)) return i;
+    }
+  }
+  return rosterDefaultWeekIndex(month, today);
+}
+
+/// Where the ‹ › arrows go in week mode.
+///
+/// One week at a time; stepping past the month's first or last week moves to
+/// the neighbouring month's LAST or FIRST week, so walking backwards from the
+/// 1st lands on the end of the previous month rather than its start.
+({String month, String focus}) rosterStepWeek({
+  required String month,
+  required String? focus,
+  required int delta,
+  required DateTime today,
+}) {
+  final weeks = rosterWeeksOfMonth(month);
+  final index = rosterVisibleWeekIndex(month, focus, today);
+  final target = index + delta;
+  if (target >= 0 && target < weeks.length) {
+    return (month: month, focus: weeks[target].first);
+  }
+  final nextMonth = shiftMonth(month, delta < 0 ? -1 : 1);
+  final nextWeeks = rosterWeeksOfMonth(nextMonth);
+  if (nextWeeks.isEmpty) return (month: nextMonth, focus: '');
+  return (
+    month: nextMonth,
+    focus: delta < 0 ? nextWeeks.last.first : nextWeeks.first.first,
+  );
+}
+
+/// The shift a person most often works across [dates], or null when none of
+/// them is a working day. Ties go to the earliest date's shift.
+///
+/// Used as the cover-shift default for a bulk day off: whoever covers normally
+/// steps onto the absent person's own shift.
+String? rosterMostCommonShift(RosterEmployee? employee, Iterable<String> dates) {
+  if (employee == null) return null;
+  final counts = <String, int>{};
+  final firstSeen = <String, String>{};
+  for (final date in dates.toList()..sort()) {
+    final type = (employee.cellFor(date)?.shiftType ?? '').trim();
+    if (type.isEmpty) continue;
+    counts[type] = (counts[type] ?? 0) + 1;
+    firstSeen.putIfAbsent(type, () => date);
+  }
+  if (counts.isEmpty) return null;
+  final ranked = counts.keys.toList()
+    ..sort((a, b) {
+      final byCount = counts[b]!.compareTo(counts[a]!);
+      return byCount != 0 ? byCount : firstSeen[a]!.compareTo(firstSeen[b]!);
+    });
+  return ranked.first;
 }

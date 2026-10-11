@@ -7,8 +7,9 @@ import '../../data/roster_repository.dart';
 import '../../models/roster_models.dart';
 import '../../state/roster_providers.dart';
 import '../roster_cell_style.dart';
-import '../roster_formats.dart';
 import '../roster_shift_palette.dart';
+import 'roster_day_off_form.dart';
+import 'roster_shift_picker.dart';
 
 /// Action bar shown while a run of days is selected on one employee's row.
 ///
@@ -27,8 +28,12 @@ class RosterBulkBar extends ConsumerStatefulWidget {
 class _RosterBulkBarState extends ConsumerState<RosterBulkBar> {
   bool _busy = false;
 
-  void _clearSelection() =>
-      ref.read(rosterSelectionProvider.notifier).state = null;
+  /// Drops the selection AND leaves select mode: Cancel is the way out of
+  /// selecting, and a finished bulk change is done with it too.
+  void _clearSelection() {
+    ref.read(rosterSelectionProvider.notifier).state = null;
+    ref.read(rosterSelectModeProvider.notifier).state = false;
+  }
 
   /// Runs [changes] as one bulk request, refreshes the grid, and — this is the
   /// part a naive "it didn't throw" success message would miss — surfaces
@@ -129,11 +134,14 @@ class _RosterBulkBarState extends ConsumerState<RosterBulkBar> {
   Future<void> _assignShift() async {
     final month = ref.read(rosterMonthDataProvider).asData?.value;
     final catalog = month?.shiftCatalog ?? const <RosterShift>[];
-    final shift = await showModalBottomSheet<RosterShift>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => _BulkShiftPicker(catalog: catalog),
+    final shift = await showRosterShiftPickerSheet(
+      context,
+      title: context.l10n.rosterBulkAssignShift,
+      catalog: catalog,
+      // The grid's own palette, so the picker matches the cells exactly.
+      palette: month == null
+          ? RosterShiftPalette.from(catalog: catalog)
+          : RosterShiftPalette.fromMonth(month),
     );
     if (shift == null) return;
     final selection = widget.selection;
@@ -151,21 +159,31 @@ class _RosterBulkBarState extends ConsumerState<RosterBulkBar> {
   Future<void> _markOff() async {
     final month = ref.read(rosterMonthDataProvider).asData?.value;
     final bootstrap = ref.read(rosterBootstrapProvider).asData?.value;
-    final colleagues = (month?.employees ?? const <RosterEmployee>[])
+    final employees = month?.employees ?? const <RosterEmployee>[];
+    final colleagues = employees
         .where((e) => e.employee != widget.selection.employee)
         .toList();
+    RosterEmployee? absent;
+    for (final e in employees) {
+      if (e.employee == widget.selection.employee) absent = e;
+    }
 
-    final choice = await showModalBottomSheet<_BulkDayOffChoice>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => _BulkDayOffForm(
-        offTypes:
-            bootstrap?.offTypes ??
-            const ['Weekly Off', 'Vacation', 'Sick', 'Unpaid', 'Other'],
-        colleagues: colleagues,
-        catalog: month?.shiftCatalog ?? const <RosterShift>[],
+    final choice = await showRosterDayOffForm(
+      context,
+      title: context.l10n.rosterBulkMarkOff,
+      offTypes: bootstrap?.offTypes ?? rosterDefaultOffTypes,
+      colleagues: colleagues,
+      catalog: month?.shiftCatalog ?? const <RosterShift>[],
+      dates: widget.selection.dates.toList()..sort(),
+      // The shift the absent person works most across the selected days.
+      defaultCoverShift: rosterMostCommonShift(
+        absent,
+        widget.selection.dates,
       ),
+      // `bulk_assign` rows carry neither notes nor a POS grant; the form does
+      // not ask for what the request would drop.
+      allowNotes: false,
+      allowPosAccess: false,
     );
     if (choice == null) return;
 
@@ -288,237 +306,6 @@ class _RosterBulkBarState extends ConsumerState<RosterBulkBar> {
                     ),
                   ],
                 ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BulkShiftPicker extends StatelessWidget {
-  const _BulkShiftPicker({required this.catalog});
-
-  final List<RosterShift> catalog;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final palette = RosterShiftPalette.from(catalog: catalog);
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.rosterBulkAssignShift,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 8),
-            if (catalog.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(l10n.rosterNoShiftTypes),
-              )
-            else
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 320),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: catalog.length,
-                  itemBuilder: (context, index) {
-                    final shift = catalog[index];
-                    final style = palette.styleFor(shift.shiftType);
-                    return ListTile(
-                      dense: true,
-                      // Same swatch and code as the grid cell this will
-                      // become, so a bulk assignment is picked in the
-                      // vocabulary it will be read in.
-                      leading: Container(
-                        width: 30,
-                        height: 30,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: style.color,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          style.code,
-                          style: TextStyle(
-                            color: style.onColor,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      title: Text(shift.shiftType),
-                      subtitle: Text(
-                        context.l10n.rosterShiftWindow(
-                          shift.window,
-                          rosterNumber(context, shift.hours),
-                        ),
-                      ),
-                      onTap: () => Navigator.of(context).pop(shift),
-                    );
-                  },
-                ),
-              ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BulkDayOffChoice {
-  const _BulkDayOffChoice({
-    required this.offType,
-    this.coveredBy,
-    this.coverShiftType,
-  });
-
-  final String offType;
-  final String? coveredBy;
-  final String? coverShiftType;
-}
-
-class _BulkDayOffForm extends StatefulWidget {
-  const _BulkDayOffForm({
-    required this.offTypes,
-    required this.colleagues,
-    required this.catalog,
-  });
-
-  final List<String> offTypes;
-  final List<RosterEmployee> colleagues;
-  final List<RosterShift> catalog;
-
-  @override
-  State<_BulkDayOffForm> createState() => _BulkDayOffFormState();
-}
-
-class _BulkDayOffFormState extends State<_BulkDayOffForm> {
-  late String _offType = widget.offTypes.isEmpty
-      ? 'Weekly Off'
-      : widget.offTypes.first;
-  String? _coveredBy;
-  String? _coverShiftType;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final needsCoverShift = _coveredBy != null && _coverShiftType == null;
-
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          top: 16,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.rosterBulkMarkOff,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _offType,
-                decoration: InputDecoration(
-                  labelText: l10n.rosterOffType,
-                  border: const OutlineInputBorder(),
-                ),
-                items: widget.offTypes
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                    .toList(),
-                onChanged: (value) =>
-                    setState(() => _offType = value ?? _offType),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String?>(
-                initialValue: _coveredBy,
-                decoration: InputDecoration(
-                  labelText: l10n.rosterCoveredBy,
-                  helperText: l10n.rosterCoverHelper,
-                  border: const OutlineInputBorder(),
-                ),
-                items: <DropdownMenuItem<String?>>[
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(l10n.rosterNobodyCovers),
-                  ),
-                  ...widget.colleagues.map(
-                    (e) => DropdownMenuItem<String?>(
-                      value: e.employee,
-                      child: Text(e.employeeName),
-                    ),
-                  ),
-                ],
-                onChanged: (value) => setState(() {
-                  _coveredBy = value;
-                  if (value == null) _coverShiftType = null;
-                }),
-              ),
-              if (_coveredBy != null) ...[
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: _coverShiftType,
-                  decoration: InputDecoration(
-                    labelText: l10n.rosterCoverShift,
-                    helperText: l10n.rosterCoverShiftHelper,
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: widget.catalog
-                      .map(
-                        (shift) => DropdownMenuItem(
-                          value: shift.shiftType,
-                          child: Text(shift.shiftType),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) =>
-                      setState(() => _coverShiftType = value),
-                ),
-              ],
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(l10n.commonCancel),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: needsCoverShift
-                          ? null
-                          : () => Navigator.of(context).pop(
-                              _BulkDayOffChoice(
-                                offType: _offType,
-                                coveredBy: _coveredBy,
-                                coverShiftType: _coverShiftType,
-                              ),
-                            ),
-                      child: Text(l10n.commonSave),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
         ),
       ),
     );
