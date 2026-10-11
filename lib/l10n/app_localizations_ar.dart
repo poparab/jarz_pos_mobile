@@ -16072,4 +16072,235 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dealEndsTonight =>
       'العرض هينتهي النهارده. من بكره العميل ده هيدفع السعر العادي.';
+
+  @override
+  String get followupsMenuTitle => 'المتابعات';
+
+  @override
+  String get followupsTitle => 'متابعات النهارده';
+
+  @override
+  String get followupsSummaryDue => 'مستحقة';
+
+  @override
+  String get followupsSummaryOverdue => 'متأخرة';
+
+  @override
+  String get followupsSummaryCalls => 'مكالمات';
+
+  @override
+  String get followupsSummaryMessages => 'رسايل';
+
+  @override
+  String get followupsSectionOverdue => 'متأخر';
+
+  @override
+  String get followupsSectionToday => 'النهارده';
+
+  @override
+  String get followupsEmpty => 'مفيش متابعات مستحقة دلوقتي.';
+
+  @override
+  String get followupsLoadFailed => 'مقدرناش نحمّل المتابعات';
+
+  @override
+  String get followupsStep3h => 'بعد ٣ ساعات';
+
+  @override
+  String followupsStepDay(String day) {
+    return 'اليوم $day';
+  }
+
+  @override
+  String get followupsChannelMessage => 'رسالة';
+
+  @override
+  String get followupsChannelCall => 'مكالمة';
+
+  @override
+  String get followupsCustomerNew => 'جديد';
+
+  @override
+  String get followupsCustomerRepeat => 'متكرر';
+
+  @override
+  String get followupsValueHigh => 'قيمة عالية ≥ ١٠٠٠';
+
+  @override
+  String get followupsValueLow => 'أقل من ١٠٠٠';
+
+  @override
+  String get followupsRegular => 'منتظم';
+
+  @override
+  String followupsWooOrder(String number) {
+    return 'أوردر #$number';
+  }
+
+  @override
+  String followupsLifetimeOrders(String count) {
+    return '$count أوردر';
+  }
+
+  @override
+  String followupsDueAt(String time) {
+    return 'معادها $time';
+  }
+
+  @override
+  String get followupsActionWhatsapp => 'واتساب';
+
+  @override
+  String get followupsActionCopy => 'انسخ الرسالة';
+
+  @override
+  String get followupsActionCall => 'اتصل';
+
+  @override
+  String get followupsActionLog => 'سجّل النتيجة';
+
+  @override
+  String get followupsActionSkip => 'تخطّي';
+
+  @override
+  String get followupsMessageCopied => 'الرسالة اتنسخت';
+
+  @override
+  String get followupsNoWhatsapp => 'مفيش رقم واتساب للعميل ده';
+
+  @override
+  String get followupsNoPhone => 'مفيش رقم تليفون للعميل ده';
+
+  @override
+  String get followupsLogTitle => 'سجّل نتيجة المتابعة';
+
+  @override
+  String get followupsReachedLabel => 'العميل ردّ؟';
+
+  @override
+  String get followupsReached => 'ردّ';
+
+  @override
+  String get followupsNotReached => 'مردّش';
+
+  @override
+  String get followupsReachedRequired => 'اختار العميل ردّ ولا لأ';
+
+  @override
+  String get followupsOutcomeLabel => 'النتيجة';
+
+  @override
+  String get followupsOutcomeRequired => 'اختار النتيجة';
+
+  @override
+  String get followupsOutcomeHappy => 'سعيد';
+
+  @override
+  String get followupsOutcomeQuality => 'شكوى جودة';
+
+  @override
+  String get followupsOutcomeDelivery => 'شكوى توصيل';
+
+  @override
+  String get followupsOutcomeNoReply => 'مردّش';
+
+  @override
+  String get followupsOutcomeOptedOut => 'مش عايز رسايل';
+
+  @override
+  String get followupsNotesHint => 'ملاحظات (اختياري)';
+
+  @override
+  String get followupsConfirmQualityTitle => 'تسجّل شكوى جودة؟';
+
+  @override
+  String get followupsConfirmQualityBody =>
+      'العميل ده هيخرج من دورة المتابعة، والشكوى هتروح لكريم.';
+
+  @override
+  String get followupsConfirmOptOutTitle => 'توقف الرسايل للعميل ده؟';
+
+  @override
+  String get followupsConfirmOptOutBody =>
+      'العميل ده هيخرج من دورة المتابعة ومش هيوصله رسايل متابعة تاني.';
+
+  @override
+  String get followupsLogged => 'النتيجة اتسجلت';
+
+  @override
+  String followupsEscalated(String task) {
+    return 'اتفتحت مهمة: $task';
+  }
+
+  @override
+  String get followupsApologyTitle => 'كود الاعتذار';
+
+  @override
+  String get followupsApologyBody => 'ابعت الكود ده للعميل:';
+
+  @override
+  String get followupsApologyCopy => 'انسخ الكود';
+
+  @override
+  String get followupsApologyCopied => 'الكود اتنسخ';
+
+  @override
+  String get followupsApologySend => 'ابعته على واتساب';
+
+  @override
+  String get followupsSkipTitle => 'تتخطّى المتابعة دي؟';
+
+  @override
+  String get followupsSkipReasonHint => 'السبب (اختياري)';
+
+  @override
+  String get followupsSkipped => 'المتابعة اتخطّت';
+
+  @override
+  String get followupsStatsAction => 'إحصائيات المتابعات';
+
+  @override
+  String get followupsStatsTitle => 'المتابعات: آخر ٧ أيام';
+
+  @override
+  String get followupsStatsCalls => 'مكالمات اتعملت';
+
+  @override
+  String get followupsStatsReached => 'مكالمات اتردّ عليها';
+
+  @override
+  String get followupsStatsReachRate => 'نسبة الرد';
+
+  @override
+  String get followupsStatsReordered => 'طلبوا تاني';
+
+  @override
+  String get followupsStatsByStatus => 'حسب الحالة';
+
+  @override
+  String get followupsStatsByOutcome => 'حسب النتيجة';
+
+  @override
+  String get followupsStatsEmpty => 'مفيش بيانات لسه';
+
+  @override
+  String get followupsStatusPending => 'مستنية';
+
+  @override
+  String get followupsStatusDone => 'اتعملت';
+
+  @override
+  String get followupsStatusSkipped => 'اتخطّت';
+
+  @override
+  String get followupsStatsTotal => 'إجمالي المتابعات';
+
+  @override
+  String get followupsStatsTouchedCustomers => 'عملاء اتعملهم متابعة';
+
+  @override
+  String get followupsStatsReorderRate => 'نسبة الطلب تاني';
+
+  @override
+  String get customerSegmentRegular => 'منتظمين';
 }

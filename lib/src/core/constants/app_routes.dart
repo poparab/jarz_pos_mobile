@@ -128,6 +128,10 @@ abstract final class AppRoutes {
   static const reportsSegments = '/reports/segments';
   static const reportsWarehouseAlignment = '/reports/warehouse-alignment';
 
+  // ── Customer follow-ups (reorder plan) ────────────────────────────────
+  // The sender's daily due list of WhatsApp / call touches after delivery.
+  static const followups = '/followups';
+
   // ── Credit accounts (B2B shops buying on account) ─────────────────────
   // The rolling-balance view: which shops owe money, their open invoices
   // oldest-first, and the payment that clears them FIFO. Manager-gated, like

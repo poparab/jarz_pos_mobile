@@ -115,7 +115,10 @@ class _Body extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final total = rows.fold<int>(0, (s, r) => s + r.count);
+    // Pseudo rows (e.g. "Regular") overlap the real segments; leave them out
+    // of the total or every regular customer is counted twice.
+    final total =
+        rows.where((r) => !r.pseudo).fold<int>(0, (s, r) => s + r.count);
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -213,6 +216,9 @@ _SegmentStyle _segmentStyle(String segment) {
       return const _SegmentStyle(Icons.person_off_outlined, Colors.redAccent);
     case 'one-time':
       return const _SegmentStyle(Icons.looks_one_outlined, Colors.blueGrey);
+    case 'regular':
+    case 'regulars':
+      return const _SegmentStyle(Icons.verified_outlined, Colors.deepPurple);
     default:
       return const _SegmentStyle(Icons.help_outline, Colors.grey);
   }

@@ -32,6 +32,7 @@ import '../../approvals/state/pending_approvals_provider.dart';
 import '../../tasks/state/tasks_providers.dart';
 import '../../credit/data/models/settlement_models.dart' show SettlementParty;
 import '../../credit/state/credit_providers.dart';
+import '../../followups/state/followups_providers.dart';
 
 /// Ceiling for the alert poll's backoff.
 ///
@@ -541,6 +542,15 @@ class OrderAlertBridge {
           _navigateToTask(data['task_id']?.toString());
         }
         break;
+      case 'followup_daily':
+        _logger.info('FCM follow-up digest: ${data['count'] ?? ''} due');
+        // The 12:00 digest of customer follow-ups due today. The tray entry is
+        // drawn by the SDK; an open list catches up, and a tap opens it.
+        _ref.invalidate(followupsTodayProvider);
+        if (openedApp) {
+          _navigateTo(AppRoutes.followups);
+        }
+        break;
       case 'settlement_reminder':
         _logger.info(
           'FCM settlement reminder: ${data['kind']} for ${data['customer']}',
@@ -697,6 +707,9 @@ class OrderAlertBridge {
     } else if (type == 'task_notification') {
       _refreshTasks(payload['task_id']);
       _navigateToTask(payload['task_id']);
+    } else if (type == 'followup_daily') {
+      _ref.invalidate(followupsTodayProvider);
+      _navigateTo(AppRoutes.followups);
     } else if (type == 'settlement_reminder') {
       _refreshSettlement(payload['customer']);
       _navigateToSettlement(payload['customer']);

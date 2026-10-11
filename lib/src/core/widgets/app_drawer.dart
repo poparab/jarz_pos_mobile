@@ -56,6 +56,7 @@ class AppDrawer extends ConsumerWidget {
     final canViewLiveCourierMap = ref.watch(canViewLiveCourierMapProvider);
     final canViewPricing = ref.watch(canViewPricingProvider);
     final canAccessBranchAccess = ref.watch(canAccessBranchAccessProvider);
+    final canAccessFollowups = ref.watch(canAccessFollowupsProvider);
     final canRaiseItemRequest = ref.watch(canRaiseItemRequestProvider);
     final canManageUsers = ref.watch(canManageUsersProvider);
     final canAccessProductionBoard =
@@ -430,6 +431,14 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuReports,
           onTap: () => navigate(AppRoutes.reports),
         ),
+      // The sender's daily follow-up list. `api/customer_followups.py`
+      // accepts the line-manager tier (managers and line managers).
+      if (canAccessFollowups)
+        navTile(
+          icon: Icons.support_agent_outlined,
+          title: l10n.followupsMenuTitle,
+          onTap: () => navigate(AppRoutes.followups),
+        ),
       // Gated on the OTHER app's `ROLES.OPERATOR`, which includes JARZ Manager
       // by the owner's decision, plus the dedicated `WooCommerce Sync Operator`
       // role for anyone who runs the sync without being a manager. The
@@ -561,6 +570,7 @@ class AppDrawer extends ConsumerWidget {
           AppRoutes.reportsExecutive,
           AppRoutes.reportsB2b,
           AppRoutes.reportsProfitLoss,
+          AppRoutes.followups,
           AppRoutes.wooSync,
           AppRoutes.users,
         ],

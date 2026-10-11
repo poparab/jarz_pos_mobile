@@ -373,6 +373,10 @@ String localizedCustomerSegment(BuildContext context, String? rawSegment) {
       return context.l10n.customerSegmentOneTime;
     case 'unclassified':
       return context.l10n.customerSegmentUnclassified;
+    // A pseudo-segment the summary adds on top of the RFM buckets.
+    case 'regular':
+    case 'regulars':
+      return context.l10n.customerSegmentRegular;
     default:
       return segment.isEmpty
           ? context.l10n.customerSegmentUnclassified

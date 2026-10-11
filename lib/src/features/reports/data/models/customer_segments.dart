@@ -1,20 +1,37 @@
 import 'report_json.dart';
 
 /// One row of `jarz_pos.api.segmentation.get_segment_summary` — a segment name
-/// (RFM bucket, or "Unclassified") and how many active customers hold it.
+/// (an RFM bucket) and how many active customers hold it.
+///
+/// The server also sends [pseudo] rows such as `{segment: "Regular", count,
+/// pseudo: 1}`: an overlay (customers flagged regular, whatever their RFM
+/// bucket), so their count overlaps the real segments and must not be added
+/// into a total. `export_segment("Regular")` still lists them.
 class SegmentSummaryRow {
   final String segment;
   final int count;
+  final bool pseudo;
 
-  const SegmentSummaryRow({required this.segment, required this.count});
+  const SegmentSummaryRow({
+    required this.segment,
+    required this.count,
+    this.pseudo = false,
+  });
 
   factory SegmentSummaryRow.fromJson(Map<String, dynamic> json) {
     final rawCount = json['count'];
+    final rawPseudo = json['pseudo'];
     return SegmentSummaryRow(
       segment: (json['segment'] ?? '').toString(),
       count: rawCount is num
           ? rawCount.toInt()
           : int.tryParse(rawCount?.toString() ?? '') ?? 0,
+      pseudo: rawPseudo is bool
+          ? rawPseudo
+          : rawPseudo is num
+              ? rawPseudo != 0
+              : const {'1', 'true'}
+                  .contains(rawPseudo?.toString().trim().toLowerCase()),
     );
   }
 }

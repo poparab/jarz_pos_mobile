@@ -334,6 +334,18 @@ class UserRoles {
   /// `branch_access.has_access` = `LINE_MANAGER_TIER` (no POS Manager).
   bool get canAccessBranchAccess => _isLineManagerTier;
 
+  /// Whether this user may work the customer follow-ups list (المتابعات).
+  /// Mirrors `api/customer_followups.py`'s gate, `ROLES.LINE_MANAGER_TIER`:
+  /// the senders are the managers and line managers.
+  bool get canAccessFollowups => _isLineManagerTier;
+
+  /// Whether this user may read follow-up stats. Narrower than the list:
+  /// `get_followup_stats` admits JARZ Manager and System Manager only.
+  bool get canViewFollowupStats =>
+      isJarzManager ||
+      roles.contains(RoleNames.systemManager) ||
+      roles.contains(RoleNames.administrator);
+
   /// Whether this user may raise an item request. Mirrors
   /// `ROLES.PURCHASE_REQUEST`, the widest gate in the app: every POS user is in
   /// it. A B2B-only rep is not, so the tile is hidden from them.
@@ -706,6 +718,14 @@ final canViewLiveCourierMapProvider =
 
 final canAccessBranchAccessProvider =
     Provider<bool>((ref) => _roleGate(ref, (r) => r.canAccessBranchAccess));
+
+/// Customer follow-ups (المتابعات). See [UserRoles.canAccessFollowups].
+final canAccessFollowupsProvider =
+    Provider<bool>((ref) => _roleGate(ref, (r) => r.canAccessFollowups));
+
+/// Follow-up stats link. See [UserRoles.canViewFollowupStats].
+final canViewFollowupStatsProvider =
+    Provider<bool>((ref) => _roleGate(ref, (r) => r.canViewFollowupStats));
 
 final canRaiseItemRequestProvider =
     Provider<bool>((ref) => _roleGate(ref, (r) => r.canRaiseItemRequest));

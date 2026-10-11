@@ -26392,6 +26392,444 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The deal ends tonight. From tomorrow this customer pays the normal price.'**
   String get dealEndsTonight;
+
+  /// No description provided for @followupsMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-ups'**
+  String get followupsMenuTitle;
+
+  /// No description provided for @followupsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-ups today'**
+  String get followupsTitle;
+
+  /// No description provided for @followupsSummaryDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get followupsSummaryDue;
+
+  /// No description provided for @followupsSummaryOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get followupsSummaryOverdue;
+
+  /// No description provided for @followupsSummaryCalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Calls'**
+  String get followupsSummaryCalls;
+
+  /// No description provided for @followupsSummaryMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get followupsSummaryMessages;
+
+  /// No description provided for @followupsSectionOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get followupsSectionOverdue;
+
+  /// No description provided for @followupsSectionToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get followupsSectionToday;
+
+  /// No description provided for @followupsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No follow-ups are due right now.'**
+  String get followupsEmpty;
+
+  /// No description provided for @followupsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the follow-ups'**
+  String get followupsLoadFailed;
+
+  /// No description provided for @followupsStep3h.
+  ///
+  /// In en, this message translates to:
+  /// **'After 3 hours'**
+  String get followupsStep3h;
+
+  /// No description provided for @followupsStepDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day}'**
+  String followupsStepDay(String day);
+
+  /// No description provided for @followupsChannelMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get followupsChannelMessage;
+
+  /// No description provided for @followupsChannelCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get followupsChannelCall;
+
+  /// No description provided for @followupsCustomerNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get followupsCustomerNew;
+
+  /// No description provided for @followupsCustomerRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get followupsCustomerRepeat;
+
+  /// No description provided for @followupsValueHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High value (≥ 1000)'**
+  String get followupsValueHigh;
+
+  /// No description provided for @followupsValueLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Under 1000'**
+  String get followupsValueLow;
+
+  /// No description provided for @followupsRegular.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular'**
+  String get followupsRegular;
+
+  /// No description provided for @followupsWooOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{number}'**
+  String followupsWooOrder(String number);
+
+  /// No description provided for @followupsLifetimeOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} orders'**
+  String followupsLifetimeOrders(String count);
+
+  /// No description provided for @followupsDueAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {time}'**
+  String followupsDueAt(String time);
+
+  /// No description provided for @followupsActionWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get followupsActionWhatsapp;
+
+  /// No description provided for @followupsActionCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy message'**
+  String get followupsActionCopy;
+
+  /// No description provided for @followupsActionCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get followupsActionCall;
+
+  /// No description provided for @followupsActionLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log result'**
+  String get followupsActionLog;
+
+  /// No description provided for @followupsActionSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get followupsActionSkip;
+
+  /// No description provided for @followupsMessageCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Message copied'**
+  String get followupsMessageCopied;
+
+  /// No description provided for @followupsNoWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'No WhatsApp number for this customer'**
+  String get followupsNoWhatsapp;
+
+  /// No description provided for @followupsNoPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'No phone number for this customer'**
+  String get followupsNoPhone;
+
+  /// No description provided for @followupsLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log the follow-up result'**
+  String get followupsLogTitle;
+
+  /// No description provided for @followupsReachedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Did the customer answer?'**
+  String get followupsReachedLabel;
+
+  /// No description provided for @followupsReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Reached'**
+  String get followupsReached;
+
+  /// No description provided for @followupsNotReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Not reached'**
+  String get followupsNotReached;
+
+  /// No description provided for @followupsReachedRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose whether the customer answered'**
+  String get followupsReachedRequired;
+
+  /// No description provided for @followupsOutcomeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Outcome'**
+  String get followupsOutcomeLabel;
+
+  /// No description provided for @followupsOutcomeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an outcome'**
+  String get followupsOutcomeRequired;
+
+  /// No description provided for @followupsOutcomeHappy.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy'**
+  String get followupsOutcomeHappy;
+
+  /// No description provided for @followupsOutcomeQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality complaint'**
+  String get followupsOutcomeQuality;
+
+  /// No description provided for @followupsOutcomeDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery complaint'**
+  String get followupsOutcomeDelivery;
+
+  /// No description provided for @followupsOutcomeNoReply.
+  ///
+  /// In en, this message translates to:
+  /// **'No reply'**
+  String get followupsOutcomeNoReply;
+
+  /// No description provided for @followupsOutcomeOptedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Wants no messages'**
+  String get followupsOutcomeOptedOut;
+
+  /// No description provided for @followupsNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get followupsNotesHint;
+
+  /// No description provided for @followupsConfirmQualityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a quality complaint?'**
+  String get followupsConfirmQualityTitle;
+
+  /// No description provided for @followupsConfirmQualityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This customer leaves the follow-up cycle, and the complaint goes to Karim.'**
+  String get followupsConfirmQualityBody;
+
+  /// No description provided for @followupsConfirmOptOutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop messaging this customer?'**
+  String get followupsConfirmOptOutTitle;
+
+  /// No description provided for @followupsConfirmOptOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This customer leaves the follow-up cycle and gets no more follow-up messages.'**
+  String get followupsConfirmOptOutBody;
+
+  /// No description provided for @followupsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Result saved'**
+  String get followupsLogged;
+
+  /// No description provided for @followupsEscalated.
+  ///
+  /// In en, this message translates to:
+  /// **'A task was opened: {task}'**
+  String followupsEscalated(String task);
+
+  /// No description provided for @followupsApologyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apology code'**
+  String get followupsApologyTitle;
+
+  /// No description provided for @followupsApologyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Send this code to the customer:'**
+  String get followupsApologyBody;
+
+  /// No description provided for @followupsApologyCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get followupsApologyCopy;
+
+  /// No description provided for @followupsApologyCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied'**
+  String get followupsApologyCopied;
+
+  /// No description provided for @followupsApologySend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send on WhatsApp'**
+  String get followupsApologySend;
+
+  /// No description provided for @followupsSkipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this follow-up?'**
+  String get followupsSkipTitle;
+
+  /// No description provided for @followupsSkipReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get followupsSkipReasonHint;
+
+  /// No description provided for @followupsSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up skipped'**
+  String get followupsSkipped;
+
+  /// No description provided for @followupsStatsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up stats'**
+  String get followupsStatsAction;
+
+  /// No description provided for @followupsStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-ups: last 7 days'**
+  String get followupsStatsTitle;
+
+  /// No description provided for @followupsStatsCalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Calls made'**
+  String get followupsStatsCalls;
+
+  /// No description provided for @followupsStatsReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Calls answered'**
+  String get followupsStatsReached;
+
+  /// No description provided for @followupsStatsReachRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer rate'**
+  String get followupsStatsReachRate;
+
+  /// No description provided for @followupsStatsReordered.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered again'**
+  String get followupsStatsReordered;
+
+  /// No description provided for @followupsStatsByStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'By status'**
+  String get followupsStatsByStatus;
+
+  /// No description provided for @followupsStatsByOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'By outcome'**
+  String get followupsStatsByOutcome;
+
+  /// No description provided for @followupsStatsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet'**
+  String get followupsStatsEmpty;
+
+  /// No description provided for @followupsStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get followupsStatusPending;
+
+  /// No description provided for @followupsStatusDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get followupsStatusDone;
+
+  /// No description provided for @followupsStatusSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get followupsStatusSkipped;
+
+  /// No description provided for @followupsStatsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-ups'**
+  String get followupsStatsTotal;
+
+  /// No description provided for @followupsStatsTouchedCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers followed up'**
+  String get followupsStatsTouchedCustomers;
+
+  /// No description provided for @followupsStatsReorderRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder rate'**
+  String get followupsStatsReorderRate;
+
+  /// No description provided for @customerSegmentRegular.
+  ///
+  /// In en, this message translates to:
+  /// **'Regulars'**
+  String get customerSegmentRegular;
 }
 
 class _AppLocalizationsDelegate

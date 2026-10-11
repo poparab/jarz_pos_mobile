@@ -16086,4 +16086,235 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dealEndsTonight =>
       'The deal ends tonight. From tomorrow this customer pays the normal price.';
+
+  @override
+  String get followupsMenuTitle => 'Follow-ups';
+
+  @override
+  String get followupsTitle => 'Follow-ups today';
+
+  @override
+  String get followupsSummaryDue => 'Due';
+
+  @override
+  String get followupsSummaryOverdue => 'Overdue';
+
+  @override
+  String get followupsSummaryCalls => 'Calls';
+
+  @override
+  String get followupsSummaryMessages => 'Messages';
+
+  @override
+  String get followupsSectionOverdue => 'Overdue';
+
+  @override
+  String get followupsSectionToday => 'Today';
+
+  @override
+  String get followupsEmpty => 'No follow-ups are due right now.';
+
+  @override
+  String get followupsLoadFailed => 'Could not load the follow-ups';
+
+  @override
+  String get followupsStep3h => 'After 3 hours';
+
+  @override
+  String followupsStepDay(String day) {
+    return 'Day $day';
+  }
+
+  @override
+  String get followupsChannelMessage => 'Message';
+
+  @override
+  String get followupsChannelCall => 'Call';
+
+  @override
+  String get followupsCustomerNew => 'New';
+
+  @override
+  String get followupsCustomerRepeat => 'Repeat';
+
+  @override
+  String get followupsValueHigh => 'High value (≥ 1000)';
+
+  @override
+  String get followupsValueLow => 'Under 1000';
+
+  @override
+  String get followupsRegular => 'Regular';
+
+  @override
+  String followupsWooOrder(String number) {
+    return 'Order #$number';
+  }
+
+  @override
+  String followupsLifetimeOrders(String count) {
+    return '$count orders';
+  }
+
+  @override
+  String followupsDueAt(String time) {
+    return 'Due $time';
+  }
+
+  @override
+  String get followupsActionWhatsapp => 'WhatsApp';
+
+  @override
+  String get followupsActionCopy => 'Copy message';
+
+  @override
+  String get followupsActionCall => 'Call';
+
+  @override
+  String get followupsActionLog => 'Log result';
+
+  @override
+  String get followupsActionSkip => 'Skip';
+
+  @override
+  String get followupsMessageCopied => 'Message copied';
+
+  @override
+  String get followupsNoWhatsapp => 'No WhatsApp number for this customer';
+
+  @override
+  String get followupsNoPhone => 'No phone number for this customer';
+
+  @override
+  String get followupsLogTitle => 'Log the follow-up result';
+
+  @override
+  String get followupsReachedLabel => 'Did the customer answer?';
+
+  @override
+  String get followupsReached => 'Reached';
+
+  @override
+  String get followupsNotReached => 'Not reached';
+
+  @override
+  String get followupsReachedRequired => 'Choose whether the customer answered';
+
+  @override
+  String get followupsOutcomeLabel => 'Outcome';
+
+  @override
+  String get followupsOutcomeRequired => 'Choose an outcome';
+
+  @override
+  String get followupsOutcomeHappy => 'Happy';
+
+  @override
+  String get followupsOutcomeQuality => 'Quality complaint';
+
+  @override
+  String get followupsOutcomeDelivery => 'Delivery complaint';
+
+  @override
+  String get followupsOutcomeNoReply => 'No reply';
+
+  @override
+  String get followupsOutcomeOptedOut => 'Wants no messages';
+
+  @override
+  String get followupsNotesHint => 'Notes (optional)';
+
+  @override
+  String get followupsConfirmQualityTitle => 'Log a quality complaint?';
+
+  @override
+  String get followupsConfirmQualityBody =>
+      'This customer leaves the follow-up cycle, and the complaint goes to Karim.';
+
+  @override
+  String get followupsConfirmOptOutTitle => 'Stop messaging this customer?';
+
+  @override
+  String get followupsConfirmOptOutBody =>
+      'This customer leaves the follow-up cycle and gets no more follow-up messages.';
+
+  @override
+  String get followupsLogged => 'Result saved';
+
+  @override
+  String followupsEscalated(String task) {
+    return 'A task was opened: $task';
+  }
+
+  @override
+  String get followupsApologyTitle => 'Apology code';
+
+  @override
+  String get followupsApologyBody => 'Send this code to the customer:';
+
+  @override
+  String get followupsApologyCopy => 'Copy code';
+
+  @override
+  String get followupsApologyCopied => 'Code copied';
+
+  @override
+  String get followupsApologySend => 'Send on WhatsApp';
+
+  @override
+  String get followupsSkipTitle => 'Skip this follow-up?';
+
+  @override
+  String get followupsSkipReasonHint => 'Reason (optional)';
+
+  @override
+  String get followupsSkipped => 'Follow-up skipped';
+
+  @override
+  String get followupsStatsAction => 'Follow-up stats';
+
+  @override
+  String get followupsStatsTitle => 'Follow-ups: last 7 days';
+
+  @override
+  String get followupsStatsCalls => 'Calls made';
+
+  @override
+  String get followupsStatsReached => 'Calls answered';
+
+  @override
+  String get followupsStatsReachRate => 'Answer rate';
+
+  @override
+  String get followupsStatsReordered => 'Ordered again';
+
+  @override
+  String get followupsStatsByStatus => 'By status';
+
+  @override
+  String get followupsStatsByOutcome => 'By outcome';
+
+  @override
+  String get followupsStatsEmpty => 'No data yet';
+
+  @override
+  String get followupsStatusPending => 'Pending';
+
+  @override
+  String get followupsStatusDone => 'Done';
+
+  @override
+  String get followupsStatusSkipped => 'Skipped';
+
+  @override
+  String get followupsStatsTotal => 'Follow-ups';
+
+  @override
+  String get followupsStatsTouchedCustomers => 'Customers followed up';
+
+  @override
+  String get followupsStatsReorderRate => 'Reorder rate';
+
+  @override
+  String get customerSegmentRegular => 'Regulars';
 }

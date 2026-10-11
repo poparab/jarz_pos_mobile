@@ -886,6 +886,16 @@ abstract final class ApiEndpoints {
   static const segmentRunNow =
       '/api/method/jarz_pos.api.segmentation.run_segmentation_now';
 
+  // ── Customer follow-ups (reorder plan touches) ────────────────────────
+  static const followupsToday =
+      '/api/method/jarz_pos.api.customer_followups.get_followups_today';
+  static const followupLogTouch =
+      '/api/method/jarz_pos.api.customer_followups.log_touch';
+  static const followupSkipTouch =
+      '/api/method/jarz_pos.api.customer_followups.skip_touch';
+  static const followupStats =
+      '/api/method/jarz_pos.api.customer_followups.get_followup_stats';
+
   // ── Warehouse alignment watchlist (read-only) ─────────────────────────
   // Submitted invoices whose item warehouses disagree with their branch —
   // the drift that is upstream of the recurring negative-bin recounts.

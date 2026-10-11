@@ -81,6 +81,34 @@ void main() {
     expect(find.byIcon(Icons.autorenew), findsOneWidget);
   });
 
+  testWidgets('Regular pseudo row is labelled and left out of the total',
+      (tester) async {
+    await _pump(
+      tester,
+      [
+        const SegmentSummaryRow(segment: 'Champion', count: 12),
+        const SegmentSummaryRow(segment: 'Loyal', count: 30),
+        SegmentSummaryRow.fromJson(
+          const {'segment': 'Regular', 'count': 7, 'pseudo': 1},
+        ),
+      ],
+      customers: [
+        {
+          'customer_id': 'CUST-9',
+          'customer_name': 'Regular Joe',
+          'customer_segment': 'Loyal',
+        },
+      ],
+    );
+
+    expect(find.text('Regulars'), findsOneWidget);
+    expect(find.text('42'), findsOneWidget);
+
+    await tester.tap(find.text('Regulars'));
+    await tester.pumpAndSettle();
+    expect(find.text('Regular Joe'), findsOneWidget);
+  });
+
   testWidgets('tapping a segment drills into its customer list',
       (tester) async {
     await _pump(

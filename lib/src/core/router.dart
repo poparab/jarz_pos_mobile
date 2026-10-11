@@ -39,6 +39,7 @@ import '../features/geo/presentation/screens/address_pin_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
 import '../features/partner_settlements/presentation/partner_settlements_screen.dart';
 import '../features/reports/presentation/screens/customer_segments_screen.dart';
+import '../features/followups/presentation/screens/followups_screen.dart';
 import '../features/reports/presentation/screens/velocity_alerts_screen.dart';
 import '../features/reports/presentation/screens/warehouse_alignment_screen.dart';
 import '../features/reports/presentation/screens/profit_and_loss_screen.dart';
@@ -607,6 +608,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'reports-segments',
         builder: (context, state) =>
             const PhoneLandscapeScope(child: CustomerSegmentsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.followups,
+        name: 'followups',
+        builder: (context, state) => const FollowupsScreen(),
       ),
       GoRoute(
         path: AppRoutes.reportsWarehouseAlignment,
