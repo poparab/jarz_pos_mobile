@@ -184,6 +184,13 @@ class InvoiceCard {
   /// `location_link`: a Google Maps URL for the pin (or a legacy pasted Maps
   /// link). Absent on older backends; blank collapses to null.
   final String? locationLink;
+  /// `pin_source`: where the pin came from (`prefill`, `customer_checkout`,
+  /// `jarz_checkout`, `maps_link`, ...). Empty when absent or unknown.
+  final String pinSource;
+  /// `pin_flag`: comma-separated warning tokens from the backend
+  /// (`outside_area`, `area_mismatch`, `outside_egypt`). Empty when clean or
+  /// absent. Can be non-empty with no usable pin (`outside_egypt` drops it).
+  final String pinFlag;
 
   // ── Delivery outcome (courier lane M2) ────────────────────────────────
   // The four `custom_delivery_*` / `custom_delivered_at` fields COURIER_CONTRACTS
@@ -292,6 +299,8 @@ class InvoiceCard {
     this.geoConfidence,
     this.hasLocationPinFlag,
     this.locationLink,
+    this.pinSource = '',
+    this.pinFlag = '',
     this.deliveredAt,
     this.deliveryFailureReason,
     this.deliveryAttemptNo,
@@ -471,6 +480,8 @@ class InvoiceCard {
       ),
       hasLocationPinFlag: _parseFlag(json['has_location_pin']),
       locationLink: _nonEmpty(json['location_link']),
+      pinSource: _nonEmpty(json['pin_source']) ?? '',
+      pinFlag: _nonEmpty(json['pin_flag']) ?? '',
       // Both the flat alias and the raw `custom_*` fieldname are read, the same
       // way the geo block above does: the Kanban query may project either, and a
       // rename on one side must not silently blank the run progress.
@@ -589,6 +600,8 @@ class InvoiceCard {
       'geo_confidence': geoConfidence,
       'has_location_pin': hasLocationPinFlag,
       'location_link': locationLink,
+      'pin_source': pinSource,
+      'pin_flag': pinFlag,
       'delivered_at': deliveredAt,
       'delivery_failure_reason': deliveryFailureReason,
       'delivery_attempt_no': deliveryAttemptNo,
@@ -673,6 +686,8 @@ class InvoiceCard {
   int? geoConfidence,
   bool? hasLocationPinFlag,
   String? locationLink,
+  String? pinSource,
+  String? pinFlag,
   String? deliveredAt,
   String? deliveryFailureReason,
   int? deliveryAttemptNo,
@@ -756,6 +771,8 @@ class InvoiceCard {
       geoConfidence: geoConfidence ?? this.geoConfidence,
       hasLocationPinFlag: hasLocationPinFlag ?? this.hasLocationPinFlag,
       locationLink: locationLink ?? this.locationLink,
+      pinSource: pinSource ?? this.pinSource,
+      pinFlag: pinFlag ?? this.pinFlag,
       deliveredAt: deliveredAt ?? this.deliveredAt,
       deliveryFailureReason: clearDeliveryFailureReason
           ? null
@@ -903,6 +920,25 @@ class InvoiceCard {
     if (lat == 0 && lng == 0) return false;
     return lat.abs() <= 90 && lng.abs() <= 180;
   }
+
+  /// Known `pin_flag` tokens.
+  static const pinFlagOutsideArea = 'outside_area';
+  static const pinFlagAreaMismatch = 'area_mismatch';
+  static const pinFlagOutsideEgypt = 'outside_egypt';
+
+  /// [pinFlag] split into its trimmed, non-empty, de-duplicated tokens.
+  List<String> get pinFlags {
+    final seen = <String>{};
+    return [
+      for (final raw in pinFlag.split(','))
+        if (raw.trim().toLowerCase().isNotEmpty &&
+            seen.add(raw.trim().toLowerCase()))
+          raw.trim().toLowerCase(),
+    ];
+  }
+
+  /// The backend flagged the pin as suspicious (or dropped it as unusable).
+  bool get hasPinWarning => pinFlags.isNotEmpty;
 
   /// Where tapping the pin badge should navigate: the backend's
   /// [locationLink] when it sent one, else a Maps search URL built from the

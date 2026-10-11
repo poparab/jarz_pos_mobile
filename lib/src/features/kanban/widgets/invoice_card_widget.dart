@@ -3100,34 +3100,55 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
   /// the tree-shaken MaterialIcons font changes an asset, which makes the
   /// Shorebird production patch fail with UnpatchableChangeException and forces
   /// a full APK install for everyone.
+  ///
+  /// When the backend flags the pin ([InvoiceCard.hasPinWarning]) the chip
+  /// turns amber with the `wrong_location_outlined` glyph (already in the font
+  /// via the attendance screens, so still patchable) and the tooltip explains
+  /// each flag. With no Maps URL a warning chip's tap only reveals that
+  /// tooltip; long-press still opens the address editor.
   Widget _buildLocationPinBadge(bool transitioning) {
     final invoice = widget.invoice;
     final pinned = invoice.hasLocationPin;
+    final warning = invoice.hasPinWarning;
 
-    final color = pinned ? Colors.green[700]! : Colors.orange[800]!;
+    final color = warning
+        ? Colors.amber[900]!
+        : (pinned ? Colors.green[700]! : Colors.orange[800]!);
     final label = pinned
         ? context.l10n.kanbanPinBadgePinned
         : context.l10n.kanbanPinBadgeMissing;
-    final tooltip = pinned
-        ? context.l10n.kanbanPinBadgePinnedTooltip
-        : context.l10n.kanbanPinBadgeMissingTooltip;
+    final tooltip = warning
+        ? _pinWarningMessage(invoice.pinFlags)
+        : pinned
+            ? context.l10n.kanbanPinBadgePinnedTooltip
+            : context.l10n.kanbanPinBadgeMissingTooltip;
+    final icon = warning
+        ? Icons.wrong_location_outlined
+        : (pinned ? Icons.location_on : Icons.location_searching);
 
     // With a Maps URL, tap navigates and long-press edits the address. The
     // tooltip's own long-press trigger is switched off in that case so it
-    // cannot compete with the edit gesture.
+    // cannot compete with the edit gesture. A warning chip without a Maps URL
+    // shows its tooltip on tap (nothing to navigate to) and edits on
+    // long-press.
     final mapsUrl = invoice.mapsUrl;
     final hasMapsUrl = mapsUrl != null;
+    final warningOnly = warning && !hasMapsUrl;
 
     return Tooltip(
+      key: _pinTooltipKey,
       message: tooltip,
-      triggerMode: hasMapsUrl ? TooltipTriggerMode.manual : null,
+      triggerMode:
+          hasMapsUrl || warningOnly ? TooltipTriggerMode.manual : null,
       child: GestureDetector(
         onTap: transitioning
             ? null
             : hasMapsUrl
                 ? () => _openMapsUrl(mapsUrl)
-                : () => _editCustomerAddress(context),
-        onLongPress: transitioning || !hasMapsUrl
+                : warningOnly
+                    ? () => _pinTooltipKey.currentState?.ensureTooltipVisible()
+                    : () => _editCustomerAddress(context),
+        onLongPress: transitioning || !(hasMapsUrl || warningOnly)
             ? null
             : () => _editCustomerAddress(context),
         child: Container(
@@ -3141,7 +3162,7 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                pinned ? Icons.location_on : Icons.location_searching,
+                icon,
                 size: 11,
                 color: color,
               ),
@@ -3159,6 +3180,36 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ),
       ),
     );
+  }
+
+  final GlobalKey<TooltipState> _pinTooltipKey = GlobalKey<TooltipState>();
+
+  /// Human text for the backend's `pin_flag` tokens, one line per flag.
+  ///
+  /// Inline Arabic/English rather than new `.arb` keys: an `.arb` edit forces a
+  /// full APK, and this has to ship as a Shorebird patch.
+  String _pinWarningMessage(List<String> flags) {
+    final arabic = Localizations.localeOf(context).languageCode == 'ar';
+    String describe(String flag) {
+      switch (flag) {
+        case InvoiceCard.pinFlagOutsideArea:
+          return arabic
+              ? 'الدبوس خارج منطقة التوصيل المختارة'
+              : 'Pin outside the chosen delivery area';
+        case InvoiceCard.pinFlagAreaMismatch:
+          return arabic
+              ? 'الدبوس لا يطابق المنطقة المختارة'
+              : "Pin doesn't match the chosen area";
+        case InvoiceCard.pinFlagOutsideEgypt:
+          return arabic
+              ? 'الدبوس خارج مصر — تم تجاهل الموقع'
+              : 'Pin is outside Egypt — location ignored';
+        default:
+          return arabic ? 'تحذير على الدبوس: $flag' : 'Pin warning: $flag';
+      }
+    }
+
+    return flags.map(describe).join('\n');
   }
 
   /// Opens the pin in the Google Maps app (or the browser). A failed launch is

@@ -64,6 +64,9 @@ InvoiceCard _card({
   double? longitude,
   bool isPickup = false,
   bool? hasLocationPinFlag,
+  String pinFlag = '',
+  String pinSource = '',
+  String? locationLink,
 }) {
   return InvoiceCard(
     id: 'ACC-SINV-2026-00042',
@@ -84,6 +87,9 @@ InvoiceCard _card({
     addressLatitude: latitude,
     addressLongitude: longitude,
     hasLocationPinFlag: hasLocationPinFlag,
+    pinFlag: pinFlag,
+    pinSource: pinSource,
+    locationLink: locationLink,
   );
 }
 
@@ -91,6 +97,7 @@ Future<void> _pumpCard(
   WidgetTester tester,
   InvoiceCard invoice, {
   _FakeKanbanService? service,
+  Locale locale = const Locale('en'),
 }) async {
   tester.view.physicalSize = const Size(800, 1400);
   tester.view.devicePixelRatio = 1.0;
@@ -110,7 +117,7 @@ Future<void> _pumpCard(
             .overrideWithValue(_FakeAddressRepository()),
       ],
       child: MaterialApp(
-        locale: const Locale('en'),
+        locale: locale,
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
@@ -302,6 +309,52 @@ void main() {
       }
     });
 
+    test('missing pin_source / pin_flag keys read as empty', () {
+      final legacy = InvoiceCard.fromJson({
+        'name': 'ACC-SINV-2026-00042',
+        'status': 'Ready',
+        'posting_date': '2026-08-05',
+        'grand_total': 450,
+        'items': const [],
+      });
+      expect(legacy.pinSource, '');
+      expect(legacy.pinFlag, '');
+      expect(legacy.pinFlags, isEmpty);
+      expect(legacy.hasPinWarning, isFalse);
+
+      final nulls = InvoiceCard.fromJson({
+        'name': 'ACC-SINV-2026-00042',
+        'status': 'Ready',
+        'posting_date': '2026-08-05',
+        'grand_total': 450,
+        'items': const [],
+        'pin_source': null,
+        'pin_flag': null,
+      });
+      expect(nulls.pinSource, '');
+      expect(nulls.pinFlag, '');
+      expect(nulls.hasPinWarning, isFalse);
+    });
+
+    test('parses pin_source and comma-separated pin_flag', () {
+      final card = InvoiceCard.fromJson({
+        'name': 'ACC-SINV-2026-00042',
+        'status': 'Ready',
+        'posting_date': '2026-08-05',
+        'grand_total': 450,
+        'items': const [],
+        'pin_source': 'customer_checkout',
+        'pin_flag': 'outside_area, area_mismatch,,',
+      });
+      expect(card.pinSource, 'customer_checkout');
+      expect(card.pinFlags, ['outside_area', 'area_mismatch']);
+      expect(card.hasPinWarning, isTrue);
+
+      final restored = InvoiceCard.fromJson(card.toJson());
+      expect(restored.pinSource, 'customer_checkout');
+      expect(restored.pinFlags, ['outside_area', 'area_mismatch']);
+    });
+
     test('it stays up while the order is still in flight', () {
       for (final status in const [
         'Recieved',
@@ -374,6 +427,109 @@ void main() {
       await tester.tap(find.text('No map pin'));
       await tester.pump();
 
+      expect(launched, isEmpty);
+      expect(service.addressBookLoads, 1);
+      await tester.pump(const Duration(seconds: 5));
+    });
+
+    const flagText = {
+      'outside_area': 'Pin outside the chosen delivery area',
+      'area_mismatch': "Pin doesn't match the chosen area",
+      'outside_egypt': 'Pin is outside Egypt — location ignored',
+    };
+
+    Color badgeColor(WidgetTester tester, String label) =>
+        tester.widget<Text>(find.text(label)).style!.color!;
+
+    Tooltip badgeTooltip(WidgetTester tester, Finder inner) =>
+        tester.widget<Tooltip>(
+          find.ancestor(of: inner, matching: find.byType(Tooltip)).first,
+        );
+
+    for (final entry in flagText.entries) {
+      testWidgets('warning badge for ${entry.key}', (tester) async {
+        await _pumpCard(
+          tester,
+          _card(
+            latitude: 30.0444,
+            longitude: 31.2357,
+            pinFlag: entry.key,
+          ),
+        );
+
+        expect(find.text('Pinned'), findsOneWidget);
+        expect(find.byIcon(Icons.wrong_location_outlined), findsOneWidget);
+        expect(badgeColor(tester, 'Pinned'), Colors.amber[900]);
+        expect(badgeTooltip(tester, find.text('Pinned')).message, entry.value);
+        expect(tester.takeException(), isNull);
+      });
+    }
+
+    testWidgets('multiple flags join with a newline', (tester) async {
+      await _pumpCard(
+        tester,
+        _card(
+          latitude: 30.0444,
+          longitude: 31.2357,
+          pinFlag: 'outside_area,area_mismatch',
+        ),
+      );
+      expect(
+        badgeTooltip(tester, find.text('Pinned')).message,
+        'Pin outside the chosen delivery area\n'
+        "Pin doesn't match the chosen area",
+      );
+    });
+
+    testWidgets('Arabic locale uses the Arabic flag text', (tester) async {
+      await _pumpCard(
+        tester,
+        _card(pinFlag: 'outside_egypt'),
+        locale: const Locale('ar'),
+      );
+      expect(
+        badgeTooltip(tester, find.byIcon(Icons.wrong_location_outlined))
+            .message,
+        'الدبوس خارج مصر — تم تجاهل الموقع',
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('an empty flag leaves the badge unchanged', (tester) async {
+      await _pumpCard(tester, _card(latitude: 30.0444, longitude: 31.2357));
+
+      expect(find.byIcon(Icons.wrong_location_outlined), findsNothing);
+      expect(badgeColor(tester, 'Pinned'), Colors.green[700]);
+      expect(
+        badgeTooltip(tester, find.text('Pinned')).message,
+        isNot(contains('Pin outside')),
+      );
+    });
+
+    testWidgets(
+        'a flag with no pin still renders a warning badge; tap only shows '
+        'the tooltip, long-press edits the address', (tester) async {
+      final launched = _mockUrlLauncher(tester);
+      final service = _FakeKanbanService();
+      await _pumpCard(tester, _card(pinFlag: 'outside_egypt'),
+          service: service);
+
+      expect(find.text('No map pin'), findsOneWidget);
+      expect(find.byIcon(Icons.wrong_location_outlined), findsOneWidget);
+      expect(badgeColor(tester, 'No map pin'), Colors.amber[900]);
+
+      await tester.tap(find.text('No map pin'));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(launched, isEmpty);
+      expect(service.addressBookLoads, 0);
+      expect(
+        find.text('Pin is outside Egypt — location ignored'),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 3));
+
+      await tester.longPress(find.text('No map pin'));
+      await tester.pump();
       expect(launched, isEmpty);
       expect(service.addressBookLoads, 1);
       await tester.pump(const Duration(seconds: 5));
