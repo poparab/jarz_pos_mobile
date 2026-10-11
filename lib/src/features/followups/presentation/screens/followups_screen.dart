@@ -161,7 +161,9 @@ class _FollowupsScreenState extends ConsumerState<FollowupsScreen> {
       ),
     );
     final reason = reasonCtrl.text;
-    reasonCtrl.dispose();
+    // The dialog's TextField is still mounted during the exit animation, so
+    // dispose only once the route transition is surely over.
+    Future<void>.delayed(const Duration(seconds: 1), reasonCtrl.dispose);
     if (confirmed != true || !mounted) return;
 
     setState(() => _busy.add(row.name));
