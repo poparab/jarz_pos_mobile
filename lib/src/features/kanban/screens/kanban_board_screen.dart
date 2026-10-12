@@ -740,6 +740,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
       );
     }
 
+    // In Progress (or a legacy Ready column from an older backend) is where
+    // orders are multi-selected and grouped into delivery trips.
+    final tripStagingColumnId = tripStagingKanbanColumn(kanbanState.columns)?.id;
+
     final board = Stack(
       children: [
         ScrollConfiguration(
@@ -770,7 +774,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                             Builder(
                               builder: (context) {
                                 final invoices = kanbanState.invoices[column.id] ?? const <InvoiceCard>[];
-                                final isReady = _isReadyColumn(column);
+                                final isTripStaging =
+                                    tripStagingColumnId != null && column.id == tripStagingColumnId;
                                 final isOFD = _isOutForDeliveryColumn(column);
                                 return Container(
                                   width: columnWidth,
@@ -785,7 +790,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                     onMobileMoveRequested: ResponsiveUtils.isPhone(context)
                                       ? (invoice, fromColumnId) => _showMobileMoveSheet(invoice, fromColumnId)
                                       : null,
-                                    headerAction: isReady
+                                    headerAction: isTripStaging
                                         ? IconButton(
                                             tooltip: tripState.multiSelectActive
                                                 ? context.l10n.kanbanExitSelection
@@ -799,15 +804,16 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                             },
                                           )
                                         : null,
-                                    selectionMode: isReady && tripState.multiSelectActive,
-                                    selectedInvoiceIds: isReady ? tripState.selectedInvoiceIds : const <String>{},
-                                    onToggleInvoiceSelection: isReady
+                                    selectionMode: isTripStaging && tripState.multiSelectActive,
+                                    selectedInvoiceIds: isTripStaging ? tripState.selectedInvoiceIds : const <String>{},
+                                    onToggleInvoiceSelection: isTripStaging
                                         ? (id) => ref.read(tripProvider.notifier).toggleInvoiceSelection(id)
                                         : null,
                                     customListBuilder: isOFD
                                         ? (ctx, ofdInvoices) => _buildOFDTripGroupedList(ofdInvoices, tripState)
-                                        : (isReady && !tripState.multiSelectActive)
-                                            ? (ctx, readyInvoices) => _buildReadyTripGroupedList(readyInvoices, tripState)
+                                        : (isTripStaging && !tripState.multiSelectActive)
+                                            ? (ctx, stagingInvoices) =>
+                                                _buildTripStagingGroupedList(stagingInvoices, tripState, column.id)
                                             : null,
                                   ),
                                 );
@@ -962,16 +968,18 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     );
   }
 
-  Widget _buildReadyTripGroupedList(List<InvoiceCard> invoices, TripState tripState) {
+  /// Trip-staging column (In Progress, or legacy Ready): orders already
+  /// batched into a trip render as a [TripGroupCard] with "Send for Delivery";
+  /// the rest stay ordinary draggable cards. [columnId] is the column's own id,
+  /// used as the drag source.
+  Widget _buildTripStagingGroupedList(
+    List<InvoiceCard> invoices,
+    TripState tripState,
+    String columnId,
+  ) {
     if (invoices.isEmpty) {
       return Center(child: Text(context.l10n.kanbanNoInvoices));
     }
-
-    // Find the Ready column id for drag data
-    final readyColumnId = ref.read(kanbanProvider).columns
-        .where(_isReadyColumn)
-        .map((c) => c.id)
-        .firstOrNull ?? 'ready';
 
     final grouped = <String, List<InvoiceCard>>{};
     final nonTrip = <InvoiceCard>[];
@@ -985,7 +993,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     }
 
     // If no trip groups, skip custom rendering so default drag/drop works
-    if (grouped.isEmpty) return _buildDefaultDraggableList(nonTrip, readyColumnId);
+    if (grouped.isEmpty) return _buildDefaultDraggableList(nonTrip, columnId);
 
     String courierLabelFor(String tripName) {
       for (final t in tripState.trips) {
@@ -1026,7 +1034,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         for (final inv in nonTrip)
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
-            child: _buildDraggableInvoiceCard(inv, readyColumnId),
+            child: _buildDraggableInvoiceCard(inv, columnId),
           ),
       ],
     );
@@ -1106,7 +1114,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
   }
 
   Widget _buildTripSelectionBar(KanbanState kanbanState, TripState tripState) {
-    final selectedInvoices = _selectedReadyInvoices(kanbanState, tripState.selectedInvoiceIds);
+    final selectedInvoices = _selectedTripStagingInvoices(kanbanState, tripState.selectedInvoiceIds);
     return Positioned(
       left: 16,
       right: 16,
@@ -1141,23 +1149,11 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
     );
   }
 
-  List<InvoiceCard> _selectedReadyInvoices(KanbanState kanbanState, Set<String> selectedIds) {
-    KanbanColumn? readyColumn;
-    for (final col in kanbanState.columns) {
-      if (_isReadyColumn(col)) {
-        readyColumn = col;
-        break;
-      }
-    }
-    if (readyColumn == null) return const <InvoiceCard>[];
-    final readyInvoices = kanbanState.invoices[readyColumn.id] ?? const <InvoiceCard>[];
-    return readyInvoices.where((inv) => selectedIds.contains(inv.id)).toList();
-  }
-
-  bool _isReadyColumn(KanbanColumn column) {
-    final id = column.id.trim().toLowerCase().replaceAll(' ', '_');
-    final name = column.name.trim().toLowerCase().replaceAll(' ', '_');
-    return id == 'ready' || name == 'ready';
+  List<InvoiceCard> _selectedTripStagingInvoices(KanbanState kanbanState, Set<String> selectedIds) {
+    final stagingColumn = tripStagingKanbanColumn(kanbanState.columns);
+    if (stagingColumn == null) return const <InvoiceCard>[];
+    final stagingInvoices = kanbanState.invoices[stagingColumn.id] ?? const <InvoiceCard>[];
+    return stagingInvoices.where((inv) => selectedIds.contains(inv.id)).toList();
   }
 
   bool _isOutForDeliveryColumn(KanbanColumn column) {
@@ -2400,11 +2396,31 @@ bool isInProgressKanbanColumn(KanbanColumn column) {
   return matches(column.id) || matches(column.name);
 }
 
-/// True when [column] is the "Ready" column.
+/// True when [column] is the legacy "Ready" column.
+///
+/// The backend dropped the Ready stage on 2026-10-13; this only matters while
+/// an older server still sends it during the rollout.
 bool isReadyKanbanColumn(KanbanColumn column) {
   bool matches(String value) => value.trim().toLowerCase() == 'ready';
 
   return matches(column.id) || matches(column.name);
+}
+
+/// The column where staff multi-select orders and batch them into a delivery
+/// trip, before the trip is sent out for delivery.
+///
+/// That is In Progress, the stage right before Out for Delivery. While an
+/// older backend still sends a legacy Ready column, Ready keeps the role it
+/// always had so the board behaves exactly as before. Returns null when the
+/// board has neither column.
+KanbanColumn? tripStagingKanbanColumn(List<KanbanColumn> columns) {
+  for (final column in columns) {
+    if (isReadyKanbanColumn(column)) return column;
+  }
+  for (final column in columns) {
+    if (isInProgressKanbanColumn(column)) return column;
+  }
+  return null;
 }
 
 /// Pure move-validation for the kanban board. Returns null when the move is
@@ -2424,7 +2440,7 @@ bool isReadyKanbanColumn(KanbanColumn column) {
 ///  5. -> Returned          -> ALWAYS blocked, any direction. Reaching Returned
 ///     means a credit note was posted; only the card's "Return Order" action
 ///     can do that. Same ordering reasoning as Cancelled.
-///  6. backward             -> not allowed, except Ready -> In Progress
+///  6. backward             -> never allowed
 ///  7. forward > 1 stage    -> one stage at a time
 ///
 /// [isPickupLookup] is called lazily, only when the target is the settlement
@@ -2488,17 +2504,11 @@ CardMoveBlockReason? evaluateCardMoveBlock({
     return CardMoveBlockReason.returnViaMenuOnly;
   }
 
+  // Orders never move backward, with no exceptions (owner decision
+  // 2026-10-13). The old Ready -> In Progress kitchen-correction carve-out went
+  // away together with the Ready stage itself.
   if (toIndex < fromIndex) {
-    // Kitchen correction: an order marked Ready too early goes back to In
-    // Progress. It is the ONLY backward move the board allows — neither state
-    // has a side effect (stock only moves on dispatch, money only on
-    // settlement), so walking back between them costs nothing to undo.
-    final isReadyToInProgress = isReadyKanbanColumn(columns[fromIndex]) &&
-        isInProgressKanbanColumn(targetColumn);
-    if (!isReadyToInProgress) {
-      return CardMoveBlockReason.cannotMoveBackward;
-    }
-    return null;
+    return CardMoveBlockReason.cannotMoveBackward;
   }
 
   if (toIndex - fromIndex > 1) {

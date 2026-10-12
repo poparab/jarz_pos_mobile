@@ -3,17 +3,25 @@ import 'package:jarz_pos/src/features/kanban/models/kanban_models.dart';
 import 'package:jarz_pos/src/features/kanban/screens/kanban_board_screen.dart';
 
 void main() {
-  // Mirrors the real board ordering: Cancelled sits mid-board, so moves into it
-  // can be forward, backward or adjacent depending on the source column.
+  // Mirrors the live board since the Ready stage was removed (2026-10-13):
+  // Received -> In Progress -> Out for Delivery, then settlement, with the
+  // terminal Cancelled and Returned columns at the end.
   final columns = [
     KanbanColumn(id: 'received', name: 'Received', color: '#FFF'),
-    KanbanColumn(id: 'processing', name: 'Processing', color: '#EEE'),
+    KanbanColumn(id: 'in_progress', name: 'In Progress', color: '#EEE'),
+    KanbanColumn(id: 'out_for_delivery', name: 'Out For Delivery', color: '#DDD'),
+    KanbanColumn(id: 'courier_settlement', name: 'Courier Settlement', color: '#CCC'),
+    KanbanColumn(id: 'cancelled', name: 'Cancelled', color: '#BBB'),
+    // Terminal Returned column, last on the board.
+    KanbanColumn(id: 'returned', name: 'Returned', color: '#AAA'),
+  ];
+
+  // Cancelled sitting mid-board, so a move into it can be backward too.
+  final cancelMidBoard = [
+    KanbanColumn(id: 'received', name: 'Received', color: '#FFF'),
+    KanbanColumn(id: 'in_progress', name: 'In Progress', color: '#EEE'),
     KanbanColumn(id: 'cancelled', name: 'Cancelled', color: '#DDD'),
-    KanbanColumn(id: 'ready', name: 'Ready', color: '#CCC'),
-    KanbanColumn(id: 'out_for_delivery', name: 'Out For Delivery', color: '#BBB'),
-    KanbanColumn(id: 'courier_settlement', name: 'Courier Settlement', color: '#AAA'),
-    // Terminal Returned column, last on the board (backend order 6).
-    KanbanColumn(id: 'returned', name: 'Returned', color: '#999'),
+    KanbanColumn(id: 'out_for_delivery', name: 'Out For Delivery', color: '#CCC'),
   ];
 
   CardMoveBlockReason? evaluate(
@@ -46,7 +54,7 @@ void main() {
       );
       expect(
         isCancelledKanbanColumn(
-            KanbanColumn(id: 'ready', name: 'Ready', color: '#FFF')),
+            KanbanColumn(id: 'in_progress', name: 'In Progress', color: '#FFF')),
         isFalse,
       );
     });
@@ -55,16 +63,14 @@ void main() {
   group('evaluateCardMoveBlock — Cancelled column is drag-proof', () {
     test('should block a forward move into Cancelled', () {
       expect(
-        evaluate('processing', 'cancelled'),
+        evaluate('in_progress', 'cancelled', withColumns: cancelMidBoard),
         CardMoveBlockReason.cancelViaMenuOnly,
       );
     });
 
     test('should block a backward move into Cancelled', () {
-      // Backward from Out For Delivery. Before the fix this was deliberately
-      // PERMITTED and fell through to a reason-less updateInvoiceState.
       expect(
-        evaluate('out_for_delivery', 'cancelled'),
+        evaluate('out_for_delivery', 'cancelled', withColumns: cancelMidBoard),
         CardMoveBlockReason.cancelViaMenuOnly,
       );
     });
@@ -79,14 +85,10 @@ void main() {
     test('should report cancel-via-menu, not "cannot move backward", for backward drops', () {
       // Ordering guard: the Cancelled check must precede the backward check so
       // staff are told how to actually cancel instead of a dead-end message.
-      expect(
-        evaluate('ready', 'cancelled'),
-        isNot(CardMoveBlockReason.cannotMoveBackward),
-      );
-      expect(
-        evaluate('ready', 'cancelled'),
-        CardMoveBlockReason.cancelViaMenuOnly,
-      );
+      final reason =
+          evaluate('out_for_delivery', 'cancelled', withColumns: cancelMidBoard);
+      expect(reason, isNot(CardMoveBlockReason.cannotMoveBackward));
+      expect(reason, CardMoveBlockReason.cancelViaMenuOnly);
     });
 
     test('should block by column name when the id is not literally "cancelled"', () {
@@ -136,7 +138,7 @@ void main() {
     test('should not match ordinary columns', () {
       expect(
         isReturnedKanbanColumn(
-            KanbanColumn(id: 'ready', name: 'Ready', color: '#FFF')),
+            KanbanColumn(id: 'in_progress', name: 'In Progress', color: '#FFF')),
         isFalse,
       );
     });
@@ -154,10 +156,10 @@ void main() {
       final backwardBoard = [
         KanbanColumn(id: 'received', name: 'Received', color: '#FFF'),
         KanbanColumn(id: 'returned', name: 'Returned', color: '#FFF'),
-        KanbanColumn(id: 'ready', name: 'Ready', color: '#FFF'),
+        KanbanColumn(id: 'in_progress', name: 'In Progress', color: '#FFF'),
       ];
       expect(
-        evaluate('ready', 'returned', withColumns: backwardBoard),
+        evaluate('in_progress', 'returned', withColumns: backwardBoard),
         CardMoveBlockReason.returnViaMenuOnly,
       );
     });
@@ -185,15 +187,15 @@ void main() {
   group('evaluateCardMoveBlock — a fully returned order is frozen', () {
     test('should block a move out of the Returned column', () {
       expect(
-        evaluate('returned', 'ready', isFullyReturned: true),
+        evaluate('returned', 'in_progress', isFullyReturned: true),
         CardMoveBlockReason.fullyReturnedLocked,
       );
     });
 
     test('should block an otherwise legal single forward step', () {
-      expect(evaluate('received', 'processing'), isNull);
+      expect(evaluate('received', 'in_progress'), isNull);
       expect(
-        evaluate('received', 'processing', isFullyReturned: true),
+        evaluate('received', 'in_progress', isFullyReturned: true),
         CardMoveBlockReason.fullyReturnedLocked,
       );
     });
@@ -201,9 +203,9 @@ void main() {
     test('should beat every target-specific guard', () {
       // Whatever the target, the reason must name the return — not pickup,
       // cancellation, direction or distance.
-      for (final target in columns.where((c) => c.id != 'ready')) {
+      for (final target in columns.where((c) => c.id != 'in_progress')) {
         expect(
-          evaluate('ready', target.id, isFullyReturned: true, isPickup: true),
+          evaluate('in_progress', target.id, isFullyReturned: true, isPickup: true),
           CardMoveBlockReason.fullyReturnedLocked,
           reason: 'to ${target.id}',
         );
@@ -220,7 +222,7 @@ void main() {
     test('should leave a partially returned order movable', () {
       // Partial returns keep the order in its active column and it must stay
       // draggable — only FULL returns are terminal.
-      expect(evaluate('received', 'processing', isFullyReturned: false), isNull);
+      expect(evaluate('received', 'in_progress', isFullyReturned: false), isNull);
     });
 
     test('should default to movable when no return lookup is supplied', () {
@@ -228,7 +230,7 @@ void main() {
         evaluateCardMoveBlock(
           columns: columns,
           fromColumnId: 'received',
-          toColumnId: 'processing',
+          toColumnId: 'in_progress',
           isPickupLookup: () => false,
         ),
         isNull,
@@ -236,22 +238,101 @@ void main() {
     });
   });
 
-  group('evaluateCardMoveBlock — existing guards still hold', () {
-    test('should allow a single forward step', () {
-      expect(evaluate('received', 'processing'), isNull);
-      expect(evaluate('ready', 'out_for_delivery'), isNull);
+  group('evaluateCardMoveBlock — three-step flow without Ready', () {
+    test('should allow Received -> In Progress', () {
+      expect(evaluate('received', 'in_progress'), isNull);
     });
 
-    test('should block a backward move to a non-Cancelled column', () {
+    test('should allow In Progress -> Out for Delivery with 3-column board', () {
+      final threeColumns = [
+        KanbanColumn(id: 'received', name: 'Received', color: '#FFF'),
+        KanbanColumn(id: 'in_progress', name: 'In Progress', color: '#EEE'),
+        KanbanColumn(id: 'out_for_delivery', name: 'Out for Delivery', color: '#DDD'),
+      ];
       expect(
-        evaluate('out_for_delivery', 'ready'),
+        evaluate('in_progress', 'out_for_delivery', withColumns: threeColumns),
+        isNull,
+      );
+      expect(evaluate('in_progress', 'out_for_delivery'), isNull);
+    });
+
+    test('should block Out for Delivery -> In Progress', () {
+      expect(
+        evaluate('out_for_delivery', 'in_progress'),
         CardMoveBlockReason.cannotMoveBackward,
       );
     });
 
+    test('should block In Progress -> Received', () {
+      expect(
+        evaluate('in_progress', 'received'),
+        CardMoveBlockReason.cannotMoveBackward,
+      );
+    });
+
+    test('should block Received -> Out for Delivery (skipping In Progress)', () {
+      expect(
+        evaluate('received', 'out_for_delivery'),
+        CardMoveBlockReason.moveOneStage,
+      );
+    });
+  });
+
+  group('evaluateCardMoveBlock — no backward move at all', () {
+    test('should block every backward move between ordinary columns', () {
+      final ordinary = columns
+          .where((c) => !isCancelledKanbanColumn(c) && !isReturnedKanbanColumn(c))
+          .toList();
+      for (var from = 0; from < ordinary.length; from++) {
+        for (var to = 0; to < from; to++) {
+          expect(
+            evaluate(ordinary[from].id, ordinary[to].id),
+            CardMoveBlockReason.cannotMoveBackward,
+            reason: '${ordinary[from].id} -> ${ordinary[to].id}',
+          );
+        }
+      }
+    });
+
+    test('should block the old Ready -> In Progress correction on a legacy board', () {
+      // An older backend may still send Ready during the rollout; the
+      // kitchen-correction carve-out is gone there too.
+      final legacyColumns = [
+        KanbanColumn(id: 'recieved', name: 'Recieved', color: '#FFF'),
+        KanbanColumn(id: 'in_progress', name: 'In Progress', color: '#EEE'),
+        KanbanColumn(id: 'ready', name: 'Ready', color: '#DDD'),
+        KanbanColumn(id: 'out_for_delivery', name: 'Out for Delivery', color: '#CCC'),
+      ];
+      expect(
+        evaluate('ready', 'in_progress', withColumns: legacyColumns),
+        CardMoveBlockReason.cannotMoveBackward,
+      );
+      expect(
+        evaluate('Ready', 'In Progress', withColumns: legacyColumns),
+        CardMoveBlockReason.cannotMoveBackward,
+      );
+      // The forward path through Ready still works on that board.
+      expect(evaluate('in_progress', 'ready', withColumns: legacyColumns), isNull);
+      expect(evaluate('ready', 'out_for_delivery', withColumns: legacyColumns), isNull);
+    });
+
+    test('should block a backward move to the legacy Processing label too', () {
+      final legacyLabels = [
+        KanbanColumn(id: 'received', name: 'Received', color: '#FFF'),
+        KanbanColumn(id: 'processing', name: 'Processing', color: '#EEE'),
+        KanbanColumn(id: 'out_for_delivery', name: 'Out For Delivery', color: '#DDD'),
+      ];
+      expect(
+        evaluate('out_for_delivery', 'processing', withColumns: legacyLabels),
+        CardMoveBlockReason.cannotMoveBackward,
+      );
+    });
+  });
+
+  group('evaluateCardMoveBlock — existing guards still hold', () {
     test('should block a multi-stage forward jump to a non-Cancelled column', () {
       expect(
-        evaluate('ready', 'courier_settlement'),
+        evaluate('in_progress', 'courier_settlement'),
         CardMoveBlockReason.moveOneStage,
       );
     });
@@ -268,7 +349,7 @@ void main() {
     });
 
     test('should silently no-op a drop onto the source column', () {
-      expect(evaluate('ready', 'ready'), CardMoveBlockReason.sameColumn);
+      expect(evaluate('in_progress', 'in_progress'), CardMoveBlockReason.sameColumn);
     });
 
     test('should not block when a column cannot be resolved', () {
@@ -278,9 +359,10 @@ void main() {
     });
 
     test('should resolve columns by name as well as id', () {
-      expect(evaluate('Received', 'Processing'), isNull);
+      expect(evaluate('Received', 'In Progress'), isNull);
+      expect(evaluate('In Progress', 'Out For Delivery'), isNull);
       expect(
-        evaluate('Out For Delivery', 'Ready'),
+        evaluate('Out For Delivery', 'In Progress'),
         CardMoveBlockReason.cannotMoveBackward,
       );
     });
@@ -329,73 +411,48 @@ void main() {
       expect(targets, isEmpty);
     });
 
-    test('should still offer the legitimate next stage', () {
+    test('should offer only the next stage from each active column', () {
+      expect(targetsFor('received').map((c) => c.id), ['in_progress']);
+      expect(targetsFor('in_progress').map((c) => c.id), ['out_for_delivery']);
       expect(
-        targetsFor('received').map((c) => c.id),
-        contains('processing'),
+        targetsFor('out_for_delivery').map((c) => c.id),
+        ['courier_settlement'],
       );
-    });
-
-    test('should offer In Progress as a target from Ready', () {
-      expect(targetsFor('ready').map((c) => c.id), contains('processing'));
     });
   });
 
-  group('evaluateCardMoveBlock — Ready can step back to In Progress', () {
-    // Board where In Progress sits directly before Ready, as it does live.
-    final liveColumns = [
-      KanbanColumn(id: 'recieved', name: 'Recieved', color: '#FFF'),
-      KanbanColumn(id: 'in_progress', name: 'In Progress', color: '#EEE'),
-      KanbanColumn(id: 'ready', name: 'Ready', color: '#DDD'),
-      KanbanColumn(id: 'out_for_delivery', name: 'Out for Delivery', color: '#CCC'),
-      KanbanColumn(id: 'delivered', name: 'Delivered', color: '#BBB'),
-      KanbanColumn(id: 'cancelled', name: 'Cancelled', color: '#AAA'),
-    ];
+  group('tripStagingKanbanColumn', () {
+    test('should pick In Progress when the board has no Ready column', () {
+      expect(tripStagingKanbanColumn(columns)?.id, 'in_progress');
+    });
 
-    test('should allow Ready -> In Progress on the live board', () {
+    test('should accept the legacy Processing label', () {
+      final legacyLabels = [
+        KanbanColumn(id: 'received', name: 'Received', color: '#FFF'),
+        KanbanColumn(id: 'processing', name: 'Processing', color: '#EEE'),
+        KanbanColumn(id: 'out_for_delivery', name: 'Out For Delivery', color: '#DDD'),
+      ];
+      expect(tripStagingKanbanColumn(legacyLabels)?.id, 'processing');
+    });
+
+    test('should keep Ready as the trip column while an old server still sends it', () {
+      final legacyColumns = [
+        KanbanColumn(id: 'recieved', name: 'Recieved', color: '#FFF'),
+        KanbanColumn(id: 'in_progress', name: 'In Progress', color: '#EEE'),
+        KanbanColumn(id: 'ready', name: 'Ready', color: '#DDD'),
+        KanbanColumn(id: 'out_for_delivery', name: 'Out for Delivery', color: '#CCC'),
+      ];
+      expect(tripStagingKanbanColumn(legacyColumns)?.id, 'ready');
+    });
+
+    test('should return null when neither column exists', () {
+      expect(tripStagingKanbanColumn(const []), isNull);
       expect(
-        evaluate('ready', 'in_progress', withColumns: liveColumns),
+        tripStagingKanbanColumn([
+          KanbanColumn(id: 'received', name: 'Received', color: '#FFF'),
+          KanbanColumn(id: 'out_for_delivery', name: 'Out For Delivery', color: '#DDD'),
+        ]),
         isNull,
-      );
-    });
-
-    test('should allow Ready -> In Progress by name too', () {
-      expect(
-        evaluate('Ready', 'In Progress', withColumns: liveColumns),
-        isNull,
-      );
-    });
-
-    test('should allow Ready -> Processing on a legacy-labelled board', () {
-      // Non-adjacent on this board (Cancelled sits between them) — the carve-out
-      // is about the two stages involved, not their distance.
-      expect(evaluate('ready', 'processing'), isNull);
-    });
-
-    test('should still block every other backward move', () {
-      expect(
-        evaluate('ready', 'recieved', withColumns: liveColumns),
-        CardMoveBlockReason.cannotMoveBackward,
-      );
-      expect(
-        evaluate('out_for_delivery', 'ready', withColumns: liveColumns),
-        CardMoveBlockReason.cannotMoveBackward,
-      );
-      expect(
-        evaluate('delivered', 'in_progress', withColumns: liveColumns),
-        CardMoveBlockReason.cannotMoveBackward,
-      );
-      expect(
-        evaluate('in_progress', 'recieved', withColumns: liveColumns),
-        CardMoveBlockReason.cannotMoveBackward,
-      );
-    });
-
-    test('should keep the fully-returned freeze ahead of the carve-out', () {
-      expect(
-        evaluate('ready', 'in_progress',
-            withColumns: liveColumns, isFullyReturned: true),
-        CardMoveBlockReason.fullyReturnedLocked,
       );
     });
   });

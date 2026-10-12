@@ -14,34 +14,28 @@
       "order": 1
     },
     {
-      "id": "ready",
-      "name": "Ready",
-      "color": "#F5F5F5",
-      "order": 2
-    },
-    {
       "id": "out_for_delivery",
       "name": "Out for Delivery",
       "color": "#F5F5F5",
-      "order": 3
+      "order": 2
     },
     {
       "id": "delivered",
       "name": "Delivered",
       "color": "#F5F5F5",
-      "order": 4
+      "order": 3
     },
     {
       "id": "cancelled",
       "name": "Cancelled",
       "color": "#F5F5F5",
-      "order": 5
+      "order": 4
     },
     {
       "id": "returned",
       "name": "Returned",
       "color": "#F5F5F5",
-      "order": 6
+      "order": 5
     }
   ]
 }

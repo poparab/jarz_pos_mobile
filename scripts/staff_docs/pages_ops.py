@@ -29,7 +29,6 @@ KANBAN = {
         ("flow", [
             {"en": "Received", "ar": "مستلم"},
             {"en": "In Progress", "ar": "قيد التنفيذ"},
-            {"en": "Ready", "ar": "جاهز"},
             {"en": "Out for Delivery", "ar": "خارج للتوصيل"},
             {"en": "Delivered", "ar": "تم التسليم"},
         ]),
@@ -111,11 +110,11 @@ KANBAN = {
                "ar": "اسحب الكارت للعمود اللي بعده، أو استخدم <strong>انقل</strong> من الكارت. تلات قواعد "
                      "التطبيق بيفرضها:"}),
         ("bul", [
-            {"en": "<strong>Forward only.</strong> <em>\"Cannot move backward\"</em> - an order that reached Ready "
-                   "does not go back to In Progress. If it was moved by mistake, leave a note and tell your "
+            {"en": "<strong>Forward only.</strong> <em>\"Cannot move backward\"</em> - an order never goes back to an "
+                   "earlier column: not from Out for Delivery to In Progress, not from In Progress to Received. If it was moved by mistake, leave a note and tell your "
                    "line manager.",
-             "ar": "<strong>لقدام بس.</strong> <em>\"لا يمكن التراجع للخلف\"</em> — الطلب اللي وصل جاهز مبيرجعش "
-                   "لقيد التنفيذ. ولو اتحرك بالغلط، سيب ملاحظة وقول لمدير الخط."},
+             "ar": "<strong>لقدام بس.</strong> <em>\"لا يمكن التراجع للخلف\"</em> — الطلب عمره ما بيرجع لعمود قبله: لا من خارج للتوصيل "
+                   "لقيد التنفيذ، ولا من قيد التنفيذ لمستلم. ولو اتحرك بالغلط، سيب ملاحظة وقول لمدير الخط."},
             {"en": "<strong>One stage at a time.</strong> <em>\"Can only move one stage at a time\"</em> - you cannot "
                    "jump Received straight to Out for Delivery.",
              "ar": "<strong>مرحلة واحدة كل مرة.</strong> <em>\"يمكن التقدم مرحلة واحدة فقط\"</em> — مينفعش تنط "
