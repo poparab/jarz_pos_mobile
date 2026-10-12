@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/roster/models/roster_models.dart';
 import 'package:jarz_pos/src/features/roster/presentation/roster_screen.dart';
-import 'package:jarz_pos/src/features/roster/presentation/roster_shift_palette.dart';
+import 'package:jarz_pos/src/features/roster/presentation/roster_cell_style.dart';
 import 'package:jarz_pos/src/features/roster/presentation/widgets/roster_day_sheet.dart';
 import 'package:jarz_pos/src/features/roster/presentation/widgets/roster_legend.dart';
 import 'package:jarz_pos/src/features/roster/state/roster_providers.dart';
@@ -26,7 +26,7 @@ const _nextDay = '2026-10-07';
 
 /// The crowded day is a cover day on a public holiday with overtime: the case
 /// that used to pack a code chip, a branch token and three marker glyphs into
-/// one cell. It must now draw just the hours and the overtime dot.
+/// one cell. It must now draw just the shift's time and the overtime dot.
 RosterMonth _month({String location = 'Nasr City'}) {
   Map<String, dynamic> working(String date, {bool crowded = false}) => {
     'date': date,
@@ -74,6 +74,7 @@ Future<ProviderContainer> _pump(
   WidgetTester tester, {
   Locale locale = const Locale('en'),
   RosterMonth? month,
+  bool showShiftEnd = false,
 }) async {
   tester.view.physicalSize = const Size(1080, 2340);
   tester.view.devicePixelRatio = 3;
@@ -98,8 +99,8 @@ Future<ProviderContainer> _pump(
         home: Scaffold(
           body: RosterGrid(
             month: grid,
-            palette: RosterShiftPalette.fromMonth(grid),
             coverIndex: RosterCoverIndex.fromMonth(grid),
+            showShiftEnd: showShiftEnd,
           ),
         ),
       ),
@@ -115,33 +116,84 @@ Finder _cell(String employee, String date) =>
 Finder _in(Finder cell, Finder matching) =>
     find.descendant(of: cell, matching: matching);
 
+/// The fill of a day cell's visible box.
+Color? _fill(WidgetTester tester, Finder cell) {
+  final boxes = tester
+      .widgetList<Container>(_in(cell, find.byType(Container)))
+      .where((c) => c.decoration is BoxDecoration)
+      .map((c) => c.decoration! as BoxDecoration)
+      .where((d) => d.borderRadius != null);
+  return boxes.first.color;
+}
+
+/// Every state in one row, in a month that is safely in the future so the
+/// blank day reads as "not set" rather than as history.
+const _future = 'HR-EMP-00009';
+RosterMonth _everyStateMonth() => RosterMonth.fromJson({
+  'hrms_available': true,
+  'month': '2099-10',
+  'month_start': '2099-10-01',
+  'month_end': '2099-10-05',
+  'employees': [
+    {
+      'employee': _future,
+      'employee_name': 'Every State',
+      'standard_hours': 9,
+      'days': {
+        '2099-10-01': {
+          'date': '2099-10-01',
+          'shift_type': 'Branch Opening',
+          'hours': 9,
+        },
+        '2099-10-02': {
+          'date': '2099-10-02',
+          'day_off': {'off_type': 'Weekly Off', 'covered_by': _other},
+        },
+        '2099-10-03': {
+          'date': '2099-10-03',
+          'day_off': {'off_type': 'Weekly Off'},
+        },
+        '2099-10-04': {'date': '2099-10-04', 'is_holiday': 1},
+        '2099-10-05': {'date': '2099-10-05'},
+      },
+    },
+  ],
+  'shift_catalog': [
+    {
+      'shift_type': 'Branch Opening',
+      'start_time': '09:00:00',
+      'end_time': '18:00:00',
+      'hours': 9,
+    },
+  ],
+  'scope': {'configured': true, 'unrestricted': true},
+});
+
 void main() {
   group('a cell draws one thing', () {
     for (final locale in const [Locale('en'), Locale('ar')]) {
       final dir = locale.languageCode == 'ar' ? 'RTL' : 'LTR';
 
-      testWidgets('$dir: a crowded working day shows only its hours and the '
-          'overtime dot, inside the cell', (tester) async {
+      testWidgets('$dir: a crowded working day shows only its start time and '
+          'the overtime dot, inside the cell', (tester) async {
         await _pump(tester, locale: locale);
-        final grid = _month();
-        final code = RosterShiftPalette.fromMonth(
-          grid,
-        ).styleFor('Branch Opening').code;
 
         final cell = _cell(_employee, _crowdedDay);
         final cellRect = tester.getRect(cell);
 
         // Cover + holiday worked + overtime used to draw a code chip, a
-        // branch token and three marker glyphs. Now: one number, one dot.
+        // branch token and three marker glyphs. Now: one time, one dot.
         final texts = tester
             .widgetList<Text>(_in(cell, find.byType(Text)))
             .map((t) => t.data)
             .toList();
         expect(texts, hasLength(1), reason: 'drawn texts: $texts');
         expect(texts.single, isNot('NC'));
-        expect(texts.single, isNot(code));
         expect(_in(cell, find.text('NC')), findsNothing);
-        expect(_in(cell, find.text(code)), findsNothing);
+        expect(
+          texts.single,
+          locale.languageCode == 'ar' ? endsWith('ص') : '9a',
+        );
 
         final dot = _in(cell, find.byType(RosterOvertimeDot));
         expect(dot, findsOneWidget, reason: '12h against a 9h standard day');
@@ -169,8 +221,57 @@ void main() {
     testWidgets('a plain working day has no overtime dot', (tester) async {
       await _pump(tester);
       final cell = _cell(_employee, _plainDay);
-      expect(_in(cell, find.text('9')), findsOneWidget);
+      expect(_in(cell, find.text('9a')), findsOneWidget);
       expect(_in(cell, find.byType(RosterOvertimeDot)), findsNothing);
+    });
+
+    testWidgets('the week view writes start AND end, the month view start '
+        'only', (tester) async {
+      await _pump(tester, showShiftEnd: true);
+      expect(
+        _in(_cell(_employee, _plainDay), find.text('9a\u20139p')),
+        findsOneWidget,
+      );
+      await _pump(tester);
+      expect(_in(_cell(_employee, _plainDay), find.text('9a')), findsOneWidget);
+    });
+
+    testWidgets('a working cell has no shift colour fill', (tester) async {
+      await _pump(tester);
+      final fill = _fill(tester, _cell(_employee, _plainDay));
+      expect(fill == null || fill.a == 0, isTrue, reason: '$fill');
+    });
+
+    testWidgets('only the two problems are filled; the rest is text', (
+      tester,
+    ) async {
+      await _pump(tester, month: _everyStateMonth(), showShiftEnd: true);
+      Finder cell(String date) => _cell(_future, date);
+      bool filled(String date) {
+        final fill = _fill(tester, cell(date));
+        return fill != null && fill.a > 0;
+      }
+
+      expect(filled('2099-10-01'), isFalse, reason: 'working');
+      expect(filled('2099-10-02'), isFalse, reason: 'off, covered');
+      expect(filled('2099-10-04'), isFalse, reason: 'holiday');
+      expect(_fill(tester, cell('2099-10-03')), RosterColors.riskFill);
+      expect(_fill(tester, cell('2099-10-05')), RosterColors.attentionFill);
+
+      expect(_in(cell('2099-10-01'), find.text('9a\u20136p')), findsOneWidget);
+      expect(_in(cell('2099-10-02'), find.text('OFF')), findsOneWidget);
+      expect(_in(cell('2099-10-03'), find.text('OFF')), findsOneWidget);
+      expect(
+        _in(cell('2099-10-03'), find.byIcon(Icons.warning_amber_rounded)),
+        findsOneWidget,
+      );
+      expect(_in(cell('2099-10-04'), find.text('HOL')), findsOneWidget);
+      expect(
+        _in(cell('2099-10-04'), find.byIcon(Icons.flag_outlined)),
+        findsOneWidget,
+      );
+      expect(_in(cell('2099-10-05'), find.text('Not set')), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('the Semantics label still says everything the cell no longer '
@@ -183,6 +284,7 @@ void main() {
           .label;
       expect(label, contains('Branch Opening'));
       expect(label, contains('Nasr City'));
+      expect(label, contains('9a\u20139p'));
       handle.dispose();
     });
   });

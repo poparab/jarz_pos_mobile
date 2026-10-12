@@ -21563,11 +21563,17 @@ abstract class AppLocalizations {
   /// **'Could not open that screen. Open Settings > Apps > Jarz POS > Battery and allow background running.'**
   String get settingsBackgroundDeliveryNoScreen;
 
-  /// No description provided for @rosterLegendStatesTitle.
+  /// No description provided for @rosterLegendProblemsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Day states'**
-  String get rosterLegendStatesTitle;
+  /// **'Needs fixing'**
+  String get rosterLegendProblemsTitle;
+
+  /// No description provided for @rosterLegendTextTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Written in the cell'**
+  String get rosterLegendTextTitle;
 
   /// No description provided for @rosterLegendMarkersTitle.
   ///
@@ -21575,17 +21581,29 @@ abstract class AppLocalizations {
   /// **'Markers'**
   String get rosterLegendMarkersTitle;
 
-  /// No description provided for @rosterLegendShiftsTitle.
+  /// No description provided for @rosterLegendWorkingTime.
   ///
   /// In en, this message translates to:
-  /// **'Shifts'**
-  String get rosterLegendShiftsTitle;
+  /// **'Working — shift start–end time'**
+  String get rosterLegendWorkingTime;
 
-  /// No description provided for @rosterLegendWorkingHours.
+  /// No description provided for @rosterTimeAmShort.
   ///
   /// In en, this message translates to:
-  /// **'Working (number = hours)'**
-  String get rosterLegendWorkingHours;
+  /// **'a'**
+  String get rosterTimeAmShort;
+
+  /// No description provided for @rosterTimePmShort.
+  ///
+  /// In en, this message translates to:
+  /// **'p'**
+  String get rosterTimePmShort;
+
+  /// No description provided for @rosterNotSetShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get rosterNotSetShort;
 
   /// No description provided for @rosterLegendOffCovered.
   ///
@@ -21596,13 +21614,13 @@ abstract class AppLocalizations {
   /// No description provided for @rosterLegendOffUncovered.
   ///
   /// In en, this message translates to:
-  /// **'Off — nobody covering'**
+  /// **'Day off — nobody covering'**
   String get rosterLegendOffUncovered;
 
   /// No description provided for @rosterLegendNotRosteredFuture.
   ///
   /// In en, this message translates to:
-  /// **'Not rostered — cannot check in'**
+  /// **'No shift set yet — cannot check in'**
   String get rosterLegendNotRosteredFuture;
 
   /// No description provided for @rosterLegendNotRosteredPast.
@@ -26864,7 +26882,7 @@ abstract class AppLocalizations {
   /// No description provided for @rosterLegendButton.
   ///
   /// In en, this message translates to:
-  /// **'What the colours mean'**
+  /// **'What the cells mean'**
   String get rosterLegendButton;
 
   /// No description provided for @rosterMoreOptions.

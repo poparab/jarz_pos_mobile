@@ -7,7 +7,6 @@ import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/roster/models/roster_models.dart';
 import 'package:jarz_pos/src/features/roster/presentation/roster_grid_metrics.dart';
 import 'package:jarz_pos/src/features/roster/presentation/roster_screen.dart';
-import 'package:jarz_pos/src/features/roster/presentation/roster_shift_palette.dart';
 import 'package:jarz_pos/src/features/roster/state/roster_providers.dart';
 
 /// The shift distribution grid must stay aligned with its names and dates.
@@ -141,7 +140,6 @@ Future<void> _pumpGrid(
         home: Scaffold(
           body: RosterGrid(
             month: month,
-            palette: RosterShiftPalette.fromMonth(month),
             coverIndex: RosterCoverIndex.fromMonth(month),
             dates: dates,
             stretchToWidth: stretch,

@@ -13279,25 +13279,35 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not open that screen. Open Settings > Apps > Jarz POS > Battery and allow background running.';
 
   @override
-  String get rosterLegendStatesTitle => 'Day states';
+  String get rosterLegendProblemsTitle => 'Needs fixing';
+
+  @override
+  String get rosterLegendTextTitle => 'Written in the cell';
 
   @override
   String get rosterLegendMarkersTitle => 'Markers';
 
   @override
-  String get rosterLegendShiftsTitle => 'Shifts';
+  String get rosterLegendWorkingTime => 'Working — shift start–end time';
 
   @override
-  String get rosterLegendWorkingHours => 'Working (number = hours)';
+  String get rosterTimeAmShort => 'a';
+
+  @override
+  String get rosterTimePmShort => 'p';
+
+  @override
+  String get rosterNotSetShort => 'Not set';
 
   @override
   String get rosterLegendOffCovered => 'Off — covered';
 
   @override
-  String get rosterLegendOffUncovered => 'Off — nobody covering';
+  String get rosterLegendOffUncovered => 'Day off — nobody covering';
 
   @override
-  String get rosterLegendNotRosteredFuture => 'Not rostered — cannot check in';
+  String get rosterLegendNotRosteredFuture =>
+      'No shift set yet — cannot check in';
 
   @override
   String get rosterLegendNotRosteredPast => 'No record (day has passed)';
@@ -16334,7 +16344,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rosterSelectDays => 'Select days';
 
   @override
-  String get rosterLegendButton => 'What the colours mean';
+  String get rosterLegendButton => 'What the cells mean';
 
   @override
   String get rosterMoreOptions => 'More options';

@@ -2,30 +2,27 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../models/roster_models.dart';
-import '../roster_cell_style.dart';
 import '../roster_formats.dart';
-import '../roster_shift_palette.dart';
 
 /// The list of shift types to roster onto, shared by the single-day sheet and
 /// the bulk bar.
 ///
 /// There used to be two copies (`_ShiftPicker` in the day sheet and
-/// `_BulkShiftPicker` in the bulk bar) that had already drifted apart: the
-/// bulk one built its own palette from the catalog, so a retired shift type
-/// still on the grid could be a different colour in the picker than in the
-/// cell. Both now take the grid's [palette].
+/// `_BulkShiftPicker` in the bulk bar) that had already drifted apart.
+///
+/// Each shift is its name and its time window — no colour swatch. Colour on
+/// the roster means "needs fixing" and nothing else, so it never says which
+/// shift a day is; the grid writes the time, and so does the picker.
 class RosterShiftPicker extends StatelessWidget {
   const RosterShiftPicker({
     super.key,
     required this.catalog,
-    required this.palette,
     required this.onPick,
     this.selected,
     this.maxHeight = 260,
   });
 
   final List<RosterShift> catalog;
-  final RosterShiftPalette palette;
   final ValueChanged<RosterShift> onPick;
 
   /// The shift the day is already on, if any. It is marked and not tappable:
@@ -49,36 +46,9 @@ class RosterShiftPicker extends StatelessWidget {
         itemBuilder: (context, index) {
           final shift = catalog[index];
           final isSelected = shift.shiftType == selected;
-          final style = palette.styleFor(shift.shiftType);
           return ListTile(
             dense: true,
             selected: isSelected,
-            // The colour and code the grid and the day sheet will show once
-            // this is picked, so the choice is made in the same vocabulary it
-            // is read in.
-            leading: Container(
-              width: 30,
-              height: 30,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: style.color,
-                borderRadius: BorderRadius.circular(6),
-                border: isSelected
-                    ? Border.all(
-                        color: RosterStyleResolver.selectionColor,
-                        width: 2,
-                      )
-                    : null,
-              ),
-              child: Text(
-                style.code,
-                style: TextStyle(
-                  color: style.onColor,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 12,
-                ),
-              ),
-            ),
             title: Text(shift.shiftType),
             subtitle: Text(
               context.l10n.rosterShiftWindow(
@@ -103,7 +73,6 @@ Future<RosterShift?> showRosterShiftPickerSheet(
   BuildContext context, {
   required String title,
   required List<RosterShift> catalog,
-  required RosterShiftPalette palette,
 }) {
   return showModalBottomSheet<RosterShift>(
     context: context,
@@ -125,7 +94,6 @@ Future<RosterShift?> showRosterShiftPickerSheet(
             const SizedBox(height: 8),
             RosterShiftPicker(
               catalog: catalog,
-              palette: palette,
               maxHeight: 320,
               onPick: (shift) => Navigator.of(sheetContext).pop(shift),
             ),

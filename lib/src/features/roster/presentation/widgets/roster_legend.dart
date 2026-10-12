@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../models/roster_models.dart';
 import '../roster_cell_style.dart';
 import '../roster_formats.dart';
-import '../roster_shift_palette.dart';
 
 /// Opens the legend in a bottom sheet, from the ⓘ in the app bar.
 ///
 /// It used to be an always-visible strip above the grid. Managers read it once;
 /// after that it was two rows of chips pushing the people they were rostering
 /// below the fold, so it now lives one tap away.
-Future<void> showRosterLegendSheet(
-  BuildContext context, {
-  required RosterShiftPalette palette,
-}) {
+Future<void> showRosterLegendSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -32,7 +29,7 @@ Future<void> showRosterLegendSheet(
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
-            RosterLegend(palette: palette),
+            const RosterLegend(),
           ],
         ),
       ),
@@ -40,51 +37,51 @@ Future<void> showRosterLegendSheet(
   );
 }
 
+/// The sample shift the legend's "working" entry writes, so the swatch shows
+/// the same kind of text a working cell does (`9a–6p`).
+const RosterShift rosterLegendSampleShift = RosterShift(
+  shiftType: '',
+  startTime: '09:00:00',
+  endTime: '18:00:00',
+  hours: 9,
+);
+
 /// What the grid is showing, generated from the grid's own resolver.
 ///
 /// Every entry comes from [RosterStyleResolver.legendEntries], which is built
 /// by walking `RosterCellState.values` and [RosterStyleResolver.gridMarkers] —
 /// so the legend cannot describe something the grid does not draw, and the
-/// grid cannot draw something the legend leaves out. The previous version was
-/// hand-listed and had drifted all the way to describing a `primaryContainer`
-/// "Working" swatch that appeared nowhere on the screen, while the ~80% of
-/// cells that actually were working days went unexplained.
+/// grid cannot draw something the legend leaves out.
 ///
-/// The shift list below the states is the other half of that promise: a
-/// working cell's colour is per shift type, so the only honest legend for it is
-/// the list of this month's shift types with their colours and codes.
+/// Three short sections: the two coloured "needs fixing" states first — the
+/// only colours on the board — then the neutral cells, which say what they
+/// are in words, then the markers.
 class RosterLegend extends StatelessWidget {
-  const RosterLegend({super.key, required this.palette});
-
-  final RosterShiftPalette palette;
+  const RosterLegend({super.key});
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final resolver = RosterStyleResolver.of(context, palette: palette);
+    final resolver = RosterStyleResolver.of(context);
     final entries = resolver.legendEntries();
-    final states = entries.where((e) => e.state != null).toList();
+    final problems = entries.where((e) => e.isProblem).toList();
+    final text = entries
+        .where((e) => e.state != null && !e.isProblem)
+        .toList();
     final markers = entries.where((e) => e.marker != null).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _SectionLabel(l10n.rosterLegendStatesTitle),
-        _Entries(children: [for (final e in states) _LegendChip(entry: e)]),
+        _SectionLabel(l10n.rosterLegendProblemsTitle),
+        _Entries(children: [for (final e in problems) _LegendChip(entry: e)]),
+        const SizedBox(height: 12),
+        _SectionLabel(l10n.rosterLegendTextTitle),
+        _Entries(children: [for (final e in text) _LegendChip(entry: e)]),
         const SizedBox(height: 12),
         _SectionLabel(l10n.rosterLegendMarkersTitle),
         _Entries(children: [for (final e in markers) _LegendChip(entry: e)]),
-        if (!palette.isEmpty) ...[
-          const SizedBox(height: 12),
-          _SectionLabel(l10n.rosterLegendShiftsTitle),
-          _Entries(
-            children: [
-              for (final shift in palette.entries)
-                _ShiftLegendChip(shift: shift),
-            ],
-          ),
-        ],
       ],
     );
   }
@@ -130,6 +127,7 @@ class _LegendChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final textStyle = theme.textTheme.labelSmall?.copyWith(
       color: entry.foreground,
       fontWeight: FontWeight.w700,
@@ -139,11 +137,19 @@ class _LegendChip extends StatelessWidget {
 
     final Widget swatch;
     if (entry.marker == RosterCellMarker.overtime) {
-      // The overtime dot, after a sample number, exactly as the cell draws it.
+      // The overtime dot, after a sample start time, as the cell draws it.
       swatch = Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(rosterNumber(context, 12), style: textStyle),
+          Text(
+            rosterShiftTimeText(
+                  rosterLegendSampleShift,
+                  l10n,
+                  withEnd: false,
+                ) ??
+                '',
+            style: textStyle,
+          ),
           const SizedBox(width: 1),
           const RosterOvertimeDot(color: RosterColors.markerInk),
         ],
@@ -151,11 +157,24 @@ class _LegendChip extends StatelessWidget {
     } else if (entry.marker != null) {
       swatch = Icon(entry.icon, size: 12, color: entry.foreground);
     } else {
-      // A state: the cell draws its token (or, for a working day, the hours),
-      // so the swatch does too — in the locale's own digits, like the grid.
-      swatch = Text(
-        entry.token.isEmpty ? rosterNumber(context, 9) : entry.token,
-        style: textStyle,
+      // A state: the cell writes its word (or, for a working day, the shift's
+      // time), so the swatch does too — with the warning / flag glyph where
+      // the cell draws one.
+      final word = entry.state == RosterCellState.working
+          ? rosterShiftTimeText(rosterLegendSampleShift, l10n, withEnd: true)
+          : entry.token;
+      final showIcon =
+          entry.state == RosterCellState.offUncovered ||
+          entry.state == RosterCellState.holiday;
+      swatch = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showIcon) ...[
+            Icon(entry.icon, size: 10, color: entry.foreground),
+            const SizedBox(width: 2),
+          ],
+          Text(word ?? '', style: textStyle),
+        ],
       );
     }
 
@@ -163,9 +182,10 @@ class _LegendChip extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 28,
-          height: 22,
+          width: 48,
+          height: 24,
           alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 3),
           decoration: BoxDecoration(
             color: entry.background,
             borderRadius: BorderRadius.circular(5),
@@ -185,13 +205,13 @@ class _LegendChip extends StatelessWidget {
   }
 }
 
-/// The overtime marker as the grid draws it: one small dot beside the hours.
+/// The overtime marker as the grid draws it: one small dot beside the time.
 class RosterOvertimeDot extends StatelessWidget {
   const RosterOvertimeDot({super.key, required this.color});
 
   final Color color;
 
-  /// Diameter. Small enough not to compete with the hours, large enough to
+  /// Diameter. Small enough not to compete with the time, large enough to
   /// see on a phone.
   static const double size = 6;
 
@@ -201,45 +221,6 @@ class RosterOvertimeDot extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-    );
-  }
-}
-
-/// One shift type: its colour, its code, and its name.
-///
-/// The code is what stops two similar colours being a silent collision. The
-/// grid cell no longer prints it; the day sheet does.
-class _ShiftLegendChip extends StatelessWidget {
-  const _ShiftLegendChip({required this.shift});
-
-  final RosterShiftStyle shift;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 22,
-          height: 22,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: shift.color,
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: Text(
-            shift.code,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: shift.onColor,
-              fontWeight: FontWeight.w700,
-              fontSize: 10,
-            ),
-          ),
-        ),
-        const SizedBox(width: 6),
-        Text(shift.shiftType, style: theme.textTheme.labelSmall),
-      ],
     );
   }
 }

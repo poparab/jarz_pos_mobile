@@ -9,7 +9,6 @@ import '../../models/roster_models.dart';
 import '../../state/roster_providers.dart';
 import '../roster_cell_style.dart';
 import '../roster_formats.dart';
-import '../roster_shift_palette.dart';
 import 'roster_day_off_form.dart';
 import 'roster_shift_picker.dart';
 
@@ -25,17 +24,15 @@ export 'roster_day_off_form.dart'
 
 /// Edit one person's one day: change the shift, grant a day off, or undo one.
 ///
-/// Takes the grid's [RosterShiftPalette] rather than building its own, so the
-/// sheet is the same colour as the cell that opened it. It used to carry a
-/// fifth, unrelated mapping — working was `primary`, holiday `secondary` — so
-/// tapping a pale-yellow cell opened a purple panel.
+/// Resolves the day through the grid's [RosterStyleResolver], so the sheet
+/// says the same thing as the cell that opened it. It used to carry a fifth,
+/// unrelated colour mapping — working was `primary`, holiday `secondary`.
 Future<void> showRosterDaySheet(
   BuildContext context, {
   required RosterEmployee employee,
   required String date,
   required RosterCell? cell,
   required List<RosterShift> catalog,
-  required RosterShiftPalette palette,
   String? coveringFor,
 }) {
   return showModalBottomSheet<void>(
@@ -47,7 +44,6 @@ Future<void> showRosterDaySheet(
       date: date,
       cell: cell,
       catalog: catalog,
-      palette: palette,
       coveringFor: coveringFor,
     ),
   );
@@ -60,7 +56,6 @@ class RosterDaySheet extends ConsumerStatefulWidget {
     required this.date,
     required this.cell,
     required this.catalog,
-    required this.palette,
     this.coveringFor,
   });
 
@@ -68,7 +63,6 @@ class RosterDaySheet extends ConsumerStatefulWidget {
   final String date;
   final RosterCell? cell;
   final List<RosterShift> catalog;
-  final RosterShiftPalette palette;
 
   /// The colleague whose day this person is absorbing, when there is one.
   final String? coveringFor;
@@ -155,7 +149,7 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
               employee: widget.employee,
               date: widget.date,
               cell: cell,
-              palette: widget.palette,
+              catalog: widget.catalog,
               coveringFor: widget.coveringFor,
             ),
             const SizedBox(height: 16),
@@ -183,7 +177,6 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
                   ),
                 RosterShiftPicker(
                   catalog: widget.catalog,
-                  palette: widget.palette,
                   selected: cell?.shiftType,
                   onPick: (shift) => _assignShift(
                     shift,
@@ -318,14 +311,14 @@ class _CurrentState extends StatelessWidget {
     required this.employee,
     required this.date,
     required this.cell,
-    required this.palette,
+    required this.catalog,
     required this.coveringFor,
   });
 
   final RosterEmployee employee;
   final String date;
   final RosterCell? cell;
-  final RosterShiftPalette palette;
+  final List<RosterShift> catalog;
   final String? coveringFor;
 
   @override
@@ -334,9 +327,16 @@ class _CurrentState extends StatelessWidget {
     final theme = Theme.of(context);
     final data = cell;
 
-    final resolver = RosterStyleResolver.of(context, palette: palette);
+    final resolver = RosterStyleResolver.of(
+      context,
+      catalog: RosterShiftCatalog(catalog),
+    );
     final state = resolver.stateFor(cell: data, date: date);
-    final style = resolver.styleFor(state, shiftType: data?.shiftType);
+    final style = resolver.styleFor(
+      state,
+      shiftType: data?.shiftType,
+      hours: data?.hours,
+    );
     final markers = resolver.markersFor(
       cell: data,
       employee: employee,
@@ -389,8 +389,6 @@ class _CurrentState extends StatelessWidget {
             children: [
               if (style.icon != null)
                 Icon(style.icon, size: 18, color: style.foreground)
-              else if (style.shiftCode != null)
-                _CodeBadge(code: style.shiftCode!, foreground: style.foreground)
               else
                 Text(
                   style.token,
@@ -472,34 +470,5 @@ class _CurrentState extends StatelessWidget {
       case RosterCellMarker.selected:
         return resolver.markerStyle(marker).label;
     }
-  }
-}
-
-/// The shift type's code, in the same shape as the legend's shift list.
-class _CodeBadge extends StatelessWidget {
-  const _CodeBadge({required this.code, required this.foreground});
-
-  final String code;
-  final Color foreground;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 20,
-      height: 20,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: foreground.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        code,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          color: foreground,
-        ),
-      ),
-    );
   }
 }

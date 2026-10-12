@@ -4,23 +4,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/roster/models/roster_models.dart';
 import 'package:jarz_pos/src/features/roster/presentation/roster_cell_style.dart';
-import 'package:jarz_pos/src/features/roster/presentation/roster_shift_palette.dart';
+import 'package:jarz_pos/src/features/roster/presentation/roster_formats.dart';
 import 'package:jarz_pos/src/features/roster/presentation/widgets/roster_legend.dart';
 
-/// The roster grid's whole claim is that it explains itself: the legend
-/// describes every cell the grid can draw, no two states look alike in both
-/// channels at once, and a colour somebody chose in Desk beats one the app
-/// invented. These are the tests that make those properties hold, because all
-/// three of them had already quietly stopped being true.
+/// The roster grid's whole claim is that it explains itself: colour means
+/// "needs fixing" and nothing else, every other cell says what it is in words,
+/// and the legend describes every cell the grid can draw. These are the tests
+/// that make those properties hold.
 
-RosterShift _shift(String name, {String? color, double hours = 9}) =>
-    RosterShift(
-      shiftType: name,
-      startTime: '09:00:00',
-      endTime: '18:00:00',
-      hours: hours,
-      color: color,
-    );
+RosterShift _shift(
+  String name, {
+  String start = '09:00:00',
+  String end = '18:00:00',
+  double hours = 9,
+}) => RosterShift(
+  shiftType: name,
+  startTime: start,
+  endTime: end,
+  hours: hours,
+);
 
 RosterEmployee _employee({double standardHours = 9}) => RosterEmployee(
   employee: 'HR-EMP-00001',
@@ -31,7 +33,7 @@ RosterEmployee _employee({double standardHours = 9}) => RosterEmployee(
 
 Future<RosterStyleResolver> _resolver(
   WidgetTester tester, {
-  RosterShiftPalette? palette,
+  List<RosterShift> catalog = const [],
   DateTime? today,
   Locale locale = const Locale('en'),
 }) async {
@@ -56,175 +58,94 @@ Future<RosterStyleResolver> _resolver(
   );
   return RosterStyleResolver.of(
     captured,
-    palette: palette ?? RosterShiftPalette.from(catalog: const []),
+    catalog: RosterShiftCatalog(catalog),
     today: today,
   );
 }
 
+String _en(String raw) =>
+    rosterClockShort(raw, localeName: 'en', am: 'a', pm: 'p')!;
+
 void main() {
-  group('RosterShiftPalette', () {
-    test('a colour configured in Desk beats the fallback palette', () {
-      final palette = RosterShiftPalette.from(
-        catalog: [
-          _shift('Branch Opening', color: '#112233'),
-          _shift('Branch Closing'),
-        ],
-      );
-
-      final configured = palette.styleFor('Branch Opening');
-      expect(configured.color, const Color(0xFF112233));
-      expect(configured.fromBackend, isTrue);
-
-      final fallback = palette.styleFor('Branch Closing');
-      expect(fallback.fromBackend, isFalse);
-      expect(
-        RosterShiftPalette.fallbackPalette.contains(fallback.color),
-        isTrue,
-      );
+  group('rosterClockShort', () {
+    test('drops :00, keeps real minutes, 12-hour with a/p', () {
+      expect(_en('09:00:00'), '9a');
+      expect(_en('12:30:00'), '12:30p');
+      expect(_en('00:00:00'), '12a');
+      expect(_en('13:00:00'), '1p');
+      expect(_en('12:00'), '12p');
+      expect(_en('23:45:00'), '11:45p');
+      expect(_en('00:05:00'), '12:05a');
+      // Frappe can send 24:00:00 for a midnight end.
+      expect(_en('24:00:00'), '12a');
     });
 
-    test('#RGB and #AARRGGBB are both honoured', () {
-      expect(RosterShiftPalette.parseHexColor('#0F0'), const Color(0xFF00FF00));
-      expect(
-        RosterShiftPalette.parseHexColor('80112233'),
-        const Color(0x80112233),
-      );
-    });
-
-    test('a malformed hex degrades to the palette instead of throwing', () {
-      for (final bad in <String?>[
-        null,
-        '',
-        '   ',
-        '#ZZZZZZ',
-        'not a colour',
-        '#12345',
-        '#',
-      ]) {
-        expect(RosterShiftPalette.parseHexColor(bad), isNull, reason: '$bad');
-      }
-
-      late RosterShiftPalette palette;
-      expect(
-        () => palette = RosterShiftPalette.from(
-          catalog: [_shift('Branch Opening', color: '#ZZZZZZ')],
-        ),
-        returnsNormally,
-      );
-      final style = palette.styleFor('Branch Opening');
-      expect(style.fromBackend, isFalse);
-      expect(RosterShiftPalette.fallbackPalette.contains(style.color), isTrue);
-    });
-
-    test('no two shift types in a month share a colour or a code', () {
-      // Deliberately more shift types than there are palette entries, and with
-      // repeated initials: the old `name.hashCode % 8` could not see either
-      // problem, so two 12h shifts could land on the same pastel and become
-      // identical in both channels at once.
-      final names = <String>[
-        'Branch Opening',
-        'Branch Closing',
-        'Branch Cover Full Day',
-        'Bakery Night',
-        'Courier Morning',
-        'Courier Evening',
-        'Deliveries',
-        'Evening Split',
-        'Factory Day',
-        'Factory Night',
-        'Gardens Mid',
-        'Head Office',
-        'وردية صباحية',
-      ];
-      final palette = RosterShiftPalette.from(
-        catalog: [for (final name in names) _shift(name)],
-      );
-
-      expect(palette.entries.length, names.length);
-      expect(
-        palette.entries.map((e) => e.color.toARGB32()).toSet().length,
-        names.length,
-      );
-      expect(palette.entries.map((e) => e.code).toSet().length, names.length);
-    });
-
-    test('a configured colour is not handed out again as a fallback', () {
-      final taken = RosterShiftPalette.fallbackPalette.first;
-      final palette = RosterShiftPalette.from(
-        catalog: [
-          _shift(
-            'Aaa Configured',
-            color:
-                '#${taken.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}',
-          ),
-          _shift('Bbb Fallback'),
-        ],
-      );
-
-      expect(palette.styleFor('Aaa Configured').color, taken);
-      expect(palette.styleFor('Bbb Fallback').color, isNot(taken));
-    });
-
-    test('the same shift keeps its colour whatever order it arrives in', () {
-      final a = RosterShiftPalette.from(
-        catalog: [_shift('Alpha'), _shift('Beta'), _shift('Gamma')],
-      );
-      final b = RosterShiftPalette.from(
-        catalog: [_shift('Gamma'), _shift('Alpha'), _shift('Beta')],
-      );
-      for (final name in ['Alpha', 'Beta', 'Gamma']) {
-        expect(a.styleFor(name).color, b.styleFor(name).color, reason: name);
-        expect(a.styleFor(name).code, b.styleFor(name).code, reason: name);
+    test('anything that is not a time is null, not junk', () {
+      for (final bad in ['', '9', 'abc', 'x:y', '25:00', '10:75']) {
+        expect(
+          rosterClockShort(bad, localeName: 'en', am: 'a', pm: 'p'),
+          isNull,
+          reason: bad,
+        );
       }
     });
+  });
 
-    test('a shift type only the cells know about still gets a style', () {
-      // Retired in Desk, still sitting on days already worked.
-      final month = RosterMonth.fromJson({
-        'month': '2026-09',
-        'shift_catalog': [
-          {'shift_type': 'Branch Opening', 'hours': 9},
-        ],
-        'employees': [
-          {
-            'employee': 'HR-EMP-00001',
-            'employee_name': 'Mona Adel',
-            'days': {
-              '2026-09-01': {
-                'date': '2026-09-01',
-                'shift_type': 'Retired Split',
-                'hours': 6,
-              },
-            },
-          },
-        ],
-      });
-      final palette = RosterShiftPalette.fromMonth(month);
+  group('rosterShiftTimeText', () {
+    testWidgets('English: start–end in the week, start alone in the month', (
+      tester,
+    ) async {
+      final resolver = await _resolver(tester);
+      final l10n = resolver.l10n;
 
-      expect(palette.entries.map((e) => e.shiftType), [
-        'Branch Opening',
-        'Retired Split',
-      ]);
+      final day = _shift('Day');
+      final late = _shift('Late', start: '12:30:00', end: '01:00:00');
+      expect(rosterShiftTimeText(day, l10n, withEnd: true), '9a\u20136p');
+      expect(rosterShiftTimeText(day, l10n, withEnd: false), '9a');
+      expect(rosterShiftTimeText(late, l10n, withEnd: true), '12:30p\u20131a');
+      expect(rosterShiftTimeText(late, l10n, withEnd: false), '12:30p');
+      // An en dash, never an arrow: an arrow points the wrong way in Arabic.
+      expect(rosterShiftTimeText(day, l10n, withEnd: true), isNot(contains('→')));
+    });
+
+    testWidgets('Arabic: ص/م suffixes, in the same digits as every other '
+        'number on the roster', (tester) async {
+      final resolver = await _resolver(tester, locale: const Locale('ar'));
+      final l10n = resolver.l10n;
+      expect(l10n.rosterTimeAmShort, 'ص');
+      expect(l10n.rosterTimePmShort, 'م');
+
+      String n(num v) => rosterNumberIn('ar', v);
+      final day = _shift('Day');
+      final late = _shift('Late', start: '12:30:00', end: '01:00:00');
       expect(
-        palette.styleFor('Retired Split').color,
-        isNot(palette.styleFor('Branch Opening').color),
+        rosterShiftTimeText(day, l10n, withEnd: true),
+        '${n(9)}ص\u2013${n(6)}م',
+      );
+      expect(rosterShiftTimeText(day, l10n, withEnd: false), '${n(9)}ص');
+      expect(
+        rosterShiftTimeText(late, l10n, withEnd: true),
+        '${n(12)}:${n(3)}${n(0)}م\u2013${n(1)}ص',
       );
     });
 
-    test('ink is picked for contrast, not assumed', () {
+    testWidgets('a missing end time still shows the start; a missing start '
+        'shows nothing', (tester) async {
+      final resolver = await _resolver(tester);
+      final l10n = resolver.l10n;
       expect(
-        RosterShiftPalette.readableOn(const Color(0xFF1B1B1B)),
-        const Color(0xFFFFFFFF),
+        rosterShiftTimeText(_shift('X', end: ''), l10n, withEnd: true),
+        '9a',
       );
       expect(
-        RosterShiftPalette.readableOn(const Color(0xFFFFF9C4)),
-        const Color(0xFF1B1B1B),
+        rosterShiftTimeText(_shift('X', start: ''), l10n, withEnd: true),
+        isNull,
       );
     });
   });
 
   group('RosterStyleResolver states', () {
-    testWidgets('every state maps to its own (colour, glyph) pair', (
+    testWidgets('every state has its own (glyph, word) pair and a label', (
       tester,
     ) async {
       final resolver = await _resolver(tester);
@@ -232,48 +153,109 @@ void main() {
         for (final state in RosterCellState.values) resolver.styleFor(state),
       ];
 
-      // Colour-blindness, glare and cheap screens: no two states may be
-      // separated by hue alone, and none may be separated by form alone.
-      expect(
-        styles.map((s) => s.background.toARGB32()).toSet().length,
-        RosterCellState.values.length,
-        reason: 'two states share a fill',
-      );
+      // Colour is not a channel any more except for the two problems, so the
+      // form channel alone must tell every state apart.
       expect(
         styles.map((s) => '${s.icon?.codePoint}|${s.token}').toSet().length,
         RosterCellState.values.length,
-        reason: 'two states share a glyph and a token',
+        reason: 'two states share a glyph and a word',
       );
       for (final style in styles) {
-        // The working cell's form channel is the hours it prints and the shift
-        // code in its corner, which is why it is the one state with neither a
-        // glyph nor a fixed token.
         if (style.state != RosterCellState.working) {
-          expect(
-            style.icon != null || style.token.isNotEmpty,
-            isTrue,
-            reason: '${style.state} is colour-only',
-          );
+          expect(style.token, isNotEmpty, reason: '${style.state} says nothing');
         }
         expect(style.label.trim(), isNotEmpty, reason: '${style.state}');
       }
     });
 
-    testWidgets('the working cell takes the shift type\'s own colour', (
+    testWidgets('a working cell has no shift colour fill, and writes the time', (
       tester,
     ) async {
-      final palette = RosterShiftPalette.from(
-        catalog: [_shift('Branch Opening', color: '#445566')],
+      final resolver = await _resolver(
+        tester,
+        catalog: [_shift('Branch Opening'), _shift('Branch Closing',
+            start: '15:00:00', end: '23:30:00')],
       );
-      final resolver = await _resolver(tester, palette: palette);
 
-      final style = resolver.styleFor(
+      final opening = resolver.styleFor(
         RosterCellState.working,
         shiftType: 'Branch Opening',
+        hours: 9,
       );
-      expect(style.background, const Color(0xFF445566));
-      expect(style.shiftCode, 'B');
-      expect(style.foreground, RosterShiftPalette.readableOn(style.background));
+      final closing = resolver.styleFor(
+        RosterCellState.working,
+        shiftType: 'Branch Closing',
+        hours: 8.5,
+      );
+      // Two different shifts, one look: the difference is written, not filled.
+      for (final style in [opening, closing]) {
+        expect(style.background.a, 0, reason: 'working cell is filled');
+        expect(style.background, RosterColors.emptyFill);
+        expect(style.borderColor, RosterColors.emptyLine);
+        expect(style.foreground, RosterColors.markerInk);
+        expect(style.isProblem, isFalse);
+      }
+      expect(opening.token, '9a\u20136p');
+      expect(closing.token, '3p\u201311:30p');
+      expect(
+        resolver
+            .styleFor(
+              RosterCellState.working,
+              shiftType: 'Branch Closing',
+              withEnd: false,
+            )
+            .token,
+        '3p',
+      );
+    });
+
+    testWidgets('a shift type missing from the catalog falls back to hours', (
+      tester,
+    ) async {
+      final resolver = await _resolver(tester, catalog: [_shift('Known')]);
+      expect(
+        resolver
+            .styleFor(
+              RosterCellState.working,
+              shiftType: 'Retired Split',
+              hours: 12.5,
+            )
+            .token,
+        '12.5',
+      );
+      expect(
+        resolver.styleFor(RosterCellState.working, shiftType: 'Retired').token,
+        '',
+      );
+    });
+
+    testWidgets('only offUncovered and unrosteredFuture have coloured fills', (
+      tester,
+    ) async {
+      final resolver = await _resolver(tester, catalog: [_shift('Day')]);
+      for (final state in RosterCellState.values) {
+        final style = resolver.styleFor(state, shiftType: 'Day');
+        final filled = style.background.a > 0;
+        expect(
+          filled,
+          RosterStyleResolver.problemStates.contains(state),
+          reason: '$state',
+        );
+        expect(style.isProblem, filled, reason: '$state');
+      }
+      expect(RosterStyleResolver.problemStates, {
+        RosterCellState.offUncovered,
+        RosterCellState.unrosteredFuture,
+      });
+    });
+
+    testWidgets('a future day nobody set says "Not set", not "?"', (
+      tester,
+    ) async {
+      final en = await _resolver(tester);
+      expect(en.styleFor(RosterCellState.unrosteredFuture).token, 'Not set');
+      final ar = await _resolver(tester, locale: const Locale('ar'));
+      expect(ar.styleFor(RosterCellState.unrosteredFuture).token, 'غير محدد');
     });
 
     testWidgets('an unrostered day is past history or a future problem', (
@@ -359,7 +341,10 @@ void main() {
       expect(uncovered.background, RosterColors.riskFill);
       expect(uncovered.icon, Icons.warning_amber_rounded);
       expect(uncovered.borderWidth, greaterThan(covered.borderWidth));
-      expect(covered.icon, Icons.check_circle);
+      // A covered day off is handled: muted words, no fill.
+      expect(covered.background, RosterColors.emptyFill);
+      expect(covered.foreground, RosterColors.emptyInk);
+      expect(covered.token, uncovered.token);
     });
 
     testWidgets('red means exactly one thing, and amber another', (
@@ -449,10 +434,10 @@ void main() {
   });
 
   group('the legend and the grid cannot drift apart', () {
-    testWidgets('legend entries are exactly the resolver\'s states + the '
-        'markers the grid draws', (tester) async {
+    testWidgets('legend entries are the two problems first, then the text '
+        'states, then the markers the grid draws', (tester) async {
       // Cover and holiday-worked are still markers (the day sheet and the
-      // Semantics label use them), but the plain grid cell no longer draws
+      // Semantics label use them), but the plain grid cell does not draw
       // them, so the legend must not explain them either.
       final resolver = await _resolver(tester);
       final entries = resolver.legendEntries();
@@ -460,6 +445,15 @@ void main() {
       expect(
         entries.length,
         RosterCellState.values.length + RosterStyleResolver.gridMarkers.length,
+      );
+      expect(entries.take(2).map((e) => e.state), [
+        RosterCellState.offUncovered,
+        RosterCellState.unrosteredFuture,
+      ]);
+      expect(entries.take(2).every((e) => e.isProblem), isTrue);
+      expect(
+        entries.skip(2).where((e) => e.state != null).every((e) => !e.isProblem),
+        isTrue,
       );
       expect(
         entries.where((e) => e.state != null).map((e) => e.state).toSet(),
@@ -487,10 +481,7 @@ void main() {
     testWidgets('every legend swatch is the style the cell would draw', (
       tester,
     ) async {
-      final palette = RosterShiftPalette.from(
-        catalog: [_shift('Branch Opening', color: '#445566')],
-      );
-      final resolver = await _resolver(tester, palette: palette);
+      final resolver = await _resolver(tester, catalog: [_shift('Day')]);
 
       for (final entry in resolver.legendEntries()) {
         if (entry.state == null) continue;
@@ -503,13 +494,8 @@ void main() {
       }
     });
 
-    testWidgets('the rendered legend shows every state, marker and shift', (
-      tester,
-    ) async {
-      final palette = RosterShiftPalette.from(
-        catalog: [_shift('Branch Opening'), _shift('Branch Closing')],
-      );
-
+    testWidgets('the rendered legend shows every state and marker, and no '
+        'per-shift colour strip', (tester) async {
       late List<RosterLegendEntry> entries;
       await tester.pumpWidget(
         MaterialApp(
@@ -524,11 +510,8 @@ void main() {
           home: Scaffold(
             body: Builder(
               builder: (context) {
-                entries = RosterStyleResolver.of(
-                  context,
-                  palette: palette,
-                ).legendEntries();
-                return RosterLegend(palette: palette);
+                entries = RosterStyleResolver.of(context).legendEntries();
+                return const RosterLegend();
               },
             ),
           ),
@@ -543,8 +526,16 @@ void main() {
           reason: 'legend is missing "${entry.label}"',
         );
       }
-      expect(find.text('Branch Opening'), findsOneWidget);
-      expect(find.text('Branch Closing'), findsOneWidget);
+      expect(find.text('Needs fixing'), findsOneWidget);
+      expect(find.text('Written in the cell'), findsOneWidget);
+      // The working sample is written the way a week cell writes it.
+      expect(find.text('9a\u20136p'), findsOneWidget);
+      expect(find.text('Not set'), findsOneWidget);
+      // The problems section comes before the text section.
+      expect(
+        tester.getTopLeft(find.text('Needs fixing')).dy,
+        lessThan(tester.getTopLeft(find.text('Written in the cell')).dy),
+      );
       expect(tester.takeException(), isNull);
     });
   });

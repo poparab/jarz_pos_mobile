@@ -6,8 +6,6 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../data/roster_repository.dart';
 import '../../models/roster_models.dart';
 import '../../state/roster_providers.dart';
-import '../roster_cell_style.dart';
-import '../roster_shift_palette.dart';
 import 'roster_day_off_form.dart';
 import 'roster_shift_picker.dart';
 
@@ -138,10 +136,6 @@ class _RosterBulkBarState extends ConsumerState<RosterBulkBar> {
       context,
       title: context.l10n.rosterBulkAssignShift,
       catalog: catalog,
-      // The grid's own palette, so the picker matches the cells exactly.
-      palette: month == null
-          ? RosterShiftPalette.from(catalog: catalog)
-          : RosterShiftPalette.fromMonth(month),
     );
     if (shift == null) return;
     final selection = widget.selection;
@@ -201,15 +195,9 @@ class _RosterBulkBarState extends ConsumerState<RosterBulkBar> {
             child: Text(l10n.commonCancel),
           ),
           FilledButton.icon(
-            // Deliberately NOT the error colour it used to wear. Marking days
-            // off is not destructive, and red here meant the button and the
-            // result it produced were opposite colours: the confirm was red,
-            // the cells it created were tertiary. It now carries the day-off
-            // treatment, so the button predicts the grid.
-            style: FilledButton.styleFrom(
-              backgroundColor: RosterColors.settledFill,
-              foregroundColor: RosterColors.settledInk,
-            ),
+            // Deliberately NOT the error colour it used to wear: marking days
+            // off is not destructive. Plain theme colours, because on the
+            // roster a red or amber means "needs fixing".
             icon: const Icon(Icons.beach_access, size: 18),
             onPressed: () => Navigator.of(dialogContext).pop(true),
             label: Text(l10n.rosterBulkMarkOff),

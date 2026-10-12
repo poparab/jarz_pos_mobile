@@ -13280,26 +13280,35 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر فتح الشاشة. افتح الإعدادات > التطبيقات > Jarz POS > البطارية واسمح بالعمل في الخلفية.';
 
   @override
-  String get rosterLegendStatesTitle => 'حالات اليوم';
+  String get rosterLegendProblemsTitle => 'يحتاج إلى إصلاح';
+
+  @override
+  String get rosterLegendTextTitle => 'مكتوب في الخانة';
 
   @override
   String get rosterLegendMarkersTitle => 'علامات';
 
   @override
-  String get rosterLegendShiftsTitle => 'الورديات';
+  String get rosterLegendWorkingTime => 'عمل — وقت بداية ونهاية الوردية';
 
   @override
-  String get rosterLegendWorkingHours => 'عمل (الرقم = الساعات)';
+  String get rosterTimeAmShort => 'ص';
+
+  @override
+  String get rosterTimePmShort => 'م';
+
+  @override
+  String get rosterNotSetShort => 'غير محدد';
 
   @override
   String get rosterLegendOffCovered => 'إجازة — مُغطّاة';
 
   @override
-  String get rosterLegendOffUncovered => 'إجازة — بدون تغطية';
+  String get rosterLegendOffUncovered => 'إجازة — لا أحد يغطيها';
 
   @override
   String get rosterLegendNotRosteredFuture =>
-      'غير مُدرج — لا يمكنه تسجيل الحضور';
+      'لم تُحدد وردية بعد — لا يمكنه تسجيل الحضور';
 
   @override
   String get rosterLegendNotRosteredPast => 'لا يوجد سجل (يوم مضى)';
@@ -16320,7 +16329,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rosterSelectDays => 'تحديد أيام';
 
   @override
-  String get rosterLegendButton => 'معنى الألوان';
+  String get rosterLegendButton => 'معنى الخانات';
 
   @override
   String get rosterMoreOptions => 'خيارات إضافية';

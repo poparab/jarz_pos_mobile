@@ -13,7 +13,6 @@ import '../state/roster_providers.dart';
 import 'roster_cell_style.dart';
 import 'roster_formats.dart';
 import 'roster_grid_metrics.dart';
-import 'roster_shift_palette.dart';
 import 'widgets/roster_bulk_bar.dart';
 import 'widgets/roster_day_off_form.dart' show rosterOffTypeLabel;
 import 'widgets/roster_day_sheet.dart';
@@ -45,7 +44,8 @@ Key rosterGapTileKey(String employee, String date) =>
 /// request.
 ///
 /// Every colour on this screen comes from [RosterStyleResolver]; nothing here
-/// picks its own. See `roster_cell_style.dart` for what each hue means.
+/// picks its own. Colour means "needs fixing" and nothing else — see
+/// `roster_cell_style.dart`.
 ///
 /// Note this is unrelated to the Shift Monitor screen. "Shift" means a POS cash
 /// drawer there and a working pattern here; the two features share a word and
@@ -80,8 +80,6 @@ class RosterScreen extends ConsumerWidget {
       if (previous != next) clearSelection();
     });
 
-    final loadedMonth = monthAsync.asData?.value;
-
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
@@ -100,15 +98,7 @@ class RosterScreen extends ConsumerWidget {
               key: rosterLegendButtonKey,
               tooltip: l10n.rosterLegendButton,
               icon: const Icon(Icons.info_outline),
-              // The legend's shift list is this month's shift types, so it
-              // needs the month; until it has loaded there is nothing to
-              // explain.
-              onPressed: loadedMonth == null
-                  ? null
-                  : () => showRosterLegendSheet(
-                      context,
-                      palette: RosterShiftPalette.fromMonth(loadedMonth),
-                    ),
+              onPressed: () => showRosterLegendSheet(context),
             ),
           if (canManage)
             IconButton(
@@ -419,10 +409,8 @@ class _RosterBody extends ConsumerWidget {
       );
     }
 
-    // Built once per payload and handed down: the palette so every cell, the
-    // legend and the day sheet agree on what a shift type looks like, and the
-    // cover index because a cover day is recorded on the *other* person's cell.
-    final palette = RosterShiftPalette.fromMonth(month);
+    // Built once per payload and handed down, because a cover day is recorded
+    // on the *other* person's cell.
     final coverIndex = RosterCoverIndex.fromMonth(month);
     final dates = rosterVisibleDates(
       month: month,
@@ -436,15 +424,15 @@ class _RosterBody extends ConsumerWidget {
         if (month.gaps.isNotEmpty)
           _UncoveredBanner(
             gaps: month.gaps,
-            onFix: () => _openGaps(context, ref, palette, coverIndex),
+            onFix: () => _openGaps(context, ref, coverIndex),
           ),
         Expanded(
           child: RosterGrid(
             month: month,
-            palette: palette,
             coverIndex: coverIndex,
             dates: dates,
             stretchToWidth: mode == RosterViewMode.week,
+            showShiftEnd: mode == RosterViewMode.week,
           ),
         ),
       ],
@@ -455,7 +443,6 @@ class _RosterBody extends ConsumerWidget {
   Future<void> _openGaps(
     BuildContext context,
     WidgetRef ref,
-    RosterShiftPalette palette,
     RosterCoverIndex coverIndex,
   ) async {
     final picked = await showModalBottomSheet<RosterGap>(
@@ -482,7 +469,6 @@ class _RosterBody extends ConsumerWidget {
       date: picked.date,
       cell: employee.cellFor(picked.date),
       catalog: month.shiftCatalog,
-      palette: palette,
       coveringFor: coverIndex.coveredColleague(employee.employee, picked.date),
     );
   }
@@ -648,14 +634,13 @@ class RosterGrid extends ConsumerWidget {
   const RosterGrid({
     super.key,
     required this.month,
-    required this.palette,
     required this.coverIndex,
     this.dates,
     this.stretchToWidth = false,
+    this.showShiftEnd = false,
   });
 
   final RosterMonth month;
-  final RosterShiftPalette palette;
   final RosterCoverIndex coverIndex;
 
   /// The days to draw; the whole month when null.
@@ -664,6 +649,10 @@ class RosterGrid extends ConsumerWidget {
   /// Widen the day columns to fill the screen (week view), never narrowing
   /// them below [RosterGridMetrics.cellWidth].
   final bool stretchToWidth;
+
+  /// Write a working day's start AND end time (`9a–6p`, the week view) rather
+  /// than its start alone (`9a`, the month view's narrow columns).
+  final bool showShiftEnd;
 
   /// The one day-column width for headers, totals and cells alike.
   ///
@@ -689,7 +678,8 @@ class RosterGrid extends ConsumerWidget {
     final dates = this.dates ?? month.dates;
     final theme = Theme.of(context);
     final branch = ref.watch(rosterLocationFilterProvider);
-    final resolver = RosterStyleResolver.of(context, palette: palette);
+    final shifts = RosterShiftCatalog(month.shiftCatalog);
+    final resolver = RosterStyleResolver.of(context, catalog: shifts);
     final totals = _dayTotals(month, dates, resolver);
 
     return LayoutBuilder(
@@ -784,7 +774,8 @@ class RosterGrid extends ConsumerWidget {
                                   date: date,
                                   cell: employee.cellFor(date),
                                   catalog: month.shiftCatalog,
-                                  palette: palette,
+                                  shifts: shifts,
+                                  showShiftEnd: showShiftEnd,
                                   coveringFor: coverIndex.coveredColleague(
                                     employee.employee,
                                     date,
@@ -1120,12 +1111,12 @@ class _DayTotalsCell extends StatelessWidget {
 /// One person on one day.
 ///
 /// Draws ONE thing, read from [RosterStyleResolver] — the same object the
-/// legend is generated from: the hours on a working day (with a small dot when
-/// they run past the person's standard day), or the state's token otherwise.
-/// The shift code, the branch and the cover / holiday / weekend markers used to
-/// be packed into the corners too; at a glance that was noise, so they moved
-/// to the day sheet, one tap away. The background colour still says which
-/// shift or state it is, and the Semantics label still says everything.
+/// legend is generated from: the shift's time on a working day (with a small
+/// dot when it runs past the person's standard day), or the state's word
+/// otherwise. Only the two problem states are filled with colour; every other
+/// cell is neutral, and what it is is written in it. The shift code, the
+/// branch and the cover / holiday-worked markers live in the day sheet, one
+/// tap away, and the Semantics label still says everything.
 class _DayCell extends ConsumerWidget {
   const _DayCell({
     super.key,
@@ -1133,7 +1124,8 @@ class _DayCell extends ConsumerWidget {
     required this.date,
     required this.cell,
     required this.catalog,
-    required this.palette,
+    required this.shifts,
+    required this.showShiftEnd,
     required this.coveringFor,
     required this.width,
     required this.height,
@@ -1143,7 +1135,8 @@ class _DayCell extends ConsumerWidget {
   final String date;
   final RosterCell? cell;
   final List<RosterShift> catalog;
-  final RosterShiftPalette palette;
+  final RosterShiftCatalog shifts;
+  final bool showShiftEnd;
   final String? coveringFor;
   final double width;
   final double height;
@@ -1156,9 +1149,14 @@ class _DayCell extends ConsumerWidget {
     final selectionIsThisRow = selection?.employee == employee.employee;
     final isSelected = selectionIsThisRow && selection!.dates.contains(date);
 
-    final resolver = RosterStyleResolver.of(context, palette: palette);
+    final resolver = RosterStyleResolver.of(context, catalog: shifts);
     final state = resolver.stateFor(cell: data, date: date);
-    final style = resolver.styleFor(state, shiftType: data?.shiftType);
+    final style = resolver.styleFor(
+      state,
+      shiftType: data?.shiftType,
+      hours: data?.hours,
+      withEnd: showShiftEnd,
+    );
     final markers = resolver.markersFor(
       cell: data,
       employee: employee,
@@ -1175,20 +1173,20 @@ class _DayCell extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            // The hours, not the shift name: a manager scanning the rota cares
-            // whether a day is a 9 or a 12, and no abbreviation of "Branch
-            // Cover Full Day" fits in a phone-width cell without becoming a
-            // riddle. Which shift it is is the colour here, and spelled out in
-            // the day sheet.
-            rosterNumber(context, data!.hours),
-            style: theme.textTheme.titleSmall?.copyWith(
+            // The shift's time, not its name or a colour: "9a–6p" answers
+            // "who is in when" at a glance, where no abbreviation of "Branch
+            // Cover Full Day" fits a phone-width cell. The name is in the day
+            // sheet.
+            style.token,
+            maxLines: 1,
+            style: theme.textTheme.labelLarge?.copyWith(
               color: style.foreground,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
           if (isOvertime) ...[
-            const SizedBox(width: 1),
+            const SizedBox(width: 2),
             RosterOvertimeDot(color: style.foreground),
           ],
         ],
@@ -1199,23 +1197,22 @@ class _DayCell extends ConsumerWidget {
         maxLines: 1,
         style: theme.textTheme.labelSmall?.copyWith(
           color: style.foreground,
-          fontWeight: FontWeight.w700,
+          fontWeight: style.isProblem ? FontWeight.w800 : FontWeight.w600,
           height: 1.1,
         ),
       );
-      // The one exception to "one thing per cell": an uncovered day off is
-      // the mistake this screen exists to catch, so it does not rely on its
-      // amber alone to stand apart from a covered one.
-      content = state == RosterCellState.offUncovered
+      // A glyph beside the word only where the word is not enough: the
+      // warning on an uncovered day off (so it does not rely on its amber
+      // alone to stand apart from a covered one), and the flag on a holiday.
+      final showIcon =
+          state == RosterCellState.offUncovered ||
+          state == RosterCellState.holiday;
+      content = showIcon
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  size: 11,
-                  color: style.foreground,
-                ),
-                const SizedBox(width: 1),
+                Icon(style.icon, size: 11, color: style.foreground),
+                const SizedBox(width: 2),
                 token,
               ],
             )
@@ -1251,7 +1248,6 @@ class _DayCell extends ConsumerWidget {
               date: date,
               cell: data,
               catalog: catalog,
-              palette: palette,
               coveringFor: coveringFor,
             );
           },
@@ -1283,9 +1279,10 @@ class _DayCell extends ConsumerWidget {
                   Positioned.fill(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 3),
-                      // Scales down rather than clipping: at a large system
-                      // text size, and for Arabic's إجازة where English writes
-                      // OFF. The cell's own size is fixed (see _FitInCell).
+                      // Scales down rather than clipping: a long window such
+                      // as 12:30p–1a in a 56px column, a large system text
+                      // size, Arabic's إجازة where English writes OFF. The
+                      // cell's own size is fixed (see _FitInCell).
                       child: Center(
                         child: FittedBox(fit: BoxFit.scaleDown, child: content),
                       ),
@@ -1339,6 +1336,7 @@ class _DayCell extends ConsumerWidget {
       style.label,
       if (style.state == RosterCellState.working) ...[
         cell?.shiftType ?? '',
+        resolver.workingText(shiftType: cell?.shiftType),
         rosterNumber(context, cell?.hours ?? 0),
         (cell?.shiftLocation ?? '').trim().isEmpty
             ? context.l10n.rosterBranchUnknown

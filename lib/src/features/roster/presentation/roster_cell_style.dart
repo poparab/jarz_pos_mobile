@@ -7,20 +7,23 @@
 /// that the grid had never once drawn.
 ///
 /// Two rules hold throughout:
-/// * **one meaning per hue** — red is "this blocks somebody working", amber is
-///   "nobody has this covered", green is "off and handled", indigo is "public
-///   holiday", and an unfilled cell is "nothing happened here". No hue is
-///   reused for chrome, and chrome (headers, control bar) uses no state hue;
-/// * **never colour alone** — every state also carries an icon or a text token,
-///   so the grid still reads under glare, on a cheap screen, or to the roughly
-///   1 in 12 men who cannot separate the red and the green.
+/// * **colour only means "needs fixing"** — red is "nobody has set a shift for
+///   this day", amber is "a day off nobody is covering", and those are the
+///   only two filled cells. Everything else — the shift's time, OFF, HOL, a
+///   past blank — is written in the cell in neutral ink on an unfilled cell.
+///   The board used to give every shift type its own strong fill plus a hue
+///   per day-off and holiday state, about fifteen colours that nobody could
+///   memorise, and the two problems were lost among them;
+/// * **never colour alone** — the two problem states also carry a glyph or a
+///   word, so the grid still reads under glare, on a cheap screen, or to the
+///   roughly 1 in 12 men who cannot separate the red and the amber.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 
 import '../models/roster_models.dart';
-import 'roster_shift_palette.dart';
+import 'roster_formats.dart';
 
 /// The six things a day can be. Exhaustive by construction: the legend is
 /// generated from `RosterCellState.values`, so a state cannot be added to the
@@ -53,8 +56,7 @@ enum RosterCellState {
 ///
 /// Kept separate from [RosterCellState] because they combine: one cell can be
 /// a cover day, over the normal day's hours, and on a public holiday at once.
-/// Markers are distinguished by glyph and drawn in one ink, so they stay
-/// readable over whatever colour Desk gave the shift type.
+/// Markers are distinguished by glyph and drawn in one neutral ink.
 enum RosterCellMarker {
   /// More hours than this person's normal day — the comparison the standard
   /// hours under their name exists to invite.
@@ -81,41 +83,31 @@ enum RosterCellMarker {
 /// it — which is how one hue ended up meaning a gap, an unrostered day and a
 /// destructive button at the same time. Second, `core/app.dart` declares
 /// `theme:` with no `darkTheme`/`themeMode`, so there is exactly one brightness
-/// to design against; the old dark-mode branch in the cell painter was dead
-/// code that could never run.
+/// to design against.
 abstract final class RosterColors {
-  /// "This stops somebody working."
+  /// "Nobody has set a shift for this day" — the check-in gate will refuse.
   static const attentionFill = Color(0xFFFBE0DD);
   static const attentionInk = Color(0xFF8C1D18);
   static const attentionLine = Color(0xFFB3261E);
 
-  /// "Nobody has this covered."
+  /// "A day off nobody is covering."
   static const riskFill = Color(0xFFFFE3AC);
   static const riskInk = Color(0xFF5F3D00);
   static const riskLine = Color(0xFFB26A00);
 
-  /// "Off, and handled."
-  static const settledFill = Color(0xFFD6EED8);
-  static const settledInk = Color(0xFF12501A);
-  static const settledLine = Color(0xFF3E8A44);
-
-  /// "Public holiday."
-  static const holidayFill = Color(0xFFE1DEF6);
-  static const holidayInk = Color(0xFF2F2A63);
-  static const holidayLine = Color(0xFF6E63C4);
-
-  /// "Nothing happened here" — an outline, not a fill, so it cannot be
-  /// confused with the grey chrome of the headers.
+  /// Every cell that is NOT a problem: an outline, not a fill, so it cannot
+  /// be confused with the grey chrome of the headers. [emptyInk] is the muted
+  /// ink for OFF / HOL / a past blank; a working day's time uses [markerInk].
   static const emptyFill = Color(0x00000000);
   static const emptyInk = Color(0xFF7A756F);
   static const emptyLine = Color(0xFFDCD8D4);
 
-  /// Markers: one ink, told apart by glyph.
+  /// Markers and working-day text: one dark neutral ink.
   static const markerInk = Color(0xFF1B1B1B);
   static const markerChip = Color(0xFFFFFFFF);
 
   /// Weekend columns (Friday and Saturday). A warm neutral on the header band
-  /// only — deliberately not one of the state hues.
+  /// only — deliberately not one of the problem hues.
   static const weekendHeader = Color(0xFFF3E9DA);
 
   static const transparent = Color(0x00000000);
@@ -133,8 +125,6 @@ class RosterCellStyle {
     required this.icon,
     required this.token,
     required this.label,
-    this.accent,
-    this.shiftCode,
   });
 
   final RosterCellState state;
@@ -143,27 +133,26 @@ class RosterCellStyle {
   final Color borderColor;
   final double borderWidth;
 
-  /// The glyph half of "never colour alone". Null only for [working] and
-  /// [unrosteredPast], the two states whose text token is already unique: a
-  /// number for one, a lone dot for the other.
+  /// The state's glyph, for the day sheet and the legend. The grid cell draws
+  /// it only where the text alone is not enough: the warning beside an
+  /// uncovered day off, and the flag beside a holiday. Null only for
+  /// [RosterCellState.unrosteredPast], whose lone dot is already unique.
   final IconData? icon;
 
-  /// The text half — `OFF`, `HOL`, `?`, `·`, or empty for [working], where the
-  /// hours take the token's place. This is the ONE thing a non-working grid
-  /// cell draws; [icon] is for the day sheet and the legend.
+  /// What the cell says: the shift's time window for a working day (`9a–6p`,
+  /// or `9a` in the month view; the hours when the shift type is not in the
+  /// catalog), otherwise `OFF`, `HOL`, `Not set` or `·`. Empty only for a
+  /// working style resolved without a shift (the legend's generic entry).
   final String token;
 
   /// The legend wording, reused verbatim as the cell's semantics label.
   final String label;
 
-  /// The shift type's own colour, for [working] only.
-  final Color? accent;
-
-  /// The shift type's short code, for [working] only. Shown in the day sheet
-  /// and the legend's shift strip; the grid cell no longer draws it.
-  final String? shiftCode;
-
   bool get hasBorder => borderWidth > 0;
+
+  /// Whether this is one of the two states that need fixing — the only ones
+  /// drawn with a fill.
+  bool get isProblem => RosterStyleResolver.problemStates.contains(state);
 }
 
 /// How one marker is drawn.
@@ -223,38 +212,77 @@ class RosterLegendEntry {
   final IconData? icon;
   final String token;
   final String label;
+
+  /// A coloured "needs fixing" state, listed first in the legend.
+  bool get isProblem =>
+      state != null && RosterStyleResolver.problemStates.contains(state);
+}
+
+/// The month's shift types by name, so a working cell can write its time.
+///
+/// Built once per month payload and handed down, like the cover index, rather
+/// than searched per cell.
+@immutable
+class RosterShiftCatalog {
+  RosterShiftCatalog(Iterable<RosterShift> shifts)
+    : _byType = {
+        for (final shift in shifts)
+          if (shift.shiftType.trim().isNotEmpty) shift.shiftType.trim(): shift,
+      };
+
+  static final RosterShiftCatalog empty = RosterShiftCatalog(
+    const <RosterShift>[],
+  );
+
+  final Map<String, RosterShift> _byType;
+
+  /// The shift type called [shiftType], or null — a type retired in Desk can
+  /// still sit on days already worked, and the cell then falls back to hours.
+  RosterShift? lookup(String? shiftType) {
+    final name = (shiftType ?? '').trim();
+    return name.isEmpty ? null : _byType[name];
+  }
 }
 
 /// Resolves a [RosterCell] to a state, its markers, and the style for both.
 ///
-/// Holds the localisations and the shift palette so a caller cannot accidentally
-/// resolve half a cell against one month's palette and half against another's.
+/// Holds the localisations and the month's shift catalog so a caller cannot
+/// accidentally resolve half a cell against one month and half against
+/// another.
 class RosterStyleResolver {
   RosterStyleResolver({
-    required this.palette,
+    RosterShiftCatalog? catalog,
     required this.l10n,
     DateTime? today,
-  }) : today = _dateOnly(today ?? DateTime.now());
+  }) : catalog = catalog ?? RosterShiftCatalog.empty,
+       today = _dateOnly(today ?? DateTime.now());
 
   factory RosterStyleResolver.of(
     BuildContext context, {
-    required RosterShiftPalette palette,
+    RosterShiftCatalog? catalog,
     DateTime? today,
   }) {
     return RosterStyleResolver(
-      palette: palette,
+      catalog: catalog,
       l10n: AppLocalizations.of(context),
       today: today,
     );
   }
 
-  final RosterShiftPalette palette;
+  final RosterShiftCatalog catalog;
   final AppLocalizations l10n;
 
   /// Injected rather than read from the clock inside the resolver so "past"
   /// versus "future" is testable, and so every cell in one build agrees about
   /// where the boundary is even if the build straddles midnight.
   final DateTime today;
+
+  /// The only two states drawn with a fill: the ones that need somebody to
+  /// act. Everything else is text on an unfilled cell.
+  static const Set<RosterCellState> problemStates = <RosterCellState>{
+    RosterCellState.offUncovered,
+    RosterCellState.unrosteredFuture,
+  };
 
   /// Which of the six states [cell] is on [date].
   ///
@@ -315,45 +343,53 @@ class RosterStyleResolver {
     return cell.hours > employee.standardHours + 0.01;
   }
 
-  /// The style for a state. [shiftType] is used only by [working].
+  /// The style for a state.
+  ///
+  /// [shiftType] and [hours] are used only by [RosterCellState.working], to
+  /// write the cell's text: the shift's time window from the catalog — start
+  /// and end when [withEnd] (the week view's wider columns), start only
+  /// otherwise (the month view) — or, for a shift type the catalog does not
+  /// know, the hours.
   RosterCellStyle styleFor(
     RosterCellState state, {
     String? shiftType,
+    double? hours,
+    bool withEnd = true,
   }) {
     switch (state) {
       case RosterCellState.working:
-        final shift = shiftType == null || shiftType.trim().isEmpty
-            ? null
-            : palette.styleFor(shiftType);
-        final color = shift?.color ?? palette.representativeColor;
+        // No fill. Which shift it is used to be the cell's colour — one of
+        // up to ten strong hues nobody could keep in their head. The time
+        // says the same thing in words.
         return RosterCellStyle(
           state: state,
-          background: color,
-          foreground: RosterShiftPalette.readableOn(color),
-          borderColor: RosterColors.transparent,
-          borderWidth: 0,
-          icon: null,
-          token: '',
-          label: l10n.rosterLegendWorkingHours,
-          accent: color,
-          shiftCode: shift?.code,
+          background: RosterColors.emptyFill,
+          foreground: RosterColors.markerInk,
+          borderColor: RosterColors.emptyLine,
+          borderWidth: 1,
+          icon: Icons.schedule,
+          token: workingText(
+            shiftType: shiftType,
+            hours: hours,
+            withEnd: withEnd,
+          ),
+          label: l10n.rosterLegendWorkingTime,
         );
       case RosterCellState.offCovered:
         return RosterCellStyle(
           state: state,
-          background: RosterColors.settledFill,
-          foreground: RosterColors.settledInk,
-          borderColor: RosterColors.settledLine,
+          background: RosterColors.emptyFill,
+          foreground: RosterColors.emptyInk,
+          borderColor: RosterColors.emptyLine,
           borderWidth: 1,
-          icon: Icons.check_circle,
+          icon: Icons.check_circle_outline,
           token: l10n.rosterOffShort,
           label: l10n.rosterLegendOffCovered,
         );
       case RosterCellState.offUncovered:
-        // The heaviest treatment on the grid on purpose. This used to be a
-        // 10px icon in `onTertiaryContainer` — the warning was not
-        // warning-coloured, and the difference between a covered day off and
-        // an uncovered one was the shape of a tiny glyph.
+        // The heaviest treatment on the grid on purpose: amber fill, thick
+        // border, and a warning glyph beside the OFF, so it does not rely on
+        // its colour alone to stand apart from a covered day off.
         return RosterCellStyle(
           state: state,
           background: RosterColors.riskFill,
@@ -367,9 +403,9 @@ class RosterStyleResolver {
       case RosterCellState.holiday:
         return RosterCellStyle(
           state: state,
-          background: RosterColors.holidayFill,
-          foreground: RosterColors.holidayInk,
-          borderColor: RosterColors.holidayLine,
+          background: RosterColors.emptyFill,
+          foreground: RosterColors.emptyInk,
+          borderColor: RosterColors.emptyLine,
           borderWidth: 1,
           icon: Icons.flag_outlined,
           token: l10n.rosterHolidayShort,
@@ -383,9 +419,9 @@ class RosterStyleResolver {
           borderColor: RosterColors.attentionLine,
           borderWidth: 1.5,
           icon: Icons.block,
-          // A question, not a dash: the cell's whole message is "nobody has
-          // decided this day yet", and a dash read as "nothing to see".
-          token: '?',
+          // Words, not a '?': the cell's whole message is "nobody has decided
+          // this day yet", and a lone glyph had to be looked up in the legend.
+          token: l10n.rosterNotSetShort,
           label: l10n.rosterLegendNotRosteredFuture,
         );
       case RosterCellState.unrosteredPast:
@@ -402,13 +438,26 @@ class RosterStyleResolver {
     }
   }
 
+  /// A working cell's text: the shift's time window, or the hours when the
+  /// shift type is not in this month's catalog (or its times are unreadable).
+  /// Empty when neither is known.
+  String workingText({String? shiftType, double? hours, bool withEnd = true}) {
+    final shift = catalog.lookup(shiftType);
+    final time = shift == null
+        ? null
+        : rosterShiftTimeText(shift, l10n, withEnd: withEnd);
+    if (time != null) return time;
+    if (hours == null || hours <= 0) return '';
+    return rosterNumberIn(l10n.localeName, hours);
+  }
+
   RosterMarkerStyle markerStyle(RosterCellMarker marker) {
     switch (marker) {
       case RosterCellMarker.overtime:
         return RosterMarkerStyle(
           marker: marker,
-          // A dot, because that is all the grid draws for it now: one small
-          // dot after the hours. The day sheet spells out the numbers.
+          // A dot, because that is all the grid draws for it: one small dot
+          // after the shift time. The day sheet spells out the numbers.
           icon: Icons.circle,
           label: l10n.rosterLegendMarkerOvertime,
           background: RosterColors.markerChip,
@@ -451,19 +500,18 @@ class RosterStyleResolver {
     }
   }
 
-  /// The bulk-selection border. The one place a `ColorScheme` role is still
-  /// used for a cell, because selection is app chrome rather than roster
-  /// meaning — and it is a border, not a fill, so it never competes with a
-  /// state's hue.
+  /// The bulk-selection border. Selection is app chrome rather than roster
+  /// meaning, and it is a border, not a fill, so it never competes with the
+  /// two problem fills.
   static const Color selectionColor = Color(0xFF1A4FCC);
 
-  /// The markers the GRID itself draws: the overtime dot after the hours,
-  /// the weekend glyph on the column header, and the selection tick.
+  /// The markers the GRID itself draws: the overtime dot after the time,
+  /// the weekend tint on the column header, and the selection tick.
   ///
   /// The cover and holiday-worked markers still exist — they are on the cell's
-  /// semantics label and spelled out in the day sheet — but the cell no longer
-  /// paints them, so the legend must not promise them. The cell was simplified
-  /// to one thing per day (the hours, or the state's token) because line
+  /// semantics label and spelled out in the day sheet — but the cell does not
+  /// paint them, so the legend must not promise them. The cell carries one
+  /// thing per day (the shift time, or the state's word) because line
   /// managers could not read a 56px box carrying a code, a branch token and up
   /// to three glyphs.
   static const List<RosterCellMarker> gridMarkers = <RosterCellMarker>[
@@ -472,14 +520,19 @@ class RosterStyleResolver {
     RosterCellMarker.selected,
   ];
 
-  /// Every state, then every marker the grid draws — the legend, in order.
+  /// The legend, in order: the two coloured problem states first, then the
+  /// neutral text states, then every marker the grid draws.
   ///
   /// Generated from the enum and [gridMarkers] rather than hand-listed: this
   /// is what makes "the legend describes the grid" a property of the code
   /// instead of a promise somebody has to keep.
   List<RosterLegendEntry> legendEntries() => <RosterLegendEntry>[
     for (final state in RosterCellState.values)
-      RosterLegendEntry.forState(styleFor(state)),
+      if (problemStates.contains(state))
+        RosterLegendEntry.forState(styleFor(state)),
+    for (final state in RosterCellState.values)
+      if (!problemStates.contains(state))
+        RosterLegendEntry.forState(styleFor(state)),
     for (final marker in gridMarkers)
       RosterLegendEntry.forMarker(markerStyle(marker)),
   ];
