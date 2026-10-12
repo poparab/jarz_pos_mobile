@@ -14940,6 +14940,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get branchAccessDayCancelled => 'One-day access cancelled.';
 
   @override
+  String branchAccessHomeBranch(String branch) {
+    return 'Home branch: $branch';
+  }
+
+  @override
+  String get branchAccessMoveAction => 'Move to another branch';
+
+  @override
+  String branchAccessMoveTitle(String name) {
+    return 'Move $name to another branch';
+  }
+
+  @override
+  String get branchAccessMoveExplain =>
+      'POS access switches now. Their weekly schedule and upcoming shifts move to the new branch from today.';
+
+  @override
+  String branchAccessMoveCurrent(String branch) {
+    return 'Current branch: $branch';
+  }
+
+  @override
+  String get branchAccessMoveTarget => 'New branch';
+
+  @override
+  String branchAccessMoveKeepOld(String branch) {
+    return 'Keep access to $branch too';
+  }
+
+  @override
+  String get branchAccessMoveKeepOldUnknown =>
+      'Keep access to their current branch too';
+
+  @override
+  String get branchAccessMoveConfirm => 'Move';
+
+  @override
+  String get branchAccessMoveNoTarget =>
+      'There is no other branch you can move this person to.';
+
+  @override
+  String branchAccessMoved(String name, String branch) {
+    return '$name moved to $branch.';
+  }
+
+  @override
+  String branchAccessRosterNotMoved(String reason) {
+    return 'Shift not moved: $reason. Check-in at this branch will still be refused.';
+  }
+
+  @override
+  String branchAccessRosterNotRestored(String reason) {
+    return 'Shift not moved back: $reason';
+  }
+
+  @override
   String get branchAccessHistoryAllBranches => 'All branches';
 
   @override
@@ -14979,6 +15035,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get branchAccessSourceScheduler => 'Automatic';
+
+  @override
+  String get branchAccessSourceMove => 'Branch move';
 
   @override
   String get rosterGrantPosAccess => 'Also give POS access for this day';

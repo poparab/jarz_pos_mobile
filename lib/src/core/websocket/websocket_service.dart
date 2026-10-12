@@ -22,6 +22,7 @@ class WebSocketService {
   final _kanbanUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
   final _courierUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
   final _shiftUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
+  final _branchAccessStreamController = StreamController<Map<String, dynamic>>.broadcast();
   Timer? _reconnectTimer;
   Timer? _heartbeatTimer;
   bool _isConnecting = false;
@@ -33,6 +34,9 @@ class WebSocketService {
   Stream<Map<String, dynamic>> get kanbanUpdates => _kanbanUpdateStreamController.stream;
   Stream<Map<String, dynamic>> get courierUpdates => _courierUpdateStreamController.stream;
   Stream<Map<String, dynamic>> get shiftUpdates => _shiftUpdateStreamController.stream;
+
+  /// This user's branch access changed; re-read the POS branch list.
+  Stream<Map<String, dynamic>> get branchAccessUpdates => _branchAccessStreamController.stream;
 
   /// Every Socket.IO event this client binds a handler to.
   ///
@@ -56,6 +60,8 @@ class WebSocketService {
     WsEvents.salesPartnerPaidOfd,
     // Courier app (COURIER_CONTRACTS §7)
     ...courierStopEvents,
+    // Branch access (sent to the affected user only)
+    WsEvents.branchAccessChanged,
   ];
 
   /// Courier events that change a card's *contents* without moving it between
@@ -270,6 +276,11 @@ class WebSocketService {
     }
   }
 
+  /// Feeds one decoded message through the same routing as a live socket.
+  @visibleForTesting
+  void debugHandleMessage(Map<String, dynamic> message) =>
+      _handleWebSocketMessage(message);
+
   void _handleWebSocketMessage(Map<String, dynamic> message) {
     final event = message['event'] as String?;
     final data = message['data'] as Map<String, dynamic>?;
@@ -452,6 +463,10 @@ class WebSocketService {
       case WsEvents.pong:
         // Heartbeat response
         break;
+      case WsEvents.branchAccessChanged:
+        // The payload is informational; the listener re-reads the whole list.
+        _branchAccessStreamController.add(data ?? const <String, dynamic>{});
+        break;
       case WsEvents.shiftStarted:
       case WsEvents.shiftEnded:
         if (data != null) {
@@ -534,6 +549,7 @@ class WebSocketService {
     _kanbanUpdateStreamController.close();
   _courierUpdateStreamController.close();
   _shiftUpdateStreamController.close();
+    _branchAccessStreamController.close();
   }
 }
 

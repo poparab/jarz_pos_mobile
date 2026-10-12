@@ -20,9 +20,19 @@ const _refusal =
     'Branch access can only change when the branch is closed.';
 
 class _FakeRepository implements BranchAccessRepository {
-  _FakeRepository({this.canManageAll = true});
+  _FakeRepository({
+    this.canManageAll = true,
+    this.aliExtras = const {},
+    this.grantResult = const DayAccessResult(),
+  });
 
   final bool canManageAll;
+
+  /// Merged into Ali's row (e.g. `editable`, `home_branch`).
+  final Map<String, dynamic> aliExtras;
+  final DayAccessResult grantResult;
+
+  final List<Map<String, Object?>> moveCalls = [];
 
   @override
   Future<BranchAccessOverview> getOverview() async =>
@@ -56,6 +66,7 @@ class _FakeRepository implements BranchAccessRepository {
                 'row_added': 0,
               },
             ],
+            ...aliExtras,
           },
         ],
       });
@@ -89,7 +100,31 @@ class _FakeRepository implements BranchAccessRepository {
     required String posProfile,
     required String accessDate,
     String? notes,
-  }) async => const DayAccessResult();
+  }) async => grantResult;
+
+  @override
+  Future<MoveBranchResult> moveBranch({
+    required String user,
+    required String toPosProfile,
+    String? fromPosProfile,
+    bool keepOldAccess = false,
+    String? notes,
+  }) async {
+    moveCalls.add({
+      'user': user,
+      'to': toPosProfile,
+      'from': fromPosProfile,
+      'keep': keepOldAccess,
+      'notes': notes,
+    });
+    return MoveBranchResult.fromJson({
+      'success': true,
+      'user': user,
+      'to_pos_profile': toPosProfile,
+      'from_pos_profile': fromPosProfile,
+      'message': 'Ali now works at $toPosProfile.',
+    });
+  }
 
   @override
   Future<DayAccessResult> cancelDayAccess(String name) async =>
@@ -123,13 +158,14 @@ Future<void> _pump(
   WidgetTester tester,
   Locale locale, {
   bool canManageAll = true,
+  _FakeRepository? repository,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         canActAsLineManagerProvider.overrideWithValue(true),
         branchAccessRepositoryProvider.overrideWithValue(
-          _FakeRepository(canManageAll: canManageAll),
+          repository ?? _FakeRepository(canManageAll: canManageAll),
         ),
       ],
       child: MaterialApp(
@@ -203,5 +239,84 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(_refusal), findsOneWidget);
+  });
+
+  testWidgets('no move action when the server sends no editable flag', (
+    tester,
+  ) async {
+    await _pump(tester, const Locale('en'));
+    expect(find.byKey(const ValueKey('move-branch')), findsNothing);
+  });
+
+  for (final locale in const [Locale('en'), Locale('ar')]) {
+    testWidgets(
+      'move branch posts the choice and shows the message ($locale)',
+      (tester) async {
+        final repo = _FakeRepository(
+          aliExtras: const {
+            'editable': true,
+            'home_branch': 'Dokki',
+            'home_location': 'Dokki',
+          },
+        );
+        await _pump(tester, locale, repository: repo);
+
+        if (locale.languageCode == 'en') {
+          expect(find.text('Home branch: Dokki'), findsOneWidget);
+        }
+        await tester.tap(find.byKey(const ValueKey('move-branch')));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.byType(MoveBranchDialog), findsOneWidget);
+
+        // Only Nasr city qualifies: Dokki is home, 6th of october is not ours.
+        await tester.tap(find.byKey(const ValueKey('move-branch-target')));
+        await tester.pumpAndSettle();
+        expect(find.text('6th of october').hitTestable(), findsNothing);
+        await tester.tap(find.text('Nasr city').hitTestable().last);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const ValueKey('move-branch-keep-old')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('move-branch-confirm')));
+        await tester.pumpAndSettle();
+
+        expect(repo.moveCalls, [
+          {
+            'user': 'ali@example.com',
+            'to': 'Nasr city',
+            'from': 'Dokki',
+            'keep': true,
+            'notes': null,
+          },
+        ]);
+        expect(find.text('Ali now works at Nasr city.'), findsOneWidget);
+      },
+    );
+  }
+
+  testWidgets('a grant that could not move the shift warns in orange', (
+    tester,
+  ) async {
+    final repo = _FakeRepository(
+      grantResult: DayAccessResult.fromJson(const {
+        'message': 'Ali can open Nasr city today.',
+        'roster': {'moved': false, 'reason': 'Ali has no shift on 2026-10-12'},
+      }),
+    );
+    await _pump(tester, const Locale('en'), repository: repo);
+
+    await tester.tap(find.byIcon(Icons.more_time));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(FilledButton).last);
+    await tester.pumpAndSettle();
+
+    final snack = find.byKey(const ValueKey('branch-access-warning-snackbar'));
+    expect(snack, findsOneWidget);
+    expect(find.text('Ali can open Nasr city today.'), findsOneWidget);
+    expect(
+      find.textContaining('Ali has no shift on 2026-10-12'),
+      findsOneWidget,
+    );
   });
 }

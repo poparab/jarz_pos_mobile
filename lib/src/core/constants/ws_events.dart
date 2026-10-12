@@ -38,6 +38,12 @@ abstract final class WsEvents {
   static const shiftStarted = 'jarz_pos_shift_started';
   static const shiftEnded = 'jarz_pos_shift_ended';
 
+  // ── Branch access ─────────────────────────────────────────────────────
+  /// This user's POS branch membership changed (added, removed, day access
+  /// started / ended / cancelled, branch move). Sent to the affected user
+  /// only; payload `{"user": str, "pos_profile": str|null}`.
+  static const branchAccessChanged = 'jarz_pos_branch_access_changed';
+
   // ── Approvals ─────────────────────────────────────────────────────────
   /// A Jarz Expense Request is waiting for a JARZ Manager's decision.
   static const expenseApprovalRequested =

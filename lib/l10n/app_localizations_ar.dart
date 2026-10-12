@@ -14933,6 +14933,62 @@ class AppLocalizationsAr extends AppLocalizations {
   String get branchAccessDayCancelled => 'اتلغت صلاحية اليوم الواحد.';
 
   @override
+  String branchAccessHomeBranch(String branch) {
+    return 'الفرع الأساسي: $branch';
+  }
+
+  @override
+  String get branchAccessMoveAction => 'انقله لفرع تاني';
+
+  @override
+  String branchAccessMoveTitle(String name) {
+    return 'نقل $name لفرع تاني';
+  }
+
+  @override
+  String get branchAccessMoveExplain =>
+      'صلاحية الكاشير بتتنقل دلوقتي. جدوله الأسبوعي وشيفتاته الجاية بتتنقل للفرع الجديد من النهارده.';
+
+  @override
+  String branchAccessMoveCurrent(String branch) {
+    return 'الفرع الحالي: $branch';
+  }
+
+  @override
+  String get branchAccessMoveTarget => 'الفرع الجديد';
+
+  @override
+  String branchAccessMoveKeepOld(String branch) {
+    return 'يفضل معاه صلاحية $branch كمان';
+  }
+
+  @override
+  String get branchAccessMoveKeepOldUnknown =>
+      'يفضل معاه صلاحية فرعه الحالي كمان';
+
+  @override
+  String get branchAccessMoveConfirm => 'انقل';
+
+  @override
+  String get branchAccessMoveNoTarget =>
+      'مفيش فرع تاني تقدر تنقل الشخص ده ليه.';
+
+  @override
+  String branchAccessMoved(String name, String branch) {
+    return '$name اتنقل لفرع $branch.';
+  }
+
+  @override
+  String branchAccessRosterNotMoved(String reason) {
+    return 'الشيفت متنقلش: $reason. تسجيل الحضور في الفرع ده هيفضل مرفوض.';
+  }
+
+  @override
+  String branchAccessRosterNotRestored(String reason) {
+    return 'الشيفت مرجعش لمكانه: $reason';
+  }
+
+  @override
   String get branchAccessHistoryAllBranches => 'كل الفروع';
 
   @override
@@ -14972,6 +15028,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get branchAccessSourceScheduler => 'تلقائي';
+
+  @override
+  String get branchAccessSourceMove => 'نقل فرع';
 
   @override
   String get rosterGrantPosAccess => 'ادي كمان صلاحية الكاشير لليوم ده';

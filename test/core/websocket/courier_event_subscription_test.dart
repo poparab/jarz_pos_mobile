@@ -19,7 +19,8 @@ void main() {
         expect(
           WebSocketService.subscribedEvents,
           contains(event),
-          reason: '$event is routed but never subscribed, so it would never '
+          reason:
+              '$event is routed but never subscribed, so it would never '
               'arrive. Add it to WebSocketService.subscribedEvents.',
         );
       }
@@ -65,6 +66,34 @@ void main() {
         WebSocketService.subscribedEvents.toSet().length,
         WebSocketService.subscribedEvents.length,
       );
+    });
+  });
+
+  group('branch access event', () {
+    test('is bound on connect and keeps its backend name', () {
+      expect(WsEvents.branchAccessChanged, 'jarz_pos_branch_access_changed');
+      expect(
+        WebSocketService.subscribedEvents,
+        contains(WsEvents.branchAccessChanged),
+      );
+    });
+
+    test('is routed to branchAccessUpdates', () async {
+      final service = WebSocketService();
+      final received = <Map<String, dynamic>>[];
+      final sub = service.branchAccessUpdates.listen(received.add);
+      service.debugHandleMessage({
+        'event': WsEvents.branchAccessChanged,
+        'data': <String, dynamic>{
+          'user': 'ali@example.com',
+          'pos_profile': 'Dokki',
+        },
+      });
+      service.debugHandleMessage({'event': WsEvents.branchAccessChanged});
+      await Future<void>.delayed(Duration.zero);
+      expect(received, hasLength(2));
+      expect(received.first['pos_profile'], 'Dokki');
+      await sub.cancel();
     });
   });
 }

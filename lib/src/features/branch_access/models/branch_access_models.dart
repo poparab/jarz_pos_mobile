@@ -138,6 +138,8 @@ class BranchAccessUser {
     this.editable,
     this.branches = const [],
     this.dayAccess = const [],
+    this.homeBranch,
+    this.homeLocation,
   });
 
   final String user;
@@ -166,6 +168,13 @@ class BranchAccessUser {
 
   /// Scheduled and Active day accesses only.
   final List<DayAccess> dayAccess;
+
+  /// POS Profile of the branch the person's standing weekly schedule places
+  /// them at. Null when they have no schedule, or the server is older.
+  final String? homeBranch;
+
+  /// Shift Location name behind [homeBranch].
+  final String? homeLocation;
 
   String get displayName => fullName.isNotEmpty ? fullName : user;
 
@@ -222,6 +231,8 @@ class BranchAccessUser {
             .whereType<Map>()
             .map((e) => DayAccess.fromJson(Map<String, dynamic>.from(e)))
             .toList(),
+        homeBranch: _nullIfBlank(json['home_branch']),
+        homeLocation: _nullIfBlank(json['home_location']),
       );
 }
 
@@ -284,22 +295,143 @@ class SetBranchAccessResult {
       );
 }
 
+/// What a day access did to that day's rostered shift.
+///
+/// `grant_day_access` moves the shift to the borrowed branch so check-in works
+/// there ([moved]); `cancel_day_access` puts it back ([restored]). When it
+/// could not (no shift that day, a day off), [reason] says why - and check-in
+/// at the borrowed branch will still be refused.
+class DayAccessRoster {
+  const DayAccessRoster({
+    this.moved = false,
+    this.restored = false,
+    this.shiftType,
+    this.shiftLocation,
+    this.previousLocation,
+    this.reason,
+  });
+
+  final bool moved;
+  final bool restored;
+  final String? shiftType;
+  final String? shiftLocation;
+  final String? previousLocation;
+  final String? reason;
+
+  factory DayAccessRoster.fromJson(Map<String, dynamic> json) =>
+      DayAccessRoster(
+        moved: _toBool(json['moved']),
+        restored: _toBool(json['restored']),
+        shiftType: _nullIfBlank(json['shift_type']),
+        shiftLocation: _nullIfBlank(json['shift_location']),
+        previousLocation: _nullIfBlank(json['previous_location']),
+        reason: _nullIfBlank(json['reason']),
+      );
+}
+
 /// `grant_day_access` / `cancel_day_access`.
 class DayAccessResult {
-  const DayAccessResult({this.dayAccess, this.message});
+  const DayAccessResult({this.dayAccess, this.message, this.roster});
 
   final DayAccess? dayAccess;
 
   /// The server's own sentence, shown as-is.
   final String? message;
 
+  /// Null when the server does not send it (older server).
+  final DayAccessRoster? roster;
+
+  /// After a grant: why that day's shift could not be moved to the borrowed
+  /// branch (so check-in there will still be refused), or null when it was
+  /// moved or the server did not say.
+  String? get grantRosterWarning {
+    final r = roster;
+    if (r == null || r.moved) return null;
+    return r.reason;
+  }
+
+  /// After a cancel: why the shift could not be put back, or null.
+  String? get cancelRosterWarning => roster?.reason;
+
   factory DayAccessResult.fromJson(Map<String, dynamic> json) {
     final raw = json['day_access'];
+    final roster = json['roster'];
     return DayAccessResult(
       dayAccess: raw is Map
           ? DayAccess.fromJson(Map<String, dynamic>.from(raw))
           : null,
       message: _nullIfBlank(json['message']),
+      roster: roster is Map
+          ? DayAccessRoster.fromJson(Map<String, dynamic>.from(roster))
+          : null,
+    );
+  }
+}
+
+/// The roster half of `move_branch`.
+class MoveBranchRoster {
+  const MoveBranchRoster({
+    this.fromDate,
+    this.shiftLocation,
+    this.previousLocation,
+    this.schedulesUpdated = 0,
+    this.assignmentsMoved = 0,
+    this.reason,
+  });
+
+  /// `YYYY-MM-DD` the schedule moved from (today, or tomorrow when the person
+  /// already checked in today).
+  final String? fromDate;
+  final String? shiftLocation;
+  final String? previousLocation;
+  final int schedulesUpdated;
+  final int assignmentsMoved;
+
+  /// Why the schedule could not be moved, when it could not.
+  final String? reason;
+
+  factory MoveBranchRoster.fromJson(Map<String, dynamic> json) =>
+      MoveBranchRoster(
+        fromDate: _nullIfBlank(json['from_date']),
+        shiftLocation: _nullIfBlank(json['shift_location']),
+        previousLocation: _nullIfBlank(json['previous_location']),
+        schedulesUpdated: _toInt(json['schedules_updated']),
+        assignmentsMoved: _toInt(json['assignments_moved']),
+        reason: _nullIfBlank(json['reason']),
+      );
+}
+
+/// `move_branch` - a permanent move to another branch.
+class MoveBranchResult {
+  const MoveBranchResult({
+    this.success = true,
+    this.user = '',
+    this.toPosProfile = '',
+    this.fromPosProfile,
+    this.message,
+    this.roster,
+  });
+
+  final bool success;
+  final String user;
+  final String toPosProfile;
+  final String? fromPosProfile;
+
+  /// The server's own sentence, shown as-is.
+  final String? message;
+  final MoveBranchRoster? roster;
+
+  factory MoveBranchResult.fromJson(Map<String, dynamic> json) {
+    final roster = json['roster'];
+    return MoveBranchResult(
+      success: json['success'] == null ? true : _toBool(json['success']),
+      user: (json['user'] ?? '').toString(),
+      toPosProfile: (json['to_pos_profile'] ?? '').toString(),
+      fromPosProfile: _nullIfBlank(json['from_pos_profile']),
+      message: _nullIfBlank(json['message']),
+      roster: roster is Map
+          ? MoveBranchRoster.fromJson(Map<String, dynamic>.from(roster))
+          : null,
     );
   }
 }
@@ -384,6 +516,12 @@ bool _toBool(dynamic value) {
   if (value is num) return value != 0;
   final text = value?.toString().trim().toLowerCase() ?? '';
   return text == 'true' || text == '1';
+}
+
+int _toInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString().trim() ?? '') ?? 0;
 }
 
 String? _nullIfBlank(dynamic value) {

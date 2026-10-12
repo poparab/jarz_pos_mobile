@@ -13,6 +13,8 @@ import 'widgets/global_orientation_enforcer.dart';
 import 'websocket/websocket_service.dart';
 import 'sync/offline_sync_service.dart';
 import '../features/pos/state/courier_ws_bridge.dart';
+import '../features/pos/state/branch_access_ws_bridge.dart';
+import '../features/pos/state/pos_notifier.dart';
 import '../features/printing/pos_printer_provider.dart';
 import 'network/user_service.dart';
 import '../features/pos/order_alert/order_alert_bridge.dart';
@@ -157,6 +159,9 @@ class _AuthenticatedServiceBootstrapState
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       ref.read(shorebirdUpdateProvider.notifier).recheckStatus();
+      // A branch granted or removed while the app was in the background (the
+      // realtime event is missed when the socket is down) shows up now.
+      ref.read(posNotifierProvider.notifier).refreshProfileList();
     }
   }
 
@@ -167,6 +172,7 @@ class _AuthenticatedServiceBootstrapState
     ref.watch(offlineSyncServiceProvider);
     ref.watch(userRolesFutureProvider);
     ref.watch(courierWsBridgeProvider);
+    ref.watch(branchAccessWsBridgeProvider);
     ref.watch(orderAlertBridgeProvider);
     ref.watch(shorebirdUpdateProvider);
 

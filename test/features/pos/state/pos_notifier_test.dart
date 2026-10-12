@@ -154,6 +154,22 @@ class _FakePosRepository extends PosRepository {
   }) async => null;
 }
 
+/// Slow profile fetch that counts calls, for the overlap guard.
+class _CountingPosRepository extends _FakePosRepository {
+  _CountingPosRepository(this.onCall);
+  final void Function() onCall;
+
+  @override
+  Future<List<Map<String, dynamic>>> getPosProfiles() async {
+    onCall();
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    return [
+      {'name': 'A'},
+      {'name': 'B'},
+    ];
+  }
+}
+
 /// Fake DraftCartRepository that skips Hive initialisation in unit tests.
 class _FakeDraftCartRepository extends DraftCartRepository {
   @override
@@ -608,6 +624,84 @@ void main() {
   // ──────────────────────────────────────────────────────────────────────────
   // PosNotifier – selectProfile
   // ──────────────────────────────────────────────────────────────────────────
+  group('PosNotifier.refreshProfileList', () {
+    late _FakePosRepository repo;
+    late PosNotifier notifier;
+
+    setUp(() {
+      repo = _FakePosRepository();
+      notifier = PosNotifier(repo, _FakeDraftCartRepository());
+    });
+
+    test('updates profiles only, keeping selection, catalog and cart', () async {
+      notifier.state = notifier.state.copyWith(
+        profiles: const [
+          {'name': 'Dokki'},
+        ],
+        selectedProfile: const {'name': 'Dokki'},
+        items: const [
+          {'name': 'ITEM-1'},
+        ],
+      );
+      notifier.addToCart({'name': 'ITEM-1', 'item_name': 'One', 'rate': 10});
+      repo.profilesResult = [
+        {'name': 'Dokki'},
+        {'name': 'Nasr city'},
+      ];
+
+      await notifier.refreshProfileList();
+
+      expect(notifier.state.profiles.map((p) => p['name']), [
+        'Dokki',
+        'Nasr city',
+      ]);
+      expect(notifier.state.selectedProfile!['name'], 'Dokki');
+      expect(notifier.state.cartItems, hasLength(1));
+      expect(notifier.state.items, hasLength(1));
+      expect(notifier.state.isLoading, isFalse);
+      expect(repo.itemsCalls, 0, reason: 'no catalog reload');
+    });
+
+    test('auto-selects when nothing is selected and one branch exists', () async {
+      repo.profilesResult = [
+        {'name': 'Solo'},
+      ];
+      await notifier.refreshProfileList();
+      expect(notifier.state.selectedProfile!['name'], 'Solo');
+    });
+
+    test('does not auto-select between several branches', () async {
+      repo.profilesResult = [
+        {'name': 'A'},
+        {'name': 'B'},
+      ];
+      await notifier.refreshProfileList();
+      expect(notifier.state.profiles, hasLength(2));
+      expect(notifier.state.selectedProfile, isNull);
+      expect(repo.itemsCalls, 0);
+    });
+
+    test('swallows errors and leaves state alone', () async {
+      notifier.state = notifier.state.copyWith(
+        profiles: const [
+          {'name': 'Dokki'},
+        ],
+      );
+      repo.shouldThrow = true;
+      await notifier.refreshProfileList();
+      expect(notifier.state.error, isNull);
+      expect(notifier.state.profiles, hasLength(1));
+    });
+
+    test('overlapping calls fetch once', () async {
+      var calls = 0;
+      final counting = _CountingPosRepository(() => calls++);
+      final n = PosNotifier(counting, _FakeDraftCartRepository());
+      await Future.wait([n.refreshProfileList(), n.refreshProfileList()]);
+      expect(calls, 1);
+    });
+  });
+
   group('PosNotifier.selectProfile', () {
     late _FakePosRepository repo;
     late PosNotifier notifier;

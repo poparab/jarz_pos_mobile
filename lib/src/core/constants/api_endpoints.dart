@@ -838,6 +838,10 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.branch_access.cancel_day_access';
   static const branchAccessLog =
       '/api/method/jarz_pos.api.branch_access.get_access_log';
+  // Permanent move: access to the new branch, old one removed, and the
+  // standing schedule + future shifts moved to the new branch's location.
+  static const branchAccessMoveBranch =
+      '/api/method/jarz_pos.api.branch_access.move_branch';
 
   // ── Delivery partner settlement (the weekly bank transfer) ────────────
   // A delivery partner is a courier COMPANY. Its per-trip fees accrued at

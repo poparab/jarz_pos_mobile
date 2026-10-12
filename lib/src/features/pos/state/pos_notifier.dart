@@ -1351,6 +1351,36 @@ class PosNotifier extends StateNotifier<PosState> {
     }
   }
 
+  bool _isRefreshingProfileList = false;
+
+  /// Background re-read of the branches this user may open.
+  ///
+  /// Called when the server says this person's branch access changed and when
+  /// the app comes back to the foreground, so a branch granted while the app
+  /// was running appears without a restart. Deliberately lighter than
+  /// [loadProfiles]: only `profiles` changes - the catalog, the cart and the
+  /// selected branch are left alone, no loading flag is raised and failures
+  /// are swallowed. The one exception mirrors [loadProfiles]: with nothing
+  /// selected and exactly one branch now available, that branch is selected.
+  Future<void> refreshProfileList() async {
+    if (_isRefreshingProfileList) return;
+    _isRefreshingProfileList = true;
+    try {
+      final profiles = await _repository.getPosProfiles();
+      if (!mounted) return;
+      state = state.copyWith(profiles: profiles);
+      if (state.selectedProfile == null &&
+          profiles.length == 1 &&
+          !state.isLoading) {
+        await selectProfile(profiles.first);
+      }
+    } catch (_) {
+      // Background refresh: the next event or resume tries again.
+    } finally {
+      _isRefreshingProfileList = false;
+    }
+  }
+
   Future<void> selectProfile(Map<String, dynamic> profile) async {
     if (state.isB2bOrder &&
         state.selectedCustomer != null &&

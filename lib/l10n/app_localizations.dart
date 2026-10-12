@@ -24437,6 +24437,84 @@ abstract class AppLocalizations {
   /// **'One-day access cancelled.'**
   String get branchAccessDayCancelled;
 
+  /// No description provided for @branchAccessHomeBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Home branch: {branch}'**
+  String branchAccessHomeBranch(String branch);
+
+  /// No description provided for @branchAccessMoveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to another branch'**
+  String get branchAccessMoveAction;
+
+  /// No description provided for @branchAccessMoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {name} to another branch'**
+  String branchAccessMoveTitle(String name);
+
+  /// No description provided for @branchAccessMoveExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'POS access switches now. Their weekly schedule and upcoming shifts move to the new branch from today.'**
+  String get branchAccessMoveExplain;
+
+  /// No description provided for @branchAccessMoveCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current branch: {branch}'**
+  String branchAccessMoveCurrent(String branch);
+
+  /// No description provided for @branchAccessMoveTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'New branch'**
+  String get branchAccessMoveTarget;
+
+  /// No description provided for @branchAccessMoveKeepOld.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep access to {branch} too'**
+  String branchAccessMoveKeepOld(String branch);
+
+  /// No description provided for @branchAccessMoveKeepOldUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep access to their current branch too'**
+  String get branchAccessMoveKeepOldUnknown;
+
+  /// No description provided for @branchAccessMoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get branchAccessMoveConfirm;
+
+  /// No description provided for @branchAccessMoveNoTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no other branch you can move this person to.'**
+  String get branchAccessMoveNoTarget;
+
+  /// No description provided for @branchAccessMoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} moved to {branch}.'**
+  String branchAccessMoved(String name, String branch);
+
+  /// No description provided for @branchAccessRosterNotMoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift not moved: {reason}. Check-in at this branch will still be refused.'**
+  String branchAccessRosterNotMoved(String reason);
+
+  /// No description provided for @branchAccessRosterNotRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift not moved back: {reason}'**
+  String branchAccessRosterNotRestored(String reason);
+
   /// No description provided for @branchAccessHistoryAllBranches.
   ///
   /// In en, this message translates to:
@@ -24514,6 +24592,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Automatic'**
   String get branchAccessSourceScheduler;
+
+  /// No description provided for @branchAccessSourceMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch move'**
+  String get branchAccessSourceMove;
 
   /// No description provided for @rosterGrantPosAccess.
   ///

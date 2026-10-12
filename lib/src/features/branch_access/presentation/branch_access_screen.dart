@@ -76,9 +76,21 @@ class BranchAccessScreen extends ConsumerWidget {
 ///
 /// Re-fetched on failure too: the usual failure is "branch just opened", and
 /// the stale screen would still be offering the change that was refused.
+/// What a change reports back: the sentence to show, and optionally a warning
+/// the manager has to act on (shown in orange, for longer).
+class _Outcome {
+  const _Outcome(this.message, {this.warning});
+
+  final String message;
+  final String? warning;
+}
+
+/// Orange: the change went through, but something still needs the manager.
+const Color branchAccessWarningColor = Color(0xFFE65100);
+
 Future<void> _perform(
   BuildContext context,
-  Future<String> Function() action,
+  Future<_Outcome> Function() action,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
   final errorColor = Theme.of(context).colorScheme.error;
@@ -86,8 +98,45 @@ Future<void> _perform(
   // been rebuilt away by the time the request answers.
   final container = ProviderScope.containerOf(context, listen: false);
   try {
-    final message = await action();
-    messenger.showSnackBar(SnackBar(content: Text(message)));
+    final outcome = await action();
+    final warning = outcome.warning;
+    if (warning == null || warning.trim().isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(outcome.message)));
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          key: const ValueKey('branch-access-warning-snackbar'),
+          backgroundColor: branchAccessWarningColor,
+          duration: const Duration(seconds: 10),
+          showCloseIcon: true,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(outcome.message),
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      warning,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   } catch (error) {
     if (!context.mounted) return;
     messenger.showSnackBar(
@@ -145,10 +194,12 @@ Future<void> _toggleMembership(
           allowed: allowed,
           notes: note,
         );
-    if (!result.changed) return l10n.branchAccessUnchanged;
-    return allowed
-        ? l10n.branchAccessAdded(user.displayName, branchName)
-        : l10n.branchAccessRemoved(user.displayName, branchName);
+    if (!result.changed) return _Outcome(l10n.branchAccessUnchanged);
+    return _Outcome(
+      allowed
+          ? l10n.branchAccessAdded(user.displayName, branchName)
+          : l10n.branchAccessRemoved(user.displayName, branchName),
+    );
   });
 }
 
@@ -175,8 +226,16 @@ Future<void> _giveDayAccess(
           accessDate: isoDate(choice.date),
           notes: choice.note,
         );
-    // The server's sentence says whether it started now or is scheduled.
-    return result.message ?? l10n.branchAccessDayGranted(dateText);
+    // The server's sentence says whether it started now or is scheduled, and
+    // what happened to that day's shift. When the shift could not be moved,
+    // check-in at the borrowed branch will still be refused: say so loudly.
+    final warning = result.grantRosterWarning;
+    return _Outcome(
+      result.message ?? l10n.branchAccessDayGranted(dateText),
+      warning: warning == null
+          ? null
+          : l10n.branchAccessRosterNotMoved(warning),
+    );
   });
 }
 
@@ -216,10 +275,59 @@ Future<void> _cancelDayAccess(
   if (confirmed != true || !context.mounted) return;
 
   await _perform(context, () async {
-    await ref.read(branchAccessRepositoryProvider).cancelDayAccess(day.name);
-    return l10n.branchAccessDayCancelled;
+    final result = await ref
+        .read(branchAccessRepositoryProvider)
+        .cancelDayAccess(day.name);
+    final warning = result.cancelRosterWarning;
+    return _Outcome(
+      l10n.branchAccessDayCancelled,
+      warning: warning == null
+          ? null
+          : l10n.branchAccessRosterNotRestored(warning),
+    );
   });
 }
+
+Future<void> _moveBranch(
+  BuildContext context,
+  WidgetRef ref,
+  BranchAccessUser user,
+  List<BranchAccessBranch> targets,
+) async {
+  final l10n = context.l10n;
+  final choice = await showDialog<_MoveChoice>(
+    context: context,
+    builder: (_) => MoveBranchDialog(user: user, targets: targets),
+  );
+  if (choice == null || !context.mounted) return;
+
+  await _perform(context, () async {
+    final result = await ref
+        .read(branchAccessRepositoryProvider)
+        .moveBranch(
+          user: user.user,
+          toPosProfile: choice.posProfile,
+          fromPosProfile: user.homeBranch,
+          keepOldAccess: choice.keepOldAccess,
+          notes: choice.note,
+        );
+    final reason = result.roster?.reason;
+    return _Outcome(
+      result.message ??
+          l10n.branchAccessMoved(user.displayName, choice.posProfile),
+      warning: reason,
+    );
+  });
+}
+
+/// Branches [user] could be moved to: every branch the caller manages except
+/// the one their schedule already places them at.
+List<BranchAccessBranch> moveTargetsFor(
+  BranchAccessOverview overview,
+  BranchAccessUser user,
+) => overview.branches
+    .where((b) => b.manageable && b.posProfile != user.homeBranch)
+    .toList();
 
 /// `YYYY-MM-DD`, the only date shape the API takes.
 String isoDate(DateTime date) =>
@@ -384,6 +492,13 @@ class _UserCard extends ConsumerWidget {
         .where((b) => b.manageable && !user.isPermanentOn(b.posProfile))
         .toList();
 
+    // A permanent move needs the server's explicit go-ahead on this person
+    // (an older server sends no `editable`, and has no move endpoint either).
+    final canMove = userLock == null && user.editable == true;
+    final moveTargets = canMove
+        ? moveTargetsFor(overview, user)
+        : const <BranchAccessBranch>[];
+
     final subtitleParts = <String>[
       if (user.employeeName != null && user.employeeName != user.fullName)
         user.employeeName!,
@@ -428,9 +543,41 @@ class _UserCard extends ConsumerWidget {
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (user.homeBranch != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.home_work_outlined,
+                                size: 14,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  l10n.branchAccessHomeBranch(user.homeBranch!),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
+                if (canMove)
+                  IconButton(
+                    key: const ValueKey('move-branch'),
+                    tooltip: l10n.branchAccessMoveAction,
+                    icon: const Icon(Icons.swap_horiz),
+                    onPressed: moveTargets.isEmpty
+                        ? null
+                        : () => _moveBranch(context, ref, user, moveTargets),
+                  ),
                 if (userLock != null)
                   // Disabled, but still explains itself on tap.
                   Tooltip(
@@ -800,6 +947,164 @@ class _DayAccessDialogState extends State<_DayAccessDialog> {
   }
 }
 
+class _MoveChoice {
+  const _MoveChoice({
+    required this.posProfile,
+    required this.keepOldAccess,
+    this.note,
+  });
+
+  final String posProfile;
+  final bool keepOldAccess;
+  final String? note;
+}
+
+/// Pick the branch [user] moves to for good. Pops a [_MoveChoice] on confirm,
+/// null on cancel.
+class MoveBranchDialog extends StatefulWidget {
+  const MoveBranchDialog({
+    super.key,
+    required this.user,
+    required this.targets,
+  });
+
+  final BranchAccessUser user;
+  final List<BranchAccessBranch> targets;
+
+  @override
+  State<MoveBranchDialog> createState() => _MoveBranchDialogState();
+}
+
+class _MoveBranchDialogState extends State<MoveBranchDialog> {
+  late String? _target = widget.targets.isEmpty
+      ? null
+      : widget.targets.first.posProfile;
+  bool _keepOld = false;
+  final _note = TextEditingController();
+
+  @override
+  void dispose() {
+    _note.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final home = widget.user.homeBranch;
+
+    BranchAccessBranch? selected;
+    for (final b in widget.targets) {
+      if (b.posProfile == _target) selected = b;
+    }
+    // The server refuses a move while either branch is open; warn up front.
+    final openShift = selected?.openShift;
+    final warn = openShift != null
+        ? l10n.branchAccessLockedOpen(
+            selected!.posProfile,
+            formatOpenSince(context, openShift),
+            openShift.holder,
+          )
+        : null;
+
+    return AlertDialog(
+      title: Text(l10n.branchAccessMoveTitle(widget.user.displayName)),
+      content: SingleChildScrollView(
+        child: widget.targets.isEmpty
+            ? Text(l10n.branchAccessMoveNoTarget)
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.branchAccessMoveExplain,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  if (home != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.branchAccessMoveCurrent(home),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    key: const ValueKey('move-branch-target'),
+                    initialValue: _target,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: l10n.branchAccessMoveTarget,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: [
+                      for (final b in widget.targets)
+                        DropdownMenuItem(
+                          value: b.posProfile,
+                          child: Text(b.posProfile),
+                        ),
+                    ],
+                    onChanged: (value) => setState(() => _target = value),
+                  ),
+                  if (warn != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      warn,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.error,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  CheckboxListTile(
+                    key: const ValueKey('move-branch-keep-old'),
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: _keepOld,
+                    onChanged: (v) => setState(() => _keepOld = v ?? false),
+                    title: Text(
+                      home != null
+                          ? l10n.branchAccessMoveKeepOld(home)
+                          : l10n.branchAccessMoveKeepOldUnknown,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: _note,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      labelText: l10n.branchAccessNoteLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(
+          key: const ValueKey('move-branch-confirm'),
+          onPressed: _target == null
+              ? null
+              : () => Navigator.of(context).pop(
+                  _MoveChoice(
+                    posProfile: _target!,
+                    keepOldAccess: _keepOld,
+                    note: _note.text.trim().isEmpty ? null : _note.text.trim(),
+                  ),
+                ),
+          child: Text(l10n.branchAccessMoveConfirm),
+        ),
+      ],
+    );
+  }
+}
+
 // ── History tab ──────────────────────────────────────────────────────────
 
 class _HistoryTab extends ConsumerWidget {
@@ -1003,6 +1308,8 @@ String logSourceLabel(AppLocalizations l10n, String source) {
       return l10n.branchAccessSourceCover;
     case 'Scheduler':
       return l10n.branchAccessSourceScheduler;
+    case 'Branch Move':
+      return l10n.branchAccessSourceMove;
     default:
       return source;
   }

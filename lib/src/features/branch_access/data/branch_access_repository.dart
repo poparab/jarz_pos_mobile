@@ -85,6 +85,31 @@ class BranchAccessRepository {
     return DayAccessResult.fromJson(_asMap(_unwrap(response)));
   }
 
+  /// Move [user] to [toPosProfile] for good: access there is added, the old
+  /// branch removed (unless [keepOldAccess]), and their standing schedule and
+  /// upcoming shifts follow. [fromPosProfile] null lets the server use their
+  /// home branch.
+  Future<MoveBranchResult> moveBranch({
+    required String user,
+    required String toPosProfile,
+    String? fromPosProfile,
+    bool keepOldAccess = false,
+    String? notes,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.branchAccessMoveBranch,
+      data: {
+        'user': user,
+        'to_pos_profile': toPosProfile,
+        if (fromPosProfile != null && fromPosProfile.isNotEmpty)
+          'from_pos_profile': fromPosProfile,
+        'keep_old_access': keepOldAccess ? 1 : 0,
+        if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+      },
+    );
+    return MoveBranchResult.fromJson(_asMap(_unwrap(response)));
+  }
+
   /// One page of the change history, newest first.
   Future<BranchAccessLogPage> getAccessLog({
     String? posProfile,

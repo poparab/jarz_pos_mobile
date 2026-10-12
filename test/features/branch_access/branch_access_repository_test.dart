@@ -298,4 +298,130 @@ void main() {
     expect(row.notes, isNull);
     expect(row.creationTime, DateTime(2026, 9, 23, 13));
   });
+
+  group('home branch and roster outcomes', () {
+    test('home_branch / home_location parse, and are null when missing', () {
+      final withHome = BranchAccessUser.fromJson({
+        'user': 'a@example.com',
+        'home_branch': 'Dokki',
+        'home_location': 'Dokki Location',
+      });
+      expect(withHome.homeBranch, 'Dokki');
+      expect(withHome.homeLocation, 'Dokki Location');
+
+      final blank = BranchAccessUser.fromJson({
+        'user': 'b@example.com',
+        'home_branch': '',
+        'home_location': null,
+      });
+      expect(blank.homeBranch, isNull);
+      expect(blank.homeLocation, isNull);
+
+      final old = BranchAccessUser.fromJson({'user': 'c@example.com'});
+      expect(old.homeBranch, isNull);
+      expect(old.homeLocation, isNull);
+    });
+
+    test('grant roster: a refused move surfaces its reason', () {
+      final refused = DayAccessResult.fromJson({
+        'message': 'Scheduled.',
+        'roster': {
+          'moved': 0,
+          'shift_type': null,
+          'reason': 'No shift that day',
+        },
+      });
+      expect(refused.roster!.moved, isFalse);
+      expect(refused.grantRosterWarning, 'No shift that day');
+
+      final moved = DayAccessResult.fromJson({
+        'roster': {
+          'moved': true,
+          'shift_type': 'Morning',
+          'shift_location': 'Nasr City',
+          'previous_location': 'Dokki',
+        },
+      });
+      expect(moved.roster!.shiftLocation, 'Nasr City');
+      expect(moved.roster!.previousLocation, 'Dokki');
+      expect(moved.grantRosterWarning, isNull);
+
+      final old = DayAccessResult.fromJson({'message': 'ok'});
+      expect(old.roster, isNull);
+      expect(old.grantRosterWarning, isNull);
+      expect(old.cancelRosterWarning, isNull);
+    });
+
+    test('cancel roster: reason is reported, restored parses', () {
+      final result = DayAccessResult.fromJson({
+        'roster': {'restored': 1, 'shift_location': 'Dokki', 'reason': ''},
+      });
+      expect(result.roster!.restored, isTrue);
+      expect(result.cancelRosterWarning, isNull);
+
+      final failed = DayAccessResult.fromJson({
+        'roster': {'restored': false, 'reason': 'Day off'},
+      });
+      expect(failed.cancelRosterWarning, 'Day off');
+    });
+  });
+
+  group('moveBranch', () {
+    test('posts the move with keep_old_access as 0/1', () async {
+      adapter.respond = (_) => {
+        'success': true,
+        'user': 'ali@example.com',
+        'to_pos_profile': 'Nasr city',
+        'from_pos_profile': 'Dokki',
+        'message': 'Ali moved to Nasr city.',
+        'roster': {
+          'from_date': '2026-10-12',
+          'shift_location': 'Nasr City',
+          'previous_location': 'Dokki',
+          'schedules_updated': 1,
+          'assignments_moved': '4',
+          'reason': null,
+        },
+      };
+      final result = await repository.moveBranch(
+        user: 'ali@example.com',
+        toPosProfile: 'Nasr city',
+        fromPosProfile: 'Dokki',
+        keepOldAccess: true,
+        notes: ' Promoted ',
+      );
+      final request = adapter.requests.single;
+      expect(request.path, '$_base.move_branch');
+      expect(request.data, {
+        'user': 'ali@example.com',
+        'to_pos_profile': 'Nasr city',
+        'from_pos_profile': 'Dokki',
+        'keep_old_access': 1,
+        'notes': 'Promoted',
+      });
+      expect(result.success, isTrue);
+      expect(result.fromPosProfile, 'Dokki');
+      expect(result.message, 'Ali moved to Nasr city.');
+      expect(result.roster!.fromDate, '2026-10-12');
+      expect(result.roster!.schedulesUpdated, 1);
+      expect(result.roster!.assignmentsMoved, 4);
+      expect(result.roster!.reason, isNull);
+    });
+
+    test('omits from_pos_profile and notes when not given', () async {
+      adapter.respond = (_) => {'success': true, 'to_pos_profile': 'Dokki'};
+      final result = await repository.moveBranch(
+        user: 'ali@example.com',
+        toPosProfile: 'Dokki',
+      );
+      expect(adapter.requests.single.data, {
+        'user': 'ali@example.com',
+        'to_pos_profile': 'Dokki',
+        'keep_old_access': 0,
+      });
+      expect(result.roster, isNull);
+      expect(result.fromPosProfile, isNull);
+      expect(result.message, isNull);
+    });
+  });
 }
