@@ -9142,5 +9142,158 @@
     }
   },
   "rosterUncoveredFix": "Fix",
-  "rosterUncoveredListTitle": "Days off with nobody covering"
+  "rosterUncoveredListTitle": "Days off with nobody covering",
+  "rosterPlanAction": "Plan the rota",
+  "rosterPlanTitle": "Plan the rota",
+  "rosterPlanStepWhen": "When",
+  "rosterPlanStepWho": "Who",
+  "rosterPlanStepWeek": "Their week",
+  "rosterPlanStepCheck": "Check & apply",
+  "rosterPlanBack": "Back",
+  "rosterPlanNext": "Next",
+  "rosterPlanApply": "Apply",
+  "rosterPlanWhenQuestion": "Which days are you planning?",
+  "rosterPlanNextMonth": "Next month",
+  "rosterPlanRestOfMonth": "Rest of this month",
+  "rosterPlanCustom": "Custom",
+  "rosterPlanPickDates": "Pick the dates",
+  "rosterPlanPeriodRange": "{start} – {end} ({days} days)",
+  "@rosterPlanPeriodRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterPlanPeriodTooLong": "That is more than {max} days. Pick a shorter period.",
+  "@rosterPlanPeriodTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterPlanPeriodNone": "Pick the dates first.",
+  "rosterPlanStandingHint": "The week you set carries on after these dates too, so the next months follow it on their own. Covers are only for these dates.",
+  "rosterPlanWhoQuestion": "Who are you planning for?",
+  "rosterPlanSelectAll": "Select all",
+  "rosterPlanUnselectAll": "Unselect all",
+  "rosterPlanSelectedCount": "{count} selected",
+  "@rosterPlanSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterPlanNoBranch": "No branch yet",
+  "rosterPlanNoPeople": "There is nobody you can plan for.",
+  "rosterPlanSameForEveryone": "Same for everyone",
+  "rosterPlanSameForEveryoneHint": "Copies {name}’s shift and days off to the others.",
+  "@rosterPlanSameForEveryoneHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterPlanSameForEveryoneDone": "Copied {name}’s shift and days off to everyone.",
+  "@rosterPlanSameForEveryoneDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterPlanShift": "Shift",
+  "rosterPlanOtherShifts": "Other shifts",
+  "rosterPlanBranch": "Branch",
+  "rosterPlanDaysOff": "Day off",
+  "rosterPlanWorksEveryDay": "No day off: works every day",
+  "rosterPlanFridayVariant": "On Fridays use {shift}",
+  "@rosterPlanFridayVariant": {
+    "placeholders": {
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterPlanCoverQuestion": "Who covers {day}?",
+  "@rosterPlanCoverQuestion": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterPlanNobodyCovers": "Nobody",
+  "rosterPlanCoverShift": "Cover shift",
+  "rosterPlanPickShift": "Pick a shift",
+  "rosterPlanNeedsShift": "Pick a shift for this person.",
+  "rosterPlanNeedsCoverShift": "Pick the cover shift.",
+  "rosterPlanIncomplete": "Every person needs a shift, and every cover needs a shift.",
+  "rosterPlanNoUsualWeek": "No usual week saved yet",
+  "rosterPlanWeekdaySaturday": "Saturday",
+  "rosterPlanWeekdaySunday": "Sunday",
+  "rosterPlanWeekdayMonday": "Monday",
+  "rosterPlanWeekdayTuesday": "Tuesday",
+  "rosterPlanWeekdayWednesday": "Wednesday",
+  "rosterPlanWeekdayThursday": "Thursday",
+  "rosterPlanWeekdayFriday": "Friday",
+  "rosterPlanChecking": "Checking the plan…",
+  "rosterPlanCheckFailed": "Could not check the plan.",
+  "rosterPlanLoadFailed": "Could not load the people.",
+  "rosterPlanSummaryTitle": "What will happen",
+  "rosterPlanSummaryPeople": "People",
+  "rosterPlanSummaryShiftDays": "Working days",
+  "rosterPlanSummaryDayOffs": "Days off",
+  "rosterPlanSummaryCovers": "Covers",
+  "rosterPlanSummaryManualKept": "Hand-edited days kept",
+  "rosterPlanSummaryManualReplaced": "Hand-edited days replaced",
+  "rosterPlanErrorsTitle": "Fix these first",
+  "rosterPlanWarningsTitle": "Worth checking",
+  "rosterPlanNotesTitle": "Good to know",
+  "rosterPlanIssueWhere": "{name} · {date}",
+  "@rosterPlanIssueWhere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterPlanNoIssues": "No problems found.",
+  "rosterPlanApplyBlocked": "Fix the problems in red to apply.",
+  "rosterPlanManualTitle": "Days changed by hand",
+  "rosterPlanManualHint": "These days were changed one by one. They stay as they are unless you replace them.",
+  "rosterPlanReplaceManual": "Replace these too",
+  "rosterPlanManualEmpty": "Emptied",
+  "rosterPlanManualLine": "{date} · {current}",
+  "@rosterPlanManualLine": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "rosterPlanGrantPos": "Give the person covering POS access at that branch",
+  "rosterPlanApplied": "Rota planned for {count} people.",
+  "@rosterPlanApplied": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  }
 }

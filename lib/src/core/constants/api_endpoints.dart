@@ -824,6 +824,11 @@ abstract final class ApiEndpoints {
   // at a time is one round trip per cell; this is the whole month in one.
   static const rosterBulkAssign =
       '/api/method/jarz_pos.api.roster.bulk_assign';
+  // Rota plan wizard: pre-fill for "who works what", then preview/apply the
+  // whole period plus the standing (HRMS Shift Schedule) rota.
+  static const rosterPlanDefaults =
+      '/api/method/jarz_pos.api.roster.get_plan_defaults';
+  static const rosterApplyPlan = '/api/method/jarz_pos.api.roster.apply_plan';
 
   // ── Branch access (POS Profile membership + one-day access) ──────────
   // Edits `POS Profile.applicable_for_users`. The server refuses any change

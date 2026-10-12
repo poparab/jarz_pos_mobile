@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/dio_provider.dart';
 import '../models/roster_models.dart';
+import '../models/roster_plan_models.dart';
 
 final rosterRepositoryProvider = Provider<RosterRepository>((ref) {
   return RosterRepository(ref.watch(dioProvider));
@@ -179,5 +180,38 @@ class RosterRepository {
       data: {'payload': jsonEncode(changes)},
     );
     return RosterBulkResult.fromJson(_asMap(_unwrap(response)));
+  }
+
+  // ── Rota plan wizard ─────────────────────────────────────────────────
+
+  /// Everyone the caller can plan for, pre-filled with their current week.
+  ///
+  /// A GET, as the contract declares it; [shiftLocation] narrows to one branch.
+  Future<RosterPlanDefaults> getPlanDefaults({String? shiftLocation}) async {
+    final response = await _dio.get(
+      ApiEndpoints.rosterPlanDefaults,
+      queryParameters: {
+        if (shiftLocation != null && shiftLocation.isNotEmpty)
+          'shift_location': shiftLocation,
+      },
+    );
+    return RosterPlanDefaults.fromJson(_asMap(_unwrap(response)));
+  }
+
+  /// Preview ([dryRun] true) or write a rota plan.
+  ///
+  /// [plan] is the contract's payload (`start`, `end`, `replace_manual`,
+  /// `grant_pos_access`, `rows`). JSON-encoded for the same reason as
+  /// [bulkAssign]: nested lists do not survive Frappe's form binding, and
+  /// `apply_plan` `json.loads` a string payload.
+  Future<RosterPlanResult> applyPlan(
+    Map<String, dynamic> plan, {
+    required bool dryRun,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.rosterApplyPlan,
+      data: {'payload': jsonEncode(plan), 'dry_run': dryRun ? 1 : 0},
+    );
+    return RosterPlanResult.fromJson(_asMap(_unwrap(response)));
   }
 }

@@ -13,6 +13,7 @@ import '../state/roster_providers.dart';
 import 'roster_cell_style.dart';
 import 'roster_formats.dart';
 import 'roster_grid_metrics.dart';
+import 'roster_plan_wizard.dart';
 import 'widgets/roster_bulk_bar.dart';
 import 'widgets/roster_day_off_form.dart' show rosterOffTypeLabel;
 import 'widgets/roster_day_sheet.dart';
@@ -28,6 +29,7 @@ const Key rosterUncoveredBannerKey = ValueKey<String>(
 const Key rosterPreviousKey = ValueKey<String>('roster-previous');
 const Key rosterNextKey = ValueKey<String>('roster-next');
 const Key rosterPeriodTitleKey = ValueKey<String>('roster-period-title');
+const Key rosterPlanActionKey = ValueKey<String>('roster-plan-action');
 
 Key rosterGapTileKey(String employee, String date) =>
     ValueKey<String>('roster-gap-$employee-$date');
@@ -93,6 +95,13 @@ class RosterScreen extends ConsumerWidget {
         ),
         title: Text(l10n.rosterTitle),
         actions: [
+          if (canManage)
+            IconButton(
+              key: rosterPlanActionKey,
+              tooltip: l10n.rosterPlanAction,
+              icon: const Icon(Icons.edit_calendar_outlined),
+              onPressed: () => showRosterPlanWizard(context),
+            ),
           if (canManage)
             IconButton(
               key: rosterLegendButtonKey,

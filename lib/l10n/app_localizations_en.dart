@@ -16426,4 +16426,241 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rosterUncoveredListTitle => 'Days off with nobody covering';
+
+  @override
+  String get rosterPlanAction => 'Plan the rota';
+
+  @override
+  String get rosterPlanTitle => 'Plan the rota';
+
+  @override
+  String get rosterPlanStepWhen => 'When';
+
+  @override
+  String get rosterPlanStepWho => 'Who';
+
+  @override
+  String get rosterPlanStepWeek => 'Their week';
+
+  @override
+  String get rosterPlanStepCheck => 'Check & apply';
+
+  @override
+  String get rosterPlanBack => 'Back';
+
+  @override
+  String get rosterPlanNext => 'Next';
+
+  @override
+  String get rosterPlanApply => 'Apply';
+
+  @override
+  String get rosterPlanWhenQuestion => 'Which days are you planning?';
+
+  @override
+  String get rosterPlanNextMonth => 'Next month';
+
+  @override
+  String get rosterPlanRestOfMonth => 'Rest of this month';
+
+  @override
+  String get rosterPlanCustom => 'Custom';
+
+  @override
+  String get rosterPlanPickDates => 'Pick the dates';
+
+  @override
+  String rosterPlanPeriodRange(String start, String end, String days) {
+    return '$start – $end ($days days)';
+  }
+
+  @override
+  String rosterPlanPeriodTooLong(String max) {
+    return 'That is more than $max days. Pick a shorter period.';
+  }
+
+  @override
+  String get rosterPlanPeriodNone => 'Pick the dates first.';
+
+  @override
+  String get rosterPlanStandingHint =>
+      'The week you set carries on after these dates too, so the next months follow it on their own. Covers are only for these dates.';
+
+  @override
+  String get rosterPlanWhoQuestion => 'Who are you planning for?';
+
+  @override
+  String get rosterPlanSelectAll => 'Select all';
+
+  @override
+  String get rosterPlanUnselectAll => 'Unselect all';
+
+  @override
+  String rosterPlanSelectedCount(String count) {
+    return '$count selected';
+  }
+
+  @override
+  String get rosterPlanNoBranch => 'No branch yet';
+
+  @override
+  String get rosterPlanNoPeople => 'There is nobody you can plan for.';
+
+  @override
+  String get rosterPlanSameForEveryone => 'Same for everyone';
+
+  @override
+  String rosterPlanSameForEveryoneHint(String name) {
+    return 'Copies $name’s shift and days off to the others.';
+  }
+
+  @override
+  String rosterPlanSameForEveryoneDone(String name) {
+    return 'Copied $name’s shift and days off to everyone.';
+  }
+
+  @override
+  String get rosterPlanShift => 'Shift';
+
+  @override
+  String get rosterPlanOtherShifts => 'Other shifts';
+
+  @override
+  String get rosterPlanBranch => 'Branch';
+
+  @override
+  String get rosterPlanDaysOff => 'Day off';
+
+  @override
+  String get rosterPlanWorksEveryDay => 'No day off: works every day';
+
+  @override
+  String rosterPlanFridayVariant(String shift) {
+    return 'On Fridays use $shift';
+  }
+
+  @override
+  String rosterPlanCoverQuestion(String day) {
+    return 'Who covers $day?';
+  }
+
+  @override
+  String get rosterPlanNobodyCovers => 'Nobody';
+
+  @override
+  String get rosterPlanCoverShift => 'Cover shift';
+
+  @override
+  String get rosterPlanPickShift => 'Pick a shift';
+
+  @override
+  String get rosterPlanNeedsShift => 'Pick a shift for this person.';
+
+  @override
+  String get rosterPlanNeedsCoverShift => 'Pick the cover shift.';
+
+  @override
+  String get rosterPlanIncomplete =>
+      'Every person needs a shift, and every cover needs a shift.';
+
+  @override
+  String get rosterPlanNoUsualWeek => 'No usual week saved yet';
+
+  @override
+  String get rosterPlanWeekdaySaturday => 'Saturday';
+
+  @override
+  String get rosterPlanWeekdaySunday => 'Sunday';
+
+  @override
+  String get rosterPlanWeekdayMonday => 'Monday';
+
+  @override
+  String get rosterPlanWeekdayTuesday => 'Tuesday';
+
+  @override
+  String get rosterPlanWeekdayWednesday => 'Wednesday';
+
+  @override
+  String get rosterPlanWeekdayThursday => 'Thursday';
+
+  @override
+  String get rosterPlanWeekdayFriday => 'Friday';
+
+  @override
+  String get rosterPlanChecking => 'Checking the plan…';
+
+  @override
+  String get rosterPlanCheckFailed => 'Could not check the plan.';
+
+  @override
+  String get rosterPlanLoadFailed => 'Could not load the people.';
+
+  @override
+  String get rosterPlanSummaryTitle => 'What will happen';
+
+  @override
+  String get rosterPlanSummaryPeople => 'People';
+
+  @override
+  String get rosterPlanSummaryShiftDays => 'Working days';
+
+  @override
+  String get rosterPlanSummaryDayOffs => 'Days off';
+
+  @override
+  String get rosterPlanSummaryCovers => 'Covers';
+
+  @override
+  String get rosterPlanSummaryManualKept => 'Hand-edited days kept';
+
+  @override
+  String get rosterPlanSummaryManualReplaced => 'Hand-edited days replaced';
+
+  @override
+  String get rosterPlanErrorsTitle => 'Fix these first';
+
+  @override
+  String get rosterPlanWarningsTitle => 'Worth checking';
+
+  @override
+  String get rosterPlanNotesTitle => 'Good to know';
+
+  @override
+  String rosterPlanIssueWhere(String name, String date) {
+    return '$name · $date';
+  }
+
+  @override
+  String get rosterPlanNoIssues => 'No problems found.';
+
+  @override
+  String get rosterPlanApplyBlocked => 'Fix the problems in red to apply.';
+
+  @override
+  String get rosterPlanManualTitle => 'Days changed by hand';
+
+  @override
+  String get rosterPlanManualHint =>
+      'These days were changed one by one. They stay as they are unless you replace them.';
+
+  @override
+  String get rosterPlanReplaceManual => 'Replace these too';
+
+  @override
+  String get rosterPlanManualEmpty => 'Emptied';
+
+  @override
+  String rosterPlanManualLine(String date, String current) {
+    return '$date · $current';
+  }
+
+  @override
+  String get rosterPlanGrantPos =>
+      'Give the person covering POS access at that branch';
+
+  @override
+  String rosterPlanApplied(String count) {
+    return 'Rota planned for $count people.';
+  }
 }

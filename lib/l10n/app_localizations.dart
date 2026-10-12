@@ -27004,6 +27004,432 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Days off with nobody covering'**
   String get rosterUncoveredListTitle;
+
+  /// No description provided for @rosterPlanAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan the rota'**
+  String get rosterPlanAction;
+
+  /// No description provided for @rosterPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan the rota'**
+  String get rosterPlanTitle;
+
+  /// No description provided for @rosterPlanStepWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get rosterPlanStepWhen;
+
+  /// No description provided for @rosterPlanStepWho.
+  ///
+  /// In en, this message translates to:
+  /// **'Who'**
+  String get rosterPlanStepWho;
+
+  /// No description provided for @rosterPlanStepWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Their week'**
+  String get rosterPlanStepWeek;
+
+  /// No description provided for @rosterPlanStepCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check & apply'**
+  String get rosterPlanStepCheck;
+
+  /// No description provided for @rosterPlanBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get rosterPlanBack;
+
+  /// No description provided for @rosterPlanNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get rosterPlanNext;
+
+  /// No description provided for @rosterPlanApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get rosterPlanApply;
+
+  /// No description provided for @rosterPlanWhenQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Which days are you planning?'**
+  String get rosterPlanWhenQuestion;
+
+  /// No description provided for @rosterPlanNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get rosterPlanNextMonth;
+
+  /// No description provided for @rosterPlanRestOfMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest of this month'**
+  String get rosterPlanRestOfMonth;
+
+  /// No description provided for @rosterPlanCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get rosterPlanCustom;
+
+  /// No description provided for @rosterPlanPickDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the dates'**
+  String get rosterPlanPickDates;
+
+  /// No description provided for @rosterPlanPeriodRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} – {end} ({days} days)'**
+  String rosterPlanPeriodRange(String start, String end, String days);
+
+  /// No description provided for @rosterPlanPeriodTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'That is more than {max} days. Pick a shorter period.'**
+  String rosterPlanPeriodTooLong(String max);
+
+  /// No description provided for @rosterPlanPeriodNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the dates first.'**
+  String get rosterPlanPeriodNone;
+
+  /// No description provided for @rosterPlanStandingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The week you set carries on after these dates too, so the next months follow it on their own. Covers are only for these dates.'**
+  String get rosterPlanStandingHint;
+
+  /// No description provided for @rosterPlanWhoQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Who are you planning for?'**
+  String get rosterPlanWhoQuestion;
+
+  /// No description provided for @rosterPlanSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get rosterPlanSelectAll;
+
+  /// No description provided for @rosterPlanUnselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Unselect all'**
+  String get rosterPlanUnselectAll;
+
+  /// No description provided for @rosterPlanSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String rosterPlanSelectedCount(String count);
+
+  /// No description provided for @rosterPlanNoBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'No branch yet'**
+  String get rosterPlanNoBranch;
+
+  /// No description provided for @rosterPlanNoPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'There is nobody you can plan for.'**
+  String get rosterPlanNoPeople;
+
+  /// No description provided for @rosterPlanSameForEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'Same for everyone'**
+  String get rosterPlanSameForEveryone;
+
+  /// No description provided for @rosterPlanSameForEveryoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Copies {name}’s shift and days off to the others.'**
+  String rosterPlanSameForEveryoneHint(String name);
+
+  /// No description provided for @rosterPlanSameForEveryoneDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied {name}’s shift and days off to everyone.'**
+  String rosterPlanSameForEveryoneDone(String name);
+
+  /// No description provided for @rosterPlanShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift'**
+  String get rosterPlanShift;
+
+  /// No description provided for @rosterPlanOtherShifts.
+  ///
+  /// In en, this message translates to:
+  /// **'Other shifts'**
+  String get rosterPlanOtherShifts;
+
+  /// No description provided for @rosterPlanBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get rosterPlanBranch;
+
+  /// No description provided for @rosterPlanDaysOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Day off'**
+  String get rosterPlanDaysOff;
+
+  /// No description provided for @rosterPlanWorksEveryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No day off: works every day'**
+  String get rosterPlanWorksEveryDay;
+
+  /// No description provided for @rosterPlanFridayVariant.
+  ///
+  /// In en, this message translates to:
+  /// **'On Fridays use {shift}'**
+  String rosterPlanFridayVariant(String shift);
+
+  /// No description provided for @rosterPlanCoverQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Who covers {day}?'**
+  String rosterPlanCoverQuestion(String day);
+
+  /// No description provided for @rosterPlanNobodyCovers.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody'**
+  String get rosterPlanNobodyCovers;
+
+  /// No description provided for @rosterPlanCoverShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover shift'**
+  String get rosterPlanCoverShift;
+
+  /// No description provided for @rosterPlanPickShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a shift'**
+  String get rosterPlanPickShift;
+
+  /// No description provided for @rosterPlanNeedsShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a shift for this person.'**
+  String get rosterPlanNeedsShift;
+
+  /// No description provided for @rosterPlanNeedsCoverShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the cover shift.'**
+  String get rosterPlanNeedsCoverShift;
+
+  /// No description provided for @rosterPlanIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Every person needs a shift, and every cover needs a shift.'**
+  String get rosterPlanIncomplete;
+
+  /// No description provided for @rosterPlanNoUsualWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'No usual week saved yet'**
+  String get rosterPlanNoUsualWeek;
+
+  /// No description provided for @rosterPlanWeekdaySaturday.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturday'**
+  String get rosterPlanWeekdaySaturday;
+
+  /// No description provided for @rosterPlanWeekdaySunday.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunday'**
+  String get rosterPlanWeekdaySunday;
+
+  /// No description provided for @rosterPlanWeekdayMonday.
+  ///
+  /// In en, this message translates to:
+  /// **'Monday'**
+  String get rosterPlanWeekdayMonday;
+
+  /// No description provided for @rosterPlanWeekdayTuesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuesday'**
+  String get rosterPlanWeekdayTuesday;
+
+  /// No description provided for @rosterPlanWeekdayWednesday.
+  ///
+  /// In en, this message translates to:
+  /// **'Wednesday'**
+  String get rosterPlanWeekdayWednesday;
+
+  /// No description provided for @rosterPlanWeekdayThursday.
+  ///
+  /// In en, this message translates to:
+  /// **'Thursday'**
+  String get rosterPlanWeekdayThursday;
+
+  /// No description provided for @rosterPlanWeekdayFriday.
+  ///
+  /// In en, this message translates to:
+  /// **'Friday'**
+  String get rosterPlanWeekdayFriday;
+
+  /// No description provided for @rosterPlanChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the plan…'**
+  String get rosterPlanChecking;
+
+  /// No description provided for @rosterPlanCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check the plan.'**
+  String get rosterPlanCheckFailed;
+
+  /// No description provided for @rosterPlanLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the people.'**
+  String get rosterPlanLoadFailed;
+
+  /// No description provided for @rosterPlanSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What will happen'**
+  String get rosterPlanSummaryTitle;
+
+  /// No description provided for @rosterPlanSummaryPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get rosterPlanSummaryPeople;
+
+  /// No description provided for @rosterPlanSummaryShiftDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Working days'**
+  String get rosterPlanSummaryShiftDays;
+
+  /// No description provided for @rosterPlanSummaryDayOffs.
+  ///
+  /// In en, this message translates to:
+  /// **'Days off'**
+  String get rosterPlanSummaryDayOffs;
+
+  /// No description provided for @rosterPlanSummaryCovers.
+  ///
+  /// In en, this message translates to:
+  /// **'Covers'**
+  String get rosterPlanSummaryCovers;
+
+  /// No description provided for @rosterPlanSummaryManualKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Hand-edited days kept'**
+  String get rosterPlanSummaryManualKept;
+
+  /// No description provided for @rosterPlanSummaryManualReplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Hand-edited days replaced'**
+  String get rosterPlanSummaryManualReplaced;
+
+  /// No description provided for @rosterPlanErrorsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix these first'**
+  String get rosterPlanErrorsTitle;
+
+  /// No description provided for @rosterPlanWarningsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Worth checking'**
+  String get rosterPlanWarningsTitle;
+
+  /// No description provided for @rosterPlanNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Good to know'**
+  String get rosterPlanNotesTitle;
+
+  /// No description provided for @rosterPlanIssueWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {date}'**
+  String rosterPlanIssueWhere(String name, String date);
+
+  /// No description provided for @rosterPlanNoIssues.
+  ///
+  /// In en, this message translates to:
+  /// **'No problems found.'**
+  String get rosterPlanNoIssues;
+
+  /// No description provided for @rosterPlanApplyBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix the problems in red to apply.'**
+  String get rosterPlanApplyBlocked;
+
+  /// No description provided for @rosterPlanManualTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Days changed by hand'**
+  String get rosterPlanManualTitle;
+
+  /// No description provided for @rosterPlanManualHint.
+  ///
+  /// In en, this message translates to:
+  /// **'These days were changed one by one. They stay as they are unless you replace them.'**
+  String get rosterPlanManualHint;
+
+  /// No description provided for @rosterPlanReplaceManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace these too'**
+  String get rosterPlanReplaceManual;
+
+  /// No description provided for @rosterPlanManualEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Emptied'**
+  String get rosterPlanManualEmpty;
+
+  /// No description provided for @rosterPlanManualLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {current}'**
+  String rosterPlanManualLine(String date, String current);
+
+  /// No description provided for @rosterPlanGrantPos.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the person covering POS access at that branch'**
+  String get rosterPlanGrantPos;
+
+  /// No description provided for @rosterPlanApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Rota planned for {count} people.'**
+  String rosterPlanApplied(String count);
 }
 
 class _AppLocalizationsDelegate

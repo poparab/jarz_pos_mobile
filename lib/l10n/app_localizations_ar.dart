@@ -16411,4 +16411,240 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rosterUncoveredListTitle => 'أيام إجازة بدون من يغطيها';
+
+  @override
+  String get rosterPlanAction => 'خطّط الجدول';
+
+  @override
+  String get rosterPlanTitle => 'تخطيط الجدول';
+
+  @override
+  String get rosterPlanStepWhen => 'إمتى';
+
+  @override
+  String get rosterPlanStepWho => 'مين';
+
+  @override
+  String get rosterPlanStepWeek => 'أسبوعهم';
+
+  @override
+  String get rosterPlanStepCheck => 'راجع ونفّذ';
+
+  @override
+  String get rosterPlanBack => 'رجوع';
+
+  @override
+  String get rosterPlanNext => 'التالي';
+
+  @override
+  String get rosterPlanApply => 'نفّذ';
+
+  @override
+  String get rosterPlanWhenQuestion => 'بتخطط لأنهي أيام؟';
+
+  @override
+  String get rosterPlanNextMonth => 'الشهر الجاي';
+
+  @override
+  String get rosterPlanRestOfMonth => 'باقي الشهر ده';
+
+  @override
+  String get rosterPlanCustom => 'تواريخ تانية';
+
+  @override
+  String get rosterPlanPickDates => 'اختار التواريخ';
+
+  @override
+  String rosterPlanPeriodRange(String start, String end, String days) {
+    return 'من $start لحد $end ($days يوم)';
+  }
+
+  @override
+  String rosterPlanPeriodTooLong(String max) {
+    return 'دي أكتر من $max يوم. اختار مدة أقصر.';
+  }
+
+  @override
+  String get rosterPlanPeriodNone => 'اختار التواريخ الأول.';
+
+  @override
+  String get rosterPlanStandingHint =>
+      'الأسبوع اللي هتحدده هيكمّل بعد التواريخ دي كمان، والشهور اللي جاية هتمشي عليه لوحدها. التغطيات بس للتواريخ دي.';
+
+  @override
+  String get rosterPlanWhoQuestion => 'بتخطط لمين؟';
+
+  @override
+  String get rosterPlanSelectAll => 'اختار الكل';
+
+  @override
+  String get rosterPlanUnselectAll => 'شيل الكل';
+
+  @override
+  String rosterPlanSelectedCount(String count) {
+    return '$count متختارين';
+  }
+
+  @override
+  String get rosterPlanNoBranch => 'من غير فرع';
+
+  @override
+  String get rosterPlanNoPeople => 'مفيش حد تقدر تخطط له.';
+
+  @override
+  String get rosterPlanSameForEveryone => 'نفس الأسبوع للكل';
+
+  @override
+  String rosterPlanSameForEveryoneHint(String name) {
+    return 'بينسخ وردية وأيام إجازة $name للباقيين.';
+  }
+
+  @override
+  String rosterPlanSameForEveryoneDone(String name) {
+    return 'اتنسخت وردية وأيام إجازة $name للكل.';
+  }
+
+  @override
+  String get rosterPlanShift => 'الوردية';
+
+  @override
+  String get rosterPlanOtherShifts => 'ورديات تانية';
+
+  @override
+  String get rosterPlanBranch => 'الفرع';
+
+  @override
+  String get rosterPlanDaysOff => 'يوم الإجازة';
+
+  @override
+  String get rosterPlanWorksEveryDay => 'من غير إجازة: شغال كل يوم';
+
+  @override
+  String rosterPlanFridayVariant(String shift) {
+    return 'يوم الجمعة يشتغل $shift';
+  }
+
+  @override
+  String rosterPlanCoverQuestion(String day) {
+    return 'مين هيغطي يوم $day؟';
+  }
+
+  @override
+  String get rosterPlanNobodyCovers => 'محدش';
+
+  @override
+  String get rosterPlanCoverShift => 'وردية التغطية';
+
+  @override
+  String get rosterPlanPickShift => 'اختار وردية';
+
+  @override
+  String get rosterPlanNeedsShift => 'اختار وردية للشخص ده.';
+
+  @override
+  String get rosterPlanNeedsCoverShift => 'اختار وردية التغطية.';
+
+  @override
+  String get rosterPlanIncomplete =>
+      'كل شخص محتاج وردية، وكل تغطية محتاجة وردية.';
+
+  @override
+  String get rosterPlanNoUsualWeek => 'مفيش أسبوع ثابت متسجّل لسه';
+
+  @override
+  String get rosterPlanWeekdaySaturday => 'السبت';
+
+  @override
+  String get rosterPlanWeekdaySunday => 'الأحد';
+
+  @override
+  String get rosterPlanWeekdayMonday => 'الإتنين';
+
+  @override
+  String get rosterPlanWeekdayTuesday => 'التلات';
+
+  @override
+  String get rosterPlanWeekdayWednesday => 'الأربع';
+
+  @override
+  String get rosterPlanWeekdayThursday => 'الخميس';
+
+  @override
+  String get rosterPlanWeekdayFriday => 'الجمعة';
+
+  @override
+  String get rosterPlanChecking => 'بنراجع الخطة…';
+
+  @override
+  String get rosterPlanCheckFailed => 'مقدرناش نراجع الخطة.';
+
+  @override
+  String get rosterPlanLoadFailed => 'مقدرناش نجيب الموظفين.';
+
+  @override
+  String get rosterPlanSummaryTitle => 'اللي هيحصل';
+
+  @override
+  String get rosterPlanSummaryPeople => 'أشخاص';
+
+  @override
+  String get rosterPlanSummaryShiftDays => 'أيام شغل';
+
+  @override
+  String get rosterPlanSummaryDayOffs => 'أيام إجازة';
+
+  @override
+  String get rosterPlanSummaryCovers => 'تغطيات';
+
+  @override
+  String get rosterPlanSummaryManualKept => 'أيام متعدلة بالإيد هتفضل زي ما هي';
+
+  @override
+  String get rosterPlanSummaryManualReplaced => 'أيام متعدلة بالإيد هتتغير';
+
+  @override
+  String get rosterPlanErrorsTitle => 'صلّح دول الأول';
+
+  @override
+  String get rosterPlanWarningsTitle => 'تستاهل تبص عليها';
+
+  @override
+  String get rosterPlanNotesTitle => 'للعلم';
+
+  @override
+  String rosterPlanIssueWhere(String name, String date) {
+    return '$name · $date';
+  }
+
+  @override
+  String get rosterPlanNoIssues => 'مفيش مشاكل.';
+
+  @override
+  String get rosterPlanApplyBlocked => 'صلّح المشاكل اللي بالأحمر علشان تنفّذ.';
+
+  @override
+  String get rosterPlanManualTitle => 'أيام اتعدلت بالإيد';
+
+  @override
+  String get rosterPlanManualHint =>
+      'الأيام دي اتعدلت يوم بيوم، وهتفضل زي ما هي إلا لو اخترت تستبدلها.';
+
+  @override
+  String get rosterPlanReplaceManual => 'استبدلها هي كمان';
+
+  @override
+  String get rosterPlanManualEmpty => 'اتفضّى';
+
+  @override
+  String rosterPlanManualLine(String date, String current) {
+    return '$date · $current';
+  }
+
+  @override
+  String get rosterPlanGrantPos => 'ادّي اللي بيغطي صلاحية الكاشير في الفرع ده';
+
+  @override
+  String rosterPlanApplied(String count) {
+    return 'الجدول اتعمل لـ $count شخص.';
+  }
 }
