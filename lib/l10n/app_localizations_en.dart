@@ -11456,6 +11456,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rosterNoShiftTypes => 'No shift types are configured yet.';
 
   @override
+  String rosterShowAllShifts(int count) {
+    return 'Show all shifts ($count)';
+  }
+
+  @override
+  String get rosterShowMyShifts => 'Show only this person’s shifts';
+
+  @override
   String rosterShiftWindow(Object window, Object hours) {
     return '$window · ${hours}h';
   }

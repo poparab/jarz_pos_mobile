@@ -177,6 +177,8 @@ class _RosterDaySheetState extends ConsumerState<RosterDaySheet> {
                   ),
                 RosterShiftPicker(
                   catalog: widget.catalog,
+                  employee: widget.employee,
+                  dates: [widget.date],
                   selected: cell?.shiftType,
                   onPick: (shift) => _assignShift(
                     shift,

@@ -18843,6 +18843,18 @@ abstract class AppLocalizations {
   /// **'No shift types are configured yet.'**
   String get rosterNoShiftTypes;
 
+  /// No description provided for @rosterShowAllShifts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all shifts ({count})'**
+  String rosterShowAllShifts(int count);
+
+  /// No description provided for @rosterShowMyShifts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show only this person’s shifts'**
+  String get rosterShowMyShifts;
+
   /// No description provided for @rosterShiftWindow.
   ///
   /// In en, this message translates to:

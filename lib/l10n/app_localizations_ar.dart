@@ -11411,6 +11411,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rosterNoShiftTypes => 'لم يتم إعداد أي أنواع شيفتات بعد.';
 
   @override
+  String rosterShowAllShifts(int count) {
+    return 'عرض كل الشيفتات ($count)';
+  }
+
+  @override
+  String get rosterShowMyShifts => 'عرض شيفتات هذا الشخص فقط';
+
+  @override
   String rosterShiftWindow(Object window, Object hours) {
     return '$window · $hours ساعة';
   }

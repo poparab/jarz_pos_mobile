@@ -4632,6 +4632,8 @@
   "rosterMarkDayOff": "تسجيل يوم إجازة",
   "rosterClearDayOff": "إلغاء يوم الإجازة",
   "rosterNoShiftTypes": "لم يتم إعداد أي أنواع شيفتات بعد.",
+  "rosterShowAllShifts": "عرض كل الشيفتات ({count})",
+  "rosterShowMyShifts": "عرض شيفتات هذا الشخص فقط",
   "rosterShiftWindow": "{window} · {hours} ساعة",
   "@rosterShiftWindow": {
     "placeholders": {

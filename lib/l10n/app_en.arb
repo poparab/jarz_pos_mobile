@@ -6816,6 +6816,15 @@
   "rosterMarkDayOff": "Mark day off",
   "rosterClearDayOff": "Cancel this day off",
   "rosterNoShiftTypes": "No shift types are configured yet.",
+  "rosterShowAllShifts": "Show all shifts ({count})",
+  "@rosterShowAllShifts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rosterShowMyShifts": "Show only this person’s shifts",
   "rosterShiftWindow": "{window} · {hours}h",
   "@rosterShiftWindow": {
     "placeholders": {

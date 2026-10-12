@@ -77,16 +77,15 @@ class _RosterBulkBarState extends ConsumerState<RosterBulkBar> {
     // does not discard the rest, but the manager still has to be told which
     // day did not land.
     await _showFailures(
-      l10n.rosterBulkPartialFailureBody(result.appliedCount,
-          result.appliedCount + result.failedCount),
+      l10n.rosterBulkPartialFailureBody(
+        result.appliedCount,
+        result.appliedCount + result.failedCount,
+      ),
       result.failures,
     );
   }
 
-  Future<void> _showFailures(
-    String message,
-    List<RosterBulkFailure> failures,
-  ) {
+  Future<void> _showFailures(String message, List<RosterBulkFailure> failures) {
     final l10n = context.l10n;
     return showDialog<void>(
       context: context,
@@ -132,10 +131,16 @@ class _RosterBulkBarState extends ConsumerState<RosterBulkBar> {
   Future<void> _assignShift() async {
     final month = ref.read(rosterMonthDataProvider).asData?.value;
     final catalog = month?.shiftCatalog ?? const <RosterShift>[];
+    RosterEmployee? employee;
+    for (final e in month?.employees ?? const <RosterEmployee>[]) {
+      if (e.employee == widget.selection.employee) employee = e;
+    }
     final shift = await showRosterShiftPickerSheet(
       context,
       title: context.l10n.rosterBulkAssignShift,
       catalog: catalog,
+      employee: employee,
+      dates: widget.selection.dates,
     );
     if (shift == null) return;
     final selection = widget.selection;
@@ -170,10 +175,7 @@ class _RosterBulkBarState extends ConsumerState<RosterBulkBar> {
       catalog: month?.shiftCatalog ?? const <RosterShift>[],
       dates: widget.selection.dates.toList()..sort(),
       // The shift the absent person works most across the selected days.
-      defaultCoverShift: rosterMostCommonShift(
-        absent,
-        widget.selection.dates,
-      ),
+      defaultCoverShift: rosterMostCommonShift(absent, widget.selection.dates),
       // `bulk_assign` rows carry neither notes nor a POS grant; the form does
       // not ask for what the request would drop.
       allowNotes: false,
