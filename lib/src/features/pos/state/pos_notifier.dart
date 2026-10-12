@@ -151,6 +151,7 @@ class PosState {
   PosState copyWith({
     List<Map<String, dynamic>>? profiles,
     Map<String, dynamic>? selectedProfile,
+    bool clearSelectedProfile = false,
     List<Map<String, dynamic>>? items,
     List<Map<String, dynamic>>? bundles,
     List<Map<String, dynamic>>? availablePriceLists,
@@ -227,7 +228,9 @@ class PosState {
         : employeePaymentCredit;
     return PosState(
       profiles: profiles ?? this.profiles,
-      selectedProfile: selectedProfile ?? this.selectedProfile,
+      selectedProfile: clearSelectedProfile
+          ? null
+          : selectedProfile ?? this.selectedProfile,
       items: items ?? this.items,
       bundles: bundles ?? this.bundles,
       availablePriceLists: availablePriceLists ?? this.availablePriceLists,
@@ -1360,8 +1363,13 @@ class PosNotifier extends StateNotifier<PosState> {
   /// was running appears without a restart. Deliberately lighter than
   /// [loadProfiles]: only `profiles` changes - the catalog, the cart and the
   /// selected branch are left alone, no loading flag is raised and failures
-  /// are swallowed. The one exception mirrors [loadProfiles]: with nothing
-  /// selected and exactly one branch now available, that branch is selected.
+  /// are swallowed. Two exceptions: with nothing selected and exactly one
+  /// branch now available, that branch is selected (as [loadProfiles] does);
+  /// and when the selected branch is no longer in the list - access removed
+  /// or moved to another branch - it is dropped, switching to the only
+  /// remaining branch or returning to the branch chooser. Otherwise the app
+  /// keeps selling from a branch the server now refuses. An amendment draft
+  /// is left alone: it is bound to the original order's branch.
   Future<void> refreshProfileList() async {
     if (_isRefreshingProfileList) return;
     _isRefreshingProfileList = true;
@@ -1369,7 +1377,29 @@ class PosNotifier extends StateNotifier<PosState> {
       final profiles = await _repository.getPosProfiles();
       if (!mounted) return;
       state = state.copyWith(profiles: profiles);
-      if (state.selectedProfile == null &&
+      final selectedName = state.selectedProfile?['name']?.toString().trim();
+      final selectionGone =
+          selectedName != null &&
+          !state.isAmendmentDraft &&
+          !profiles.any((p) => p['name']?.toString().trim() == selectedName);
+      if (selectionGone) {
+        if (profiles.length == 1 && !state.isLoading) {
+          await selectProfile(profiles.first);
+        } else {
+          state = state.copyWith(
+            clearSelectedProfile: true,
+            items: const [],
+            bundles: const [],
+            clearDeliverySlots: true,
+            clearSelectedDeliverySlot: true,
+            clearSelectedPriceList: true,
+            availablePriceLists: const [],
+            availableCommercialPolicies: const [],
+            clearSelectedCommercialPolicy: true,
+            clearPolicyReason: true,
+          );
+        }
+      } else if (state.selectedProfile == null &&
           profiles.length == 1 &&
           !state.isLoading) {
         await selectProfile(profiles.first);

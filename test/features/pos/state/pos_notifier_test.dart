@@ -681,6 +681,63 @@ void main() {
       expect(repo.itemsCalls, 0);
     });
 
+    test('drops a selected branch the user lost, back to the chooser', () async {
+      notifier.state = notifier.state.copyWith(
+        profiles: const [
+          {'name': 'Dokki'},
+          {'name': 'Nasr city'},
+          {'name': '6th of october'},
+        ],
+        selectedProfile: const {'name': 'Dokki'},
+        items: const [
+          {'name': 'ITEM-1'},
+        ],
+      );
+      repo.profilesResult = [
+        {'name': 'Nasr city'},
+        {'name': '6th of october'},
+      ];
+
+      await notifier.refreshProfileList();
+
+      expect(notifier.state.selectedProfile, isNull);
+      expect(notifier.state.items, isEmpty);
+      expect(notifier.state.profiles, hasLength(2));
+      expect(repo.itemsCalls, 0);
+    });
+
+    test('switches to the only branch left when the selected one goes', () async {
+      notifier.state = notifier.state.copyWith(
+        profiles: const [
+          {'name': 'Dokki'},
+          {'name': 'Nasr city'},
+        ],
+        selectedProfile: const {'name': 'Dokki'},
+      );
+      repo.profilesResult = [
+        {'name': 'Nasr city'},
+      ];
+
+      await notifier.refreshProfileList();
+
+      expect(notifier.state.selectedProfile!['name'], 'Nasr city');
+    });
+
+    test('clears the selection when no branch is left', () async {
+      notifier.state = notifier.state.copyWith(
+        profiles: const [
+          {'name': 'Dokki'},
+        ],
+        selectedProfile: const {'name': 'Dokki'},
+      );
+      repo.profilesResult = [];
+
+      await notifier.refreshProfileList();
+
+      expect(notifier.state.selectedProfile, isNull);
+      expect(notifier.state.profiles, isEmpty);
+    });
+
     test('swallows errors and leaves state alone', () async {
       notifier.state = notifier.state.copyWith(
         profiles: const [
