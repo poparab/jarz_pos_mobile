@@ -820,7 +820,7 @@ class InvoiceCard {
   /// gates on this rather than on [hasNotes] alone.
   bool get hasNoteSignal => noteCount > 0 || latestNotePreview != null;
   double get shippingExpenseDisplay =>
-      (shippingOverrideStatus == 'Approved' && shippingOverride != null && shippingOverride! > 0)
+      (shippingOverrideStatus == 'Approved' && shippingOverride != null && shippingOverride! >= 0)
           ? shippingOverride!
           : shippingExpense;
   String get address => fullAddress;

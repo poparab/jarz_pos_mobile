@@ -87,7 +87,8 @@ class _CustomShippingRequestDialogState extends State<CustomShippingRequestDialo
                 validator: (value) {
                   if (value == null || value.isEmpty) return l10n.customShippingAmountRequired;
                   final parsed = double.tryParse(value);
-                  if (parsed == null || parsed <= 0) return l10n.customShippingAmountInvalid;
+                  // 0 is allowed: the order is delivered at no courier cost.
+                  if (parsed == null || parsed < 0) return l10n.customShippingAmountInvalid;
                   return null;
                 },
               ),
