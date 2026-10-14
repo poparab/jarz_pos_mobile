@@ -47,6 +47,9 @@ function notificationUrlFor(data) {
   if (data.type === 'label_stock_alert') {
     return `${appBasePath}#/labels`;
   }
+  if (data.type === 'courier_alert') {
+    return `${appBasePath}#/courier-alerts`;
+  }
   if (data.type === 'task_notification') {
     return data.task_id
       ? `${appBasePath}#/tasks/${encodeURIComponent(data.task_id)}`

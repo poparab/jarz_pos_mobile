@@ -1754,6 +1754,306 @@ abstract class AppLocalizations {
   /// **'Inventory Count'**
   String get menuInventoryCount;
 
+  /// No description provided for @courierLaunchPinCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery pin'**
+  String get courierLaunchPinCardTitle;
+
+  /// No description provided for @courierLaunchPinCardMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'This address has no map pin yet. Paste a location link or drop a pin on the map so the courier can find the door.'**
+  String get courierLaunchPinCardMissing;
+
+  /// No description provided for @courierLaunchPinCardRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A map pin is required before this delivery order can be placed.'**
+  String get courierLaunchPinCardRequired;
+
+  /// No description provided for @courierLaunchPinCardPinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Address has a map pin'**
+  String get courierLaunchPinCardPinned;
+
+  /// No description provided for @courierLaunchPinCardChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the address pin…'**
+  String get courierLaunchPinCardChecking;
+
+  /// No description provided for @courierLaunchPinAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add pin'**
+  String get courierLaunchPinAddAction;
+
+  /// No description provided for @courierLaunchPinSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save pin'**
+  String get courierLaunchPinSave;
+
+  /// No description provided for @courierLaunchPinRequiredRefusal.
+  ///
+  /// In en, this message translates to:
+  /// **'This delivery address needs a map pin. Add the pin below, then place the order again.'**
+  String get courierLaunchPinRequiredRefusal;
+
+  /// No description provided for @courierLaunchPinSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add map pin'**
+  String get courierLaunchPinSheetTitle;
+
+  /// No description provided for @courierLaunchPinSheetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a Google Maps link, or pick the spot on the map.'**
+  String get courierLaunchPinSheetHint;
+
+  /// No description provided for @courierLaunchPinPicked.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin dropped at {coords}'**
+  String courierLaunchPinPicked(Object coords);
+
+  /// No description provided for @courierLaunchPinSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin saved.'**
+  String get courierLaunchPinSaved;
+
+  /// No description provided for @courierLaunchPinKept.
+  ///
+  /// In en, this message translates to:
+  /// **'The address already has a more reliable pin, so it was kept.'**
+  String get courierLaunchPinKept;
+
+  /// No description provided for @courierLaunchPinSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the pin.'**
+  String get courierLaunchPinSaveFailed;
+
+  /// No description provided for @courierLaunchPinNoAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'This order has no delivery address to pin.'**
+  String get courierLaunchPinNoAddress;
+
+  /// No description provided for @courierLaunchTrackingShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share tracking link'**
+  String get courierLaunchTrackingShare;
+
+  /// No description provided for @courierLaunchTrackingSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking link'**
+  String get courierLaunchTrackingSheetTitle;
+
+  /// No description provided for @courierLaunchTrackingSheetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The customer follows the order live from this link.'**
+  String get courierLaunchTrackingSheetHint;
+
+  /// No description provided for @courierLaunchTrackingCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery code'**
+  String get courierLaunchTrackingCodeLabel;
+
+  /// No description provided for @courierLaunchTrackingCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The customer gives this code to the courier at the door.'**
+  String get courierLaunchTrackingCodeHint;
+
+  /// No description provided for @courierLaunchTrackingCopyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get courierLaunchTrackingCopyCode;
+
+  /// No description provided for @courierLaunchTrackingCodeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied.'**
+  String get courierLaunchTrackingCodeCopied;
+
+  /// No description provided for @courierLaunchTrackingCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get courierLaunchTrackingCopyLink;
+
+  /// No description provided for @courierLaunchTrackingLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied.'**
+  String get courierLaunchTrackingLinkCopied;
+
+  /// No description provided for @courierLaunchTrackingSendWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Send on WhatsApp'**
+  String get courierLaunchTrackingSendWhatsApp;
+
+  /// No description provided for @courierLaunchTrackingShareOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Share…'**
+  String get courierLaunchTrackingShareOther;
+
+  /// No description provided for @courierLaunchTrackingLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not get the tracking link.'**
+  String get courierLaunchTrackingLinkFailed;
+
+  /// No description provided for @courierLaunchTimelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery timeline'**
+  String get courierLaunchTimelineTitle;
+
+  /// No description provided for @courierLaunchTimelineCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier: {name}'**
+  String courierLaunchTimelineCourier(Object name);
+
+  /// No description provided for @courierLaunchTimelineStages.
+  ///
+  /// In en, this message translates to:
+  /// **'Time per stage'**
+  String get courierLaunchTimelineStages;
+
+  /// No description provided for @courierLaunchTimelineTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {minutes} min'**
+  String courierLaunchTimelineTotal(Object minutes);
+
+  /// No description provided for @courierLaunchTimelineMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String courierLaunchTimelineMinutes(Object minutes);
+
+  /// No description provided for @courierLaunchTimelineTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'target {minutes} min'**
+  String courierLaunchTimelineTarget(Object minutes);
+
+  /// No description provided for @courierLaunchTimelineOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Over target'**
+  String get courierLaunchTimelineOver;
+
+  /// No description provided for @courierLaunchTimelineMapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where it happened'**
+  String get courierLaunchTimelineMapTitle;
+
+  /// No description provided for @courierLaunchEventCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Order created'**
+  String get courierLaunchEventCreated;
+
+  /// No description provided for @courierLaunchEventAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get courierLaunchEventAccepted;
+
+  /// No description provided for @courierLaunchEventInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get courierLaunchEventInProgress;
+
+  /// No description provided for @courierLaunchEventOutForDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Out for delivery'**
+  String get courierLaunchEventOutForDelivery;
+
+  /// No description provided for @courierLaunchEventLeftBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Left the branch'**
+  String get courierLaunchEventLeftBranch;
+
+  /// No description provided for @courierLaunchEventLegStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Started the trip to the customer'**
+  String get courierLaunchEventLegStarted;
+
+  /// No description provided for @courierLaunchEventArrived.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrived at the customer'**
+  String get courierLaunchEventArrived;
+
+  /// No description provided for @courierLaunchEventDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get courierLaunchEventDelivered;
+
+  /// No description provided for @courierLaunchEventFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery failed'**
+  String get courierLaunchEventFailed;
+
+  /// No description provided for @courierLaunchEventBackAtBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Back at the branch'**
+  String get courierLaunchEventBackAtBranch;
+
+  /// No description provided for @courierLaunchSegmentPrep.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation'**
+  String get courierLaunchSegmentPrep;
+
+  /// No description provided for @courierLaunchSegmentDispatchWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for dispatch'**
+  String get courierLaunchSegmentDispatchWait;
+
+  /// No description provided for @courierLaunchSegmentTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get courierLaunchSegmentTravel;
+
+  /// No description provided for @courierLaunchSegmentAtDoor.
+  ///
+  /// In en, this message translates to:
+  /// **'At the door'**
+  String get courierLaunchSegmentAtDoor;
+
+  /// No description provided for @courierLaunchSegmentReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to the branch'**
+  String get courierLaunchSegmentReturn;
+
   /// No description provided for @addressPinTitle.
   ///
   /// In en, this message translates to:
@@ -27430,6 +27730,492 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rota planned for {count} people.'**
   String rosterPlanApplied(String count);
+
+  /// No description provided for @courierAlertsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier alerts'**
+  String get courierAlertsTitle;
+
+  /// No description provided for @courierAlertsNoAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier alerts are only available to the delivery managers.'**
+  String get courierAlertsNoAccess;
+
+  /// No description provided for @courierAlertsFilterOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get courierAlertsFilterOpen;
+
+  /// No description provided for @courierAlertsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get courierAlertsFilterAll;
+
+  /// No description provided for @courierAlertsEmptyOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'No open alerts. All couriers look fine.'**
+  String get courierAlertsEmptyOpen;
+
+  /// No description provided for @courierAlertsEmptyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'No alerts yet.'**
+  String get courierAlertsEmptyAll;
+
+  /// No description provided for @courierAlertsOpenCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} open'**
+  String courierAlertsOpenCount(int count);
+
+  /// No description provided for @courierAlertsHighCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} high'**
+  String courierAlertsHighCount(int count);
+
+  /// No description provided for @courierAlertsSeverityLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get courierAlertsSeverityLow;
+
+  /// No description provided for @courierAlertsSeverityMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get courierAlertsSeverityMedium;
+
+  /// No description provided for @courierAlertsSeverityHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get courierAlertsSeverityHigh;
+
+  /// No description provided for @courierAlertsStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get courierAlertsStatusOpen;
+
+  /// No description provided for @courierAlertsStatusReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewed'**
+  String get courierAlertsStatusReviewed;
+
+  /// No description provided for @courierAlertsStatusDismissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismissed'**
+  String get courierAlertsStatusDismissed;
+
+  /// No description provided for @courierAlertTypeDetour.
+  ///
+  /// In en, this message translates to:
+  /// **'Detour'**
+  String get courierAlertTypeDetour;
+
+  /// No description provided for @courierAlertTypeExcessiveIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Excessive idle'**
+  String get courierAlertTypeExcessiveIdle;
+
+  /// No description provided for @courierAlertTypeSpeeding.
+  ///
+  /// In en, this message translates to:
+  /// **'Speeding'**
+  String get courierAlertTypeSpeeding;
+
+  /// No description provided for @courierAlertTypeDeliveredFarFromPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered far from pin'**
+  String get courierAlertTypeDeliveredFarFromPin;
+
+  /// No description provided for @courierAlertTypePingGap.
+  ///
+  /// In en, this message translates to:
+  /// **'Ping gap'**
+  String get courierAlertTypePingGap;
+
+  /// No description provided for @courierAlertTypeMockGps.
+  ///
+  /// In en, this message translates to:
+  /// **'Mock GPS'**
+  String get courierAlertTypeMockGps;
+
+  /// No description provided for @courierAlertTypeUnexpectedStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected stop'**
+  String get courierAlertTypeUnexpectedStop;
+
+  /// No description provided for @courierAlertTypeStalePing.
+  ///
+  /// In en, this message translates to:
+  /// **'Stale ping'**
+  String get courierAlertTypeStalePing;
+
+  /// No description provided for @courierAlertTypeTrackerModeChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracker mode changed'**
+  String get courierAlertTypeTrackerModeChanged;
+
+  /// No description provided for @courierAlertTypeTrackingLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking lost'**
+  String get courierAlertTypeTrackingLost;
+
+  /// No description provided for @courierAlertTypeActionRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'Action refused'**
+  String get courierAlertTypeActionRefused;
+
+  /// No description provided for @courierAlertTypeDeliveryCodeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery code failed'**
+  String get courierAlertTypeDeliveryCodeFailed;
+
+  /// No description provided for @courierAlertsFieldCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier'**
+  String get courierAlertsFieldCourier;
+
+  /// No description provided for @courierAlertsFieldInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice'**
+  String get courierAlertsFieldInvoice;
+
+  /// No description provided for @courierAlertsFieldBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get courierAlertsFieldBranch;
+
+  /// No description provided for @courierAlertsFieldDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected'**
+  String get courierAlertsFieldDetected;
+
+  /// No description provided for @courierAlertsFieldStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get courierAlertsFieldStatus;
+
+  /// No description provided for @courierAlertsFieldDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get courierAlertsFieldDetails;
+
+  /// No description provided for @courierAlertsFieldNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Review note'**
+  String get courierAlertsFieldNote;
+
+  /// No description provided for @courierAlertsNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get courierAlertsNoteLabel;
+
+  /// No description provided for @courierAlertsMarkReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark reviewed'**
+  String get courierAlertsMarkReviewed;
+
+  /// No description provided for @courierAlertsDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get courierAlertsDismiss;
+
+  /// No description provided for @courierAlertsUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert updated.'**
+  String get courierAlertsUpdated;
+
+  /// No description provided for @courierSetupEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Couriers'**
+  String get courierSetupEntry;
+
+  /// No description provided for @courierSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couriers'**
+  String get courierSetupTitle;
+
+  /// No description provided for @courierSetupAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up courier'**
+  String get courierSetupAction;
+
+  /// No description provided for @courierSetupSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, branch or login'**
+  String get courierSetupSearchHint;
+
+  /// No description provided for @courierSetupEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No employees found.'**
+  String get courierSetupEmpty;
+
+  /// No description provided for @courierSetupStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get courierSetupStatusReady;
+
+  /// No description provided for @courierSetupStatusNeedsFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs fixing'**
+  String get courierSetupStatusNeedsFix;
+
+  /// No description provided for @courierSetupStatusNotCourier.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a courier yet'**
+  String get courierSetupStatusNotCourier;
+
+  /// No description provided for @courierSetupSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up as courier'**
+  String get courierSetupSetUp;
+
+  /// No description provided for @courierSetupFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Repair setup (new PIN)'**
+  String get courierSetupFix;
+
+  /// No description provided for @courierSetupResetPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset PIN'**
+  String get courierSetupResetPin;
+
+  /// No description provided for @courierSetupResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset PIN?'**
+  String get courierSetupResetTitle;
+
+  /// No description provided for @courierSetupResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will get a new PIN and the old one stops working. The new PIN is shown once.'**
+  String courierSetupResetBody(String name);
+
+  /// No description provided for @courierSetupFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up courier'**
+  String get courierSetupFormTitle;
+
+  /// No description provided for @courierSetupModeExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing employee'**
+  String get courierSetupModeExisting;
+
+  /// No description provided for @courierSetupModeNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New person'**
+  String get courierSetupModeNew;
+
+  /// No description provided for @courierSetupEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get courierSetupEmployee;
+
+  /// No description provided for @courierSetupEmployeeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a name to search'**
+  String get courierSetupEmployeeHint;
+
+  /// No description provided for @courierSetupFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get courierSetupFullName;
+
+  /// No description provided for @courierSetupMobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile number'**
+  String get courierSetupMobile;
+
+  /// No description provided for @courierSetupBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get courierSetupBranch;
+
+  /// No description provided for @courierSetupPosProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'POS profile (optional)'**
+  String get courierSetupPosProfile;
+
+  /// No description provided for @courierSetupPosProfileHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to use the branch default.'**
+  String get courierSetupPosProfileHelp;
+
+  /// No description provided for @courierSetupSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up'**
+  String get courierSetupSubmit;
+
+  /// No description provided for @courierSetupProblemNoIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Login not linked to an employee'**
+  String get courierSetupProblemNoIdentity;
+
+  /// No description provided for @courierSetupProblemNoPosProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on a POS profile'**
+  String get courierSetupProblemNoPosProfile;
+
+  /// No description provided for @courierSetupProblemNoEmployeeBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee has no branch'**
+  String get courierSetupProblemNoEmployeeBranch;
+
+  /// No description provided for @courierSetupProblemBranchNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch does not match POS profile'**
+  String get courierSetupProblemBranchNotAssigned;
+
+  /// No description provided for @courierSetupHintNoIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the Employee and set User ID to this login, and make sure the Employee is Active.'**
+  String get courierSetupHintNoIdentity;
+
+  /// No description provided for @courierSetupHintNoPosProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Add this login to the Users table of the branch POS Profile.'**
+  String get courierSetupHintNoPosProfile;
+
+  /// No description provided for @courierSetupHintNoEmployeeBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the Branch on the Employee record.'**
+  String get courierSetupHintNoEmployeeBranch;
+
+  /// No description provided for @courierSetupHintBranchNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'The Employee branch and the POS Profile branch must be the same.'**
+  String get courierSetupHintBranchNotAssigned;
+
+  /// No description provided for @courierSetupDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier ready'**
+  String get courierSetupDoneTitle;
+
+  /// No description provided for @courierSetupPinResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New PIN'**
+  String get courierSetupPinResetTitle;
+
+  /// No description provided for @courierSetupLoginId.
+  ///
+  /// In en, this message translates to:
+  /// **'Login ID'**
+  String get courierSetupLoginId;
+
+  /// No description provided for @courierSetupPinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN'**
+  String get courierSetupPinLabel;
+
+  /// No description provided for @courierSetupPinOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown only once. Copy it or send it now; it cannot be shown again.'**
+  String get courierSetupPinOnce;
+
+  /// No description provided for @courierSetupNoPin.
+  ///
+  /// In en, this message translates to:
+  /// **'The server did not return a PIN. Use Reset PIN to issue one.'**
+  String get courierSetupNoPin;
+
+  /// No description provided for @courierSetupWebLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Web link'**
+  String get courierSetupWebLink;
+
+  /// No description provided for @courierSetupApkLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Android app'**
+  String get courierSetupApkLink;
+
+  /// No description provided for @courierSetupStillMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Still missing'**
+  String get courierSetupStillMissing;
+
+  /// No description provided for @courierSetupShareWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'Share to courier on WhatsApp'**
+  String get courierSetupShareWhatsapp;
+
+  /// No description provided for @courierSetupCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get courierSetupCopy;
+
+  /// No description provided for @courierSetupCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied.'**
+  String get courierSetupCopied;
 }
 
 class _AppLocalizationsDelegate

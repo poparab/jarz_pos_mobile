@@ -6,6 +6,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../models/user_admin_models.dart';
+import '../state/courier_setup_providers.dart';
 import '../state/user_admin_providers.dart';
 import 'widgets/user_admin_widgets.dart';
 
@@ -24,6 +25,9 @@ class UserAdminListScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final contextAsync = ref.watch(userAdminContextProvider);
     final canManage = contextAsync.valueOrNull?.canManage ?? false;
+    final courierSetupAvailable = canManage
+        ? ref.watch(courierSetupAvailableProvider).valueOrNull ?? false
+        : false;
 
     Widget body;
     if (contextAsync.hasError && !contextAsync.hasValue) {
@@ -55,6 +59,15 @@ class UserAdminListScreen extends ConsumerWidget {
         ),
         title: Text(l10n.userAdminTitle),
         actions: [
+          // Hidden unless the courier-onboarding endpoint answers: it lives in
+          // jarz_courier, which a site may not have, and is gated like this
+          // screen, so a manager never sees an entry that only errors.
+          if (canManage && courierSetupAvailable)
+            IconButton(
+              tooltip: l10n.courierSetupEntry,
+              icon: const Icon(Icons.two_wheeler),
+              onPressed: () => context.push(AppRoutes.userCouriers),
+            ),
           IconButton(
             tooltip: l10n.commonRetry,
             icon: const Icon(Icons.refresh),

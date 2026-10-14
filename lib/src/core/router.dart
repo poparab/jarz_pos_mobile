@@ -33,6 +33,7 @@ import '../features/cash_custody/presentation/cash_custody_screen.dart';
 import '../features/tasks/presentation/task_detail_screen.dart';
 import '../features/tasks/presentation/task_overview_screen.dart';
 import '../features/tasks/presentation/tasks_board_screen.dart';
+import '../features/user_admin/presentation/courier_setup_screen.dart';
 import '../features/user_admin/presentation/user_admin_form_screen.dart';
 import '../features/user_admin/presentation/user_admin_list_screen.dart';
 import '../features/geo/presentation/screens/address_pin_screen.dart';
@@ -52,6 +53,7 @@ import '../features/shift/presentation/shift_start_screen.dart';
 import '../features/shift/presentation/shift_end_screen.dart';
 import '../features/trips/screens/trips_screen.dart';
 import '../features/fleet/presentation/screens/fleet_map_screen.dart';
+import '../features/courier_alerts/presentation/courier_alerts_screen.dart';
 import '../features/reports/presentation/reports_screen.dart';
 import '../features/reports/presentation/screens/shipping_analytics_screen.dart';
 import '../features/reports/presentation/screens/inventory_intelligence_screen.dart';
@@ -420,6 +422,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const UserAdminFormScreen(),
       ),
       GoRoute(
+        path: AppRoutes.userCouriers,
+        name: 'user-couriers',
+        builder: (context, state) => const CourierSetupScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.userDetail,
         name: 'user-detail',
         builder: (context, state) => UserAdminFormScreen(
@@ -573,6 +580,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.trips,
         name: 'trips',
         builder: (context, state) => const TripsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.courierAlerts,
+        name: 'courier-alerts',
+        builder: (context, state) => const CourierAlertsScreen(),
       ),
       GoRoute(
         path: AppRoutes.fleetMap,

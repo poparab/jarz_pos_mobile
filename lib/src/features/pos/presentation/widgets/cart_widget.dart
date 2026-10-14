@@ -15,6 +15,7 @@ import '../dialogs/payment_method_dialog.dart';
 import '../dialogs/territory_profile_mismatch_dialog.dart';
 import '../utils/amendment_refusal_message.dart';
 import 'bundle_selection_widget.dart';
+import 'delivery_pin_card.dart';
 import 'delivery_slot_selection.dart';
 import 'staff_member_picker.dart';
 import '../../../../core/constants/business_constants.dart';
@@ -478,6 +479,24 @@ class CartWidget extends ConsumerWidget {
                         ),
                       ),
                     ],
+
+                    // Delivery needs a map pin on the address: ask for it here,
+                    // not after the server refuses the order.
+                    if (!state.isPickup &&
+                        (state.selectedCustomer?['selected_shipping_address_name']
+                                    ?.toString()
+                                    .trim() ??
+                                '')
+                            .isNotEmpty)
+                      DeliveryPinCard(
+                        key: ValueKey(
+                          'cart-pin-${state.selectedCustomer?['selected_shipping_address_name']}',
+                        ),
+                        addressName: state
+                            .selectedCustomer!['selected_shipping_address_name']
+                            .toString()
+                            .trim(),
+                      ),
 
                     if (!state.isPickup)
                       Container(
@@ -2018,10 +2037,21 @@ class CartWidget extends ConsumerWidget {
       // A refused order edit (`success: false`) is shown with the server's
       // reason as written; see [amendmentRefusalMessageFor].
       final rejection = posNotifier.amendmentRejection;
+      // The server wants a map pin on the delivery address: say so plainly and
+      // pull the cursor into the cart's pin field instead of a generic failure.
+      final pinRefusal = posNotifier.addressPinRequired;
+      if (pinRefusal != null) {
+        ref.read(deliveryPinFocusRequestProvider.notifier).state++;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
+          key: pinRefusal != null
+              ? const ValueKey('address-pin-required-snackbar')
+              : null,
           content: Text(
-            rejection != null
+            pinRefusal != null
+                ? l10n.courierLaunchPinRequiredRefusal
+                : rejection != null
                 ? amendmentRefusalMessageFor(l10n, rejection.message)
                 : context.userErrorMessage(failure),
           ),

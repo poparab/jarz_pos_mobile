@@ -47,6 +47,12 @@ class AddressPin {
 
   bool get hasPin => latitude != null && longitude != null;
 
+  /// Pin-grade for the "delivery needs a pin" rule: real coordinates that
+  /// did not come from the territory centroid fallback (a centroid is a guess
+  /// at the neighbourhood, not a door). Mirrors the backend's `AddressPinRequired`
+  /// check on the confidence ladder.
+  bool get isPinGrade => hasPin && source != 'territory_centroid';
+
   /// True only when the accuracy column carries a real measurement — see
   /// `geo_resolution.accuracy_is_known` on the backend for why 0 means
   /// "unknown", never "accurate to 0 m".

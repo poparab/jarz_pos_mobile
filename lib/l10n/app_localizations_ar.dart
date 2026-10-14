@@ -1055,6 +1055,174 @@ class AppLocalizationsAr extends AppLocalizations {
   String get menuInventoryCount => 'جرد المخزون';
 
   @override
+  String get courierLaunchPinCardTitle => 'موقع التوصيل';
+
+  @override
+  String get courierLaunchPinCardMissing =>
+      'هذا العنوان ليس عليه موقع بعد. الصق رابط الموقع أو حدد النقطة على الخريطة ليصل المندوب إلى الباب.';
+
+  @override
+  String get courierLaunchPinCardRequired =>
+      'لا يمكن إنشاء طلب التوصيل قبل تحديد موقع العنوان على الخريطة.';
+
+  @override
+  String get courierLaunchPinCardPinned => 'العنوان عليه موقع على الخريطة';
+
+  @override
+  String get courierLaunchPinCardChecking => 'جارٍ فحص موقع العنوان…';
+
+  @override
+  String get courierLaunchPinAddAction => 'إضافة موقع';
+
+  @override
+  String get courierLaunchPinSave => 'حفظ الموقع';
+
+  @override
+  String get courierLaunchPinRequiredRefusal =>
+      'عنوان التوصيل يحتاج موقعاً على الخريطة. أضف الموقع ثم أنشئ الطلب مرة أخرى.';
+
+  @override
+  String get courierLaunchPinSheetTitle => 'إضافة موقع على الخريطة';
+
+  @override
+  String get courierLaunchPinSheetHint =>
+      'الصق رابط خرائط جوجل أو حدد النقطة على الخريطة.';
+
+  @override
+  String courierLaunchPinPicked(Object coords) {
+    return 'تم تحديد النقطة $coords';
+  }
+
+  @override
+  String get courierLaunchPinSaved => 'تم حفظ الموقع.';
+
+  @override
+  String get courierLaunchPinKept =>
+      'العنوان عليه موقع أدق بالفعل، لذلك تم الإبقاء عليه.';
+
+  @override
+  String get courierLaunchPinSaveFailed => 'تعذر حفظ الموقع.';
+
+  @override
+  String get courierLaunchPinNoAddress =>
+      'لا يوجد عنوان توصيل لهذا الطلب لإضافة موقع له.';
+
+  @override
+  String get courierLaunchTrackingShare => 'مشاركة رابط التتبع';
+
+  @override
+  String get courierLaunchTrackingSheetTitle => 'رابط التتبع';
+
+  @override
+  String get courierLaunchTrackingSheetHint =>
+      'يتابع العميل طلبه لحظة بلحظة من هذا الرابط.';
+
+  @override
+  String get courierLaunchTrackingCodeLabel => 'كود الاستلام';
+
+  @override
+  String get courierLaunchTrackingCodeHint =>
+      'يعطي العميل هذا الكود للمندوب عند التسليم.';
+
+  @override
+  String get courierLaunchTrackingCopyCode => 'نسخ الكود';
+
+  @override
+  String get courierLaunchTrackingCodeCopied => 'تم نسخ الكود.';
+
+  @override
+  String get courierLaunchTrackingCopyLink => 'نسخ الرابط';
+
+  @override
+  String get courierLaunchTrackingLinkCopied => 'تم نسخ الرابط.';
+
+  @override
+  String get courierLaunchTrackingSendWhatsApp => 'إرسال عبر واتساب';
+
+  @override
+  String get courierLaunchTrackingShareOther => 'مشاركة…';
+
+  @override
+  String get courierLaunchTrackingLinkFailed => 'تعذر الحصول على رابط التتبع.';
+
+  @override
+  String get courierLaunchTimelineTitle => 'الجدول الزمني للتوصيل';
+
+  @override
+  String courierLaunchTimelineCourier(Object name) {
+    return 'المندوب: $name';
+  }
+
+  @override
+  String get courierLaunchTimelineStages => 'الوقت لكل مرحلة';
+
+  @override
+  String courierLaunchTimelineTotal(Object minutes) {
+    return 'الإجمالي $minutes دقيقة';
+  }
+
+  @override
+  String courierLaunchTimelineMinutes(Object minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String courierLaunchTimelineTarget(Object minutes) {
+    return 'المستهدف $minutes دقيقة';
+  }
+
+  @override
+  String get courierLaunchTimelineOver => 'تجاوز المستهدف';
+
+  @override
+  String get courierLaunchTimelineMapTitle => 'أماكن الأحداث';
+
+  @override
+  String get courierLaunchEventCreated => 'إنشاء الطلب';
+
+  @override
+  String get courierLaunchEventAccepted => 'تم القبول';
+
+  @override
+  String get courierLaunchEventInProgress => 'قيد التحضير';
+
+  @override
+  String get courierLaunchEventOutForDelivery => 'خرج للتوصيل';
+
+  @override
+  String get courierLaunchEventLeftBranch => 'غادر الفرع';
+
+  @override
+  String get courierLaunchEventLegStarted => 'بدأ التوجه للعميل';
+
+  @override
+  String get courierLaunchEventArrived => 'وصل إلى العميل';
+
+  @override
+  String get courierLaunchEventDelivered => 'تم التسليم';
+
+  @override
+  String get courierLaunchEventFailed => 'فشل التسليم';
+
+  @override
+  String get courierLaunchEventBackAtBranch => 'عاد إلى الفرع';
+
+  @override
+  String get courierLaunchSegmentPrep => 'التحضير';
+
+  @override
+  String get courierLaunchSegmentDispatchWait => 'انتظار الخروج';
+
+  @override
+  String get courierLaunchSegmentTravel => 'الطريق';
+
+  @override
+  String get courierLaunchSegmentAtDoor => 'عند الباب';
+
+  @override
+  String get courierLaunchSegmentReturn => 'العودة للفرع';
+
+  @override
   String get addressPinTitle => 'تصحيح موقع التوصيل';
 
   @override
@@ -16647,4 +16815,262 @@ class AppLocalizationsAr extends AppLocalizations {
   String rosterPlanApplied(String count) {
     return 'الجدول اتعمل لـ $count شخص.';
   }
+
+  @override
+  String get courierAlertsTitle => 'تنبيهات المناديب';
+
+  @override
+  String get courierAlertsNoAccess =>
+      'تنبيهات المناديب متاحة لمديري التوصيل بس.';
+
+  @override
+  String get courierAlertsFilterOpen => 'المفتوحة';
+
+  @override
+  String get courierAlertsFilterAll => 'الكل';
+
+  @override
+  String get courierAlertsEmptyOpen =>
+      'مفيش تنبيهات مفتوحة. المناديب كلهم تمام.';
+
+  @override
+  String get courierAlertsEmptyAll => 'مفيش تنبيهات لسه.';
+
+  @override
+  String courierAlertsOpenCount(int count) {
+    return '$count مفتوح';
+  }
+
+  @override
+  String courierAlertsHighCount(int count) {
+    return '$count عالي';
+  }
+
+  @override
+  String get courierAlertsSeverityLow => 'منخفضة';
+
+  @override
+  String get courierAlertsSeverityMedium => 'متوسطة';
+
+  @override
+  String get courierAlertsSeverityHigh => 'عالية';
+
+  @override
+  String get courierAlertsStatusOpen => 'مفتوح';
+
+  @override
+  String get courierAlertsStatusReviewed => 'اتراجع';
+
+  @override
+  String get courierAlertsStatusDismissed => 'اتجاهل';
+
+  @override
+  String get courierAlertTypeDetour => 'انحراف عن المسار';
+
+  @override
+  String get courierAlertTypeExcessiveIdle => 'وقوف طويل';
+
+  @override
+  String get courierAlertTypeSpeeding => 'سرعة زايدة';
+
+  @override
+  String get courierAlertTypeDeliveredFarFromPin => 'تسليم بعيد عن الموقع';
+
+  @override
+  String get courierAlertTypePingGap => 'انقطاع في الإشارة';
+
+  @override
+  String get courierAlertTypeMockGps => 'موقع مزيّف';
+
+  @override
+  String get courierAlertTypeUnexpectedStop => 'وقفة غير متوقعة';
+
+  @override
+  String get courierAlertTypeStalePing => 'موقع قديم';
+
+  @override
+  String get courierAlertTypeTrackerModeChanged => 'تغيير وضع التتبع';
+
+  @override
+  String get courierAlertTypeTrackingLost => 'فقدان التتبع';
+
+  @override
+  String get courierAlertTypeActionRefused => 'إجراء مرفوض';
+
+  @override
+  String get courierAlertTypeDeliveryCodeFailed => 'كود التسليم غلط';
+
+  @override
+  String get courierAlertsFieldCourier => 'المندوب';
+
+  @override
+  String get courierAlertsFieldInvoice => 'الفاتورة';
+
+  @override
+  String get courierAlertsFieldBranch => 'الفرع';
+
+  @override
+  String get courierAlertsFieldDetected => 'وقت الرصد';
+
+  @override
+  String get courierAlertsFieldStatus => 'الحالة';
+
+  @override
+  String get courierAlertsFieldDetails => 'التفاصيل';
+
+  @override
+  String get courierAlertsFieldNote => 'ملاحظة المراجعة';
+
+  @override
+  String get courierAlertsNoteLabel => 'ملاحظة (اختياري)';
+
+  @override
+  String get courierAlertsMarkReviewed => 'تمت المراجعة';
+
+  @override
+  String get courierAlertsDismiss => 'تجاهل';
+
+  @override
+  String get courierAlertsUpdated => 'التنبيه اتحدّث.';
+
+  @override
+  String get courierSetupEntry => 'المناديب';
+
+  @override
+  String get courierSetupTitle => 'المناديب';
+
+  @override
+  String get courierSetupAction => 'تجهيز مندوب';
+
+  @override
+  String get courierSetupSearchHint => 'ابحث بالاسم أو الفرع أو الحساب';
+
+  @override
+  String get courierSetupEmpty => 'مفيش موظفين.';
+
+  @override
+  String get courierSetupStatusReady => 'جاهز';
+
+  @override
+  String get courierSetupStatusNeedsFix => 'محتاج إصلاح';
+
+  @override
+  String get courierSetupStatusNotCourier => 'لسه مش مندوب';
+
+  @override
+  String get courierSetupSetUp => 'جهّزه كمندوب';
+
+  @override
+  String get courierSetupFix => 'إصلاح الإعداد (رقم سري جديد)';
+
+  @override
+  String get courierSetupResetPin => 'رقم سري جديد';
+
+  @override
+  String get courierSetupResetTitle => 'تغيير الرقم السري؟';
+
+  @override
+  String courierSetupResetBody(String name) {
+    return '$name هياخد رقم سري جديد والقديم هيقف. الرقم الجديد هيظهر مرة واحدة بس.';
+  }
+
+  @override
+  String get courierSetupFormTitle => 'تجهيز مندوب';
+
+  @override
+  String get courierSetupModeExisting => 'موظف موجود';
+
+  @override
+  String get courierSetupModeNew => 'شخص جديد';
+
+  @override
+  String get courierSetupEmployee => 'الموظف';
+
+  @override
+  String get courierSetupEmployeeHint => 'اكتب اسم للبحث';
+
+  @override
+  String get courierSetupFullName => 'الاسم بالكامل';
+
+  @override
+  String get courierSetupMobile => 'رقم الموبايل';
+
+  @override
+  String get courierSetupBranch => 'الفرع';
+
+  @override
+  String get courierSetupPosProfile => 'POS Profile (اختياري)';
+
+  @override
+  String get courierSetupPosProfileHelp =>
+      'سيبه فاضي عشان يستخدم الافتراضي للفرع.';
+
+  @override
+  String get courierSetupSubmit => 'تجهيز';
+
+  @override
+  String get courierSetupProblemNoIdentity => 'الحساب مش مربوط بموظف';
+
+  @override
+  String get courierSetupProblemNoPosProfile => 'مش على POS Profile';
+
+  @override
+  String get courierSetupProblemNoEmployeeBranch => 'الموظف مالوش فرع';
+
+  @override
+  String get courierSetupProblemBranchNotAssigned =>
+      'الفرع مش مطابق للـ POS Profile';
+
+  @override
+  String get courierSetupHintNoIdentity =>
+      'افتح الموظف واختار الحساب في User ID وتأكد إن الموظف Active.';
+
+  @override
+  String get courierSetupHintNoPosProfile =>
+      'ضيف الحساب في جدول Users في الـ POS Profile بتاع الفرع.';
+
+  @override
+  String get courierSetupHintNoEmployeeBranch => 'حدد الفرع في سجل الموظف.';
+
+  @override
+  String get courierSetupHintBranchNotAssigned =>
+      'فرع الموظف وفرع الـ POS Profile لازم يبقوا نفس الفرع.';
+
+  @override
+  String get courierSetupDoneTitle => 'المندوب جاهز';
+
+  @override
+  String get courierSetupPinResetTitle => 'رقم سري جديد';
+
+  @override
+  String get courierSetupLoginId => 'رقم الدخول';
+
+  @override
+  String get courierSetupPinLabel => 'الرقم السري';
+
+  @override
+  String get courierSetupPinOnce =>
+      'بيظهر مرة واحدة بس. انسخه أو ابعته دلوقتي، مش هيظهر تاني.';
+
+  @override
+  String get courierSetupNoPin =>
+      'السيرفر ما رجّعش رقم سري. استخدم \"رقم سري جديد\" عشان تطلع واحد.';
+
+  @override
+  String get courierSetupWebLink => 'رابط الويب';
+
+  @override
+  String get courierSetupApkLink => 'تطبيق الأندرويد';
+
+  @override
+  String get courierSetupStillMissing => 'لسه ناقص';
+
+  @override
+  String get courierSetupShareWhatsapp => 'ابعت للمندوب على واتساب';
+
+  @override
+  String get courierSetupCopy => 'نسخ';
+
+  @override
+  String get courierSetupCopied => 'اتنسخ.';
 }

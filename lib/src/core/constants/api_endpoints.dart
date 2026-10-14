@@ -764,6 +764,33 @@ abstract final class ApiEndpoints {
   static const getLiveCourierPositions =
       '/api/method/jarz_courier.api.tracking.get_live_positions';
 
+  // ── Customer tracking link + order timeline (courier launch) ─────────
+  // Staff share the customer's public tracking link (and delivery code) from
+  // the order; supervisors read the per-order timeline. The timeline lives in
+  // jarz_courier and answers 404 where that app is not installed.
+  static const getTrackingLink =
+      '/api/method/jarz_pos.api.tracking.get_tracking_link';
+  static const getOrderTimeline =
+      '/api/method/jarz_courier.api.timeline.get_order_timeline';
+
+  // ── Courier alerts + setup (jarz_courier app) ─────────────────────────
+  // Alerts are for the courier-map tier; onboarding is for the same door as
+  // user management. Both answer 404 when jarz_courier is not installed.
+  static const courierListAlerts =
+      '/api/method/jarz_courier.api.alerts.list_alerts';
+  static const courierAcknowledgeAlert =
+      '/api/method/jarz_courier.api.alerts.acknowledge_alert';
+  static const courierAlertCounts =
+      '/api/method/jarz_courier.api.alerts.get_alert_counts';
+  static const courierListCandidates =
+      '/api/method/jarz_courier.api.onboarding.list_courier_candidates';
+  static const courierSetup =
+      '/api/method/jarz_courier.api.onboarding.setup_courier';
+  static const courierResetPin =
+      '/api/method/jarz_courier.api.onboarding.reset_courier_pin';
+  static const courierGetSetup =
+      '/api/method/jarz_courier.api.onboarding.get_courier_setup';
+
   // ── B2B customer labels ───────────────────────────────────────────────
   // Printed-label stock per B2B customer: how many are left, how fast they are
   // going, and when a batch has to go to the print house to land before they

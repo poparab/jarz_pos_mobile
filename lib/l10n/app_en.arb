@@ -597,6 +597,81 @@
   "postingDatePickerHelp": "Select posting date",
   "postingTimePickerHelp": "Select posting time",
   "menuInventoryCount": "Inventory Count",
+  "courierLaunchPinCardTitle": "Delivery pin",
+  "courierLaunchPinCardMissing": "This address has no map pin yet. Paste a location link or drop a pin on the map so the courier can find the door.",
+  "courierLaunchPinCardRequired": "A map pin is required before this delivery order can be placed.",
+  "courierLaunchPinCardPinned": "Address has a map pin",
+  "courierLaunchPinCardChecking": "Checking the address pin…",
+  "courierLaunchPinAddAction": "Add pin",
+  "courierLaunchPinSave": "Save pin",
+  "courierLaunchPinRequiredRefusal": "This delivery address needs a map pin. Add the pin below, then place the order again.",
+  "courierLaunchPinSheetTitle": "Add map pin",
+  "courierLaunchPinSheetHint": "Paste a Google Maps link, or pick the spot on the map.",
+  "courierLaunchPinPicked": "Pin dropped at {coords}",
+  "@courierLaunchPinPicked": {
+    "placeholders": {
+      "coords": {}
+    }
+  },
+  "courierLaunchPinSaved": "Pin saved.",
+  "courierLaunchPinKept": "The address already has a more reliable pin, so it was kept.",
+  "courierLaunchPinSaveFailed": "Could not save the pin.",
+  "courierLaunchPinNoAddress": "This order has no delivery address to pin.",
+  "courierLaunchTrackingShare": "Share tracking link",
+  "courierLaunchTrackingSheetTitle": "Tracking link",
+  "courierLaunchTrackingSheetHint": "The customer follows the order live from this link.",
+  "courierLaunchTrackingCodeLabel": "Delivery code",
+  "courierLaunchTrackingCodeHint": "The customer gives this code to the courier at the door.",
+  "courierLaunchTrackingCopyCode": "Copy code",
+  "courierLaunchTrackingCodeCopied": "Code copied.",
+  "courierLaunchTrackingCopyLink": "Copy link",
+  "courierLaunchTrackingLinkCopied": "Link copied.",
+  "courierLaunchTrackingSendWhatsApp": "Send on WhatsApp",
+  "courierLaunchTrackingShareOther": "Share…",
+  "courierLaunchTrackingLinkFailed": "Could not get the tracking link.",
+  "courierLaunchTimelineTitle": "Delivery timeline",
+  "courierLaunchTimelineCourier": "Courier: {name}",
+  "@courierLaunchTimelineCourier": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "courierLaunchTimelineStages": "Time per stage",
+  "courierLaunchTimelineTotal": "Total {minutes} min",
+  "@courierLaunchTimelineTotal": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "courierLaunchTimelineMinutes": "{minutes} min",
+  "@courierLaunchTimelineMinutes": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "courierLaunchTimelineTarget": "target {minutes} min",
+  "@courierLaunchTimelineTarget": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "courierLaunchTimelineOver": "Over target",
+  "courierLaunchTimelineMapTitle": "Where it happened",
+  "courierLaunchEventCreated": "Order created",
+  "courierLaunchEventAccepted": "Accepted",
+  "courierLaunchEventInProgress": "Preparing",
+  "courierLaunchEventOutForDelivery": "Out for delivery",
+  "courierLaunchEventLeftBranch": "Left the branch",
+  "courierLaunchEventLegStarted": "Started the trip to the customer",
+  "courierLaunchEventArrived": "Arrived at the customer",
+  "courierLaunchEventDelivered": "Delivered",
+  "courierLaunchEventFailed": "Delivery failed",
+  "courierLaunchEventBackAtBranch": "Back at the branch",
+  "courierLaunchSegmentPrep": "Preparation",
+  "courierLaunchSegmentDispatchWait": "Waiting for dispatch",
+  "courierLaunchSegmentTravel": "Travel",
+  "courierLaunchSegmentAtDoor": "At the door",
+  "courierLaunchSegmentReturn": "Return to the branch",
   "addressPinTitle": "Fix delivery pin",
   "addressPinCurrentPin": "Current pin",
   "addressPinNoPinYet": "No pin set yet",
@@ -9295,5 +9370,107 @@
         "type": "String"
       }
     }
-  }
+  },
+  "courierAlertsTitle": "Courier alerts",
+  "courierAlertsNoAccess": "Courier alerts are only available to the delivery managers.",
+  "courierAlertsFilterOpen": "Open",
+  "courierAlertsFilterAll": "All",
+  "courierAlertsEmptyOpen": "No open alerts. All couriers look fine.",
+  "courierAlertsEmptyAll": "No alerts yet.",
+  "courierAlertsOpenCount": "{count} open",
+  "@courierAlertsOpenCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courierAlertsHighCount": "{count} high",
+  "@courierAlertsHighCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courierAlertsSeverityLow": "Low",
+  "courierAlertsSeverityMedium": "Medium",
+  "courierAlertsSeverityHigh": "High",
+  "courierAlertsStatusOpen": "Open",
+  "courierAlertsStatusReviewed": "Reviewed",
+  "courierAlertsStatusDismissed": "Dismissed",
+  "courierAlertTypeDetour": "Detour",
+  "courierAlertTypeExcessiveIdle": "Excessive idle",
+  "courierAlertTypeSpeeding": "Speeding",
+  "courierAlertTypeDeliveredFarFromPin": "Delivered far from pin",
+  "courierAlertTypePingGap": "Ping gap",
+  "courierAlertTypeMockGps": "Mock GPS",
+  "courierAlertTypeUnexpectedStop": "Unexpected stop",
+  "courierAlertTypeStalePing": "Stale ping",
+  "courierAlertTypeTrackerModeChanged": "Tracker mode changed",
+  "courierAlertTypeTrackingLost": "Tracking lost",
+  "courierAlertTypeActionRefused": "Action refused",
+  "courierAlertTypeDeliveryCodeFailed": "Delivery code failed",
+  "courierAlertsFieldCourier": "Courier",
+  "courierAlertsFieldInvoice": "Invoice",
+  "courierAlertsFieldBranch": "Branch",
+  "courierAlertsFieldDetected": "Detected",
+  "courierAlertsFieldStatus": "Status",
+  "courierAlertsFieldDetails": "Details",
+  "courierAlertsFieldNote": "Review note",
+  "courierAlertsNoteLabel": "Note (optional)",
+  "courierAlertsMarkReviewed": "Mark reviewed",
+  "courierAlertsDismiss": "Dismiss",
+  "courierAlertsUpdated": "Alert updated.",
+  "courierSetupEntry": "Couriers",
+  "courierSetupTitle": "Couriers",
+  "courierSetupAction": "Set up courier",
+  "courierSetupSearchHint": "Search by name, branch or login",
+  "courierSetupEmpty": "No employees found.",
+  "courierSetupStatusReady": "Ready",
+  "courierSetupStatusNeedsFix": "Needs fixing",
+  "courierSetupStatusNotCourier": "Not a courier yet",
+  "courierSetupSetUp": "Set up as courier",
+  "courierSetupFix": "Repair setup (new PIN)",
+  "courierSetupResetPin": "Reset PIN",
+  "courierSetupResetTitle": "Reset PIN?",
+  "courierSetupResetBody": "{name} will get a new PIN and the old one stops working. The new PIN is shown once.",
+  "@courierSetupResetBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "courierSetupFormTitle": "Set up courier",
+  "courierSetupModeExisting": "Existing employee",
+  "courierSetupModeNew": "New person",
+  "courierSetupEmployee": "Employee",
+  "courierSetupEmployeeHint": "Type a name to search",
+  "courierSetupFullName": "Full name",
+  "courierSetupMobile": "Mobile number",
+  "courierSetupBranch": "Branch",
+  "courierSetupPosProfile": "POS profile (optional)",
+  "courierSetupPosProfileHelp": "Leave empty to use the branch default.",
+  "courierSetupSubmit": "Set up",
+  "courierSetupProblemNoIdentity": "Login not linked to an employee",
+  "courierSetupProblemNoPosProfile": "Not on a POS profile",
+  "courierSetupProblemNoEmployeeBranch": "Employee has no branch",
+  "courierSetupProblemBranchNotAssigned": "Branch does not match POS profile",
+  "courierSetupHintNoIdentity": "Open the Employee and set User ID to this login, and make sure the Employee is Active.",
+  "courierSetupHintNoPosProfile": "Add this login to the Users table of the branch POS Profile.",
+  "courierSetupHintNoEmployeeBranch": "Set the Branch on the Employee record.",
+  "courierSetupHintBranchNotAssigned": "The Employee branch and the POS Profile branch must be the same.",
+  "courierSetupDoneTitle": "Courier ready",
+  "courierSetupPinResetTitle": "New PIN",
+  "courierSetupLoginId": "Login ID",
+  "courierSetupPinLabel": "PIN",
+  "courierSetupPinOnce": "Shown only once. Copy it or send it now; it cannot be shown again.",
+  "courierSetupNoPin": "The server did not return a PIN. Use Reset PIN to issue one.",
+  "courierSetupWebLink": "Web link",
+  "courierSetupApkLink": "Android app",
+  "courierSetupStillMissing": "Still missing",
+  "courierSetupShareWhatsapp": "Share to courier on WhatsApp",
+  "courierSetupCopy": "Copy",
+  "courierSetupCopied": "Copied."
 }

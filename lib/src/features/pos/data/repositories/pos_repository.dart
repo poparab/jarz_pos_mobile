@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/dio_provider.dart';
 import '../../../../core/network/frappe_error_message.dart';
+import '../../../../core/network/frappe_exc_type.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/utils/territory_label.dart';
 import '../../domain/models/delivery_slot.dart';
@@ -39,6 +40,25 @@ class AmendmentRejectedException implements Exception {
 
   /// False when [message] is the client-side [defaultMessage].
   final bool hasServerReason;
+
+  @override
+  String toString() => message;
+}
+
+/// The server refused to book a delivery order because its address has no map
+/// pin (`exc_type: AddressPinRequired`, setting `require_address_pin_for_delivery`).
+///
+/// A typed error rather than a message string so the cart can send staff to the
+/// pin field instead of showing a generic failure.
+class AddressPinRequiredException implements Exception {
+  const AddressPinRequiredException([this.message = defaultMessage]);
+
+  /// `exc_type` the backend raises.
+  static const excType = 'AddressPinRequired';
+
+  static const defaultMessage = 'Delivery orders need a map pin on the address.';
+
+  final String message;
 
   @override
   String toString() => message;
@@ -1132,6 +1152,15 @@ class PosRepository {
       if (kDebugMode) {
         debugPrint('❌ INVOICE CREATION ERROR: $e');
       }
+      // The refusal code is only on the raw error: read it before wrapping.
+      if (frappeExcType(e) == AddressPinRequiredException.excType) {
+        throw AddressPinRequiredException(
+          extractFrappeErrorMessage(
+            e,
+            fallback: AddressPinRequiredException.defaultMessage,
+          ),
+        );
+      }
       // Surface the real Frappe server message (e.g. a missing-price-list error)
       // instead of a bare DioException / 417 status code.
       throw Exception(
@@ -1234,6 +1263,14 @@ class PosRepository {
     } catch (e) {
       if (kDebugMode) {
         debugPrint('❌ INVOICE AMENDMENT ERROR: $e');
+      }
+      if (frappeExcType(e) == AddressPinRequiredException.excType) {
+        throw AddressPinRequiredException(
+          extractFrappeErrorMessage(
+            e,
+            fallback: AddressPinRequiredException.defaultMessage,
+          ),
+        );
       }
       throw Exception(
         extractFrappeErrorMessage(

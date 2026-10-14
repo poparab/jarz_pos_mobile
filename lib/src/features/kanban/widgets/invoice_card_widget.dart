@@ -32,6 +32,9 @@ import 'transfer_proof_sheet.dart';
 import 'sub_territory_selection_sheet.dart';
 import 'custom_shipping_request_dialog.dart';
 import 'invoice_notes_sheet.dart';
+import '../../geo/presentation/widgets/add_pin_sheet.dart';
+import '../../order_timeline/presentation/order_timeline_section.dart';
+import '../../tracking/presentation/share_tracking_link.dart';
 import '../../printing/pos_printer_provider.dart';
 import '../../printing/printable_invoice_mapper.dart';
 import '../../printing/receipt/receipt_delivery.dart';
@@ -800,6 +803,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
               await _openInvoiceNotes(context);
             } else if (value == 'edit_address') {
               await _editCustomerAddress(context);
+            } else if (value == 'add_pin') {
+              await _addPin(context);
+            } else if (value == 'share_tracking_link') {
+              await _shareTrackingLink(context);
             } else if (value == 'print') {
               await _printInvoice(context);
             } else if (value == 'share_receipt') {
@@ -847,6 +854,28 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 ],
               ),
             ),
+            if (widget.invoice.needsLocationPin)
+              PopupMenuItem(
+                value: 'add_pin',
+                child: Row(
+                  children: [
+                    const Icon(Icons.pin_drop_outlined, size: 18),
+                    const SizedBox(width: 8),
+                    Text(l10n.courierLaunchPinAddAction),
+                  ],
+                ),
+              ),
+            if (_canShareTrackingLink)
+              PopupMenuItem(
+                value: 'share_tracking_link',
+                child: Row(
+                  children: [
+                    const Icon(Icons.share_location, size: 18),
+                    const SizedBox(width: 8),
+                    Text(l10n.courierLaunchTrackingShare),
+                  ],
+                ),
+              ),
             if (widget.invoice.canChangeDeliverySlot)
               PopupMenuItem(
                 value: 'change_delivery_slot',
@@ -1542,6 +1571,15 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                         (item) => _buildItemRow(item),
                       ),
                       const SizedBox(height: 12),
+                    ],
+
+                    // Courier launch: pin / tracking-link actions and the
+                    // delivery timeline (role-gated, fetched only once the
+                    // card is open).
+                    if (_isExpanded && !widget.invoice.isPickup) ...[
+                      _buildDeliveryActionsRow(),
+                      if (ref.watch(canViewLiveCourierMapProvider))
+                        OrderTimelineSection(invoiceId: widget.invoice.name),
                     ],
 
                     // Invoice totals
@@ -3147,7 +3185,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
                 ? () => _openMapsUrl(mapsUrl)
                 : warningOnly
                     ? () => _pinTooltipKey.currentState?.ensureTooltipVisible()
-                    : () => _editCustomerAddress(context),
+                    : pinned
+                        ? () => _editCustomerAddress(context)
+                        : () => _addPin(context),
         onLongPress: transitioning || !(hasMapsUrl || warningOnly)
             ? null
             : () => _editCustomerAddress(context),
@@ -3595,6 +3635,92 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ),
       );
     }
+  }
+
+  /// A tracking link only makes sense for a delivery order that is still
+  /// alive (not cancelled / returned).
+  bool get _canShareTrackingLink {
+    final invoice = widget.invoice;
+    if (invoice.isPickup) return false;
+    final status = invoice.status.trim().toLowerCase();
+    return status != InvoiceStatus.cancelledLower && !status.contains('return');
+  }
+
+  Widget _buildDeliveryActionsRow() {
+    final l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          if (widget.invoice.needsLocationPin)
+            OutlinedButton.icon(
+              key: const ValueKey('invoice_card_add_pin'),
+              onPressed: () => _addPin(context),
+              icon: const Icon(Icons.pin_drop_outlined, size: 16),
+              label: Text(l10n.courierLaunchPinAddAction),
+            ),
+          if (_canShareTrackingLink)
+            OutlinedButton.icon(
+              key: const ValueKey('invoice_card_share_tracking'),
+              onPressed: () => _shareTrackingLink(context),
+              icon: const Icon(Icons.share_location, size: 16),
+              label: Text(l10n.courierLaunchTrackingShare),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// "Add pin": resolve the order's shipping address, open the paste-a-link /
+  /// pick-on-map sheet, and refresh the card so the badge turns green.
+  Future<void> _addPin(BuildContext context) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final service = ref.read(kanbanServiceProvider);
+
+    String addressName;
+    try {
+      final book = await service.getCustomerShippingAddresses(
+        customer: widget.invoice.customer,
+        invoice: widget.invoice.name,
+      );
+      addressName = book['selected_address_name']?.toString().trim() ?? '';
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            _formatErrorMessage(
+              e,
+              fallback: l10n.customerShippingAddressLoadFailed,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    if (!context.mounted) return;
+    if (addressName.isEmpty) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.courierLaunchPinNoAddress)),
+      );
+      return;
+    }
+
+    final saved = await showAddPinSheet(context, addressName: addressName);
+    if (!saved || !mounted) return;
+    await ref.read(kanbanProvider.notifier).refreshSingle(widget.invoice.name);
+  }
+
+  Future<void> _shareTrackingLink(BuildContext context) {
+    return shareTrackingLink(
+      context,
+      ref,
+      invoiceId: widget.invoice.name,
+      fallbackPhone: widget.invoice.customerPhone,
+    );
   }
 
   Future<void> _openInvoiceNotes(BuildContext context) async {

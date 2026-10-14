@@ -108,7 +108,10 @@ class UserAdminTag extends StatelessWidget {
             Icon(icon, size: 12, color: c),
             const SizedBox(width: 3),
           ],
-          Text(text, style: theme.textTheme.labelSmall?.copyWith(color: c)),
+          // Flexible so a long label wraps instead of overflowing a narrow row.
+          Flexible(
+            child: Text(text, style: theme.textTheme.labelSmall?.copyWith(color: c)),
+          ),
         ],
       ),
     );

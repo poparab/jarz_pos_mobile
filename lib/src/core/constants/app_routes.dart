@@ -70,6 +70,10 @@ abstract final class AppRoutes {
   /// Live courier map. Supervisor-only: the tracking API deliberately refuses
   /// couriers, who may see their own run but never a colleague's position.
   static const fleetMap = '/fleet';
+
+  /// Courier anomaly alerts (Detour, Speeding, Mock GPS ...). Same audience as
+  /// [fleetMap]: the line-manager tier.
+  static const courierAlerts = '/courier-alerts';
   static const reports = '/reports';
   static const reportsShipping = '/reports/shipping';
   static const reportsInventory = '/reports/inventory';
@@ -172,9 +176,10 @@ abstract final class AppRoutes {
       '$tasks/${Uri.encodeComponent(name)}';
 
   // ── User management (JARZ Manager / System Manager) ───────────────────
-  // `/users/new` is declared before `/users/:id` so the static segment wins.
+  // `/users/new` and `/users/couriers` are declared before `/users/:id` so the static segment wins.
   static const users = '/users';
   static const userNew = '/users/new';
+  static const userCouriers = '/users/couriers';
   static const userDetail = '/users/:id';
 
   /// One account's detail/edit screen. The id is the login email.

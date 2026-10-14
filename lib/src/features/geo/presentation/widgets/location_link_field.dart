@@ -100,6 +100,7 @@ class LocationLinkField extends ConsumerStatefulWidget {
     this.labelText,
     this.showPreview = true,
     this.previewBuilder,
+    this.focusNode,
     this.maxDistanceFromBranchM = MapsLinkInput.defaultMaxDistanceFromBranchM,
   });
 
@@ -110,6 +111,11 @@ class LocationLinkField extends ConsumerStatefulWidget {
   final String? labelText;
   final bool showPreview;
   final LocationPreviewBuilder? previewBuilder;
+
+  /// Optional host-owned focus node, so a host can pull the cursor into the
+  /// field (the cart does this when the server refuses an unpinned address).
+  /// The host keeps ownership: the field never disposes it.
+  final FocusNode? focusNode;
 
   /// Distance from the branch beyond which a resolved point is rejected.
   final double maxDistanceFromBranchM;
@@ -131,6 +137,7 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
 
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
+  late final bool _ownsFocusNode;
   Timer? _debounce;
 
   /// Monotonic request id — a slow reply for text that has since been edited
@@ -152,7 +159,9 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue.link);
-    _focusNode = FocusNode()..addListener(_onFocusChanged);
+    _ownsFocusNode = widget.focusNode == null;
+    _focusNode = (widget.focusNode ?? FocusNode())
+      ..addListener(_onFocusChanged);
 
     final initial = widget.initialValue;
     if (initial.isConfirmed) {
@@ -170,7 +179,7 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
   void dispose() {
     _debounce?.cancel();
     _focusNode.removeListener(_onFocusChanged);
-    _focusNode.dispose();
+    if (_ownsFocusNode) _focusNode.dispose();
     _controller.dispose();
     super.dispose();
   }

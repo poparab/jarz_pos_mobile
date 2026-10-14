@@ -1058,6 +1058,175 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuInventoryCount => 'Inventory Count';
 
   @override
+  String get courierLaunchPinCardTitle => 'Delivery pin';
+
+  @override
+  String get courierLaunchPinCardMissing =>
+      'This address has no map pin yet. Paste a location link or drop a pin on the map so the courier can find the door.';
+
+  @override
+  String get courierLaunchPinCardRequired =>
+      'A map pin is required before this delivery order can be placed.';
+
+  @override
+  String get courierLaunchPinCardPinned => 'Address has a map pin';
+
+  @override
+  String get courierLaunchPinCardChecking => 'Checking the address pin…';
+
+  @override
+  String get courierLaunchPinAddAction => 'Add pin';
+
+  @override
+  String get courierLaunchPinSave => 'Save pin';
+
+  @override
+  String get courierLaunchPinRequiredRefusal =>
+      'This delivery address needs a map pin. Add the pin below, then place the order again.';
+
+  @override
+  String get courierLaunchPinSheetTitle => 'Add map pin';
+
+  @override
+  String get courierLaunchPinSheetHint =>
+      'Paste a Google Maps link, or pick the spot on the map.';
+
+  @override
+  String courierLaunchPinPicked(Object coords) {
+    return 'Pin dropped at $coords';
+  }
+
+  @override
+  String get courierLaunchPinSaved => 'Pin saved.';
+
+  @override
+  String get courierLaunchPinKept =>
+      'The address already has a more reliable pin, so it was kept.';
+
+  @override
+  String get courierLaunchPinSaveFailed => 'Could not save the pin.';
+
+  @override
+  String get courierLaunchPinNoAddress =>
+      'This order has no delivery address to pin.';
+
+  @override
+  String get courierLaunchTrackingShare => 'Share tracking link';
+
+  @override
+  String get courierLaunchTrackingSheetTitle => 'Tracking link';
+
+  @override
+  String get courierLaunchTrackingSheetHint =>
+      'The customer follows the order live from this link.';
+
+  @override
+  String get courierLaunchTrackingCodeLabel => 'Delivery code';
+
+  @override
+  String get courierLaunchTrackingCodeHint =>
+      'The customer gives this code to the courier at the door.';
+
+  @override
+  String get courierLaunchTrackingCopyCode => 'Copy code';
+
+  @override
+  String get courierLaunchTrackingCodeCopied => 'Code copied.';
+
+  @override
+  String get courierLaunchTrackingCopyLink => 'Copy link';
+
+  @override
+  String get courierLaunchTrackingLinkCopied => 'Link copied.';
+
+  @override
+  String get courierLaunchTrackingSendWhatsApp => 'Send on WhatsApp';
+
+  @override
+  String get courierLaunchTrackingShareOther => 'Share…';
+
+  @override
+  String get courierLaunchTrackingLinkFailed =>
+      'Could not get the tracking link.';
+
+  @override
+  String get courierLaunchTimelineTitle => 'Delivery timeline';
+
+  @override
+  String courierLaunchTimelineCourier(Object name) {
+    return 'Courier: $name';
+  }
+
+  @override
+  String get courierLaunchTimelineStages => 'Time per stage';
+
+  @override
+  String courierLaunchTimelineTotal(Object minutes) {
+    return 'Total $minutes min';
+  }
+
+  @override
+  String courierLaunchTimelineMinutes(Object minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String courierLaunchTimelineTarget(Object minutes) {
+    return 'target $minutes min';
+  }
+
+  @override
+  String get courierLaunchTimelineOver => 'Over target';
+
+  @override
+  String get courierLaunchTimelineMapTitle => 'Where it happened';
+
+  @override
+  String get courierLaunchEventCreated => 'Order created';
+
+  @override
+  String get courierLaunchEventAccepted => 'Accepted';
+
+  @override
+  String get courierLaunchEventInProgress => 'Preparing';
+
+  @override
+  String get courierLaunchEventOutForDelivery => 'Out for delivery';
+
+  @override
+  String get courierLaunchEventLeftBranch => 'Left the branch';
+
+  @override
+  String get courierLaunchEventLegStarted => 'Started the trip to the customer';
+
+  @override
+  String get courierLaunchEventArrived => 'Arrived at the customer';
+
+  @override
+  String get courierLaunchEventDelivered => 'Delivered';
+
+  @override
+  String get courierLaunchEventFailed => 'Delivery failed';
+
+  @override
+  String get courierLaunchEventBackAtBranch => 'Back at the branch';
+
+  @override
+  String get courierLaunchSegmentPrep => 'Preparation';
+
+  @override
+  String get courierLaunchSegmentDispatchWait => 'Waiting for dispatch';
+
+  @override
+  String get courierLaunchSegmentTravel => 'Travel';
+
+  @override
+  String get courierLaunchSegmentAtDoor => 'At the door';
+
+  @override
+  String get courierLaunchSegmentReturn => 'Return to the branch';
+
+  @override
   String get addressPinTitle => 'Fix delivery pin';
 
   @override
@@ -16663,4 +16832,263 @@ class AppLocalizationsEn extends AppLocalizations {
   String rosterPlanApplied(String count) {
     return 'Rota planned for $count people.';
   }
+
+  @override
+  String get courierAlertsTitle => 'Courier alerts';
+
+  @override
+  String get courierAlertsNoAccess =>
+      'Courier alerts are only available to the delivery managers.';
+
+  @override
+  String get courierAlertsFilterOpen => 'Open';
+
+  @override
+  String get courierAlertsFilterAll => 'All';
+
+  @override
+  String get courierAlertsEmptyOpen =>
+      'No open alerts. All couriers look fine.';
+
+  @override
+  String get courierAlertsEmptyAll => 'No alerts yet.';
+
+  @override
+  String courierAlertsOpenCount(int count) {
+    return '$count open';
+  }
+
+  @override
+  String courierAlertsHighCount(int count) {
+    return '$count high';
+  }
+
+  @override
+  String get courierAlertsSeverityLow => 'Low';
+
+  @override
+  String get courierAlertsSeverityMedium => 'Medium';
+
+  @override
+  String get courierAlertsSeverityHigh => 'High';
+
+  @override
+  String get courierAlertsStatusOpen => 'Open';
+
+  @override
+  String get courierAlertsStatusReviewed => 'Reviewed';
+
+  @override
+  String get courierAlertsStatusDismissed => 'Dismissed';
+
+  @override
+  String get courierAlertTypeDetour => 'Detour';
+
+  @override
+  String get courierAlertTypeExcessiveIdle => 'Excessive idle';
+
+  @override
+  String get courierAlertTypeSpeeding => 'Speeding';
+
+  @override
+  String get courierAlertTypeDeliveredFarFromPin => 'Delivered far from pin';
+
+  @override
+  String get courierAlertTypePingGap => 'Ping gap';
+
+  @override
+  String get courierAlertTypeMockGps => 'Mock GPS';
+
+  @override
+  String get courierAlertTypeUnexpectedStop => 'Unexpected stop';
+
+  @override
+  String get courierAlertTypeStalePing => 'Stale ping';
+
+  @override
+  String get courierAlertTypeTrackerModeChanged => 'Tracker mode changed';
+
+  @override
+  String get courierAlertTypeTrackingLost => 'Tracking lost';
+
+  @override
+  String get courierAlertTypeActionRefused => 'Action refused';
+
+  @override
+  String get courierAlertTypeDeliveryCodeFailed => 'Delivery code failed';
+
+  @override
+  String get courierAlertsFieldCourier => 'Courier';
+
+  @override
+  String get courierAlertsFieldInvoice => 'Invoice';
+
+  @override
+  String get courierAlertsFieldBranch => 'Branch';
+
+  @override
+  String get courierAlertsFieldDetected => 'Detected';
+
+  @override
+  String get courierAlertsFieldStatus => 'Status';
+
+  @override
+  String get courierAlertsFieldDetails => 'Details';
+
+  @override
+  String get courierAlertsFieldNote => 'Review note';
+
+  @override
+  String get courierAlertsNoteLabel => 'Note (optional)';
+
+  @override
+  String get courierAlertsMarkReviewed => 'Mark reviewed';
+
+  @override
+  String get courierAlertsDismiss => 'Dismiss';
+
+  @override
+  String get courierAlertsUpdated => 'Alert updated.';
+
+  @override
+  String get courierSetupEntry => 'Couriers';
+
+  @override
+  String get courierSetupTitle => 'Couriers';
+
+  @override
+  String get courierSetupAction => 'Set up courier';
+
+  @override
+  String get courierSetupSearchHint => 'Search by name, branch or login';
+
+  @override
+  String get courierSetupEmpty => 'No employees found.';
+
+  @override
+  String get courierSetupStatusReady => 'Ready';
+
+  @override
+  String get courierSetupStatusNeedsFix => 'Needs fixing';
+
+  @override
+  String get courierSetupStatusNotCourier => 'Not a courier yet';
+
+  @override
+  String get courierSetupSetUp => 'Set up as courier';
+
+  @override
+  String get courierSetupFix => 'Repair setup (new PIN)';
+
+  @override
+  String get courierSetupResetPin => 'Reset PIN';
+
+  @override
+  String get courierSetupResetTitle => 'Reset PIN?';
+
+  @override
+  String courierSetupResetBody(String name) {
+    return '$name will get a new PIN and the old one stops working. The new PIN is shown once.';
+  }
+
+  @override
+  String get courierSetupFormTitle => 'Set up courier';
+
+  @override
+  String get courierSetupModeExisting => 'Existing employee';
+
+  @override
+  String get courierSetupModeNew => 'New person';
+
+  @override
+  String get courierSetupEmployee => 'Employee';
+
+  @override
+  String get courierSetupEmployeeHint => 'Type a name to search';
+
+  @override
+  String get courierSetupFullName => 'Full name';
+
+  @override
+  String get courierSetupMobile => 'Mobile number';
+
+  @override
+  String get courierSetupBranch => 'Branch';
+
+  @override
+  String get courierSetupPosProfile => 'POS profile (optional)';
+
+  @override
+  String get courierSetupPosProfileHelp =>
+      'Leave empty to use the branch default.';
+
+  @override
+  String get courierSetupSubmit => 'Set up';
+
+  @override
+  String get courierSetupProblemNoIdentity => 'Login not linked to an employee';
+
+  @override
+  String get courierSetupProblemNoPosProfile => 'Not on a POS profile';
+
+  @override
+  String get courierSetupProblemNoEmployeeBranch => 'Employee has no branch';
+
+  @override
+  String get courierSetupProblemBranchNotAssigned =>
+      'Branch does not match POS profile';
+
+  @override
+  String get courierSetupHintNoIdentity =>
+      'Open the Employee and set User ID to this login, and make sure the Employee is Active.';
+
+  @override
+  String get courierSetupHintNoPosProfile =>
+      'Add this login to the Users table of the branch POS Profile.';
+
+  @override
+  String get courierSetupHintNoEmployeeBranch =>
+      'Set the Branch on the Employee record.';
+
+  @override
+  String get courierSetupHintBranchNotAssigned =>
+      'The Employee branch and the POS Profile branch must be the same.';
+
+  @override
+  String get courierSetupDoneTitle => 'Courier ready';
+
+  @override
+  String get courierSetupPinResetTitle => 'New PIN';
+
+  @override
+  String get courierSetupLoginId => 'Login ID';
+
+  @override
+  String get courierSetupPinLabel => 'PIN';
+
+  @override
+  String get courierSetupPinOnce =>
+      'Shown only once. Copy it or send it now; it cannot be shown again.';
+
+  @override
+  String get courierSetupNoPin =>
+      'The server did not return a PIN. Use Reset PIN to issue one.';
+
+  @override
+  String get courierSetupWebLink => 'Web link';
+
+  @override
+  String get courierSetupApkLink => 'Android app';
+
+  @override
+  String get courierSetupStillMissing => 'Still missing';
+
+  @override
+  String get courierSetupShareWhatsapp => 'Share to courier on WhatsApp';
+
+  @override
+  String get courierSetupCopy => 'Copy';
+
+  @override
+  String get courierSetupCopied => 'Copied.';
 }

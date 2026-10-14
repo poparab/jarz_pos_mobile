@@ -33,6 +33,7 @@ import '../../tasks/state/tasks_providers.dart';
 import '../../credit/data/models/settlement_models.dart' show SettlementParty;
 import '../../credit/state/credit_providers.dart';
 import '../../followups/state/followups_providers.dart';
+import '../../courier_alerts/state/courier_alerts_providers.dart';
 
 /// Ceiling for the alert poll's backoff.
 ///
@@ -564,6 +565,18 @@ class OrderAlertBridge {
           _navigateToSettlement(data['customer']?.toString());
         }
         break;
+      case 'courier_alert':
+        _logger.info(
+          'FCM courier alert: ${data['anomaly_type']} (${data['severity']})',
+        );
+        // A courier tracking anomaly was raised. The tray entry is drawn by
+        // the SDK; here the drawer badge and an open alerts screen catch up,
+        // and a tap lands on the alerts list.
+        _refreshCourierAlerts();
+        if (openedApp) {
+          _navigateTo(AppRoutes.courierAlerts);
+        }
+        break;
       default:
         _logger.debug('Ignored push message of type $type');
     }
@@ -655,6 +668,12 @@ class OrderAlertBridge {
     _navigateTo(id.isEmpty ? AppRoutes.tasks : AppRoutes.taskDetailFor(id));
   }
 
+  /// Re-read the courier alerts badge and list after a courier_alert push.
+  void _refreshCourierAlerts() {
+    _ref.invalidate(courierAlertCountsProvider);
+    _ref.invalidate(courierAlertsProvider);
+  }
+
   void _navigateTo(String route) {
     final context = rootNavigatorKey.currentContext;
     if (context == null) {
@@ -713,6 +732,9 @@ class OrderAlertBridge {
     } else if (type == 'settlement_reminder') {
       _refreshSettlement(payload['customer']);
       _navigateToSettlement(payload['customer']);
+    } else if (type == 'courier_alert') {
+      _refreshCourierAlerts();
+      _navigateTo(AppRoutes.courierAlerts);
     }
   }
 

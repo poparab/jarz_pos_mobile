@@ -588,6 +588,17 @@ class PosNotifier extends StateNotifier<PosState> {
     return rejection;
   }
 
+  AddressPinRequiredException? _lastAddressPinRequired;
+
+  /// The server's `AddressPinRequired` refusal behind the current
+  /// [PosState.error], or null for every other error. The cart reads it to send
+  /// staff to the pin field instead of showing a generic failure.
+  AddressPinRequiredException? get addressPinRequired {
+    final refusal = _lastAddressPinRequired;
+    if (refusal == null || state.error != refusal.toString()) return null;
+    return refusal;
+  }
+
   // Last customer-resolved B2B Supply list, keyed by customer|profile|purpose.
   String? _b2bSupplyResolutionKey;
   String? _b2bSupplyResolvedPriceList;
@@ -4686,6 +4697,7 @@ class PosNotifier extends StateNotifier<PosState> {
         );
       }
       _lastAmendmentRejection = rejection;
+      _lastAddressPinRequired = e is AddressPinRequiredException ? e : null;
       // No modal overlay; rely on inline progress UI
       state = state.copyWith(
         error: e.toString(),

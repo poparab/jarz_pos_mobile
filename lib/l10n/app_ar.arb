@@ -597,6 +597,81 @@
   "postingDatePickerHelp": "اختر تاريخ الترحيل",
   "postingTimePickerHelp": "اختر وقت الترحيل",
   "menuInventoryCount": "جرد المخزون",
+  "courierLaunchPinCardTitle": "موقع التوصيل",
+  "courierLaunchPinCardMissing": "هذا العنوان ليس عليه موقع بعد. الصق رابط الموقع أو حدد النقطة على الخريطة ليصل المندوب إلى الباب.",
+  "courierLaunchPinCardRequired": "لا يمكن إنشاء طلب التوصيل قبل تحديد موقع العنوان على الخريطة.",
+  "courierLaunchPinCardPinned": "العنوان عليه موقع على الخريطة",
+  "courierLaunchPinCardChecking": "جارٍ فحص موقع العنوان…",
+  "courierLaunchPinAddAction": "إضافة موقع",
+  "courierLaunchPinSave": "حفظ الموقع",
+  "courierLaunchPinRequiredRefusal": "عنوان التوصيل يحتاج موقعاً على الخريطة. أضف الموقع ثم أنشئ الطلب مرة أخرى.",
+  "courierLaunchPinSheetTitle": "إضافة موقع على الخريطة",
+  "courierLaunchPinSheetHint": "الصق رابط خرائط جوجل أو حدد النقطة على الخريطة.",
+  "courierLaunchPinPicked": "تم تحديد النقطة {coords}",
+  "@courierLaunchPinPicked": {
+    "placeholders": {
+      "coords": {}
+    }
+  },
+  "courierLaunchPinSaved": "تم حفظ الموقع.",
+  "courierLaunchPinKept": "العنوان عليه موقع أدق بالفعل، لذلك تم الإبقاء عليه.",
+  "courierLaunchPinSaveFailed": "تعذر حفظ الموقع.",
+  "courierLaunchPinNoAddress": "لا يوجد عنوان توصيل لهذا الطلب لإضافة موقع له.",
+  "courierLaunchTrackingShare": "مشاركة رابط التتبع",
+  "courierLaunchTrackingSheetTitle": "رابط التتبع",
+  "courierLaunchTrackingSheetHint": "يتابع العميل طلبه لحظة بلحظة من هذا الرابط.",
+  "courierLaunchTrackingCodeLabel": "كود الاستلام",
+  "courierLaunchTrackingCodeHint": "يعطي العميل هذا الكود للمندوب عند التسليم.",
+  "courierLaunchTrackingCopyCode": "نسخ الكود",
+  "courierLaunchTrackingCodeCopied": "تم نسخ الكود.",
+  "courierLaunchTrackingCopyLink": "نسخ الرابط",
+  "courierLaunchTrackingLinkCopied": "تم نسخ الرابط.",
+  "courierLaunchTrackingSendWhatsApp": "إرسال عبر واتساب",
+  "courierLaunchTrackingShareOther": "مشاركة…",
+  "courierLaunchTrackingLinkFailed": "تعذر الحصول على رابط التتبع.",
+  "courierLaunchTimelineTitle": "الجدول الزمني للتوصيل",
+  "courierLaunchTimelineCourier": "المندوب: {name}",
+  "@courierLaunchTimelineCourier": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "courierLaunchTimelineStages": "الوقت لكل مرحلة",
+  "courierLaunchTimelineTotal": "الإجمالي {minutes} دقيقة",
+  "@courierLaunchTimelineTotal": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "courierLaunchTimelineMinutes": "{minutes} دقيقة",
+  "@courierLaunchTimelineMinutes": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "courierLaunchTimelineTarget": "المستهدف {minutes} دقيقة",
+  "@courierLaunchTimelineTarget": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "courierLaunchTimelineOver": "تجاوز المستهدف",
+  "courierLaunchTimelineMapTitle": "أماكن الأحداث",
+  "courierLaunchEventCreated": "إنشاء الطلب",
+  "courierLaunchEventAccepted": "تم القبول",
+  "courierLaunchEventInProgress": "قيد التحضير",
+  "courierLaunchEventOutForDelivery": "خرج للتوصيل",
+  "courierLaunchEventLeftBranch": "غادر الفرع",
+  "courierLaunchEventLegStarted": "بدأ التوجه للعميل",
+  "courierLaunchEventArrived": "وصل إلى العميل",
+  "courierLaunchEventDelivered": "تم التسليم",
+  "courierLaunchEventFailed": "فشل التسليم",
+  "courierLaunchEventBackAtBranch": "عاد إلى الفرع",
+  "courierLaunchSegmentPrep": "التحضير",
+  "courierLaunchSegmentDispatchWait": "انتظار الخروج",
+  "courierLaunchSegmentTravel": "الطريق",
+  "courierLaunchSegmentAtDoor": "عند الباب",
+  "courierLaunchSegmentReturn": "العودة للفرع",
   "addressPinTitle": "تصحيح موقع التوصيل",
   "addressPinCurrentPin": "الموقع الحالي",
   "addressPinNoPinYet": "لم يتم تحديد موقع بعد",
@@ -6134,5 +6209,107 @@
   "rosterPlanManualEmpty": "اتفضّى",
   "rosterPlanManualLine": "{date} · {current}",
   "rosterPlanGrantPos": "ادّي اللي بيغطي صلاحية الكاشير في الفرع ده",
-  "rosterPlanApplied": "الجدول اتعمل لـ {count} شخص."
+  "rosterPlanApplied": "الجدول اتعمل لـ {count} شخص.",
+  "courierAlertsTitle": "تنبيهات المناديب",
+  "courierAlertsNoAccess": "تنبيهات المناديب متاحة لمديري التوصيل بس.",
+  "courierAlertsFilterOpen": "المفتوحة",
+  "courierAlertsFilterAll": "الكل",
+  "courierAlertsEmptyOpen": "مفيش تنبيهات مفتوحة. المناديب كلهم تمام.",
+  "courierAlertsEmptyAll": "مفيش تنبيهات لسه.",
+  "courierAlertsOpenCount": "{count} مفتوح",
+  "@courierAlertsOpenCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courierAlertsHighCount": "{count} عالي",
+  "@courierAlertsHighCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courierAlertsSeverityLow": "منخفضة",
+  "courierAlertsSeverityMedium": "متوسطة",
+  "courierAlertsSeverityHigh": "عالية",
+  "courierAlertsStatusOpen": "مفتوح",
+  "courierAlertsStatusReviewed": "اتراجع",
+  "courierAlertsStatusDismissed": "اتجاهل",
+  "courierAlertTypeDetour": "انحراف عن المسار",
+  "courierAlertTypeExcessiveIdle": "وقوف طويل",
+  "courierAlertTypeSpeeding": "سرعة زايدة",
+  "courierAlertTypeDeliveredFarFromPin": "تسليم بعيد عن الموقع",
+  "courierAlertTypePingGap": "انقطاع في الإشارة",
+  "courierAlertTypeMockGps": "موقع مزيّف",
+  "courierAlertTypeUnexpectedStop": "وقفة غير متوقعة",
+  "courierAlertTypeStalePing": "موقع قديم",
+  "courierAlertTypeTrackerModeChanged": "تغيير وضع التتبع",
+  "courierAlertTypeTrackingLost": "فقدان التتبع",
+  "courierAlertTypeActionRefused": "إجراء مرفوض",
+  "courierAlertTypeDeliveryCodeFailed": "كود التسليم غلط",
+  "courierAlertsFieldCourier": "المندوب",
+  "courierAlertsFieldInvoice": "الفاتورة",
+  "courierAlertsFieldBranch": "الفرع",
+  "courierAlertsFieldDetected": "وقت الرصد",
+  "courierAlertsFieldStatus": "الحالة",
+  "courierAlertsFieldDetails": "التفاصيل",
+  "courierAlertsFieldNote": "ملاحظة المراجعة",
+  "courierAlertsNoteLabel": "ملاحظة (اختياري)",
+  "courierAlertsMarkReviewed": "تمت المراجعة",
+  "courierAlertsDismiss": "تجاهل",
+  "courierAlertsUpdated": "التنبيه اتحدّث.",
+  "courierSetupEntry": "المناديب",
+  "courierSetupTitle": "المناديب",
+  "courierSetupAction": "تجهيز مندوب",
+  "courierSetupSearchHint": "ابحث بالاسم أو الفرع أو الحساب",
+  "courierSetupEmpty": "مفيش موظفين.",
+  "courierSetupStatusReady": "جاهز",
+  "courierSetupStatusNeedsFix": "محتاج إصلاح",
+  "courierSetupStatusNotCourier": "لسه مش مندوب",
+  "courierSetupSetUp": "جهّزه كمندوب",
+  "courierSetupFix": "إصلاح الإعداد (رقم سري جديد)",
+  "courierSetupResetPin": "رقم سري جديد",
+  "courierSetupResetTitle": "تغيير الرقم السري؟",
+  "courierSetupResetBody": "{name} هياخد رقم سري جديد والقديم هيقف. الرقم الجديد هيظهر مرة واحدة بس.",
+  "@courierSetupResetBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "courierSetupFormTitle": "تجهيز مندوب",
+  "courierSetupModeExisting": "موظف موجود",
+  "courierSetupModeNew": "شخص جديد",
+  "courierSetupEmployee": "الموظف",
+  "courierSetupEmployeeHint": "اكتب اسم للبحث",
+  "courierSetupFullName": "الاسم بالكامل",
+  "courierSetupMobile": "رقم الموبايل",
+  "courierSetupBranch": "الفرع",
+  "courierSetupPosProfile": "POS Profile (اختياري)",
+  "courierSetupPosProfileHelp": "سيبه فاضي عشان يستخدم الافتراضي للفرع.",
+  "courierSetupSubmit": "تجهيز",
+  "courierSetupProblemNoIdentity": "الحساب مش مربوط بموظف",
+  "courierSetupProblemNoPosProfile": "مش على POS Profile",
+  "courierSetupProblemNoEmployeeBranch": "الموظف مالوش فرع",
+  "courierSetupProblemBranchNotAssigned": "الفرع مش مطابق للـ POS Profile",
+  "courierSetupHintNoIdentity": "افتح الموظف واختار الحساب في User ID وتأكد إن الموظف Active.",
+  "courierSetupHintNoPosProfile": "ضيف الحساب في جدول Users في الـ POS Profile بتاع الفرع.",
+  "courierSetupHintNoEmployeeBranch": "حدد الفرع في سجل الموظف.",
+  "courierSetupHintBranchNotAssigned": "فرع الموظف وفرع الـ POS Profile لازم يبقوا نفس الفرع.",
+  "courierSetupDoneTitle": "المندوب جاهز",
+  "courierSetupPinResetTitle": "رقم سري جديد",
+  "courierSetupLoginId": "رقم الدخول",
+  "courierSetupPinLabel": "الرقم السري",
+  "courierSetupPinOnce": "بيظهر مرة واحدة بس. انسخه أو ابعته دلوقتي، مش هيظهر تاني.",
+  "courierSetupNoPin": "السيرفر ما رجّعش رقم سري. استخدم \"رقم سري جديد\" عشان تطلع واحد.",
+  "courierSetupWebLink": "رابط الويب",
+  "courierSetupApkLink": "تطبيق الأندرويد",
+  "courierSetupStillMissing": "لسه ناقص",
+  "courierSetupShareWhatsapp": "ابعت للمندوب على واتساب",
+  "courierSetupCopy": "نسخ",
+  "courierSetupCopied": "اتنسخ."
 }

@@ -12,6 +12,7 @@ import '../network/user_service.dart';
 import '../../features/pos/state/pos_notifier.dart';
 import '../../features/shift/state/shift_notifier.dart';
 import '../../features/labels/state/labels_notifier.dart';
+import '../../features/courier_alerts/state/courier_alerts_providers.dart';
 import '../../features/purchase_request/state/purchase_request_notifier.dart';
 import '../../features/approvals/presentation/pending_approvals_widgets.dart';
 import '../../features/cash_custody/state/cash_custody_notifier.dart';
@@ -92,6 +93,14 @@ class AppDrawer extends ConsumerWidget {
           data: (c) => c.open,
           orElse: () => 0,
         );
+    // Only the courier-map tier is asked (the provider itself refuses to call
+    // the server for anyone else), so this never costs another role a request.
+    final openCourierAlerts = canViewLiveCourierMap
+        ? ref.watch(courierAlertCountsProvider).maybeWhen(
+              data: (c) => c.openCount,
+              orElse: () => 0,
+            )
+        : 0;
     final englishLocale = const Locale('en');
     final arabicLocale = const Locale('ar');
     final currentLocale = locale?.languageCode ?? englishLocale.languageCode;
@@ -208,6 +217,10 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuLiveCourierMap,
           onTap: () => navigate(AppRoutes.fleetMap),
         ),
+      // Same audience as the map: `jarz_courier.api.alerts` is gated on
+      // `ROLES.COURIER_MAP_VIEWER`.
+      if (canViewLiveCourierMap)
+        _CourierAlertsNavTile(onTap: () => navigate(AppRoutes.courierAlerts)),
       navTile(
         icon: Icons.local_shipping_outlined,
         title: l10n.menuDeliveryTrips,
@@ -478,7 +491,16 @@ class AppDrawer extends ConsumerWidget {
         icon: Icons.local_shipping_outlined,
         label: l10n.drawerGroupDelivery,
         children: deliveryChildren,
-        routes: const [AppRoutes.trips, AppRoutes.fleetMap],
+        routes: const [
+          AppRoutes.trips,
+          AppRoutes.fleetMap,
+          AppRoutes.courierAlerts,
+        ],
+        // The group starts collapsed, so a dot on the header is the only sign
+        // that an alert is waiting inside it.
+        badge: openCourierAlerts > 0
+            ? const _CourierAlertsBadge(dotOnly: true)
+            : null,
       ),
       _DrawerGroupSpec(
         id: 'b2b',
@@ -832,6 +854,73 @@ class _ItemRequestsBadge extends ConsumerWidget {
       ),
       child: Text(
         '${counts.open}',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+/// Drawer entry for courier alerts, badged with how many are still open and
+/// red while any of them is High severity.
+class _CourierAlertsNavTile extends ConsumerWidget {
+  final VoidCallback onTap;
+
+  const _CourierAlertsNavTile({required this.onTap});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final open = ref.watch(courierAlertCountsProvider).maybeWhen(
+          data: (c) => c.openCount,
+          orElse: () => 0,
+        );
+    return ListTile(
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      leading: const Icon(Icons.notification_important_outlined),
+      title: Text(context.l10n.courierAlertsTitle),
+      trailing: open > 0 ? const _CourierAlertsBadge() : null,
+      onTap: onTap,
+    );
+  }
+}
+
+class _CourierAlertsBadge extends ConsumerWidget {
+  /// A plain dot for the collapsed group header, the number on the tile.
+  final bool dotOnly;
+
+  const _CourierAlertsBadge({this.dotOnly = false});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final counts = ref.watch(courierAlertCountsProvider).maybeWhen(
+          data: (c) => c,
+          orElse: () => null,
+        );
+    if (counts == null || counts.openCount == 0) {
+      return const SizedBox.shrink();
+    }
+    final color = counts.highCount > 0
+        ? const Color(0xFFB3261E)
+        : Colors.blueGrey.shade600;
+    if (dotOnly) {
+      return Container(
+        width: 9,
+        height: 9,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        '${counts.openCount}',
         style: const TextStyle(
           color: Colors.white,
           fontSize: 12,
