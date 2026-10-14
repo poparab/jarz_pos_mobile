@@ -7,6 +7,7 @@ import '../../state/attendance_providers.dart';
 import '../attendance_format.dart';
 import 'attendance_controls.dart';
 import 'attendance_day_sheet.dart';
+import 'attendance_device_flag.dart';
 import 'attendance_states.dart';
 import 'attendance_status_style.dart';
 
@@ -374,9 +375,18 @@ class AttendanceDayRowTile extends StatelessWidget {
                     '${attendanceClock(context, cell.scheduledStart)} '
                     '• ${attendanceClock(context, cell.firstIn)}'
                     '${cell.lastOut == null ? '' : ' • ${attendanceClock(context, cell.lastOut)}'}',
-                    style: attendanceNumeric(theme.textTheme.labelSmall)
-                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    style: attendanceNumeric(
+                      theme.textTheme.labelSmall,
+                    )?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
+                  if (cell.hasDeviceFlag) ...[
+                    const SizedBox(height: 4),
+                    AttendanceDeviceFlagChips(
+                      flags: cell.deviceFlags,
+                      detail: cell.deviceFlagDetail,
+                      dense: true,
+                    ),
+                  ],
                 ],
               ),
             ),

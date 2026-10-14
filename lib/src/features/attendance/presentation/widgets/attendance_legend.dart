@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../models/attendance_models.dart';
+import 'attendance_device_flag.dart';
 import 'attendance_status_style.dart';
 
 /// What the cells mean, generated from [kAttendanceStatusOrder] and the same
@@ -102,6 +103,7 @@ class AttendanceLegendSheet extends StatelessWidget {
             const SizedBox(height: 12),
             for (final status in kAttendanceStatusOrder)
               _LegendRow(status: status, graceMinutes: graceMinutes),
+            const _DeviceFlagLegendRow(),
           ],
         ),
       ),
@@ -161,6 +163,35 @@ class _LegendRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DeviceFlagLegendRow extends StatelessWidget {
+  const _DeviceFlagLegendRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(
+          width: 26,
+          child: Center(
+            child: AttendanceDeviceFlagDot(flags: [kDeviceFlagShared]),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            attendanceDeviceFlagLegend(context),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

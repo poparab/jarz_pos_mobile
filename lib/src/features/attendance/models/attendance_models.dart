@@ -190,15 +190,14 @@ class AttendanceBootstrap {
   factory AttendanceBootstrap.fromJson(Map<String, dynamic> json) =>
       AttendanceBootstrap(
         hrmsAvailable: json['hrms_available'] != false,
-        shiftLocations:
-            (json['shift_locations'] as List<dynamic>? ?? const [])
-                .whereType<Map>()
-                .map(
-                  (e) => AttendanceShiftLocation.fromJson(
-                    Map<String, dynamic>.from(e),
-                  ),
-                )
-                .toList(),
+        shiftLocations: (json['shift_locations'] as List<dynamic>? ?? const [])
+            .whereType<Map>()
+            .map(
+              (e) => AttendanceShiftLocation.fromJson(
+                Map<String, dynamic>.from(e),
+              ),
+            )
+            .toList(),
         scope: AttendanceScope.fromJson(
           Map<String, dynamic>.from(json['scope'] as Map? ?? const {}),
         ),
@@ -257,6 +256,8 @@ class AttendanceCell {
     this.geoOk,
     this.dayOff,
     this.isCover = false,
+    this.deviceFlags = const [],
+    this.deviceFlagDetail,
   });
 
   final String date;
@@ -285,6 +286,16 @@ class AttendanceCell {
   final bool? geoOk;
   final AttendanceDayOff? dayOff;
   final bool isCover;
+
+  /// Buddy-punching signals for the day, severity order ("Shared Device",
+  /// "New Device", "No Device"). Empty when clean, and when an older server
+  /// does not send the key.
+  final List<String> deviceFlags;
+
+  /// Server-written English explanation, `" | "`-joined; shown as is.
+  final String? deviceFlagDetail;
+
+  bool get hasDeviceFlag => deviceFlags.isNotEmpty;
 
   /// Did this person clock in at all on this day?
   ///
@@ -342,6 +353,8 @@ class AttendanceCell {
           ? AttendanceDayOff.fromJson(Map<String, dynamic>.from(off))
           : null,
       isCover: json['is_cover'] == true || json['is_cover'] == 1,
+      deviceFlags: _toStringList(json['device_flags']),
+      deviceFlagDetail: _nullIfBlank(json['device_flag_detail']),
     );
   }
 }
@@ -536,8 +549,9 @@ class AttendanceMonth {
         employees: (json['employees'] as List<dynamic>? ?? const [])
             .whereType<Map>()
             .map(
-              (e) =>
-                  AttendanceEmployeeMonth.fromJson(Map<String, dynamic>.from(e)),
+              (e) => AttendanceEmployeeMonth.fromJson(
+                Map<String, dynamic>.from(e),
+              ),
             )
             .toList(),
         totals: AttendanceTotals.fromJson(
@@ -838,9 +852,16 @@ class AttendanceCheckin {
     this.latitude,
     this.longitude,
     this.geoOk,
+    this.deviceFlag,
+    this.deviceFlagDetail,
   });
 
   final String name;
+
+  /// "Shared Device" / "New Device" / "No Device", or null when clean (or
+  /// when an older server does not send the key).
+  final String? deviceFlag;
+  final String? deviceFlagDetail;
 
   /// `YYYY-MM-DD HH:mm:ss`, server-local, rendered as sent.
   final String time;
@@ -863,6 +884,8 @@ class AttendanceCheckin {
         latitude: _toDoubleOrNull(json['latitude']),
         longitude: _toDoubleOrNull(json['longitude']),
         geoOk: _toBoolOrNull(json['geo_ok']),
+        deviceFlag: _nullIfBlank(json['device_flag']),
+        deviceFlagDetail: _nullIfBlank(json['device_flag_detail']),
       );
 }
 
@@ -920,44 +943,44 @@ class AttendanceEmployeeDetail {
   /// by-branch breakdown exists for.
   bool get movedBetweenBranches => byBranch.length > 1;
 
-  factory AttendanceEmployeeDetail.fromJson(Map<String, dynamic> json) =>
-      AttendanceEmployeeDetail(
-        employee: (json['employee'] ?? '').toString(),
-        employeeName: (json['employee_name'] ?? '').toString(),
-        designation: _nullIfBlank(json['designation']),
-        department: _nullIfBlank(json['department']),
-        isCourier: json['is_courier'] == true,
-        shiftLocations: (json['shift_locations'] as List<dynamic>? ?? const [])
-            .map((e) => e.toString())
-            .toList(),
-        fromDate: (json['from_date'] ?? '').toString(),
-        toDate: (json['to_date'] ?? '').toString(),
-        graceMinutes: _toInt(json['grace_minutes']),
-        hrmsAvailable: json['hrms_available'] != false,
-        notice: _nullIfBlank(json['notice']),
-        days: (json['days'] as List<dynamic>? ?? const [])
-            .whereType<Map>()
-            .map((e) => AttendanceCell.fromJson(Map<String, dynamic>.from(e)))
-            .toList(),
-        totals: AttendanceTotals.fromJson(
-          Map<String, dynamic>.from(json['totals'] as Map? ?? const {}),
-        ),
-        byBranch: (json['by_branch'] as List<dynamic>? ?? const [])
-            .whereType<Map>()
-            .map(
-              (e) => AttendanceBranchBreakdown.fromJson(
-                Map<String, dynamic>.from(e),
-              ),
-            )
-            .toList(),
-        checkins: (json['checkins'] as List<dynamic>? ?? const [])
-            .whereType<Map>()
-            .map((e) => AttendanceCheckin.fromJson(Map<String, dynamic>.from(e)))
-            .toList(),
-        scope: AttendanceScope.fromJson(
-          Map<String, dynamic>.from(json['scope'] as Map? ?? const {}),
-        ),
-      );
+  factory AttendanceEmployeeDetail.fromJson(
+    Map<String, dynamic> json,
+  ) => AttendanceEmployeeDetail(
+    employee: (json['employee'] ?? '').toString(),
+    employeeName: (json['employee_name'] ?? '').toString(),
+    designation: _nullIfBlank(json['designation']),
+    department: _nullIfBlank(json['department']),
+    isCourier: json['is_courier'] == true,
+    shiftLocations: (json['shift_locations'] as List<dynamic>? ?? const [])
+        .map((e) => e.toString())
+        .toList(),
+    fromDate: (json['from_date'] ?? '').toString(),
+    toDate: (json['to_date'] ?? '').toString(),
+    graceMinutes: _toInt(json['grace_minutes']),
+    hrmsAvailable: json['hrms_available'] != false,
+    notice: _nullIfBlank(json['notice']),
+    days: (json['days'] as List<dynamic>? ?? const [])
+        .whereType<Map>()
+        .map((e) => AttendanceCell.fromJson(Map<String, dynamic>.from(e)))
+        .toList(),
+    totals: AttendanceTotals.fromJson(
+      Map<String, dynamic>.from(json['totals'] as Map? ?? const {}),
+    ),
+    byBranch: (json['by_branch'] as List<dynamic>? ?? const [])
+        .whereType<Map>()
+        .map(
+          (e) =>
+              AttendanceBranchBreakdown.fromJson(Map<String, dynamic>.from(e)),
+        )
+        .toList(),
+    checkins: (json['checkins'] as List<dynamic>? ?? const [])
+        .whereType<Map>()
+        .map((e) => AttendanceCheckin.fromJson(Map<String, dynamic>.from(e)))
+        .toList(),
+    scope: AttendanceScope.fromJson(
+      Map<String, dynamic>.from(json['scope'] as Map? ?? const {}),
+    ),
+  );
 }
 
 /// How `get_summary` groups its rows.
@@ -1104,7 +1127,8 @@ class AttendanceSummary {
         rows: (json['rows'] as List<dynamic>? ?? const [])
             .whereType<Map>()
             .map(
-              (e) => AttendanceSummaryRow.fromJson(Map<String, dynamic>.from(e)),
+              (e) =>
+                  AttendanceSummaryRow.fromJson(Map<String, dynamic>.from(e)),
             )
             .toList(),
         totals: AttendanceSummaryRow.fromJson(
@@ -1154,6 +1178,15 @@ bool? _toBoolOrNull(dynamic value) {
   if (text == 'true' || text == '1') return true;
   if (text == 'false' || text == '0') return false;
   return null;
+}
+
+List<String> _toStringList(dynamic value) {
+  if (value is! List) return const [];
+  return [
+    for (final item in value)
+      if (item != null && item.toString().trim().isNotEmpty)
+        item.toString().trim(),
+  ];
 }
 
 String? _nullIfBlank(dynamic value) {

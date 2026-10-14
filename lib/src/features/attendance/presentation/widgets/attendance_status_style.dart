@@ -5,6 +5,7 @@ import '../../models/attendance_models.dart';
 import '../attendance_format.dart';
 import 'attendance_grid_metrics.dart';
 import 'attendance_status_visual.dart';
+import 'attendance_device_flag.dart';
 
 export 'attendance_status_visual.dart';
 
@@ -176,6 +177,7 @@ class AttendanceStatusSquare extends StatelessWidget {
     this.width = AttendanceGridMetrics.cellWidth,
     this.height = AttendanceGridMetrics.rowHeight,
     this.isCover = false,
+    this.deviceFlags = const [],
   });
 
   final AttendanceStatus status;
@@ -186,6 +188,9 @@ class AttendanceStatusSquare extends StatelessWidget {
 
   /// A day somebody worked in place of a colleague who was off.
   final bool isCover;
+
+  /// Buddy-punching flags; draws a corner dot, never changes the colours.
+  final List<String> deviceFlags;
 
   @override
   Widget build(BuildContext context) {
@@ -206,45 +211,57 @@ class AttendanceStatusSquare extends StatelessWidget {
       height: height,
       child: Padding(
         padding: AttendanceGridMetrics.cellInset,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: style.background,
-            borderRadius: BorderRadius.circular(6),
-            border: isCover
-                ? Border.all(color: theme.colorScheme.primary, width: 1.5)
-                : null,
-          ),
-          child: Center(
-            // FittedBox keeps a large system text size from overflowing the
-            // fixed slot. The slot must not grow to fit its content.
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    style.token,
-                    style: attendanceNumeric(theme.textTheme.labelMedium)
-                        ?.copyWith(
-                          color: style.foreground,
-                          fontWeight: FontWeight.w700,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: style.background,
+                  borderRadius: BorderRadius.circular(6),
+                  border: isCover
+                      ? Border.all(color: theme.colorScheme.primary, width: 1.5)
+                      : null,
+                ),
+                child: Center(
+                  // FittedBox keeps a large system text size from overflowing the
+                  // fixed slot. The slot must not grow to fit its content.
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          style.token,
+                          style: attendanceNumeric(theme.textTheme.labelMedium)
+                              ?.copyWith(
+                                color: style.foreground,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
-                  ),
-                  Icon(style.icon, size: 10, color: style.foreground),
-                  if (showMinutes)
-                    Text(
-                      attendanceCount(context, minutes),
-                      style: attendanceNumeric(theme.textTheme.labelSmall)
-                          ?.copyWith(
-                            color: style.foreground,
-                            fontSize: 9,
-                            height: 1,
+                        Icon(style.icon, size: 10, color: style.foreground),
+                        if (showMinutes)
+                          Text(
+                            attendanceCount(context, minutes),
+                            style: attendanceNumeric(theme.textTheme.labelSmall)
+                                ?.copyWith(
+                                  color: style.foreground,
+                                  fontSize: 9,
+                                  height: 1,
+                                ),
                           ),
+                      ],
                     ),
-                ],
+                  ),
+                ),
               ),
             ),
-          ),
+            if (deviceFlags.isNotEmpty)
+              PositionedDirectional(
+                top: 2,
+                end: 2,
+                child: AttendanceDeviceFlagDot(flags: deviceFlags),
+              ),
+          ],
         ),
       ),
     );

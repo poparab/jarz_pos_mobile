@@ -7,6 +7,7 @@ import '../../state/attendance_providers.dart';
 import '../attendance_format.dart';
 import 'attendance_controls.dart';
 import 'attendance_day_sheet.dart';
+import 'attendance_device_flag.dart';
 import 'attendance_states.dart';
 import 'attendance_status_style.dart';
 
@@ -140,9 +141,11 @@ class _EmployeePicker extends ConsumerWidget {
                         ),
                       )
                       .toList(),
-                  onChanged: (next) => ref
-                      .read(attendanceSelectedEmployeeProvider.notifier)
-                      .state = next,
+                  onChanged: (next) =>
+                      ref
+                              .read(attendanceSelectedEmployeeProvider.notifier)
+                              .state =
+                          next,
                 ),
               ),
             ),
@@ -221,7 +224,8 @@ class _EmployeeDetailView extends StatelessWidget {
               ),
               Text(
                 [
-                  if ((detail.designation ?? '').isNotEmpty) detail.designation!,
+                  if ((detail.designation ?? '').isNotEmpty)
+                    detail.designation!,
                   if ((detail.department ?? '').isNotEmpty) detail.department!,
                   if (detail.shiftLocations.isNotEmpty)
                     detail.shiftLocations.join(' · '),
@@ -560,66 +564,80 @@ class _CheckinTile extends StatelessWidget {
     final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 12, 4),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.fingerprint,
-            size: 16,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            attendanceDateLabel(context, checkin.time, pattern: 'd MMM'),
-            style: attendanceNumeric(theme.textTheme.labelSmall),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            attendanceClock(context, checkin.time),
-            style: attendanceNumeric(
-              theme.textTheme.bodyMedium,
-            )?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              checkin.logType ?? attendanceEmptyValue,
-              style: theme.textTheme.labelSmall?.copyWith(
+          Row(
+            children: [
+              Icon(
+                Icons.fingerprint,
+                size: 16,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
-            ),
+              const SizedBox(width: 8),
+              Text(
+                attendanceDateLabel(context, checkin.time, pattern: 'd MMM'),
+                style: attendanceNumeric(theme.textTheme.labelSmall),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                attendanceClock(context, checkin.time),
+                style: attendanceNumeric(
+                  theme.textTheme.bodyMedium,
+                )?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  checkin.logType ?? attendanceEmptyValue,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              if (checkin.offshift)
+                Tooltip(
+                  message: l10n.attendanceOffshiftValue,
+                  child: Icon(
+                    Icons.timer_off,
+                    size: 14,
+                    color: theme.colorScheme.tertiary,
+                  ),
+                ),
+              const SizedBox(width: 6),
+              // Tri-state, and each state gets its own glyph: inside the fence,
+              // outside it, or no coordinates recorded at all.
+              Tooltip(
+                message: switch (checkin.geoOk) {
+                  true => l10n.attendanceGeoInside,
+                  false => l10n.attendanceGeoOutside,
+                  null => l10n.attendanceGeoUnknown,
+                },
+                child: Icon(
+                  switch (checkin.geoOk) {
+                    true => Icons.location_on,
+                    false => Icons.wrong_location_outlined,
+                    null => Icons.location_searching,
+                  },
+                  size: 14,
+                  color: switch (checkin.geoOk) {
+                    true => theme.colorScheme.primary,
+                    false => theme.colorScheme.error,
+                    null => theme.colorScheme.outline,
+                  },
+                ),
+              ),
+            ],
           ),
-          if (checkin.offshift)
-            Tooltip(
-              message: l10n.attendanceOffshiftValue,
-              child: Icon(
-                Icons.timer_off,
-                size: 14,
-                color: theme.colorScheme.tertiary,
+          if (checkin.deviceFlag != null)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 24, top: 2),
+              child: AttendanceDeviceFlagChips(
+                flags: [checkin.deviceFlag!],
+                detail: checkin.deviceFlagDetail,
+                dense: true,
               ),
             ),
-          const SizedBox(width: 6),
-          // Tri-state, and each state gets its own glyph: inside the fence,
-          // outside it, or no coordinates recorded at all.
-          Tooltip(
-            message: switch (checkin.geoOk) {
-              true => l10n.attendanceGeoInside,
-              false => l10n.attendanceGeoOutside,
-              null => l10n.attendanceGeoUnknown,
-            },
-            child: Icon(
-              switch (checkin.geoOk) {
-                true => Icons.location_on,
-                false => Icons.wrong_location_outlined,
-                null => Icons.location_searching,
-              },
-              size: 14,
-              color: switch (checkin.geoOk) {
-                true => theme.colorScheme.primary,
-                false => theme.colorScheme.error,
-                null => theme.colorScheme.outline,
-              },
-            ),
-          ),
         ],
       ),
     );

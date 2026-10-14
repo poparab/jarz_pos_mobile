@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../models/attendance_models.dart';
 import '../attendance_format.dart';
+import 'attendance_device_flag.dart';
 import 'attendance_states.dart';
 import 'attendance_status_style.dart';
 
@@ -62,10 +63,9 @@ class AttendanceDaySheet extends StatelessWidget {
                           cell.date,
                           pattern: 'EEEE, d MMMM yyyy',
                         ),
-                        style: attendanceNumeric(theme.textTheme.bodySmall)
-                            ?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                        style: attendanceNumeric(
+                          theme.textTheme.bodySmall,
+                        )?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),
                       if ((designation ?? '').isNotEmpty)
                         Text(
@@ -186,6 +186,14 @@ class AttendanceDaySheet extends StatelessWidget {
                   ? attendanceBranchLabel(context, null)
                   : cell.shiftLocation!,
             ),
+            if (cell.hasDeviceFlag)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(bottom: 8),
+                child: AttendanceDeviceFlagChips(
+                  flags: cell.deviceFlags,
+                  detail: cell.deviceFlagDetail,
+                ),
+              ),
             if (cell.isCover)
               _DetailRow(
                 icon: Icons.swap_horiz,

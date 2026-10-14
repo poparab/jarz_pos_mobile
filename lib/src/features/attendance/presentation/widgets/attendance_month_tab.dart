@@ -261,9 +261,7 @@ class AttendanceMonthGrid extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surfaceContainerHighest,
-                  border: Border(
-                    bottom: BorderSide(color: theme.dividerColor),
-                  ),
+                  border: Border(bottom: BorderSide(color: theme.dividerColor)),
                 ),
                 child: Text(
                   context.l10n.attendanceEmployeeColumn,
@@ -362,9 +360,9 @@ class _EmployeeNameCell extends StatelessWidget {
                 : l10n.attendanceNotRosteredThisMonth,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: attendanceNumeric(theme.textTheme.labelSmall)?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: attendanceNumeric(
+              theme.textTheme.labelSmall,
+            )?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -459,6 +457,7 @@ class _MonthCell extends StatelessWidget {
         width: AttendanceGridMetrics.slot.width,
         height: AttendanceGridMetrics.slot.height,
         isCover: data.isCover,
+        deviceFlags: data.deviceFlags,
       ),
     );
   }
