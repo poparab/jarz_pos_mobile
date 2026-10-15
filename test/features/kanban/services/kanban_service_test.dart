@@ -455,6 +455,7 @@ void main() {
             'party_type': 'Supplier',
             'party': 'SUPP-001',
             'display_name': 'Fast Delivery Inc',
+            'delivery_partner': 'Deliverk',
           },
         ];
 
@@ -470,6 +471,9 @@ void main() {
         expect(result[0]['display_name'], equals('John Courier'));
         expect(result[0]['courier_name'], equals('John Courier')); // Legacy key
         expect(result[1]['party_type'], equals('Supplier'));
+        // The partner link drives the partner-fee prompt on dispatch.
+        expect(result[0].containsKey('delivery_partner'), isFalse);
+        expect(result[1]['delivery_partner'], equals('Deliverk'));
 
         final request = mockDio.requestLog.last;
         expect(request['queryParameters']['pos_profile'], equals('Main Branch'));

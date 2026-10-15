@@ -1319,6 +1319,27 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
         final courierParty = courierResult['party'] as String?;
         final courierDisplay =
             (courierResult['display_name'] as String?) ?? courierParty;
+        // A Delivery Partner rider (e.g. Deliverk) is accrued the partner's own
+        // price for this address, which only the cashier knows; the server
+        // refuses the dispatch without it.
+        final deliveryPartner =
+            (courierResult['delivery_partner'] as String?)?.trim() ?? '';
+        double? partnerFee;
+        if (deliveryPartner.isNotEmpty) {
+          if (!screenContext.mounted) return;
+          partnerFee = await showPartnerFeeDialog(
+            screenContext,
+            partnerName: deliveryPartner,
+          );
+          if (partnerFee == null) {
+            final fromCol = ref.read(kanbanProvider).columns.firstWhere(
+              (c) => c.id == fromColumnId,
+              orElse: () => KanbanColumn(id: fromColumnId, name: fromColumnId.replaceAll('_', ' '), color: '#F5F5F5'),
+            );
+            ref.read(kanbanProvider.notifier).updateInvoiceState(invoiceId, fromCol.name);
+            return;
+          }
+        }
         try {
           await ref
               .read(instapayReconciliationServiceProvider)
@@ -1327,6 +1348,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                 posProfile: posProfile,
                 partyType: courierPartyType,
                 party: courierParty,
+                partnerFee: partnerFee,
                 shortageApproved: courierShortageApproved,
                 shortageReason: courierShortageReasonText,
               );
@@ -2231,6 +2253,8 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
                                 'party_type': selected['party_type'],
                                 'party': selected['party'],
                                 'display_name': selected['display_name'],
+                                if ((selected['delivery_partner'] ?? '').isNotEmpty)
+                                  'delivery_partner': selected['delivery_partner'],
                               });
                             },
                     child: Text(context.l10n.commonConfirm),

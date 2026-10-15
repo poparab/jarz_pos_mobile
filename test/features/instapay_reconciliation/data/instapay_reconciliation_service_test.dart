@@ -46,6 +46,30 @@ void main() {
         expect(req['path'], ApiEndpoints.deliverOnlineUnconfirmed);
         expect(req['data']['invoice_name'], 'INV-001');
         expect(req['data']['pos_profile'], 'Nasr City');
+        expect((req['data'] as Map).containsKey('partner_fee'), isFalse);
+      });
+
+      test('sends partner_fee for a delivery-partner rider', () async {
+        mockDio.setResponse(
+          ApiEndpoints.deliverOnlineUnconfirmed,
+          createSuccessResponse(data: {
+            'success': true,
+            'invoice': 'INV-002',
+            'new_state': 'Out for Delivery',
+          }),
+        );
+
+        await service.deliverOnlineUnconfirmed(
+          invoiceName: 'INV-002',
+          posProfile: '6th of October',
+          partyType: 'Supplier',
+          party: 'SUP-DELIVERK-01',
+          partnerFee: 45.0,
+        );
+
+        final req = mockDio.requestLog.single;
+        expect(req['data']['party'], 'SUP-DELIVERK-01');
+        expect(req['data']['partner_fee'], 45.0);
       });
     });
 

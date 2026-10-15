@@ -552,6 +552,10 @@ class KanbanService {
             'courier_name': display,
             'name': party,
             if (e['branch'] != null) 'branch': (e['branch'] ?? '').toString(),
+            // Set when the rider works for a Delivery Partner (e.g. Deliverk);
+            // dispatch flows must then collect the partner's delivery cost.
+            if ((e['delivery_partner'] ?? '').toString().isNotEmpty)
+              'delivery_partner': e['delivery_partner'].toString(),
           };
         }).toList();
       }

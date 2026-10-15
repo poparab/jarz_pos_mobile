@@ -238,6 +238,105 @@ class SettlementConfirmation {
   static const cancelled = SettlementConfirmation(confirmed: false);
 }
 
+/// Validates the partner delivery cost typed by the cashier. Returns null when
+/// the text is a usable fee, otherwise the message to show under the field.
+String? validatePartnerFeeInput(String raw, AppLocalizations l10n) {
+  final text = raw.trim();
+  if (text.isEmpty) return l10n.settlementPartnerFeeRequired;
+  final fee = double.tryParse(text);
+  if (fee == null || fee < 0) return l10n.settlementPartnerFeeInvalid;
+  return null;
+}
+
+/// Asks for the delivery partner's own price for this order, for dispatch paths
+/// that have no settlement preview to carry the fee field (InstaPay / Mobile
+/// Wallet "awaiting payment" dispatch). Returns null when the cashier cancels.
+///
+/// Same rule as [showSettlementConfirmDialog]: no default. Our territory rates
+/// are for our own couriers and would book the wrong cost on a partner order.
+Future<double?> showPartnerFeeDialog(
+  BuildContext context, {
+  required String partnerName,
+}) {
+  final l10n = AppLocalizations.of(context);
+  final feeController = TextEditingController();
+  String? feeError;
+
+  void submit(BuildContext ctx, StateSetter setState) {
+    final error = validatePartnerFeeInput(feeController.text, l10n);
+    if (error != null) {
+      setState(() => feeError = error);
+      return;
+    }
+    Navigator.of(ctx).pop(double.parse(feeController.text.trim()));
+  }
+
+  return showDialog<double>(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setState) => AlertDialog(
+        title: Text(l10n.settlementPartnerFeeInputLabel),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (partnerName.isNotEmpty) ...[
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.handshake, size: 16, color: Colors.purple),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        l10n.settlementPartnerLabel(partnerName),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.purple),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+              TextField(
+                key: const ValueKey('partner-fee-input'),
+                controller: feeController,
+                autofocus: true,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: l10n.settlementPartnerFeeInputLabel,
+                  hintText: l10n.settlementPartnerFeeInputHint,
+                  prefixIcon: const Icon(Icons.handshake, size: 18),
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                  errorText: feeError,
+                ),
+                onChanged: (_) {
+                  if (feeError != null) setState(() => feeError = null);
+                },
+                onSubmitted: (_) => submit(ctx, setState),
+              ),
+              const SizedBox(height: 6),
+              Text(l10n.settlementPartnerFeeWhy,
+                  style: const TextStyle(fontSize: 11, color: Colors.blueGrey)),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.commonCancel),
+          ),
+          ElevatedButton(
+            onPressed: () => submit(ctx, setState),
+            child: Text(l10n.commonConfirm),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 Future<SettlementConfirmation?> showSettlementConfirmDialog(
   BuildContext context,
   Map<String, dynamic> preview, {

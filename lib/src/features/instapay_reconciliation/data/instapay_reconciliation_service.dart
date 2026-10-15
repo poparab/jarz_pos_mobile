@@ -56,11 +56,16 @@ class InstapayReconciliationService {
 
   /// Move an UNPAID online order to Out for Delivery as "Awaiting Payment"
   /// without touching the courier-outstanding / settle-later path.
+  ///
+  /// [partnerFee] is the delivery partner's own price for this address. The
+  /// server refuses the dispatch without it when the rider belongs to a
+  /// Delivery Partner (e.g. Deliverk), since it accrues that cost as freight.
   Future<Map<String, dynamic>> deliverOnlineUnconfirmed({
     required String invoiceName,
     required String posProfile,
     String? partyType,
     String? party,
+    double? partnerFee,
     bool shortageApproved = false,
     String? shortageReason,
   }) async {
@@ -73,6 +78,7 @@ class InstapayReconciliationService {
           if (partyType != null && partyType.trim().isNotEmpty)
             'party_type': partyType.trim(),
           if (party != null && party.trim().isNotEmpty) 'party': party.trim(),
+          if (partnerFee != null) 'partner_fee': partnerFee,
           if (shortageApproved) 'shortage_approved': 1,
           if (shortageReason != null && shortageReason.trim().isNotEmpty)
             'shortage_reason': shortageReason.trim(),
