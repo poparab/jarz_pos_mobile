@@ -78,6 +78,10 @@ class ProfitAndLossScreen extends ConsumerWidget {
                   alerts: ReportAlert.listFrom(exec?.alerts),
                   selectedBranch: q.branchOrNull,
                   onBranchTap: (branch) {
+                    // The server's bucket for invoices with no POS Profile is
+                    // a label, not a branch: filtering by it matches nothing
+                    // here and is refused by the other reports.
+                    if (branch == '(No Profile)') return;
                     final notifier = ref.read(reportBranchProvider.notifier);
                     // Tapping the selected branch again goes back to all.
                     notifier.state = notifier.state == branch ? null : branch;

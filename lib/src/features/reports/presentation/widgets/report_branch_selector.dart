@@ -25,7 +25,17 @@ class ReportBranchSelector extends ConsumerWidget {
         if (b.name.isNotEmpty) b.name,
     ];
     if (selected != null && selected.isNotEmpty && !names.contains(selected)) {
-      names.insert(0, selected);
+      if (branchesAsync.hasValue && names.isNotEmpty) {
+        // The loaded list does not offer this branch (a previous user's pick,
+        // or a label that is not a real POS Profile): fall back to all
+        // branches rather than sending a branch the server will refuse.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final notifier = ref.read(reportBranchProvider.notifier);
+          if (notifier.state == selected) notifier.state = null;
+        });
+      } else {
+        names.insert(0, selected);
+      }
     }
 
     return DropdownButtonFormField<String?>(

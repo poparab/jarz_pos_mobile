@@ -20,6 +20,7 @@ import '../../manufacturing/state/production_today_providers.dart';
 import '../../shift/state/shift_notifier.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../pos/data/repositories/draft_cart_repository.dart';
+import '../../reports/state/reports_providers.dart';
 import '../../cash_custody/state/cash_custody_notifier.dart';
 
 class LoginNotifier extends AsyncNotifier<bool> {
@@ -184,6 +185,12 @@ class LoginNotifier extends AsyncNotifier<bool> {
     ref.invalidate(managerAccessProvider);
     ref.invalidate(selectedBranchProvider);
     ref.invalidate(selectedStateProvider);
+    // Reports filters: the shared branch, range and unit-economics inputs. A
+    // branch the previous user picked is one a line manager may not be
+    // allowed to read, so every ops report refused until "All branches".
+    ref.invalidate(reportBranchProvider);
+    ref.invalidate(reportRangeProvider);
+    ref.invalidate(unitEconomicsInputsProvider);
     // Cash Custody overview: keep-alive, and it answers "is this user a
     // holder / a manager" -- a previous user's answer would show or hide the
     // side-menu entry and offer their custody in Expenses and Purchase.

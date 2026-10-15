@@ -202,11 +202,18 @@ class _InputsStore {
   static Future<UnitEconomicsInputs> load() async {
     final prefs = await SharedPreferences.getInstance();
     const d = UnitEconomicsInputs();
+    // A non-finite saved value (stored before input validation rejected it)
+    // would throw on every open; treat it as missing.
+    double read(String key, double fallback) {
+      final v = prefs.getDouble(key);
+      return (v == null || !v.isFinite) ? fallback : v;
+    }
+
     return UnitEconomicsInputs(
-      adSpend: prefs.getDouble(_kAdSpend) ?? d.adSpend,
-      kashierPct: prefs.getDouble(_kKashierPct) ?? d.kashierPct,
-      talabatPct: prefs.getDouble(_kTalabatPct) ?? d.talabatPct,
-      extraFixed: prefs.getDouble(_kExtraFixed) ?? d.extraFixed,
+      adSpend: read(_kAdSpend, d.adSpend),
+      kashierPct: read(_kKashierPct, d.kashierPct),
+      talabatPct: read(_kTalabatPct, d.talabatPct),
+      extraFixed: read(_kExtraFixed, d.extraFixed),
     );
   }
 
@@ -238,8 +245,10 @@ String _pct(BuildContext context, double v, {int digits = 1}) =>
 String _csvNum(double v) => v.toStringAsFixed(2);
 
 /// Plain editable text for a number: no grouping, no trailing `.0`.
-String _plain(double v) =>
-    v == v.truncateToDouble() ? v.toInt().toString() : v.toString();
+String _plain(double v) {
+  if (!v.isFinite) return '0';
+  return v == v.truncateToDouble() ? v.toInt().toString() : v.toString();
+}
 
 /// Parses user input, accepting Arabic-Indic / Persian digits, the Arabic
 /// decimal separator and thousands separators. Empty → 0; invalid → null.
@@ -256,7 +265,9 @@ double? _parseInput(String raw) {
       .replaceAll(',', '')
       .replaceAll(' ', '');
   if (s.isEmpty) return 0;
-  return double.tryParse(s);
+  final n = double.tryParse(s);
+  // "Infinity", "NaN" and "1e400" parse; none is a usable amount.
+  return (n == null || !n.isFinite) ? null : n;
 }
 
 String _noteText(BuildContext context, String code) {

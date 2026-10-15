@@ -39,8 +39,10 @@ class UnitEconomicsInputs {
     'extra_fixed': _numParam(extraFixed),
   };
 
-  static String _numParam(double v) =>
-      v == v.truncateToDouble() ? v.toInt().toString() : v.toString();
+  static String _numParam(double v) {
+    if (!v.isFinite) return '0';
+    return v == v.truncateToDouble() ? v.toInt().toString() : v.toString();
+  }
 
   UnitEconomicsInputs copyWith({
     double? adSpend,

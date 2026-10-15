@@ -110,7 +110,7 @@ class DailyCloseTotals {
   final double grandTotal;
   final double shippingIncome;
 
-  /// Returns as a (usually negative) amount, as the backend sends it.
+  /// Returns as a positive amount (the backend negates the net return value).
   final double returns;
   final int cancelled;
   final double avgOrderValue;
