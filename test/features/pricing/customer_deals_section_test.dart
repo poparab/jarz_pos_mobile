@@ -13,6 +13,23 @@ import 'package:jarz_pos/src/features/pricing/presentation/widgets/customer_deal
 /// editor that saves them. The pricing itself is the server's; these pin the
 /// wire shape both ways and what a rep (read-only) versus a manager sees.
 
+// The section compares deal dates against the real clock (DateTime.now()), so
+// every date that must stay in the future is relative to today. A fixed date
+// here expired on 2026-10-15 and hid the End button for every later run.
+// Calendar arithmetic, not Duration: adding 24h across a DST change lands on
+// 23:00 of the day before.
+DateTime _inDays(int days) {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, now.day + days);
+}
+
+String _ymd(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-'
+    '${d.month.toString().padLeft(2, '0')}-'
+    '${d.day.toString().padLeft(2, '0')}';
+
+DateTime get _liveEnd => _inDays(30);
+
 Map<String, dynamic> _payload({bool canEdit = true}) => {
   'customer': 'Cafe Orbit',
   'customer_name': 'Café Orbit',
@@ -23,7 +40,7 @@ Map<String, dynamic> _payload({bool canEdit = true}) => {
     {
       'name': 'DEAL-00001',
       'valid_from': '2026-10-01',
-      'valid_upto': '2026-10-15',
+      'valid_upto': _ymd(_liveEnd),
       'status': 'active',
       'editable': true,
       'has_orders': true,
@@ -47,8 +64,8 @@ Map<String, dynamic> _payload({bool canEdit = true}) => {
     },
     {
       'name': 'DEAL-00002',
-      'valid_from': '2026-10-20',
-      'valid_upto': '2026-10-25',
+      'valid_from': _ymd(_inDays(35)),
+      'valid_upto': _ymd(_inDays(40)),
       'status': 'upcoming',
       'editable': true,
       'items': [
@@ -161,7 +178,7 @@ void main() {
       expect(lines.first.isCategory, isTrue);
       expect(lines.first.normalRate, 92);
       expect(lines.last.itemCode, 'Molten Medium');
-      expect(data.live.first.validUpto, DateTime(2026, 10, 15));
+      expect(data.live.first.validUpto, _liveEnd);
       expect(data.normalRateFor(itemGroup: 'Medium'), 77);
       expect(data.normalRateFor(itemCode: 'Molten Medium'), 77);
     });
@@ -270,7 +287,7 @@ void main() {
     final save = repo.saves.single;
     expect(save['deal'], 'DEAL-00001');
     expect(save['from'], DateTime(2026, 10, 1));
-    expect(save['to'], DateTime(2026, 10, 15));
+    expect(save['to'], _liveEnd);
     expect(save['items'], [
       {'item_group': 'Large', 'rate': 80.0},
       {'item_code': 'Molten Medium', 'rate': 60.0},
