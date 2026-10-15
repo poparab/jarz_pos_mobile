@@ -292,7 +292,10 @@ class _PipelineChart extends StatelessWidget {
 
     return ReportChartCard(
       title: l10n.reportSalesPipeline,
-      subtitle: formatCompactCurrency(context, openValue),
+      // The pipeline runs on Leads, which carry no value, so the open value
+      // is 0 unless an Opportunity has an amount. A permanent "EGP0" under the
+      // chart read as a broken report; show it only when there is one.
+      subtitle: openValue > 0 ? formatCompactCurrency(context, openValue) : null,
       isEmpty: isEmpty,
       emptyText: l10n.reportNoData,
       height: 240,
