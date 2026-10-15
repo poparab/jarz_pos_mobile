@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:jarz_pos/l10n/app_localizations.dart';
+import 'package:jarz_pos/src/features/reports/data/models/report_envelopes.dart';
 import 'package:jarz_pos/src/features/reports/data/models/shipping_analytics.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/shipping_analytics_screen.dart';
 import 'package:jarz_pos/src/features/reports/presentation/widgets/kpi_card.dart';
@@ -44,7 +45,10 @@ Future<void> _pump(WidgetTester tester, ShippingAnalytics data,
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        shippingAnalyticsProvider.overrideWith((ref, range) => model),
+        shippingReportProvider.overrideWith(
+          (ref, q) => ShippingReport(data: model, unsettledAsOf: '2026-09-27'),
+        ),
+        reportBranchesProvider.overrideWith((ref) => const []),
       ],
       child: MaterialApp(
         locale: const Locale('en'),

@@ -11,7 +11,7 @@ import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/user_error_message.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
-import '../../manager/state/manager_providers.dart';
+import '../../../core/network/user_service.dart';
 import '../data/inventory_count_service.dart';
 import 'widgets/inventory_count_history.dart';
 
@@ -1558,12 +1558,32 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final allowed = ref
-        .watch(managerAccessProvider)
-        .maybeWhen(data: (v) => v, orElse: () => false);
+    // Same gate as the drawer entry, mirroring `ROLES.STOCK` as enforced by
+    // `inventory_count._ensure_manager_access`.
+    final allowed = ref.watch(canAccessInventoryCountProvider);
     if (!allowed) {
+      final rolesLoading = ref.watch(userRolesFutureProvider).isLoading;
       return Scaffold(
-        body: Center(child: Text(l10n.inventoryCountManagerAccessRequired)),
+        drawer: const AppDrawer(),
+        appBar: AppBar(title: Text(l10n.menuInventoryCount)),
+        body: rolesLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Center(
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.lock_outline, size: 48),
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.inventoryCountManagerAccessRequired,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
       );
     }
 

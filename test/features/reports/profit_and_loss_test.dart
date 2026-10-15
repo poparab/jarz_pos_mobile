@@ -15,6 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/features/reports/data/models/profit_and_loss.dart';
+import 'package:jarz_pos/src/features/reports/data/models/report_envelopes.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/profit_and_loss_screen.dart';
 import 'package:jarz_pos/src/features/reports/state/reports_providers.dart';
 
@@ -90,10 +91,12 @@ void main() {
     Future<void> pump(
       WidgetTester tester,
       ProfitAndLoss data,
-      Locale locale,
-    ) async {
+      Locale locale, {
+      List<PnlBranchRow> branches = const [],
+      String? branch,
+    }) async {
       final view = tester.view;
-      view.physicalSize = const Size(360 * 2, 5200 * 2);
+      view.physicalSize = const Size(360 * 2, 7000 * 2);
       view.devicePixelRatio = 2;
       addTearDown(view.resetPhysicalSize);
       addTearDown(view.resetDevicePixelRatio);
@@ -101,7 +104,15 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            profitAndLossProvider.overrideWith((ref, range) => data),
+            profitAndLossReportProvider.overrideWith(
+              (ref, q) => ProfitAndLossReport(data: data, branches: branches),
+            ),
+            // The executive KPI strip hides when its call fails.
+            executiveOverviewProvider.overrideWith(
+              (ref, q) => throw StateError('offline'),
+            ),
+            reportBranchesProvider.overrideWith((ref) => const []),
+            reportBranchProvider.overrideWith((ref) => branch),
             reportRangeProvider.overrideWith(
               (ref) => ReportRange(
                 from: DateTime(2026, 9, 1),
@@ -143,6 +154,39 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('مطابق للدفاتر'), findsOneWidget);
       expect(find.text('الشركات مقابل الأفراد'), findsOneWidget);
+    });
+
+    testWidgets('branch split renders and a branch shows the GL banner', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _fixture('profit_and_loss'),
+        const Locale('en'),
+        branches: const [
+          PnlBranchRow(
+            branch: 'Zamalek',
+            orders: 120,
+            revenue: 150000,
+            cogs: 90000,
+            grossProfit: 60000,
+          ),
+          PnlBranchRow(
+            branch: 'Nasr City',
+            orders: 80,
+            revenue: 100000,
+            cogs: 70000,
+            grossProfit: 30000,
+            marginPct: 30,
+          ),
+        ],
+        branch: 'Zamalek',
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('By branch'), findsOneWidget);
+      expect(find.text('40%'), findsOneWidget);
+      expect(find.text('30%'), findsOneWidget);
+      expect(find.textContaining('are company-wide'), findsOneWidget);
     });
 
     testWidgets('incomplete books lead with the warnings', (tester) async {

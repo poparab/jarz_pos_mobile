@@ -28216,6 +28216,2106 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copied.'**
   String get courierSetupCopied;
+
+  /// Badge on a courier balance row for a delivery-partner courier whose partner name is missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner'**
+  String get rptCourierBalancesPartnerFallback;
+
+  /// Expected InstaPay transfer reference shown under an order in InstaPay reconciliation.
+  ///
+  /// In en, this message translates to:
+  /// **'Ref: {reference}'**
+  String rptInstapayExpectedReference(String reference);
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get rptRangeToday;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get rptRangeYesterday;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get rptRangeLast7Days;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get rptRangeThisMonth;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Last month'**
+  String get rptRangeLastMonth;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get rptRangeLast30Days;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 days'**
+  String get rptRangeLast90Days;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Year to date'**
+  String get rptRangeThisYear;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get rptBranchLabel;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'All branches'**
+  String get rptAllBranches;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV'**
+  String get rptExport;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'There is nothing to export yet.'**
+  String get rptExportEmpty;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export the report.'**
+  String get rptExportFailed;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing is unavailable, so the report was copied to the clipboard.'**
+  String get rptExportCopied;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get rptHubOverview;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Daily operations'**
+  String get rptHubDailyOps;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Sales & customers'**
+  String get rptHubSalesCustomers;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Stock'**
+  String get rptHubStock;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get rptHubPeople;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Business overview'**
+  String get rptBusinessOverviewTitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Profit & loss, key figures and the split by branch'**
+  String get rptBusinessOverviewSubtitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Unit economics'**
+  String get rptUnitEconomicsTitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Contribution per order and the break-even point'**
+  String get rptUnitEconomicsSubtitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Daily close'**
+  String get rptDailyCloseTitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Sales by branch, channel and payment method'**
+  String get rptDailyCloseSubtitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Cash over/short'**
+  String get rptCashOverShortTitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Drawer differences by branch, cashier and shift'**
+  String get rptCashOverShortSubtitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Fulfilment SLA'**
+  String get rptFulfilmentSlaTitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Time to dispatch and deliver, late orders and cancellations'**
+  String get rptFulfilmentSlaSubtitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Promo codes'**
+  String get rptPromoTitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Orders, discount and revenue for each code'**
+  String get rptPromoSubtitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Waste & adjustments'**
+  String get rptStockAdjustmentsTitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'The value of stock lost and gained'**
+  String get rptStockAdjustmentsSubtitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Labour cost'**
+  String get rptLabourCostTitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Labour cost against sales for each branch'**
+  String get rptLabourCostSubtitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory & restock'**
+  String get rptInventoryRestockTitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Stock levels, sales speed and what to reorder'**
+  String get rptInventoryRestockSubtitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Customers & segments'**
+  String get rptCustomersSegmentsTitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Retention, top customers and customer segments'**
+  String get rptCustomersSegmentsSubtitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping & couriers'**
+  String get rptShippingCouriersTitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Courier cost against shipping charged, and unsettled balances'**
+  String get rptShippingCouriersSubtitle;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'This report is on its way.'**
+  String get rptComingSoon;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have access to this report.'**
+  String get rptAccessDenied;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'B2B sales report'**
+  String get rptB2bReportTooltip;
+
+  /// Reports overhaul (foundation).
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts'**
+  String get rptAlertsTitle;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Net sales'**
+  String get rptDailyCloseNetSales;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get rptDailyCloseOrders;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Avg order value'**
+  String get rptDailyCloseAvgOrder;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping income'**
+  String get rptDailyCloseShipping;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Returns'**
+  String get rptDailyCloseReturns;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No returns} =1{1 return} other{{count} returns}}'**
+  String rptDailyCloseReturnsCount(int count);
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get rptDailyCloseCancelled;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Gross sales'**
+  String get rptDailyCloseGrossSales;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Grand total'**
+  String get rptDailyCloseGrandTotal;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet collected'**
+  String get rptDailyCloseOutstanding;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Settled later by journal entry (Talabat, couriers)'**
+  String get rptDailyCloseOutstandingHint;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Sales by channel'**
+  String get rptDailyCloseChannels;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Sales by hour'**
+  String get rptDailyCloseByHour;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Payments by method'**
+  String get rptDailyClosePayments;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Branches'**
+  String get rptDailyCloseBranches;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a branch for its channels and payments'**
+  String get rptDailyCloseBranchesHint;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Channel'**
+  String get rptDailyCloseChannel;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get rptDailyCloseMode;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get rptDailyCloseAmount;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get rptDailyCloseShare;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get rptDailyCloseBranch;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Hour'**
+  String get rptDailyCloseHour;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Previous day'**
+  String get rptDailyClosePrevDay;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Next day'**
+  String get rptDailyCloseNextDay;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No orders} =1{1 order} other{{count} orders}}'**
+  String rptDailyCloseOrdersCount(int count);
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Walk-in (POS)'**
+  String get rptDailyCloseChannelPos;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Online store'**
+  String get rptDailyCloseChannelWoo;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Talabat'**
+  String get rptDailyCloseChannelTalabat;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'B2B'**
+  String get rptDailyCloseChannelB2b;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get rptDailyCloseChannelStaff;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Samples'**
+  String get rptDailyCloseChannelSamples;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery partner'**
+  String get rptDailyCloseChannelPartner;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Limited to your branches: {branches}'**
+  String rptDailyCloseScopedTo(String branches);
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Shifts'**
+  String get rptCashOverShortShifts;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Shifts with a difference'**
+  String get rptCashOverShortWithDiff;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Over'**
+  String get rptCashOverShortOver;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Short'**
+  String get rptCashOverShortShort;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get rptCashOverShortNet;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'By branch'**
+  String get rptCashOverShortBranches;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'By cashier'**
+  String get rptCashOverShortCashiers;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Largest shortage first'**
+  String get rptCashOverShortCashiersHint;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cashier'**
+  String get rptCashOverShortCashier;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get rptCashOverShortBranch;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Shift closes'**
+  String get rptCashOverShortShiftList;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first. Tap a shift for details.'**
+  String get rptCashOverShortShiftListHint;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Shift'**
+  String get rptCashOverShortShift;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Opened'**
+  String get rptCashOverShortOpened;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get rptCashOverShortClosed;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Expected'**
+  String get rptCashOverShortExpected;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Counted'**
+  String get rptCashOverShortCounted;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Difference'**
+  String get rptCashOverShortDifference;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Opening entry'**
+  String get rptCashOverShortOpeningEntry;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Difference at opening'**
+  String get rptCashOverShortOpeningDifference;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Over/Short account'**
+  String get rptCashOverShortLedger;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'What was booked to the ledger in this period'**
+  String get rptCashOverShortLedgerHint;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Booked at shift close'**
+  String get rptCashOverShortAtClose;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Booked at shift open'**
+  String get rptCashOverShortAtOpen;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked to a shift'**
+  String get rptCashOverShortUnlinked;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Not closed'**
+  String get rptCashOverShortNotClosed;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'No closed shifts in this period'**
+  String get rptCashOverShortNoShifts;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get rptSlaOrders;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get rptSlaDelivered;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get rptSlaCancelled;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get rptSlaReturned;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Median time to dispatch'**
+  String get rptSlaMedianDispatch;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Median time to deliver'**
+  String get rptSlaMedianDeliver;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'90% delivered within'**
+  String get rptSlaP90Deliver;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Late orders'**
+  String get rptSlaLateOrders;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Late, not delivered yet'**
+  String get rptSlaOpenLate;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}% of delivered'**
+  String rptSlaLatePct(String pct);
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String rptSlaMinutes(String minutes);
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String rptSlaHoursMinutes(String hours, String minutes);
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Late = delivered after the slot end, or more than {minutes} minutes after the order when it has no slot.'**
+  String rptSlaLateRule(String minutes);
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Order timings are recorded from {date}; earlier orders have no timings.'**
+  String rptSlaDataSince(String date);
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Timed orders: {dispatched} dispatched, {delivered} delivered'**
+  String rptSlaTimedCoverage(String dispatched, String delivered);
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery time by day'**
+  String get rptSlaByDay;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Median minutes from order to delivery'**
+  String get rptSlaByDayHint;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Late orders by day'**
+  String get rptSlaLateByDay;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'By branch'**
+  String get rptSlaBranches;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get rptSlaBranch;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'To dispatch'**
+  String get rptSlaDispatchCol;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'To deliver'**
+  String get rptSlaDeliverCol;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get rptSlaLateCol;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Late orders (worst first)'**
+  String get rptSlaLateList;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an order for its timings'**
+  String get rptSlaLateListHint;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get rptSlaInvoice;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get rptSlaCustomer;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Late by'**
+  String get rptSlaLateBy;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered at'**
+  String get rptSlaCreated;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline'**
+  String get rptSlaDeadline;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered at'**
+  String get rptSlaDeliveredAt;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Not delivered yet'**
+  String get rptSlaNotDelivered;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery slot'**
+  String get rptSlaSlot;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Judged by'**
+  String get rptSlaRule;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Slot end'**
+  String get rptSlaRuleSlot;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Slot start + time limit'**
+  String get rptSlaRuleSlotStart;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Time limit'**
+  String get rptSlaRuleThreshold;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get rptSlaState;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Order to delivery'**
+  String get rptSlaTotalTime;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation reasons'**
+  String get rptSlaCancellations;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get rptSlaReason;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get rptSlaCount;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'No reason given'**
+  String get rptSlaNoReason;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'No late orders in this period'**
+  String get rptSlaNoLate;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Copy order number'**
+  String get rptSlaCopyInvoice;
+
+  /// Reports overhaul (ops screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Order number copied'**
+  String get rptSlaCopied;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Branch {branch}: sales, cost of goods and shipping income are for this branch. Expenses, net profit and the ledger check are company-wide.'**
+  String rptG1BranchGlNote(String branch);
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'At a glance'**
+  String get rptG1AtAGlance;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'By branch'**
+  String get rptG1ByBranchTitle;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a branch to show only its figures'**
+  String get rptG1ByBranchHint;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Margin'**
+  String get rptG1ColMargin;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Metric'**
+  String get rptG1ColMetric;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get rptG1ColAmount;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Courier cost vs charged'**
+  String get rptG1ShipCostVsCharged;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'What customers paid for delivery against what couriers cost'**
+  String get rptG1ShipCostVsChargedHint;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Loss by area'**
+  String get rptG1ShipLossByArea;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping net per area, biggest loss first'**
+  String get rptG1ShipLossByAreaHint;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Area'**
+  String get rptG1ColArea;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get rptG1ColCost;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Charged'**
+  String get rptG1ColCharged;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get rptG1ColNet;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get rptG1Settled;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'As of {date}'**
+  String rptG1UnsettledAsOf(String date);
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Courier'**
+  String get rptG1ColCourier;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Owed'**
+  String get rptG1ColOwed;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get rptG1ColDaysAged;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Double trips'**
+  String get rptG1DoubleTrips;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Extra courier cost'**
+  String get rptG1DoubleExtraCost;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 override} other{{count} overrides}}'**
+  String rptG1OverridesCount(int count);
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Units'**
+  String get rptG1Units;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get rptG1ColType;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cost basis'**
+  String get rptG1CostBasis;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get rptG1CostActual;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated (BOM)'**
+  String get rptG1CostBom;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'No cost'**
+  String get rptG1CostNone;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cost of goods is actual for {pct}% of revenue; the rest is estimated from recipes (BOM).'**
+  String rptG1CostCoverage(String pct);
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Orders over time'**
+  String get rptG1OrdersTrend;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a product for details'**
+  String get rptG1ProductTapHint;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Avg price per unit'**
+  String get rptG1AvgPrice;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cost per unit'**
+  String get rptG1CostPerUnit;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Client'**
+  String get rptG1ColClient;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get rptG1ColGroup;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Clients'**
+  String get rptG1ColClients;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Last order'**
+  String get rptG1ColLastOrder;
+
+  /// Reports overhaul (G1 money screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Days since'**
+  String get rptG1ColDaysSince;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get rptG2RestockAll;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get rptG2RestockStatusOther;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested'**
+  String get rptG2ColumnSuggestedQty;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Days cover'**
+  String get rptG2ColumnDaysCover;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'No items match this filter.'**
+  String get rptG2RestockEmpty;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an item to see its sales velocity.'**
+  String get rptG2RestockHint;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days ago'**
+  String rptG2RecencyDaysAgo(String days);
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'{count} orders'**
+  String rptG2OrdersCount(String count);
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Overlay'**
+  String get rptG2SegmentOverlay;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Overlay segments overlap the others and are not counted in the total.'**
+  String get rptG2SegmentsOverlayNote;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile'**
+  String get rptG2ColumnMobile;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Territory'**
+  String get rptG2ColumnTerritory;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Updated on'**
+  String get rptG2ColumnUpdatedOn;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Customer summary'**
+  String get rptG2CustomerSummaryTitle;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Stock value'**
+  String get rptG2StockValue;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Grand total'**
+  String get rptG2GrandTotal;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Group total'**
+  String get rptG2GroupTotal;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Total qty'**
+  String get rptG2TotalQty;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get rptG2Company;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get rptG2Refresh;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Owner inputs'**
+  String get rptUnitEconInputsTitle;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Values you enter. They are estimates and are not booked in the ledger.'**
+  String get rptUnitEconInputsSubtitle;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Edit inputs'**
+  String get rptUnitEconEditInputs;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Ad spend'**
+  String get rptUnitEconAdSpend;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Total for the selected period'**
+  String get rptUnitEconAdSpendHelp;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Kashier fee %'**
+  String get rptUnitEconKashierPct;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Applied to revenue paid through Kashier'**
+  String get rptUnitEconKashierPctHelp;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Talabat commission %'**
+  String get rptUnitEconTalabatPct;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Applied to Talabat-channel revenue'**
+  String get rptUnitEconTalabatPctHelp;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Extra fixed costs'**
+  String get rptUnitEconExtraFixed;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Costs not in the books, such as salaries off payroll, investor return or tools'**
+  String get rptUnitEconExtraFixedHelp;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Applied in this report: {amount}'**
+  String rptUnitEconAppliedAmount(String amount);
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get rptUnitEconResetDefaults;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number of 0 or more'**
+  String get rptUnitEconInvalidNumber;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a percentage between 0 and 100'**
+  String get rptUnitEconInvalidPct;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Owner input'**
+  String get rptUnitEconBadgeOwnerInput;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate'**
+  String get rptUnitEconBadgeEstimate;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Figures tagged Estimate or Owner input are not booked amounts.'**
+  String get rptUnitEconLegend;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Contribution margin'**
+  String get rptUnitEconContributionMargin;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Net profit'**
+  String get rptUnitEconNetProfit;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'From revenue to net profit'**
+  String get rptUnitEconWaterfallTitle;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get rptUnitEconRevenue;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cost of goods'**
+  String get rptUnitEconCogs;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Net delivery cost'**
+  String get rptUnitEconShippingNet;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Kashier fees'**
+  String get rptUnitEconKashierFees;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Talabat commission'**
+  String get rptUnitEconTalabatCommission;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Variable costs'**
+  String get rptUnitEconVariableTotal;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Contribution'**
+  String get rptUnitEconContribution;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expenses'**
+  String get rptUnitEconRecurring;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Other expenses'**
+  String get rptUnitEconOtherExpenses;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed costs'**
+  String get rptUnitEconFixedTotal;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Break-even'**
+  String get rptUnitEconBreakEvenTitle;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Break-even revenue'**
+  String get rptUnitEconBreakEvenRevenue;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Break-even orders'**
+  String get rptUnitEconBreakEvenOrders;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Gap to break-even'**
+  String get rptUnitEconGap;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Past break-even by {amount}'**
+  String rptUnitEconPastBreakEven(String amount);
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'{pct} of break-even revenue reached'**
+  String rptUnitEconProgress(String pct);
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'No break-even point: orders do not cover their variable costs.'**
+  String get rptUnitEconNoBreakEven;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Per order'**
+  String get rptUnitEconPerOrderTitle;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Fees'**
+  String get rptUnitEconFees;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get rptUnitEconShipping;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get rptUnitEconNotesTitle;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Metric'**
+  String get rptUnitEconMetric;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get rptUnitEconValue;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Ad spend is your input, not a booked amount.'**
+  String get rptUnitEconNoteAdSpendIsOwnerInput;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Ad spend is not entered, so net profit leaves out advertising.'**
+  String get rptUnitEconNoteAdSpendNotEntered;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Extra fixed costs are your input, not booked amounts.'**
+  String get rptUnitEconNoteExtraFixedIsOwnerInput;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Kashier fees are estimated from your fee %.'**
+  String get rptUnitEconNoteKashierFeesEstimated;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Talabat commission is estimated from your commission %.'**
+  String get rptUnitEconNoteTalabatCommissionEstimated;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Booked partner commission was replaced by the estimate so it is not counted twice.'**
+  String get rptUnitEconNoteBookedPartnerCommissionReplaced;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Booked Kashier fees were replaced by the estimate so they are not counted twice.'**
+  String get rptUnitEconNoteBookedKashierFeesReplaced;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Stock adjustments are included in other expenses.'**
+  String get rptUnitEconNoteStockAdjustmentInOther;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cost of goods is incomplete: some items have no cost.'**
+  String get rptUnitEconNoteCogsIncomplete;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery expense is incomplete for this period.'**
+  String get rptUnitEconNoteShippingExpenseIncomplete;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Some recurring expenses due in this period are not posted yet.'**
+  String get rptUnitEconNoteRecurringNotFullyPosted;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Ads are also booked in the ledger; check they are not counted twice.'**
+  String get rptUnitEconNoteAdsAlsoBooked;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Contribution is not positive, so there is no break-even point.'**
+  String get rptUnitEconNoteContributionNotPositive;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation basis'**
+  String get rptUnitEconBasisTitle;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Booked figures the estimates start from'**
+  String get rptUnitEconBasisSubtitle;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Kashier receipts'**
+  String get rptUnitEconBasisKashierReceipts;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Talabat sales'**
+  String get rptUnitEconBasisTalabatSales;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Talabat orders'**
+  String get rptUnitEconBasisTalabatOrders;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery income'**
+  String get rptUnitEconBasisShippingIncome;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery expense'**
+  String get rptUnitEconBasisShippingExpense;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Stock adjustment'**
+  String get rptUnitEconBasisStockAdjustment;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Booked partner commission'**
+  String get rptUnitEconBasisBookedPartnerCommission;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Booked Kashier fees'**
+  String get rptUnitEconBasisBookedKashierFees;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring expenses due'**
+  String get rptUnitEconBasisRecurringDue;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Sales with a known cost'**
+  String get rptUnitEconBasisCogsCoverage;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Net profit in the ledger'**
+  String get rptUnitEconBasisLedgerNetProfit;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Consumer orders only (B2B excluded)'**
+  String get rptPromoConsumerOnly;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Orders with a code'**
+  String get rptPromoOrdersWithPromo;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'{pct} of {count} consumer orders'**
+  String rptPromoShareOfOrders(String pct, String count);
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Discount given'**
+  String get rptPromoDiscountTotal;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue with codes'**
+  String get rptPromoRevenue;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Avg order with code'**
+  String get rptPromoAov;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Avg order without code'**
+  String get rptPromoNonPromoAov;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'{diff} vs no code'**
+  String rptPromoAovDiff(String diff);
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'New customers via codes'**
+  String get rptPromoNewCustomers;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Codes'**
+  String get rptPromoCodesTitle;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get rptPromoCode;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get rptPromoOrders;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get rptPromoDiscount;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get rptPromoRevenueShort;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Avg order'**
+  String get rptPromoAovShort;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'New customers'**
+  String get rptPromoNew;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered again'**
+  String get rptPromoRepeatAfter;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Customers who ordered again later without a code'**
+  String get rptPromoRepeatAfterHelp;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Discount as % of revenue'**
+  String get rptPromoDiscountRate;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue and discount by code'**
+  String get rptPromoChartTitle;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'No codes were used in this period.'**
+  String get rptPromoNoCodes;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Stock lost'**
+  String get rptWasteLoss;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Stock gained'**
+  String get rptWasteGain;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get rptWasteNet;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get rptWasteEntriesCount;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'By type'**
+  String get rptWasteByType;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'By branch'**
+  String get rptWasteByBranch;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest losses by item'**
+  String get rptWasteWorstItems;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Latest entries'**
+  String get rptWasteEntries;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get rptWasteItem;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Item code'**
+  String get rptWasteItemCode;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Qty'**
+  String get rptWasteQty;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get rptWasteUom;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get rptWasteValue;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get rptWasteDate;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get rptWasteVoucher;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse'**
+  String get rptWasteWarehouse;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get rptWasteBranch;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get rptWasteType;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Remarks'**
+  String get rptWasteRemarks;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Negative values are stock lost; positive values are stock found.'**
+  String get rptWasteSignHint;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Stock count'**
+  String get rptWasteTypeStockReconciliation;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Material issue (waste)'**
+  String get rptWasteTypeMaterialIssue;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Material receipt'**
+  String get rptWasteTypeMaterialReceipt;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Stock entry'**
+  String get rptWasteTypeStockEntry;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Labour % of sales'**
+  String get rptLabourPctOfSales;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Labour cost'**
+  String get rptLabourCost;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get rptLabourSales;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get rptLabourHours;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Sales per hour'**
+  String get rptLabourSalesPerHour;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Headcount'**
+  String get rptLabourHeadcount;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Based on salary slips'**
+  String get rptLabourBasisSalarySlips;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cost comes from salary slips, prorated to the selected period.'**
+  String get rptLabourBasisSalarySlipsHelp;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Based on recurring salary expenses'**
+  String get rptLabourBasisRecurring;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'No salary slips cover this period, so cost comes from recurring salary expenses, prorated.'**
+  String get rptLabourBasisRecurringHelp;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated cost'**
+  String get rptLabourBasisEstimate;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'No payroll was found for this period, so the cost is an estimate and may be off.'**
+  String get rptLabourBasisEstimateHelp;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'By branch'**
+  String get rptLabourByBranch;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get rptLabourBranch;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Employees'**
+  String get rptLabourEmployees;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get rptLabourEmployee;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID'**
+  String get rptLabourEmployeeId;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get rptLabourDays;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Cost per hour'**
+  String get rptLabourCostPerHour;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get rptLabourUnassigned;
+
+  /// Reports overhaul (business screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Labour cost vs sales'**
+  String get rptLabourChartTitle;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get rptG2ColumnStatus;
+
+  /// Reports overhaul (stock & customer screens).
+  ///
+  /// In en, this message translates to:
+  /// **'Last sale'**
+  String get rptG2LastSale;
 }
 
 class _AppLocalizationsDelegate

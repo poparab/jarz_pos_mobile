@@ -472,6 +472,7 @@ class _OrderCardBody extends ConsumerWidget {
         SnackBar(content: Text(l10n.instapayConvertedToCod)),
       );
     } catch (error) {
+      if (!context.mounted) return;
       final friendly = context.userErrorMessage(
         error,
         fallback: l10n.instapayConvertFailed,
@@ -588,7 +589,7 @@ class _OrderCardBody extends ConsumerWidget {
         if ((order.expectedReference ?? '').isNotEmpty) ...[
           const SizedBox(height: 2),
           Text(
-            'Ref: ${order.expectedReference}',
+            context.l10n.rptInstapayExpectedReference(order.expectedReference!),
             style: theme.textTheme.labelSmall,
           ),
         ],

@@ -6,6 +6,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/user_error_message.dart';
 import '../../../core/localization/localized_display_mappers.dart';
+import '../../../core/localization/localized_formatters.dart';
 import '../../auth/state/login_notifier.dart';
 import '../../pos/presentation/widgets/courier_balances_dialog.dart';
 import '../models/shift_models.dart';
@@ -82,6 +83,32 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
   String? _validationError;
   bool _loggingOut = false;
 
+  /// The pre-close summary request, cached per opening entry. Building it
+  /// inline in `build` re-fetched the summary on every `setState` (each
+  /// keystroke in a count field, each courier tick), so it is created once
+  /// and only replaced by [_refreshSummary].
+  Future<ShiftSummary?>? _summaryFuture;
+  String? _summaryOpeningEntry;
+
+  Future<ShiftSummary?> _summaryFor(String openingEntry) {
+    final cached = _summaryFuture;
+    if (cached != null && _summaryOpeningEntry == openingEntry) {
+      return cached;
+    }
+    _summaryOpeningEntry = openingEntry;
+    return _summaryFuture = ref
+        .read(shiftNotifierProvider.notifier)
+        .getCurrentShiftSummary(openingEntry: openingEntry);
+  }
+
+  /// Drops the cached summary so the next build fetches a fresh one.
+  void _refreshSummary() {
+    if (!mounted) return;
+    setState(() {
+      _summaryFuture = null;
+    });
+  }
+
   @override
   void dispose() {
     for (final c in _controllers.values) {
@@ -115,6 +142,11 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
             icon: const Icon(Icons.history),
             onPressed: () => ShiftHistory.show(context, ref),
           ),
+          IconButton(
+            tooltip: l10n.shiftRefresh,
+            icon: const Icon(Icons.refresh),
+            onPressed: shiftState.isLoading ? null : _refreshSummary,
+          ),
         ],
       ),
       body: activeShiftAsync.when(
@@ -139,16 +171,37 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
             );
           }
 
-          return FutureBuilder(
-            future: ref.read(shiftNotifierProvider.notifier).getCurrentShiftSummary(openingEntry: activeShift.name),
+          return FutureBuilder<ShiftSummary?>(
+            future: _summaryFor(activeShift.name),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+              final waiting = snapshot.connectionState == ConnectionState.waiting;
+              // A refresh keeps the previous summary on screen (FutureBuilder
+              // carries the last data across a new future), so the counts the
+              // closer already typed do not vanish behind a spinner.
+              if (waiting && !snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (snapshot.hasError) {
+              if (snapshot.hasError && !waiting) {
                 return Center(
-                  child: Text(_localizedShiftError(context, snapshot.error.toString())),
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _localizedShiftError(context, snapshot.error.toString()),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: _refreshSummary,
+                          icon: const Icon(Icons.refresh),
+                          label: Text(l10n.shiftRefresh),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               }
 
@@ -338,7 +391,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
                         child: Text(
                           l10n.shiftCourierCarriedSummary(
                             result.carriedCourierCount,
-                            result.carriedCourierAmount.toStringAsFixed(2),
+                            formatCurrency(context, result.carriedCourierAmount),
                           ),
                           style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
                         ),
@@ -397,15 +450,15 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
                           if (result.varianceVisible)
                             Text(
                               l10n.shiftExpectedAmount(
-                                row.expectedAmount.toStringAsFixed(2),
+                                formatCurrency(context, row.expectedAmount),
                               ),
                             ),
                           Text(
-                            '${l10n.shiftCountedClosingAmount}: ${row.closingAmount.toStringAsFixed(2)}',
+                            '${l10n.shiftCountedClosingAmount}: ${formatCurrency(context, row.closingAmount)}',
                           ),
                           if (result.varianceVisible)
                             Text(
-                              '${l10n.shiftDifference}: ${diff.toStringAsFixed(2)}',
+                              '${l10n.shiftDifference}: ${formatCurrency(context, diff)}',
                               style: TextStyle(
                                 color: diffColor,
                                 fontWeight: FontWeight.w600,
@@ -504,7 +557,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
                     Text(
                       l10n.shiftCourierCarryBody(
                         block.transactionCount,
-                        block.netBalance.toStringAsFixed(2),
+                        formatCurrency(context, block.netBalance),
                         block.partyCount,
                       ),
                       style: theme.textTheme.bodyMedium,
@@ -620,7 +673,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
         children: [
           Text(
             '${l10n.shiftCourierCarryCheckboxLabel} · '
-            '${l10n.shiftCourierBlockNetBalance(row.netBalance.toStringAsFixed(2))}',
+            '${l10n.shiftCourierBlockNetBalance(formatCurrency(context, row.netBalance))}',
             style: theme.textTheme.bodySmall,
           ),
           // Second night out is a different fact from the first, and the only
@@ -720,7 +773,7 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
                     const SizedBox(width: 12),
                     Text(
                       l10n.shiftCourierBlockNetBalance(
-                        party.netBalance.toStringAsFixed(2),
+                        formatCurrency(context, party.netBalance),
                       ),
                       style: theme.textTheme.bodySmall,
                     ),
@@ -795,8 +848,10 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
     if (!mounted) return;
 
     ref.read(shiftNotifierProvider.notifier).clearError();
+    // A settlement in the dialog changes the courier block, so re-read it.
     setState(() {
       _validationError = null;
+      _summaryFuture = null;
     });
   }
 
@@ -849,7 +904,13 @@ class _ShiftEndScreenState extends ConsumerState<ShiftEndScreen> {
         );
 
     if (!mounted) return;
-    if (result == null) return;
+    if (result == null) {
+      // A refused close is often the server seeing something this summary
+      // does not (a new courier line, a moved payment); re-read it so the
+      // screen matches what the next attempt will be judged against.
+      _refreshSummary();
+      return;
+    }
 
     setState(() {
       _validationError = null;

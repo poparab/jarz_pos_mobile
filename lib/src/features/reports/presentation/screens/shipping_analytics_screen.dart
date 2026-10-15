@@ -7,36 +7,59 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
+import '../../data/models/report_envelopes.dart';
 import '../../data/models/shipping_analytics.dart';
 import '../../state/reports_providers.dart';
 import '../widgets/kpi_card.dart';
-import '../widgets/report_alert_text.dart';
-import '../widgets/report_chart_card.dart';
-import '../widgets/report_date_range_bar.dart';
+import '../widgets/report_alerts_card.dart';
+import '../widgets/report_export_button.dart';
+import '../widgets/report_filter_bar.dart';
+import '../widgets/report_section_card.dart';
+import '../widgets/report_states.dart';
+import '../widgets/report_table.dart';
 
-/// Shipping Analytics dashboard: delivery cost, courier settlements and
-/// shipping P&L. Consumes [shippingAnalyticsProvider] keyed by the shared
-/// [reportRangeProvider]. RTL-safe (uses directional layout + `start/end`).
+/// Shipping: what couriers cost against what customers were charged, where
+/// shipping loses money, courier cost overrides, and what is still owed to
+/// couriers. Keyed by the shared range + branch ([reportQueryProvider]).
+/// RTL-safe (directional layout, `start`/`end` alignment throughout).
 class ShippingAnalyticsScreen extends ConsumerWidget {
   const ShippingAnalyticsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final range = ref.watch(reportRangeProvider);
-    final async = ref.watch(shippingAnalyticsProvider(range));
+    final q = ref.watch(reportQueryProvider);
+    final async = ref.watch(shippingReportProvider(q));
+
+    Future<void> refresh() => ref.refresh(shippingReportProvider(q).future);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.reportShippingTitle)),
+      appBar: AppBar(
+        title: Text(l10n.reportShippingTitle),
+        actions: [
+          ReportExportButton(
+            title: l10n.reportShippingTitle,
+            rows: () => _shippingExportRows(context, async.valueOrNull),
+          ),
+        ],
+      ),
       body: Column(
         children: [
-          const ReportDateRangeBar(),
+          const ReportFilterBar(),
           Expanded(
             child: async.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
-              error: (e, _) => _ErrorView(range: range),
-              data: (data) => _DataView(data: data, range: range),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => RefreshIndicator(
+                onRefresh: refresh,
+                child: ReportErrorView(
+                  error: e,
+                  onRetry: () => ref.invalidate(shippingReportProvider(q)),
+                ),
+              ),
+              data: (report) => RefreshIndicator(
+                onRefresh: refresh,
+                child: _DataView(report: report),
+              ),
             ),
           ),
         ],
@@ -45,101 +68,93 @@ class ShippingAnalyticsScreen extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// Error / retry
-// ─────────────────────────────────────────────────────────────────────────
-
-class _ErrorView extends ConsumerWidget {
-  final ReportRange range;
-  const _ErrorView({required this.range});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.error_outline, size: 40, color: theme.colorScheme.error),
-          const SizedBox(height: 12),
-          Text(l10n.reportError, style: theme.textTheme.titleMedium),
-          const SizedBox(height: 12),
-          FilledButton.tonalIcon(
-            onPressed: () =>
-                ref.invalidate(shippingAnalyticsProvider(range)),
-            icon: const Icon(Icons.refresh),
-            label: Text(l10n.reportsRetry),
-          ),
-        ],
-      ),
-    );
-  }
+/// CSV: the per-area table, then the unsettled courier balances.
+List<List<String>> _shippingExportRows(
+  BuildContext context,
+  ShippingReport? report,
+) {
+  if (report == null) return const [];
+  final l10n = context.l10n;
+  final d = report.data;
+  String n(num v) => v.toStringAsFixed(2);
+  final areas = [...d.costByTerritory]
+    ..sort((a, b) => a.netPl.compareTo(b.netPl));
+  return [
+    [
+      l10n.rptG1ColArea,
+      l10n.reportKpiOrders,
+      l10n.rptG1ColCost,
+      l10n.rptG1ColCharged,
+      l10n.rptG1ColNet,
+    ],
+    for (final r in areas)
+      [r.territory, '${r.orderCount}', n(r.totalExpense), n(r.totalIncome),
+        n(r.netPl)],
+    if (d.unsettledCourierBalances.isNotEmpty) ...[
+      const <String>[],
+      [
+        l10n.rptG1ColCourier,
+        l10n.reportKpiOrders,
+        l10n.rptG1ColOwed,
+        l10n.rptG1ColDaysAged,
+      ],
+      for (final r in d.unsettledCourierBalances)
+        [r.party, '${r.orderCount}', n(r.totalOwed), '${r.daysAged}'],
+    ],
+  ];
 }
 
 // ─────────────────────────────────────────────────────────────────────────
 // Data view
 // ─────────────────────────────────────────────────────────────────────────
 
-class _DataView extends ConsumerWidget {
-  final ShippingAnalytics data;
-  final ReportRange range;
-  const _DataView({required this.data, required this.range});
+class _DataView extends StatelessWidget {
+  final ShippingReport report;
+  const _DataView({required this.report});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        ref.invalidate(shippingAnalyticsProvider(range));
-        await ref.read(shippingAnalyticsProvider(range).future);
-      },
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return ListView(
-            padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 8, 24),
-            children: [
-              // The ListView pads 8 on each side: measuring the full width made
-              // two cards 8px too wide to share a row, so they stacked one per row.
-              _KpiGrid(
+  Widget build(BuildContext context) {
+    final data = report.data;
+    final alerts = [
+      for (final a in data.alerts)
+        ReportAlert(
+          message: a.message,
+          severity: ReportAlertSeverity.parse(a.type),
+        ),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsetsDirectional.fromSTEB(0, 4, 0, 24),
+          children: [
+            // The grid pads 8 on each side: measuring the full width made
+            // two cards 8px too wide to share a row, so they stacked.
+            Padding(
+              padding: const EdgeInsetsDirectional.symmetric(horizontal: 8),
+              child: _KpiGrid(
                 kpis: data.summaryKpis,
                 maxWidth: constraints.maxWidth - 16,
               ),
-              if (data.alerts.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _AlertsCard(alerts: data.alerts),
-              ],
-              const SizedBox(height: 12),
-              _TerritorySection(rows: data.costByTerritory),
-              const SizedBox(height: 12),
-              _BranchSection(rows: data.costByPosProfile),
-              const SizedBox(height: 12),
-              _CourierSection(rows: data.costByCourier),
-              const SizedBox(height: 12),
-              _PickupDeliverySection(
-                split: data.pickupVsDeliverySplit,
-                subTerritories: data.costBySubTerritory,
+            ),
+            const SizedBox(height: 6),
+            if (alerts.isNotEmpty) ReportAlertsCard(alerts: alerts),
+            _CostVsChargedSection(points: data.dailyTrend),
+            _LossByAreaSection(rows: data.costByTerritory),
+            _CourierSection(rows: data.costByCourier),
+            if (data.unsettledCourierBalances.isNotEmpty)
+              _UnsettledBalancesSection(
+                rows: data.unsettledCourierBalances,
+                asOf: report.unsettledAsOf,
               ),
-              const SizedBox(height: 12),
-              _DailyTrendSection(points: data.dailyTrend),
-              const SizedBox(height: 12),
-              _PickupDeliveryTrendSection(points: data.pickupDeliveryTrend),
-              if (data.unsettledCourierBalances.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _UnsettledBalancesSection(rows: data.unsettledCourierBalances),
-              ],
-              if (data.doubleShippingImpact.trips.isNotEmpty ||
-                  data.doubleShippingImpact.totalDoubleTrips > 0) ...[
-                const SizedBox(height: 12),
-                _DoubleShippingSection(impact: data.doubleShippingImpact),
-              ],
-              if (data.customShippingBreakdown.rows.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _OverridesSection(breakdown: data.customShippingBreakdown),
-              ],
-            ],
-          );
-        },
-      ),
+            if (data.doubleShippingImpact.trips.isNotEmpty ||
+                data.doubleShippingImpact.totalDoubleTrips > 0)
+              _DoubleShippingSection(impact: data.doubleShippingImpact),
+            if (data.customShippingBreakdown.rows.isNotEmpty)
+              _OverridesSection(breakdown: data.customShippingBreakdown),
+          ],
+        );
+      },
     );
   }
 }
@@ -163,31 +178,21 @@ class _KpiGrid extends StatelessWidget {
 
     final tiles = <Widget>[
       KpiCard(
-        label: l10n.reportShipKpiTotalOrders,
-        value: formatCount(context, kpis.totalOrders),
-        icon: Icons.receipt_long_outlined,
-      ),
-      KpiCard(
         label: l10n.reportShipKpiDeliveryOrders,
         value: formatCount(context, kpis.deliveryOrders),
         icon: Icons.local_shipping_outlined,
-      ),
-      KpiCard(
-        label: l10n.reportShipKpiPickupOrders,
-        value: formatCount(context, kpis.pickupOrders),
-        icon: Icons.store_outlined,
-      ),
-      KpiCard(
-        label: l10n.reportShipKpiExpense,
-        value: formatCompactCurrency(context, kpis.totalExpense),
-        icon: Icons.trending_down,
-        color: negative,
       ),
       KpiCard(
         label: l10n.reportShipKpiIncome,
         value: formatCompactCurrency(context, kpis.totalIncome),
         icon: Icons.trending_up,
         color: positive,
+      ),
+      KpiCard(
+        label: l10n.reportShipKpiExpense,
+        value: formatCompactCurrency(context, kpis.totalExpense),
+        icon: Icons.trending_down,
+        color: negative,
       ),
       KpiCard(
         label: l10n.reportShipKpiNetPl,
@@ -201,14 +206,8 @@ class _KpiGrid extends StatelessWidget {
         icon: Icons.calculate_outlined,
       ),
       KpiCard(
-        label: l10n.reportShipKpiPendingOverrides,
-        value: formatCount(context, kpis.pendingCsrCount),
-        icon: Icons.rule_outlined,
-        color: kpis.pendingCsrCount > 0 ? Colors.orange.shade800 : null,
-      ),
-      KpiCard(
         label: l10n.reportShipKpiUnsettled,
-        value: formatCurrency(context, kpis.unsettledCourierTotal),
+        value: formatCompactCurrency(context, kpis.unsettledCourierTotal),
         icon: Icons.pending_actions_outlined,
         color: kpis.unsettledCourierTotal > 0 ? Colors.orange.shade800 : null,
       ),
@@ -231,125 +230,21 @@ class _KpiGrid extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Alerts
-// ─────────────────────────────────────────────────────────────────────────
-
-Color _alertColor(BuildContext context, String type) {
-  final theme = Theme.of(context);
-  switch (type) {
-    case 'danger':
-      return theme.colorScheme.error;
-    case 'warning':
-      return Colors.orange.shade800;
-    default:
-      return theme.colorScheme.primary;
-  }
-}
-
-IconData _alertIcon(String type) {
-  switch (type) {
-    case 'danger':
-      return Icons.error_outline;
-    case 'warning':
-      return Icons.warning_amber_outlined;
-    default:
-      return Icons.info_outline;
-  }
-}
-
-/// Alerts, three at a time: a long list here buried the dashboard below it.
-class _AlertsCard extends StatefulWidget {
-  final List<ShippingAlert> alerts;
-  const _AlertsCard({required this.alerts});
-
-  @override
-  State<_AlertsCard> createState() => _AlertsCardState();
-}
-
-class _AlertsCardState extends State<_AlertsCard> {
-  static const _collapsedCount = 3;
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final alerts = widget.alerts;
-    final shown = _expanded ? alerts : alerts.take(_collapsedCount).toList();
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.reportAlerts,
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            for (final a in shown)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      _alertIcon(a.type),
-                      size: 18,
-                      color: _alertColor(context, a.type),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        stripHtml(a.message),
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            if (alerts.length > _collapsedCount)
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: TextButton(
-                  onPressed: () => setState(() => _expanded = !_expanded),
-                  child: Text(
-                    _expanded
-                        ? l10n.reportShowLess
-                        : l10n.reportShowAllCount(alerts.length),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────
 // Shared chart helpers
 // ─────────────────────────────────────────────────────────────────────────
 
-String _axisNum(num v) {
-  final a = v.abs();
-  if (a >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
-  if (a >= 1000) return '${(v / 1000).toStringAsFixed(1)}k';
-  return v.toStringAsFixed(0);
-}
+String _axisNum(BuildContext context, num v) =>
+    NumberFormat.compact(locale: context.l10n.localeName).format(v);
 
-String _shortDate(String iso) {
+String _shortDate(BuildContext context, String iso) {
   final d = DateTime.tryParse(iso);
   if (d == null) return iso;
-  return DateFormat('M/d').format(d);
+  return DateFormat('M/d', context.l10n.localeName).format(d);
 }
 
-/// Keep charts readable by capping to the top [n] rows by [metric].
-List<T> _topN<T>(List<T> rows, num Function(T) metric, [int n = 8]) {
-  final sorted = [...rows]..sort((a, b) => metric(b).compareTo(metric(a)));
+/// Keep charts readable by capping to the first [n] rows by [order].
+List<T> _firstN<T>(List<T> rows, int Function(T a, T b) order, [int n = 8]) {
+  final sorted = [...rows]..sort(order);
   return sorted.length > n ? sorted.sublist(0, n) : sorted;
 }
 
@@ -388,13 +283,32 @@ class _LegendRow extends StatelessWidget {
   }
 }
 
-FlTitlesData _titles(List<String> labels, double maxY) {
+/// "No data" inside a section card, at chart height so the page doesn't jump.
+class _NoData extends StatelessWidget {
+  const _NoData();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      height: 80,
+      child: Center(
+        child: Text(
+          context.l10n.reportNoData,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+FlTitlesData _titles(BuildContext context, List<String> labels, double maxY) {
   final interval = maxY <= 0 ? 1.0 : maxY / 4;
   return FlTitlesData(
-    topTitles:
-        const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-    rightTitles:
-        const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
     leftTitles: AxisTitles(
       sideTitles: SideTitles(
         showTitles: true,
@@ -404,7 +318,7 @@ FlTitlesData _titles(List<String> labels, double maxY) {
           axisSide: meta.axisSide,
           space: 4,
           child: Text(
-            _axisNum(value),
+            _axisNum(context, value),
             style: const TextStyle(fontSize: 9),
           ),
         ),
@@ -421,15 +335,15 @@ FlTitlesData _titles(List<String> labels, double maxY) {
             return const SizedBox.shrink();
           }
           if ((value - idx).abs() > 0.01) return const SizedBox.shrink();
+          // Thin out long date axes so labels don't collide.
+          final step = (labels.length / 8).ceil();
+          if (step > 1 && idx % step != 0) return const SizedBox.shrink();
           var label = labels[idx];
           if (label.length > 8) label = '${label.substring(0, 7)}…';
           return SideTitleWidget(
             axisSide: meta.axisSide,
             space: 4,
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 9),
-            ),
+            child: Text(label, style: const TextStyle(fontSize: 9)),
           );
         },
       ),
@@ -455,10 +369,11 @@ class _CategoryBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s2 = series2;
     var maxV = 0.0;
     for (var i = 0; i < series1.length; i++) {
       maxV = math.max(maxV, series1[i]);
-      if (series2 != null) maxV = math.max(maxV, series2![i]);
+      if (s2 != null) maxV = math.max(maxV, s2[i]);
     }
     final maxY = maxV <= 0 ? 1.0 : maxV * 1.2;
 
@@ -468,12 +383,12 @@ class _CategoryBarChart extends StatelessWidget {
         BarChartRodData(
           toY: series1[i],
           color: color1,
-          width: series2 == null ? 12 : 8,
+          width: s2 == null ? 12 : 8,
           borderRadius: BorderRadius.circular(2),
         ),
-        if (series2 != null)
+        if (s2 != null)
           BarChartRodData(
-            toY: series2![i],
+            toY: s2[i],
             color: color2,
             width: 8,
             borderRadius: BorderRadius.circular(2),
@@ -489,7 +404,7 @@ class _CategoryBarChart extends StatelessWidget {
         barGroups: groups,
         gridData: const FlGridData(show: true, drawVerticalLine: false),
         borderData: FlBorderData(show: false),
-        titlesData: _titles(labels, maxY),
+        titlesData: _titles(context, labels, maxY),
         barTouchData: BarTouchData(enabled: true),
       ),
     );
@@ -548,7 +463,7 @@ class _StackedBarChart extends StatelessWidget {
         barGroups: groups,
         gridData: const FlGridData(show: true, drawVerticalLine: false),
         borderData: FlBorderData(show: false),
-        titlesData: _titles(labels, maxY),
+        titlesData: _titles(context, labels, maxY),
         barTouchData: BarTouchData(enabled: true),
       ),
     );
@@ -582,6 +497,7 @@ class _TrendLineChart extends StatelessWidget {
       bars.add(
         LineChartBarData(
           isCurved: true,
+          preventCurveOverShooting: true,
           barWidth: 2,
           color: colors[s],
           dotData: const FlDotData(show: false),
@@ -600,172 +516,128 @@ class _TrendLineChart extends StatelessWidget {
         lineBarsData: bars,
         gridData: const FlGridData(show: true, drawVerticalLine: false),
         borderData: FlBorderData(show: false),
-        titlesData: _titles(labels, maxY),
+        titlesData: _titles(context, labels, maxY),
         lineTouchData: const LineTouchData(enabled: true),
       ),
     );
   }
 }
 
-/// A pie / donut chart.
-class _PieChartView extends StatelessWidget {
-  final List<_PieSlice> slices;
-  const _PieChartView({
-    required this.slices,
-  });
+// ─────────────────────────────────────────────────────────────────────────
+// Courier cost vs charged (daily line)
+// ─────────────────────────────────────────────────────────────────────────
+
+class _CostVsChargedSection extends StatelessWidget {
+  final List<ShippingDailyTrendPoint> points;
+  const _CostVsChargedSection({required this.points});
 
   @override
   Widget build(BuildContext context) {
-    final total = slices.fold<double>(0, (s, e) => s + e.value);
-    return PieChart(
-      PieChartData(
-        sectionsSpace: 2,
-        centerSpaceRadius: 0,
-        sections: [
-          for (final s in slices)
-            PieChartSectionData(
-              value: s.value,
-              color: s.color,
-              radius: 70,
-              title: total <= 0
-                  ? ''
-                  : '${(s.value / total * 100).toStringAsFixed(0)}%',
-              titleStyle: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+    final l10n = context.l10n;
+    final costColor = Theme.of(context).colorScheme.error;
+    final chargedColor = Colors.green.shade700;
+
+    return ReportSectionCard(
+      title: l10n.rptG1ShipCostVsCharged,
+      subtitle: l10n.rptG1ShipCostVsChargedHint,
+      child: points.isEmpty
+          ? const _NoData()
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 200,
+                  child: _TrendLineChart(
+                    labels: [
+                      for (final p in points) _shortDate(context, p.postingDate),
+                    ],
+                    series: [
+                      [for (final p in points) p.totalExpense],
+                      [for (final p in points) p.totalIncome],
+                    ],
+                    colors: [costColor, chargedColor],
+                  ),
+                ),
+                _LegendRow(
+                  items: [
+                    MapEntry(l10n.rptG1ColCost, costColor),
+                    MapEntry(l10n.rptG1ColCharged, chargedColor),
+                  ],
+                ),
+              ],
             ),
-        ],
-      ),
     );
   }
 }
 
-class _PieSlice {
-  final String label;
-  final double value;
-  final Color color;
-  const _PieSlice(this.label, this.value, this.color);
-}
-
 // ─────────────────────────────────────────────────────────────────────────
-// Cost by territory (grouped bar + P&L rows)
+// Loss by area (grouped bars + table, biggest loss first)
 // ─────────────────────────────────────────────────────────────────────────
 
-class _TerritorySection extends StatelessWidget {
+class _LossByAreaSection extends StatelessWidget {
   final List<ShippingTerritoryCost> rows;
-  const _TerritorySection({required this.rows});
+  const _LossByAreaSection({required this.rows});
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final expenseColor = theme.colorScheme.error;
-    final incomeColor = Colors.green.shade700;
-    final top = _topN(rows, (r) => r.totalExpense);
+    final costColor = theme.colorScheme.error;
+    final chargedColor = Colors.green.shade700;
+    final sorted = [...rows]..sort((a, b) => a.netPl.compareTo(b.netPl));
+    final chart = _firstN(sorted, (a, b) => a.netPl.compareTo(b.netPl));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ReportChartCard(
-          title: l10n.reportCostByTerritory,
-          isEmpty: top.isEmpty,
-          emptyText: l10n.reportNoData,
-          child: _CategoryBarChart(
-            labels: [for (final r in top) r.territory],
-            series1: [for (final r in top) r.totalExpense],
-            color1: expenseColor,
-            series2: [for (final r in top) r.totalIncome],
-            color2: incomeColor,
-          ),
-        ),
-        if (top.isNotEmpty)
-          _LegendRow(items: [
-            MapEntry(l10n.reportShipKpiExpense, expenseColor),
-            MapEntry(l10n.reportShipKpiIncome, incomeColor),
-          ]),
-        if (top.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (final r in top)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 3),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              r.territory,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ),
-                          Text(
-                            formatCurrency(context, r.netPl),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: r.netPl >= 0
-                                  ? incomeColor
-                                  : expenseColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
+    return ReportSectionCard(
+      title: l10n.rptG1ShipLossByArea,
+      subtitle: l10n.rptG1ShipLossByAreaHint,
+      child: sorted.isEmpty
+          ? const _NoData()
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 200,
+                  child: _CategoryBarChart(
+                    labels: [for (final r in chart) r.territory],
+                    series1: [for (final r in chart) r.totalExpense],
+                    color1: costColor,
+                    series2: [for (final r in chart) r.totalIncome],
+                    color2: chargedColor,
+                  ),
+                ),
+                _LegendRow(
+                  items: [
+                    MapEntry(l10n.rptG1ColCost, costColor),
+                    MapEntry(l10n.rptG1ColCharged, chargedColor),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ReportTable(
+                  maxRows: 10,
+                  columns: [
+                    ReportColumn(l10n.rptG1ColArea, flex: 3),
+                    ReportColumn(l10n.reportKpiOrders, numeric: true, flex: 2),
+                    ReportColumn(l10n.rptG1ColCost, numeric: true, flex: 2),
+                    ReportColumn(l10n.rptG1ColCharged, numeric: true, flex: 2),
+                    ReportColumn(l10n.rptG1ColNet, numeric: true, flex: 2),
+                  ],
+                  rows: [
+                    for (final r in sorted)
+                      [
+                        r.territory,
+                        formatCount(context, r.orderCount),
+                        formatCompactCurrency(context, r.totalExpense),
+                        formatCompactCurrency(context, r.totalIncome),
+                        formatCompactCurrency(context, r.netPl),
+                      ],
+                  ],
+                  cellColor: (row, col) {
+                    if (col != 4) return null;
+                    return sorted[row].netPl >= 0 ? chargedColor : costColor;
+                  },
+                ),
+              ],
             ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// Cost by branch (grouped bar)
-// ─────────────────────────────────────────────────────────────────────────
-
-class _BranchSection extends StatelessWidget {
-  final List<ShippingPosProfileCost> rows;
-  const _BranchSection({required this.rows});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final expenseColor = theme.colorScheme.error;
-    final incomeColor = Colors.green.shade700;
-    final top = _topN(rows, (r) => r.totalExpense);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ReportChartCard(
-          title: l10n.reportCostByBranch,
-          isEmpty: top.isEmpty,
-          emptyText: l10n.reportNoData,
-          child: _CategoryBarChart(
-            labels: [for (final r in top) r.branch],
-            series1: [for (final r in top) r.totalExpense],
-            color1: expenseColor,
-            series2: [for (final r in top) r.totalIncome],
-            color2: incomeColor,
-          ),
-        ),
-        if (top.isNotEmpty)
-          _LegendRow(items: [
-            MapEntry(l10n.reportShipKpiExpense, expenseColor),
-            MapEntry(l10n.reportShipKpiIncome, incomeColor),
-          ]),
-      ],
     );
   }
 }
@@ -783,173 +655,36 @@ class _CourierSection extends StatelessWidget {
     final l10n = context.l10n;
     final settledColor = Colors.green.shade700;
     final unsettledColor = Colors.orange.shade800;
-    final top = _topN(rows, (r) => r.settled + r.unsettled);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ReportChartCard(
-          title: l10n.reportCostByCourier,
-          isEmpty: top.isEmpty,
-          emptyText: l10n.reportNoData,
-          child: _StackedBarChart(
-            labels: [for (final r in top) r.party],
-            bottom: [for (final r in top) r.settled],
-            top: [for (final r in top) r.unsettled],
-            bottomColor: settledColor,
-            topColor: unsettledColor,
-          ),
-        ),
-        if (top.isNotEmpty)
-          _LegendRow(items: [
-            MapEntry('Settled', settledColor),
-            MapEntry(l10n.reportShipKpiUnsettled, unsettledColor),
-          ]),
-      ],
+    final top = _firstN(
+      rows,
+      (a, b) => (b.settled + b.unsettled).compareTo(a.settled + a.unsettled),
     );
-  }
-}
 
-// ─────────────────────────────────────────────────────────────────────────
-// Pickup vs delivery (pie) + cost by sub-territory (bar)
-// ─────────────────────────────────────────────────────────────────────────
-
-class _PickupDeliverySection extends StatelessWidget {
-  final ShippingPickupDeliverySplit split;
-  final List<ShippingSubTerritoryCost> subTerritories;
-  const _PickupDeliverySection({
-    required this.split,
-    required this.subTerritories,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final pickupColor = Colors.blue.shade600;
-    final deliveryColor = Colors.indigo.shade400;
-    final splitEmpty = split.pickup == 0 && split.delivery == 0;
-    final expenseColor = Theme.of(context).colorScheme.error;
-    final top = _topN(subTerritories, (r) => r.totalExpense);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ReportChartCard(
-          title: l10n.reportPickupVsDelivery,
-          isEmpty: splitEmpty,
-          emptyText: l10n.reportNoData,
-          child: _PieChartView(
-            slices: [
-              _PieSlice(
-                l10n.reportShipKpiPickupOrders,
-                split.pickup.toDouble(),
-                pickupColor,
-              ),
-              _PieSlice(
-                l10n.reportShipKpiDeliveryOrders,
-                split.delivery.toDouble(),
-                deliveryColor,
-              ),
-            ],
-          ),
-        ),
-        if (!splitEmpty)
-          _LegendRow(items: [
-            MapEntry(l10n.reportShipKpiPickupOrders, pickupColor),
-            MapEntry(l10n.reportShipKpiDeliveryOrders, deliveryColor),
-          ]),
-        const SizedBox(height: 12),
-        ReportChartCard(
-          title: l10n.reportCostBySubTerritory,
-          isEmpty: top.isEmpty,
-          emptyText: l10n.reportNoData,
-          child: _CategoryBarChart(
-            labels: [for (final r in top) r.subTerritory],
-            series1: [for (final r in top) r.totalExpense],
-            color1: expenseColor,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// Daily trend (line: expense & income)
-// ─────────────────────────────────────────────────────────────────────────
-
-class _DailyTrendSection extends StatelessWidget {
-  final List<ShippingDailyTrendPoint> points;
-  const _DailyTrendSection({required this.points});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final expenseColor = theme.colorScheme.error;
-    final incomeColor = Colors.green.shade700;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ReportChartCard(
-          title: l10n.reportDailyTrend,
-          isEmpty: points.isEmpty,
-          emptyText: l10n.reportNoData,
-          child: _TrendLineChart(
-            labels: [for (final p in points) _shortDate(p.postingDate)],
-            series: [
-              [for (final p in points) p.totalExpense],
-              [for (final p in points) p.totalIncome],
-            ],
-            colors: [expenseColor, incomeColor],
-          ),
-        ),
-        if (points.isNotEmpty)
-          _LegendRow(items: [
-            MapEntry(l10n.reportShipKpiExpense, expenseColor),
-            MapEntry(l10n.reportShipKpiIncome, incomeColor),
-          ]),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// Pickup / delivery trend (stacked bars)
-// ─────────────────────────────────────────────────────────────────────────
-
-class _PickupDeliveryTrendSection extends StatelessWidget {
-  final List<ShippingPickupDeliveryTrendPoint> points;
-  const _PickupDeliveryTrendSection({required this.points});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final pickupColor = Colors.blue.shade600;
-    final deliveryColor = Colors.indigo.shade400;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ReportChartCard(
-          title: l10n.reportPickupDeliveryTrend,
-          isEmpty: points.isEmpty,
-          emptyText: l10n.reportNoData,
-          child: _StackedBarChart(
-            labels: [for (final p in points) _shortDate(p.postingDate)],
-            bottom: [for (final p in points) p.pickup.toDouble()],
-            top: [for (final p in points) p.delivery.toDouble()],
-            bottomColor: pickupColor,
-            topColor: deliveryColor,
-          ),
-        ),
-        if (points.isNotEmpty)
-          _LegendRow(items: [
-            MapEntry(l10n.reportShipKpiPickupOrders, pickupColor),
-            MapEntry(l10n.reportShipKpiDeliveryOrders, deliveryColor),
-          ]),
-      ],
+    return ReportSectionCard(
+      title: l10n.reportCostByCourier,
+      child: top.isEmpty
+          ? const _NoData()
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 200,
+                  child: _StackedBarChart(
+                    labels: [for (final r in top) r.party],
+                    bottom: [for (final r in top) r.settled],
+                    top: [for (final r in top) r.unsettled],
+                    bottomColor: settledColor,
+                    topColor: unsettledColor,
+                  ),
+                ),
+                _LegendRow(
+                  items: [
+                    MapEntry(l10n.rptG1Settled, settledColor),
+                    MapEntry(l10n.reportShipKpiUnsettled, unsettledColor),
+                  ],
+                ),
+              ],
+            ),
     );
   }
 }
@@ -960,67 +695,40 @@ class _PickupDeliveryTrendSection extends StatelessWidget {
 
 class _UnsettledBalancesSection extends StatelessWidget {
   final List<ShippingUnsettledCourierBalance> rows;
-  const _UnsettledBalancesSection({required this.rows});
+
+  /// `YYYY-MM-DD` the balances are owed as of; null on an older backend.
+  final String? asOf;
+
+  const _UnsettledBalancesSection({required this.rows, this.asOf});
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.reportUnsettledBalances,
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            for (final r in rows)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            r.party,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                          Text(
-                            '${formatCount(context, r.orderCount)} · ${r.daysAged}d',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        formatCurrency(context, r.totalOwed),
-                        textAlign: TextAlign.end,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.orange.shade800,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
+    final owedColor = Colors.orange.shade800;
+    final date = asOf;
+    final sorted = [...rows]..sort((a, b) => b.totalOwed.compareTo(a.totalOwed));
+    return ReportSectionCard(
+      title: l10n.reportUnsettledBalances,
+      subtitle: date == null || date.isEmpty
+          ? null
+          : l10n.rptG1UnsettledAsOf(formatDateString(context, date)),
+      child: ReportTable(
+        columns: [
+          ReportColumn(l10n.rptG1ColCourier, flex: 3),
+          ReportColumn(l10n.reportKpiOrders, numeric: true, flex: 2),
+          ReportColumn(l10n.rptG1ColOwed, numeric: true, flex: 3),
+          ReportColumn(l10n.rptG1ColDaysAged, numeric: true, flex: 2),
+        ],
+        rows: [
+          for (final r in sorted)
+            [
+              r.party,
+              formatCount(context, r.orderCount),
+              formatCurrency(context, r.totalOwed),
+              formatCount(context, r.daysAged),
+            ],
+        ],
+        cellColor: (row, col) => col == 2 ? owedColor : null,
       ),
     );
   }
@@ -1037,45 +745,35 @@ class _DoubleShippingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final negative = theme.colorScheme.error;
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.reportDoubleShipping,
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: _MiniStat(
-                    label: l10n.reportShipKpiTotalOrders,
-                    value: formatCount(context, impact.totalDoubleTrips),
-                  ),
+    final negative = Theme.of(context).colorScheme.error;
+    return ReportSectionCard(
+      title: l10n.reportDoubleShipping,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _MiniStat(
+                  label: l10n.rptG1DoubleTrips,
+                  value: formatCount(context, impact.totalDoubleTrips),
                 ),
-                Expanded(
-                  child: _MiniStat(
-                    label: l10n.reportShipKpiExpense,
-                    value: formatCurrency(context, impact.totalExtraCost),
-                    color: negative,
-                  ),
+              ),
+              Expanded(
+                child: _MiniStat(
+                  label: l10n.rptG1DoubleExtraCost,
+                  value: formatCurrency(context, impact.totalExtraCost),
+                  color: negative,
                 ),
-              ],
-            ),
-            if (impact.trips.isNotEmpty) ...[
-              const Divider(height: 20),
-              for (final t in impact.trips) _DoubleTripRow(trip: t),
+              ),
             ],
+          ),
+          if (impact.trips.isNotEmpty) ...[
+            const Divider(height: 20),
+            for (final t in impact.trips) _DoubleTripRow(trip: t),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -1103,7 +801,7 @@ class _DoubleTripRow extends StatelessWidget {
     final cost = rawCost is num ? rawCost : num.tryParse('$rawCost');
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsetsDirectional.symmetric(vertical: 3),
       child: Row(
         children: [
           Expanded(
@@ -1172,7 +870,7 @@ class _MiniStat extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Shipping overrides (donut + table)
+// Courier cost overrides (money summary + by area)
 // ─────────────────────────────────────────────────────────────────────────
 
 /// Courier-cost overrides as money, not as a list of orders: how much more
@@ -1192,140 +890,127 @@ class _OverridesSection extends StatelessWidget {
     final netColor = s.netEffect > 0 ? extraColor : savedColor;
     String pct(double v) => v.toStringAsFixed(v.abs() >= 10 ? 0 : 1);
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.reportOverridesTitle,
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+    return ReportSectionCard(
+      title: l10n.reportOverridesTitle,
+      subtitle: l10n.reportOverridesHint,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(l10n.reportOverridesNetExtra, style: theme.textTheme.labelMedium),
+          Text(
+            formatCurrency(context, s.netEffect),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: netColor,
             ),
-            Text(
-              l10n.reportOverridesHint,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+          ),
+          Text(
+            l10n.reportOverridesVsStandard(pct(s.netEffectPct)),
+            style: theme.textTheme.labelSmall,
+          ),
+          const Divider(height: 20),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _OverrideStat(
+                label: l10n.reportOverridesExtraPaid,
+                value: formatCurrency(context, s.approvedExtra),
+                sub: l10n.reportOverridesIncreases(
+                  s.increases,
+                  formatCurrency(context, s.avgIncrease),
+                ),
+                color: extraColor,
               ),
-            ),
-            const SizedBox(height: 12),
-            Text(l10n.reportOverridesNetExtra,
-                style: theme.textTheme.labelMedium),
-            Text(
-              formatCurrency(context, s.netEffect),
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: netColor,
+              const SizedBox(width: 8),
+              _OverrideStat(
+                label: l10n.reportOverridesSaved,
+                value: formatCurrency(context, s.approvedSaved),
+                sub: l10n.reportOverridesDecreases(s.decreases),
+                color: savedColor,
               ),
-            ),
+            ],
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _OverrideStat(
+                label: l10n.reportOverridesShare,
+                value: '${pct(s.exceptionRatePct)}%',
+                sub: l10n.reportOverridesShareOf(s.approved, s.deliveryOrders),
+              ),
+              const SizedBox(width: 8),
+              _OverrideStat(
+                label: l10n.reportOverridesDecisions,
+                value: '${pct(s.approvalRate)}%',
+                sub: l10n.reportOverridesDecisionsValue(
+                  s.approved,
+                  s.rejected,
+                  s.pending,
+                ),
+              ),
+            ],
+          ),
+          if (s.maxIncreasePct > 0)
             Text(
-              l10n.reportOverridesVsStandard(pct(s.netEffectPct)),
+              l10n.reportOverridesLargest(pct(s.maxIncreasePct)),
               style: theme.textTheme.labelSmall,
             ),
+          if (s.pending > 0 && s.pendingExtra != 0)
+            Text(
+              l10n.reportOverridesPendingExtra(
+                formatCurrency(context, s.pendingExtra),
+              ),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: Colors.orange.shade800,
+              ),
+            ),
+          if (breakdown.byArea.isNotEmpty) ...[
             const Divider(height: 20),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _OverrideStat(
-                  label: l10n.reportOverridesExtraPaid,
-                  value: formatCurrency(context, s.approvedExtra),
-                  sub: l10n.reportOverridesIncreases(
-                    s.increases,
-                    formatCurrency(context, s.avgIncrease),
-                  ),
-                  color: extraColor,
-                ),
-                const SizedBox(width: 8),
-                _OverrideStat(
-                  label: l10n.reportOverridesSaved,
-                  value: formatCurrency(context, s.approvedSaved),
-                  sub: l10n.reportOverridesDecreases(s.decreases),
-                  color: savedColor,
-                ),
-              ],
+            Text(
+              l10n.reportOverridesByArea,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _OverrideStat(
-                  label: l10n.reportOverridesShare,
-                  value: '${pct(s.exceptionRatePct)}%',
-                  sub: l10n.reportOverridesShareOf(s.approved, s.deliveryOrders),
-                ),
-                const SizedBox(width: 8),
-                _OverrideStat(
-                  label: l10n.reportOverridesDecisions,
-                  value: '${pct(s.approvalRate)}%',
-                  sub: l10n.reportOverridesDecisionsValue(
-                    s.approved,
-                    s.rejected,
-                    s.pending,
-                  ),
-                ),
-              ],
-            ),
-            if (s.maxIncreasePct > 0)
-              Text(
-                l10n.reportOverridesLargest(pct(s.maxIncreasePct)),
-                style: theme.textTheme.labelSmall,
-              ),
-            if (s.pending > 0 && s.pendingExtra != 0)
-              Text(
-                l10n.reportOverridesPendingExtra(
-                  formatCurrency(context, s.pendingExtra),
-                ),
-                style: theme.textTheme.labelSmall
-                    ?.copyWith(color: Colors.orange.shade800),
-              ),
-            if (breakdown.byArea.isNotEmpty) ...[
-              const Divider(height: 20),
-              Text(
-                l10n.reportOverridesByArea,
-                style: theme.textTheme.labelMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              for (final a in breakdown.byArea)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${a['territory'] ?? ''}',
-                          style: theme.textTheme.bodySmall,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+            const SizedBox(height: 4),
+            for (final a in breakdown.byArea)
+              Padding(
+                padding: const EdgeInsetsDirectional.symmetric(vertical: 3),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${a['territory'] ?? ''}',
+                        style: theme.textTheme.bodySmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      Text(
-                        l10n.reportOverridesDecreases(
-                          (a['count'] as num?)?.toInt() ?? 0,
-                        ),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                    ),
+                    Text(
+                      l10n.rptG1OverridesCount(
+                        (a['count'] as num?)?.toInt() ?? 0,
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        formatCurrency(
-                          context,
-                          (a['net'] as num?)?.toDouble() ?? 0,
-                        ),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: extraColor,
-                        ),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      formatCurrency(
+                        context,
+                        (a['net'] as num?)?.toDouble() ?? 0,
+                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: extraColor,
+                      ),
+                    ),
+                  ],
                 ),
-            ],
+              ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -1351,7 +1036,7 @@ class _OverrideStat extends StatelessWidget {
     );
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsetsDirectional.symmetric(vertical: 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

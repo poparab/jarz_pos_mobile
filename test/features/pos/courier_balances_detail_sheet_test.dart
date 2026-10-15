@@ -176,7 +176,7 @@ void main() {
     // The row's own Settle opens its confirm dialog.
     await tester.tap(find.widgetWithText(ElevatedButton, 'Settle'));
     await tester.pumpAndSettle();
-    expect(find.text('Collect 125.00'), findsOneWidget);
+    expect(find.text('Collect EGP125.00'), findsOneWidget);
 
     // A websocket refresh lands while the dialog is open and disposes the row.
     unawaited(container.read(courierBalancesProvider.notifier).load());

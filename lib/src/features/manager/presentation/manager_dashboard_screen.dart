@@ -228,7 +228,7 @@ class _SummaryHeader extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(b.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        Text(b.balance.toStringAsFixed(2), style: currencyStyle),
+                        Text(formatCurrency(context, b.balance), style: currencyStyle),
                       ],
                     ),
                   ),
@@ -239,7 +239,7 @@ class _SummaryHeader extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(l10n.managerTotalCash),
-                Text(summary.totalBalance.toStringAsFixed(2), style: currencyStyle),
+                Text(formatCurrency(context, summary.totalBalance), style: currencyStyle),
               ],
             ),
           ],
@@ -293,7 +293,7 @@ class _OrderTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(invoice.grandTotal.toStringAsFixed(2), style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(formatCurrency(context, invoice.grandTotal), style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(width: 8),
             _ChangeBranchButton(invoice: invoice),
           ],
@@ -336,7 +336,9 @@ class _PendingCustomShippingSection extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        '\$${item.originalAmount.toStringAsFixed(2)} → \$${item.requestedAmount.toStringAsFixed(2)}',
+                        '${formatCurrency(context, item.originalAmount)} '
+                        '${Directionality.of(context) == TextDirection.rtl ? '←' : '→'} '
+                        '${formatCurrency(context, item.requestedAmount)}',
                         style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange),
                       ),
                     ],

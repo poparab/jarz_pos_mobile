@@ -6,42 +6,74 @@ import 'package:intl/intl.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
+import '../../../../core/network/user_service.dart';
+import '../../data/customer_segments_repository.dart';
 import '../../data/models/customer_analytics.dart';
+import '../../data/models/customer_segments.dart';
+import '../../data/models/report_envelopes.dart';
 import '../../data/models/report_json.dart';
+import '../../state/customer_segments_providers.dart';
 import '../../state/reports_providers.dart';
 import '../widgets/kpi_card.dart';
 import '../widgets/report_chart_card.dart';
-import '../widgets/report_date_range_bar.dart';
+import '../widgets/report_export_button.dart';
+import '../widgets/report_filter_bar.dart';
+import '../widgets/report_section_card.dart';
+import '../widgets/report_states.dart';
+import 'customer_segments_screen.dart';
 
-/// Customer Analytics dashboard: RFM segmentation, retention KPIs, top and
-/// at-risk customers, and new-customer acquisition. Reads the shared date range
-/// and the `customerAnalyticsProvider` family. RTL/Arabic-safe.
+/// Customers: retention KPIs, the RFM segment list (each opens its customer
+/// list, where a customer can be pinned), segment distribution, top and
+/// at-risk customers, and new-customer acquisition. Absorbs the old Customer
+/// Segments screen, including its manager-tier recalculation.
+///
+/// Reads `customerReportProvider(reportQuery)`: one call returns the
+/// analytics and the inlined `segments_summary`. RTL/Arabic-safe.
 class CustomerAnalyticsScreen extends ConsumerWidget {
   const CustomerAnalyticsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final range = ref.watch(reportRangeProvider);
-    final async = ref.watch(customerAnalyticsProvider(range));
+    final query = ref.watch(reportQueryProvider);
+    final async = ref.watch(customerReportProvider(query));
+    final roles = ref.watch(userRolesFutureProvider).valueOrNull;
+    final canRecalculate = roles?.canViewAllReports ?? false;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.reportCustomerTitle)),
+      appBar: AppBar(
+        title: Text(l10n.reportCustomerTitle),
+        actions: [
+          ReportExportButton(
+            title: l10n.reportTopCustomers,
+            rows: () => _topCustomersCsv(
+              context,
+              async.valueOrNull?.data.topCustomers ?? const [],
+            ),
+          ),
+          if (canRecalculate)
+            IconButton(
+              icon: const Icon(Icons.autorenew),
+              tooltip: l10n.segmentReportRecalculateAction,
+              onPressed: () => _confirmAndRecalculate(context, ref),
+            ),
+        ],
+      ),
       body: Column(
         children: [
-          const ReportDateRangeBar(),
+          const ReportFilterBar(),
           Expanded(
-            child: async.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
-              error: (e, _) => _ErrorRetry(
-                onRetry: () =>
-                    ref.invalidate(customerAnalyticsProvider(range)),
-              ),
-              data: (data) => RefreshIndicator(
-                onRefresh: () async =>
-                    ref.invalidate(customerAnalyticsProvider(range)),
-                child: _CustomerAnalyticsBody(data: data),
+            child: RefreshIndicator(
+              onRefresh: () => ref.refresh(customerReportProvider(query).future),
+              child: async.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (e, _) => ReportErrorView(
+                  error: e,
+                  onRetry: () =>
+                      ref.invalidate(customerReportProvider(query)),
+                ),
+                data: (report) => _CustomerAnalyticsBody(report: report),
               ),
             ),
           ),
@@ -49,62 +81,101 @@ class CustomerAnalyticsScreen extends ConsumerWidget {
       ),
     );
   }
-}
 
-// ── Error / retry ──────────────────────────────────────────────────────────
-
-class _ErrorRetry extends StatelessWidget {
-  final VoidCallback onRetry;
-  const _ErrorRetry({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
+  Future<void> _confirmAndRecalculate(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 40,
-              color: theme.colorScheme.error,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.reportError,
-              style: theme.textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            FilledButton.tonalIcon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: Text(l10n.reportsRetry),
-            ),
-          ],
-        ),
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.segmentReportRecalculateConfirmTitle),
+        content: Text(l10n.segmentReportRecalculateConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.segmentReportRecalculateAction),
+          ),
+        ],
       ),
     );
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final repo = ref.read(customerSegmentsRepositoryProvider);
+      final result = await repo.runSegmentationNow();
+      ref.invalidate(customerReportProvider);
+      ref.invalidate(segmentSummaryProvider);
+      ref.invalidate(segmentCustomersProvider);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.segmentReportRecalculateSuccess(
+              ReportJson.integer(result['updated']),
+            ),
+          ),
+        ),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.segmentReportRecalculateError)),
+      );
+    }
   }
+}
+
+/// CSV rows (localised header first) for the top-customers table. Numbers
+/// stay raw so a spreadsheet can sum them.
+List<List<String>> _topCustomersCsv(BuildContext context, List<JsonMap> rows) {
+  final l10n = context.l10n;
+  return [
+    [
+      l10n.commonCustomerLabel,
+      l10n.reportsColumnSegment,
+      l10n.reportKpiRevenue,
+      l10n.reportKpiOrders,
+      l10n.reportsColumnRecencyDays,
+    ],
+    for (final m in rows)
+      [
+        _readStr(m, ['customer_name', 'customer']),
+        localizedCustomerSegment(context, _readStr(m, ['segment'])),
+        _readNum(m, ['revenue']).toStringAsFixed(2),
+        _readNum(m, ['orders']).round().toString(),
+        _readNum(m, ['recency_days']).round().toString(),
+      ],
+  ];
 }
 
 // ── Body ───────────────────────────────────────────────────────────────────
 
 class _CustomerAnalyticsBody extends StatelessWidget {
-  final CustomerAnalytics data;
-  const _CustomerAnalyticsBody({required this.data});
+  final CustomerReport report;
+  const _CustomerAnalyticsBody({required this.report});
 
   @override
   Widget build(BuildContext context) {
+    final data = report.data;
     final atRisk = data.atRiskCustomers;
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsetsDirectional.all(8),
       children: [
         _KpiSection(summary: data.summary),
+        const SizedBox(height: 12),
+        // Older servers do not inline the summary: fall back to the
+        // segmentation endpoint so the list is never missing.
+        if (report.segmentsSummary.isNotEmpty)
+          _SegmentsSection(rows: report.segmentsSummary)
+        else
+          const _SegmentsFromProvider(),
         const SizedBox(height: 12),
         _SegmentDistributionCard(
           distribution: data.segmentDistribution,
@@ -123,6 +194,153 @@ class _CustomerAnalyticsBody extends StatelessWidget {
         const SizedBox(height: 24),
       ],
     );
+  }
+}
+
+// ── Segments (merged from the Customer Segments screen) ──────────────────
+
+class _SegmentsFromProvider extends ConsumerWidget {
+  const _SegmentsFromProvider();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(segmentSummaryProvider);
+    return async.when(
+      loading: () => const Padding(
+        padding: EdgeInsetsDirectional.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      // The rest of the report is still useful; show the empty list.
+      error: (_, _) => const _SegmentsSection(rows: []),
+      data: (rows) => _SegmentsSection(rows: rows),
+    );
+  }
+}
+
+class _SegmentsSection extends StatelessWidget {
+  final List<SegmentSummaryRow> rows;
+  const _SegmentsSection({required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    // Pseudo rows (e.g. "Regular") overlap the real segments; leave them out
+    // of the total or every regular customer is counted twice.
+    final total =
+        rows.where((r) => !r.pseudo).fold<int>(0, (s, r) => s + r.count);
+    final hasPseudo = rows.any((r) => r.pseudo);
+
+    return ReportSectionCard(
+      title: l10n.rptCustomersSegmentsTitle,
+      subtitle: l10n.rptCustomersSegmentsSubtitle,
+      childPadding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 4),
+            child: Text(
+              '${l10n.segmentReportTotalCustomers}: '
+              '${formatCount(context, total)}',
+              style: theme.textTheme.labelLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+          if (rows.isEmpty)
+            Padding(
+              padding: const EdgeInsetsDirectional.all(16),
+              child: Text(
+                l10n.reportsNoData,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ),
+          for (final row in rows) _SegmentTile(row: row),
+          if (hasPseudo)
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 0),
+              child: Text(
+                l10n.rptG2SegmentsOverlayNote,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SegmentTile extends StatelessWidget {
+  final SegmentSummaryRow row;
+  const _SegmentTile({required this.row});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final color = _segmentColor(row.segment);
+
+    return ListTile(
+      dense: true,
+      leading: CircleAvatar(
+        radius: 16,
+        backgroundColor: color.withValues(alpha: 0.14),
+        foregroundColor: color,
+        child: Icon(_segmentIcon(row.segment), size: 16),
+      ),
+      title: Text(localizedCustomerSegment(context, row.segment)),
+      subtitle: row.pseudo
+          ? Text(l10n.rptG2SegmentOverlay, style: theme.textTheme.bodySmall)
+          : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            formatCount(context, row.count),
+            style: theme.textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: 4),
+          const Icon(Icons.chevron_right),
+        ],
+      ),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => SegmentCustomersScreen(segment: row.segment),
+        ),
+      ),
+    );
+  }
+}
+
+IconData _segmentIcon(String segment) {
+  switch (segment.trim().toLowerCase()) {
+    case 'champion':
+    case 'champions':
+      return Icons.star;
+    case 'loyal':
+      return Icons.favorite;
+    case 'potential loyalist':
+      return Icons.trending_up;
+    case 'new customer':
+      return Icons.fiber_new_outlined;
+    case 'at risk':
+      return Icons.warning_amber_outlined;
+    case "can't lose them":
+      return Icons.priority_high;
+    case 'lost':
+      return Icons.person_off_outlined;
+    case 'one-time':
+      return Icons.looks_one_outlined;
+    case 'regular':
+    case 'regulars':
+      return Icons.verified_outlined;
+    default:
+      return Icons.help_outline;
   }
 }
 
@@ -163,7 +381,10 @@ class _KpiSection extends StatelessWidget {
       ),
       _Kpi(
         label: l10n.reportKpiRepeatRate,
-        value: '${ratePct.toStringAsFixed(1)}%',
+        value: NumberFormat.decimalPercentPattern(
+          locale: l10n.localeName,
+          decimalDigits: 1,
+        ).format(ratePct / 100),
         icon: Icons.repeat,
         color: scheme.secondary,
       ),
@@ -283,7 +504,7 @@ class _SegmentDistributionCard extends StatelessWidget {
               bars: [
                 for (final r in rows)
                   _Bar(
-                    label: r.segment,
+                    label: localizedCustomerSegment(context, r.segment),
                     value: r.revenue,
                     color: _segmentColor(r.segment),
                     tooltip: formatCompactCurrency(context, r.revenue),
@@ -353,7 +574,7 @@ class _SegmentDistributionCard extends StatelessWidget {
               children: [
                 for (final r in rows)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    padding: const EdgeInsetsDirectional.symmetric(vertical: 3),
                     child: Row(
                       children: [
                         Container(
@@ -367,7 +588,7 @@ class _SegmentDistributionCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            r.segment,
+                            localizedCustomerSegment(context, r.segment),
                             style: theme.textTheme.bodySmall,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -482,6 +703,8 @@ class _TopCustomersCard extends StatelessWidget {
       isEmpty: rows.isEmpty,
       emptyText: l10n.reportNoData,
       child: DataTable(
+        // Rows open a customer summary; no selection checkboxes.
+        showCheckboxColumn: false,
         headingRowHeight: 36,
         dataRowMinHeight: 36,
         dataRowMaxHeight: 48,
@@ -497,6 +720,7 @@ class _TopCustomersCard extends StatelessWidget {
         rows: [
           for (final m in rows)
             DataRow(
+              onSelectChanged: (_) => _showCustomerSummary(context, m),
               cells: [
                 DataCell(Text(
                   _readStr(
@@ -529,6 +753,74 @@ class _TopCustomersCard extends StatelessWidget {
   }
 }
 
+/// Bottom sheet with one top/at-risk customer's figures.
+void _showCustomerSummary(BuildContext context, JsonMap m) {
+  showModalBottomSheet<void>(
+    context: context,
+    builder: (ctx) {
+      final l10n = ctx.l10n;
+      final theme = Theme.of(ctx);
+      final name = _readStr(m, ['customer_name', 'customer'], '—');
+      final code = _readStr(m, ['customer']);
+      final revenue = _readNum(m, ['revenue']);
+      final orders = _readNum(m, ['orders']);
+      final aov = m.containsKey('avg_aov')
+          ? _readNum(m, ['avg_aov'])
+          : (orders > 0 ? revenue / orders : 0.0);
+      Widget line(String label, String value) => Padding(
+            padding: const EdgeInsetsDirectional.symmetric(vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(label, style: theme.textTheme.bodyMedium),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          );
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.rptG2CustomerSummaryTitle,
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              Text(name, style: theme.textTheme.bodyMedium),
+              if (code.isNotEmpty && code != name)
+                Text(code, style: theme.textTheme.bodySmall),
+              const SizedBox(height: 12),
+              line(
+                l10n.reportsColumnSegment,
+                localizedCustomerSegment(ctx, _readStr(m, ['segment'])),
+              ),
+              if (m.containsKey('revenue'))
+                line(l10n.reportKpiRevenue, formatCurrency(ctx, revenue)),
+              if (m.containsKey('orders'))
+                line(l10n.reportKpiOrders, formatCount(ctx, orders)),
+              if (aov > 0) line(l10n.reportsColumnAov, formatCurrency(ctx, aov)),
+              if (m.containsKey('recency_days'))
+                line(
+                  l10n.reportsColumnRecencyDays,
+                  l10n.rptG2RecencyDaysAgo(
+                    formatCount(ctx, _readNum(m, ['recency_days']).round()),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
 // ── At-risk / win-back table ───────────────────────────────────────────────
 
 class _AtRiskCard extends StatelessWidget {
@@ -543,6 +835,7 @@ class _AtRiskCard extends StatelessWidget {
       isEmpty: rows.isEmpty,
       emptyText: l10n.reportNoData,
       child: DataTable(
+        showCheckboxColumn: false,
         headingRowHeight: 36,
         dataRowMinHeight: 36,
         dataRowMaxHeight: 48,
@@ -557,6 +850,7 @@ class _AtRiskCard extends StatelessWidget {
         rows: [
           for (final m in rows)
             DataRow(
+              onSelectChanged: (_) => _showCustomerSummary(context, m),
               cells: [
                 DataCell(Text(
                   _readStr(m, ['customer_name', 'customer'], '—'),
@@ -751,7 +1045,7 @@ class _TableCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsetsDirectional.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -765,7 +1059,7 @@ class _TableCard extends StatelessWidget {
             const SizedBox(height: 12),
             if (isEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
+                padding: const EdgeInsetsDirectional.symmetric(vertical: 24),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

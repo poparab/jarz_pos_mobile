@@ -9,16 +9,19 @@ import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/b2b_sales_clients.dart';
 import '../../state/reports_providers.dart';
 import '../widgets/kpi_card.dart';
-import '../widgets/report_alert_text.dart';
+import '../widgets/report_alerts_card.dart';
 import '../widgets/report_chart_card.dart';
-import '../widgets/report_date_range_bar.dart';
+import '../widgets/report_export_button.dart';
+import '../widgets/report_filter_bar.dart';
+import '../widgets/report_states.dart';
 
 /// The B2B Sales & Clients dashboard: the flagship analytics screen. Renders KPI
 /// tiles, a stage-coloured sales-pipeline funnel, a revenue/orders trend line,
 /// top-client and client-group tables, revenue-by-policy donut, revenue-by-
 /// territory bars, reorder-due and at-risk client feeds, a conversion stat row
 /// and an alerts feed. Data comes from [b2bSalesClientsProvider], keyed by the
-/// shared [reportRangeProvider]. Fully RTL/Arabic-aware.
+/// shared [reportRangeProvider] (B2B has no branch dimension, so the filter
+/// bar hides the branch selector). Fully RTL/Arabic-aware.
 class B2bSalesClientsScreen extends ConsumerWidget {
   const B2bSalesClientsScreen({super.key});
 
@@ -28,23 +31,33 @@ class B2bSalesClientsScreen extends ConsumerWidget {
     final range = ref.watch(reportRangeProvider);
     final async = ref.watch(b2bSalesClientsProvider(range));
 
+    Future<void> refresh() => ref.refresh(b2bSalesClientsProvider(range).future);
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.reportB2bTitle)),
+      appBar: AppBar(
+        title: Text(l10n.reportB2bTitle),
+        actions: [
+          ReportExportButton(
+            title: l10n.reportB2bTitle,
+            rows: () => _b2bExportRows(context, async.valueOrNull),
+          ),
+        ],
+      ),
       body: Column(
         children: [
-          const ReportDateRangeBar(),
+          const ReportFilterBar(showBranch: false),
           Expanded(
             child: async.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => _ErrorView(
-                onRetry: () =>
-                    ref.invalidate(b2bSalesClientsProvider(range)),
+              error: (e, _) => RefreshIndicator(
+                onRefresh: refresh,
+                child: ReportErrorView(
+                  error: e,
+                  onRetry: () => ref.invalidate(b2bSalesClientsProvider(range)),
+                ),
               ),
               data: (data) => RefreshIndicator(
-                onRefresh: () async {
-                  ref.invalidate(b2bSalesClientsProvider(range));
-                  await ref.read(b2bSalesClientsProvider(range).future);
-                },
+                onRefresh: refresh,
                 child: _B2bDashboardBody(data: data),
               ),
             ),
@@ -53,6 +66,30 @@ class B2bSalesClientsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// CSV: the top clients with their segment.
+List<List<String>> _b2bExportRows(
+  BuildContext context,
+  B2bSalesAnalytics? data,
+) {
+  if (data == null) return const [];
+  final l10n = context.l10n;
+  return [
+    [
+      l10n.rptG1ColClient,
+      l10n.reportKpiRevenue,
+      l10n.reportKpiOrders,
+      l10n.reportsColumnSegment,
+    ],
+    for (final c in data.topClients)
+      [
+        c.customerName.isEmpty ? c.customer : c.customerName,
+        c.revenue.toStringAsFixed(2),
+        '${c.orders}',
+        c.segment,
+      ],
+  ];
 }
 
 // ── Stage helpers (mirrors b2b_stage_chip.dart; replicated locally so this
@@ -92,32 +129,6 @@ Color _stageColor(String stage) {
   }
 }
 
-Color _alertColor(BuildContext context, String type) {
-  switch (type) {
-    case 'danger':
-      return Colors.red;
-    case 'warning':
-      return Colors.orange;
-    case 'success':
-      return Colors.green;
-    default:
-      return Theme.of(context).colorScheme.primary;
-  }
-}
-
-IconData _alertIcon(String type) {
-  switch (type) {
-    case 'danger':
-      return Icons.error_outline;
-    case 'warning':
-      return Icons.warning_amber_outlined;
-    case 'success':
-      return Icons.check_circle_outline;
-    default:
-      return Icons.info_outline;
-  }
-}
-
 // ── Body ───────────────────────────────────────────────────────────────────
 
 class _B2bDashboardBody extends StatelessWidget {
@@ -126,12 +137,20 @@ class _B2bDashboardBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final alerts = [
+      for (final a in data.alerts)
+        ReportAlert(
+          message: a.message,
+          severity: ReportAlertSeverity.parse(a.type),
+        ),
+    ];
     return ListView(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 12, 24),
       children: [
-        if (data.alerts.isNotEmpty) ...[
-          _AlertsCard(alerts: data.alerts),
-          const SizedBox(height: 12),
+        if (alerts.isNotEmpty) ...[
+          ReportAlertsCard(alerts: alerts),
+          const SizedBox(height: 6),
         ],
         _KpiGrid(summary: data.summary),
         const SizedBox(height: 12),
@@ -160,97 +179,6 @@ class _B2bDashboardBody extends StatelessWidget {
         const SizedBox(height: 12),
         _ConversionCard(conversion: data.conversion),
       ],
-    );
-  }
-}
-
-// ── Error ────────────────────────────────────────────────────────────────
-
-class _ErrorView extends StatelessWidget {
-  final VoidCallback onRetry;
-  const _ErrorView({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 12),
-            Text(l10n.reportError, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: Text(l10n.reportsRetry),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Alerts ───────────────────────────────────────────────────────────────
-
-class _AlertsCard extends StatelessWidget {
-  final List<B2bSalesAlert> alerts;
-  const _AlertsCard({required this.alerts});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.reportAlerts,
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            for (final alert in alerts) _AlertRow(alert: alert),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AlertRow extends StatelessWidget {
-  final B2bSalesAlert alert;
-  const _AlertRow({required this.alert});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _alertColor(context, alert.type);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(_alertIcon(alert.type), size: 18, color: color),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              stripHtml(alert.message),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -567,10 +495,10 @@ class _TopClientsTable extends StatelessWidget {
     return _TableCard(
       title: l10n.reportTopClients,
       isEmpty: clients.isEmpty,
-      header: const [
-        _Col('', 3),
-        _Col('', 2),
-        _Col('#', 1),
+      header: [
+        _Col(l10n.rptG1ColClient, 3),
+        _Col(l10n.reportKpiRevenue, 2, numeric: true),
+        _Col(l10n.reportKpiOrders, 1, numeric: true),
       ],
       rows: [
         for (final c in clients)
@@ -578,6 +506,7 @@ class _TopClientsTable extends StatelessWidget {
             _TextCell(
               c.customerName.isEmpty ? c.customer : c.customerName,
               flex: 3,
+              badge: _SegmentChip(segment: c.segment),
             ),
             _TextCell(
               formatCompactCurrency(context, c.revenue),
@@ -589,7 +518,7 @@ class _TopClientsTable extends StatelessWidget {
               flex: 1,
               align: TextAlign.end,
             ),
-          ], trailing: _SegmentChip(segment: c.segment)),
+          ]),
       ],
     );
   }
@@ -660,7 +589,7 @@ class _RevenueByPolicyDonut extends StatelessWidget {
                     children: [
                       for (var i = 0; i < rows.length; i++)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 3),
+                          padding: const EdgeInsetsDirectional.symmetric(vertical: 3),
                           child: _LegendRow(
                             color: _palette[i % _palette.length],
                             label: rows[i].policy,
@@ -786,10 +715,10 @@ class _ClientsByGroupTable extends StatelessWidget {
     return _TableCard(
       title: l10n.reportClientsByGroup,
       isEmpty: rows.isEmpty,
-      header: const [
-        _Col('', 3),
-        _Col('#', 1),
-        _Col('', 2),
+      header: [
+        _Col(l10n.rptG1ColGroup, 3),
+        _Col(l10n.rptG1ColClients, 1, numeric: true),
+        _Col(l10n.reportKpiRevenue, 2, numeric: true),
       ],
       rows: [
         for (final r in rows)
@@ -823,10 +752,10 @@ class _ReorderDueTable extends StatelessWidget {
     return _TableCard(
       title: l10n.reportReorderDue,
       isEmpty: rows.isEmpty,
-      header: const [
-        _Col('', 3),
-        _Col('', 2),
-        _Col('', 2),
+      header: [
+        _Col(l10n.rptG1ColClient, 3),
+        _Col(l10n.rptG1ColLastOrder, 2, numeric: true),
+        _Col(l10n.rptG1ColDaysSince, 2, numeric: true),
       ],
       rows: [
         for (final r in rows)
@@ -841,7 +770,7 @@ class _ReorderDueTable extends StatelessWidget {
               align: TextAlign.end,
             ),
             _TextCell(
-              '${r.daysSince}d',
+              formatCount(context, r.daysSince),
               flex: 2,
               align: TextAlign.end,
               color: Colors.orange.shade800,
@@ -864,10 +793,10 @@ class _AtRiskTable extends StatelessWidget {
     return _TableCard(
       title: l10n.reportAtRiskClients,
       isEmpty: rows.isEmpty,
-      header: const [
-        _Col('', 3),
-        _Col('', 2),
-        _Col('', 2),
+      header: [
+        _Col(l10n.rptG1ColClient, 3),
+        _Col(l10n.reportsColumnRecencyDays, 2, numeric: true),
+        _Col(l10n.reportKpiRevenue, 2, numeric: true),
       ],
       rows: [
         for (final r in rows)
@@ -875,9 +804,10 @@ class _AtRiskTable extends StatelessWidget {
             _TextCell(
               r.customerName.isEmpty ? r.customer : r.customerName,
               flex: 3,
+              badge: _SegmentChip(segment: r.segment),
             ),
             _TextCell(
-              '${r.recencyDays}d',
+              formatCount(context, r.recencyDays),
               flex: 2,
               align: TextAlign.end,
               color: Colors.red.shade700,
@@ -887,7 +817,7 @@ class _AtRiskTable extends StatelessWidget {
               flex: 2,
               align: TextAlign.end,
             ),
-          ], trailing: _SegmentChip(segment: r.segment)),
+          ]),
       ],
     );
   }
@@ -906,7 +836,7 @@ class _ConversionCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsetsDirectional.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -985,7 +915,7 @@ class _SegmentChip extends StatelessWidget {
     if (segment.trim().isEmpty) return const SizedBox.shrink();
     final color = _segmentColor(segment);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(10),
@@ -1100,12 +1030,13 @@ class _LegendRow extends StatelessWidget {
   }
 }
 
-/// Column descriptor for [_TableCard]: an (unused-when-empty) header label and
-/// its flex weight, kept parallel to the per-row cells.
+/// Column descriptor for [_TableCard]: the header label and its flex weight,
+/// kept parallel to the per-row cells. Numeric columns align to the end.
 class _Col {
   final String label;
   final int flex;
-  const _Col(this.label, this.flex);
+  final bool numeric;
+  const _Col(this.label, this.flex, {this.numeric = false});
 }
 
 class _TextCell {
@@ -1113,18 +1044,23 @@ class _TextCell {
   final int flex;
   final TextAlign align;
   final Color? color;
+
+  /// Shown after the text inside the same cell (e.g. a segment chip), so the
+  /// columns stay aligned with the header.
+  final Widget? badge;
+
   const _TextCell(
     this.text, {
     required this.flex,
     this.align = TextAlign.start,
     this.color,
+    this.badge,
   });
 }
 
 class _TableRow {
   final List<_TextCell> cells;
-  final Widget? trailing;
-  const _TableRow({required this.cells, this.trailing});
+  const _TableRow({required this.cells});
 }
 
 /// A lightweight, RTL-safe table rendered as a titled card. Uses [Expanded]
@@ -1148,7 +1084,7 @@ class _TableCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsetsDirectional.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1158,9 +1094,32 @@ class _TableCard extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
+            if (!isEmpty && header.any((c) => c.label.isNotEmpty))
+              Padding(
+                padding: const EdgeInsetsDirectional.only(bottom: 2),
+                child: Row(
+                  children: [
+                    for (final col in header)
+                      Expanded(
+                        flex: col.flex,
+                        child: Text(
+                          col.label,
+                          textAlign:
+                              col.numeric ? TextAlign.end : TextAlign.start,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             if (isEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsetsDirectional.symmetric(vertical: 16),
                 child: Center(
                   child: Text(
                     context.l10n.reportNoData,
@@ -1173,7 +1132,7 @@ class _TableCard extends StatelessWidget {
             else
               for (var i = 0; i < rows.length; i++)
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  padding: const EdgeInsetsDirectional.symmetric(vertical: 6),
                   decoration: BoxDecoration(
                     border: Border(
                       top: i == 0
@@ -1188,20 +1147,8 @@ class _TableCard extends StatelessWidget {
                       for (final cell in rows[i].cells)
                         Expanded(
                           flex: cell.flex,
-                          child: Text(
-                            cell.text,
-                            textAlign: cell.align,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: cell.color,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          child: _cellContent(theme, cell),
                         ),
-                      if (rows[i].trailing != null) ...[
-                        const SizedBox(width: 8),
-                        rows[i].trailing!,
-                      ],
                     ],
                   ),
                 ),
@@ -1210,6 +1157,25 @@ class _TableCard extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _cellContent(ThemeData theme, _TextCell cell) {
+  final text = Text(
+    cell.text,
+    textAlign: cell.align,
+    style: theme.textTheme.bodySmall?.copyWith(color: cell.color),
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+  );
+  final badge = cell.badge;
+  if (badge == null) return text;
+  return Row(
+    children: [
+      Flexible(child: text),
+      const SizedBox(width: 6),
+      badge,
+    ],
+  );
 }
 
 String _shortDate(BuildContext context, String iso) {

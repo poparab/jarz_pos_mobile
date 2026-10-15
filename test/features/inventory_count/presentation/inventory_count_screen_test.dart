@@ -97,6 +97,7 @@ Future<void> _pumpInventoryCountScreen(
       overrides: [
         inventoryCountServiceProvider.overrideWithValue(service),
         managerAccessProvider.overrideWith((ref) async => true),
+        canAccessInventoryCountProvider.overrideWithValue(true),
         isJarzManagerProvider.overrideWith((ref) => false),
         isLineManagerProvider.overrideWith((ref) => false),
         canActAsLineManagerProvider.overrideWith((ref) => false),

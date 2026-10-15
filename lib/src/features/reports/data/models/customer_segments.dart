@@ -53,3 +53,35 @@ List<JsonMap> parseSegmentRows(dynamic value) {
       .map((e) => Map<String, dynamic>.from(e))
       .toList(growable: false);
 }
+
+/// Pseudo (overlay) segments the summary adds on top of the RFM buckets.
+/// Their membership overlaps real segments, so they are never a valid
+/// `manual_segment` for a pin.
+const kPseudoSegmentNames = {'regular', 'regulars'};
+
+/// True when [segment] is an overlay rather than a real RFM bucket: listed
+/// in [kPseudoSegmentNames] or flagged `pseudo` by the server in
+/// [pseudoSegments].
+bool isPseudoSegment(
+  String? segment, {
+  Iterable<String> pseudoSegments = const [],
+}) {
+  final key = segment?.trim().toLowerCase() ?? '';
+  if (key.isEmpty) return false;
+  if (kPseudoSegmentNames.contains(key)) return true;
+  return pseudoSegments.any((p) => p.trim().toLowerCase() == key);
+}
+
+/// The `manual_segment` to send when pinning a customer whose current RFM
+/// segment is [currentSegment], or null to let the server pin whatever
+/// segment the customer holds now. Never returns a blank or pseudo segment
+/// (the server rejects "Regular" as a manual segment).
+String? manualSegmentForPin(
+  String? currentSegment, {
+  Iterable<String> pseudoSegments = const [],
+}) {
+  final s = currentSegment?.trim() ?? '';
+  if (s.isEmpty) return null;
+  if (isPseudoSegment(s, pseudoSegments: pseudoSegments)) return null;
+  return s;
+}

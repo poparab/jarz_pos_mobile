@@ -5,43 +5,59 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/product_analytics.dart';
+import '../../data/models/report_envelopes.dart';
 import '../../data/models/report_json.dart';
 import '../../state/reports_providers.dart';
 import '../widgets/kpi_card.dart';
 import '../widgets/report_chart_card.dart';
-import '../widgets/report_date_range_bar.dart';
+import '../widgets/report_export_button.dart';
+import '../widgets/report_filter_bar.dart';
+import '../widgets/report_states.dart';
+import '../widgets/report_table.dart';
 
 /// Product Analytics dashboard: revenue, gross profit and best sellers broken
-/// down by product type, individual product, territory and time. Consumes
-/// `productAnalyticsProvider` (keyed by the shared report date range). Every
-/// section degrades to an empty state instead of crashing on missing keys, and
-/// the whole layout is RTL-safe.
+/// down by product type, individual product, territory and time. Keyed by the
+/// shared range + branch ([reportQueryProvider]). Each product's cost is
+/// labelled actual (real cost of goods) or estimated (recipe/BOM), with the
+/// share of revenue that is actual. Every section degrades to an empty state
+/// instead of crashing on missing keys, and the layout is RTL-safe.
 class ProductAnalyticsScreen extends ConsumerWidget {
   const ProductAnalyticsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final range = ref.watch(reportRangeProvider);
-    final async = ref.watch(productAnalyticsProvider(range));
+    final q = ref.watch(reportQueryProvider);
+    final async = ref.watch(productReportProvider(q));
+
+    Future<void> refresh() => ref.refresh(productReportProvider(q).future);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.reportProductTitle)),
+      appBar: AppBar(
+        title: Text(l10n.reportProductTitle),
+        actions: [
+          ReportExportButton(
+            title: l10n.reportProductTitle,
+            rows: () => _productExportRows(context, async.valueOrNull),
+          ),
+        ],
+      ),
       body: Column(
         children: [
-          const ReportDateRangeBar(),
+          const ReportFilterBar(),
           Expanded(
             child: async.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => _ErrorView(
-                onRetry: () => ref.invalidate(productAnalyticsProvider(range)),
+              error: (e, _) => RefreshIndicator(
+                onRefresh: refresh,
+                child: ReportErrorView(
+                  error: e,
+                  onRetry: () => ref.invalidate(productReportProvider(q)),
+                ),
               ),
-              data: (data) => RefreshIndicator(
-                onRefresh: () async {
-                  ref.invalidate(productAnalyticsProvider(range));
-                  await ref.read(productAnalyticsProvider(range).future);
-                },
-                child: _ProductBody(data: data),
+              data: (report) => RefreshIndicator(
+                onRefresh: refresh,
+                child: _ProductBody(report: report),
               ),
             ),
           ),
@@ -51,27 +67,69 @@ class ProductAnalyticsScreen extends ConsumerWidget {
   }
 }
 
+/// CSV: every top product with its cost basis.
+List<List<String>> _productExportRows(
+  BuildContext context,
+  ProductReport? report,
+) {
+  if (report == null) return const [];
+  final l10n = context.l10n;
+  String n(double v) => v.toStringAsFixed(2);
+  final rows = [for (final r in report.data.topProducts) _ProductRow.from(r)]
+    ..sort((a, b) => b.revenue.compareTo(a.revenue));
+  return [
+    [
+      l10n.reportsColumnItem,
+      l10n.reportKpiTotalRevenue,
+      l10n.rptG1Units,
+      l10n.reportKpiGrossProfit,
+      l10n.reportKpiGrossMargin,
+      l10n.rptG1CostBasis,
+      l10n.rptG1CostPerUnit,
+      l10n.reportsColumnBomCost,
+    ],
+    for (final r in rows)
+      [
+        r.name,
+        n(r.revenue),
+        n(r.qty),
+        n(r.grossProfit),
+        r.margin.toStringAsFixed(1),
+        _costSourceLabel(context, r.costSource),
+        r.actualCostPerUnit == null ? '' : n(r.actualCostPerUnit!),
+        n(r.bomCost),
+      ],
+  ];
+}
+
 // ── Body ──────────────────────────────────────────────────────────────────
 
 class _ProductBody extends StatelessWidget {
-  final ProductAnalytics data;
-  const _ProductBody({required this.data});
+  final ProductReport report;
+  const _ProductBody({required this.report});
 
   @override
   Widget build(BuildContext context) {
+    final data = report.data;
     final bundles = data.bundleComposition;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 24),
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 8, 24),
       children: [
         _KpiGrid(summary: data.summary),
         const SizedBox(height: 12),
         _RevenueByTypeCard(rows: data.byProductType),
         const SizedBox(height: 12),
-        _TopProductsCard(rows: data.topProducts),
+        _TopProductsCard(
+          rows: data.topProducts,
+          costCoveragePct: report.costCoveragePct,
+        ),
         const SizedBox(height: 12),
         _ByTerritoryCard(rows: data.byTerritory),
         const SizedBox(height: 12),
         _RevenueTrendCard(rows: data.trend),
+        const SizedBox(height: 12),
+        _OrdersTrendCard(rows: data.trend),
         // Bundle composition is optional — hide the whole section when empty.
         if (bundles.isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -82,43 +140,55 @@ class _ProductBody extends StatelessWidget {
   }
 }
 
-class _ErrorView extends StatelessWidget {
-  final VoidCallback onRetry;
-  const _ErrorView({required this.onRetry});
+/// One `top_products` row, read null-safely. `cost_source` and
+/// `actual_cost_per_unit` are newer keys and may be absent.
+class _ProductRow {
+  final String code;
+  final String name;
+  final double revenue;
+  final double qty;
+  final double grossProfit;
+  final double margin;
+  final double bomCost;
+  final double? actualCostPerUnit;
+  final ProductCostSource costSource;
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    return ListView(
-      // Keep it scrollable so it composes with RefreshIndicator semantics and
-      // stays centred regardless of viewport height.
-      children: [
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.6,
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 40,
-                  color: theme.colorScheme.error,
-                ),
-                const SizedBox(height: 12),
-                Text(l10n.reportError, style: theme.textTheme.titleSmall),
-                const SizedBox(height: 12),
-                FilledButton.tonal(
-                  onPressed: onRetry,
-                  child: Text(l10n.reportsRetry),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  const _ProductRow({
+    required this.code,
+    required this.name,
+    required this.revenue,
+    required this.qty,
+    required this.grossProfit,
+    required this.margin,
+    required this.bomCost,
+    required this.actualCostPerUnit,
+    required this.costSource,
+  });
+
+  factory _ProductRow.from(JsonMap r) => _ProductRow(
+    code: _str(r, const ['item_code'], fallback: ''),
+    name: _str(r, const ['item_name', 'item_code'], fallback: '—'),
+    revenue: _num(r, const ['total_revenue', 'revenue']),
+    qty: _num(r, const ['total_qty', 'qty']),
+    grossProfit: _num(r, const ['gross_profit']),
+    margin: _num(r, const ['margin_pct']),
+    bomCost: _num(r, const ['bom_cost_per_unit', 'bom_cost']),
+    actualCostPerUnit: ReportJson.dblOrNull(r['actual_cost_per_unit']),
+    costSource: ProductReport.costSourceOf(r),
+  );
+
+  /// Average selling price per unit; 0 when nothing was sold.
+  double get avgPrice => qty == 0 ? 0 : revenue / qty;
+}
+
+String _costSourceLabel(BuildContext context, ProductCostSource src) {
+  final l10n = context.l10n;
+  return switch (src) {
+    ProductCostSource.actual => l10n.rptG1CostActual,
+    ProductCostSource.bom => l10n.rptG1CostBom,
+    ProductCostSource.none => l10n.rptG1CostNone,
+    ProductCostSource.unknown => '—',
+  };
 }
 
 // ── KPI grid ─────────────────────────────────────────────────────────────
@@ -267,7 +337,7 @@ class _RevenueByTypeCard extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: ListView(
-                  padding: EdgeInsets.zero,
+                  padding: EdgeInsetsDirectional.zero,
                   children: [
                     for (var i = 0; i < data.length; i++)
                       _LegendDot(
@@ -283,10 +353,9 @@ class _RevenueByTypeCard extends StatelessWidget {
         if (!isEmpty)
           _TableCard(
             headers: [
-              l10n.reportRevenueByType,
+              l10n.rptG1ColType,
               l10n.reportKpiTotalRevenue,
-              // Units / margin columns — plain header text (no dedicated key).
-              'Units',
+              l10n.rptG1Units,
               l10n.reportKpiGrossMargin,
             ],
             rows: [
@@ -308,31 +377,32 @@ class _RevenueByTypeCard extends StatelessWidget {
 
 class _TopProductsCard extends StatelessWidget {
   final List<JsonMap> rows;
-  const _TopProductsCard({required this.rows});
+
+  /// Share of revenue (0–100) costed from real cost of goods; null on an
+  /// older backend, where the note is hidden.
+  final double? costCoveragePct;
+
+  const _TopProductsCard({required this.rows, this.costCoveragePct});
 
   static const int _topN = 8;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final theme = Theme.of(context);
 
-    final data = [
-      for (final r in rows)
-        (
-          code: _str(r, const ['item_code'], fallback: ''),
-          name: _str(r, const ['item_name', 'item_code'], fallback: '—'),
-          revenue: _num(r, const ['total_revenue', 'revenue']),
-          qty: _num(r, const ['total_qty', 'qty']),
-          grossProfit: _num(r, const ['gross_profit']),
-          margin: _num(r, const ['margin_pct']),
-          bomCost: _num(r, const ['bom_cost_per_unit', 'bom_cost']),
-        ),
-    ]..sort((a, b) => b.revenue.compareTo(a.revenue));
+    final data = [for (final r in rows) _ProductRow.from(r)]
+      ..sort((a, b) => b.revenue.compareTo(a.revenue));
 
     final top = data.take(_topN).toList();
-    final maxRevenue =
-        top.isEmpty ? 0.0 : top.map((e) => e.revenue).reduce((a, b) => a > b ? a : b);
+    final maxRevenue = top.isEmpty
+        ? 0.0
+        : top.map((e) => e.revenue).reduce((a, b) => a > b ? a : b);
     final isEmpty = top.isEmpty || maxRevenue <= 0;
+    final coverage = costCoveragePct;
+    final muted = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -356,28 +426,160 @@ class _TopProductsCard extends StatelessWidget {
           ),
         ),
         if (!isEmpty)
-          _TableCard(
-            headers: [
-              l10n.reportTopProducts,
-              l10n.reportKpiTotalRevenue,
-              l10n.reportKpiGrossProfit,
-              l10n.reportKpiGrossMargin,
-              l10n.reportsColumnBomCost,
-            ],
-            rows: [
-              for (final e in top)
-                [
-                  e.name,
-                  formatCurrency(context, e.revenue),
-                  formatCurrency(context, e.grossProfit),
-                  '${e.margin.toStringAsFixed(1)}%',
-                  formatCurrency(context, e.bomCost),
+          Card(
+            margin: const EdgeInsetsDirectional.only(top: 8),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (coverage != null) ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: coverage >= 90
+                              ? theme.colorScheme.primary
+                              : Colors.orange.shade800,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            l10n.rptG1CostCoverage(
+                              coverage.toStringAsFixed(
+                                coverage >= 10 ? 0 : 1,
+                              ),
+                            ),
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                  Text(l10n.rptG1ProductTapHint, style: muted),
+                  const SizedBox(height: 6),
+                  ReportTable(
+                    columns: [
+                      ReportColumn(l10n.reportsColumnItem, flex: 3),
+                      ReportColumn(
+                        l10n.reportKpiTotalRevenue,
+                        numeric: true,
+                        flex: 2,
+                      ),
+                      ReportColumn(
+                        l10n.reportKpiGrossProfit,
+                        numeric: true,
+                        flex: 2,
+                      ),
+                      ReportColumn(
+                        l10n.reportKpiGrossMargin,
+                        numeric: true,
+                        flex: 2,
+                      ),
+                      ReportColumn(l10n.rptG1CostBasis, flex: 2),
+                    ],
+                    rows: [
+                      for (final e in top)
+                        [
+                          e.name,
+                          formatCompactCurrency(context, e.revenue),
+                          formatCompactCurrency(context, e.grossProfit),
+                          '${e.margin.toStringAsFixed(1)}%',
+                          _costSourceLabel(context, e.costSource),
+                        ],
+                    ],
+                    cellColor: (row, col) {
+                      if (col != 4) return null;
+                      return switch (top[row].costSource) {
+                        ProductCostSource.actual => Colors.green.shade700,
+                        ProductCostSource.bom => Colors.orange.shade800,
+                        ProductCostSource.none => theme.colorScheme.error,
+                        ProductCostSource.unknown => null,
+                      };
+                    },
+                    onRowTap: (i) => _showProductDetail(context, top[i]),
+                  ),
                 ],
-            ],
+              ),
+            ),
           ),
       ],
     );
   }
+}
+
+/// Bottom sheet with one product's numbers and where its cost came from.
+void _showProductDetail(BuildContext context, _ProductRow p) {
+  showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (ctx) {
+      final l10n = ctx.l10n;
+      final theme = Theme.of(ctx);
+      Widget line(String label, String value, {Color? color}) => Padding(
+        padding: const EdgeInsetsDirectional.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            Text(
+              value,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      );
+      final actual = p.actualCostPerUnit;
+      return SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                p.name,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (p.code.isNotEmpty && p.code != p.name)
+                Text(p.code, style: theme.textTheme.labelSmall),
+              const Divider(height: 20),
+              line(l10n.reportKpiTotalRevenue, formatCurrency(ctx, p.revenue)),
+              line(l10n.rptG1Units, formatCount(ctx, p.qty)),
+              line(l10n.rptG1AvgPrice, formatCurrency(ctx, p.avgPrice)),
+              line(
+                l10n.reportKpiGrossProfit,
+                formatCurrency(ctx, p.grossProfit),
+                color: p.grossProfit < 0 ? theme.colorScheme.error : null,
+              ),
+              line(l10n.reportKpiGrossMargin, '${p.margin.toStringAsFixed(1)}%'),
+              const Divider(height: 20),
+              line(l10n.rptG1CostBasis, _costSourceLabel(ctx, p.costSource)),
+              if (actual != null)
+                line(l10n.rptG1CostPerUnit, formatCurrency(ctx, actual)),
+              line(l10n.reportsColumnBomCost, formatCurrency(ctx, p.bomCost)),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 // ── Revenue (+ profit) by territory ─────────────────────────────────────────
@@ -445,11 +647,11 @@ class _ByTerritoryCard extends StatelessWidget {
                       showTitles: true,
                       reservedSize: 44,
                       getTitlesWidget: (value, meta) => Padding(
-                        padding: const EdgeInsets.only(right: 4),
+                        padding: const EdgeInsetsDirectional.only(end: 4),
                         child: Text(
                           formatCompactCurrency(context, value),
                           style: theme.textTheme.labelSmall,
-                          textAlign: TextAlign.right,
+                          textAlign: TextAlign.end,
                         ),
                       ),
                     ),
@@ -464,7 +666,7 @@ class _ByTerritoryCard extends StatelessWidget {
                           return const SizedBox.shrink();
                         }
                         return Padding(
-                          padding: const EdgeInsets.only(top: 6),
+                          padding: const EdgeInsetsDirectional.only(top: 6),
                           child: SizedBox(
                             width: 56,
                             child: Text(
@@ -510,7 +712,68 @@ class _ByTerritoryCard extends StatelessWidget {
   }
 }
 
-// ── Revenue + orders trend ──────────────────────────────────────────────────
+// ── Revenue trend (line) ────────────────────────────────────────────────────
+
+typedef _TrendPoint = ({String date, double revenue, double orders});
+
+List<_TrendPoint> _trendPoints(List<JsonMap> rows) => [
+  for (final r in rows)
+    (
+      date: _str(r, const ['date', 'posting_date'], fallback: ''),
+      revenue: _num(r, const ['revenue']),
+      orders: _num(r, const ['orders']),
+    ),
+];
+
+FlTitlesData _trendTitles(
+  BuildContext context,
+  List<_TrendPoint> data,
+  String Function(double value) leftLabel,
+) {
+  final theme = Theme.of(context);
+  final labelInterval = data.length <= 6 ? 1 : (data.length / 5).ceil();
+  return FlTitlesData(
+    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    leftTitles: AxisTitles(
+      sideTitles: SideTitles(
+        showTitles: true,
+        reservedSize: 44,
+        getTitlesWidget: (value, meta) => Padding(
+          padding: const EdgeInsetsDirectional.only(end: 4),
+          child: Text(
+            leftLabel(value),
+            style: theme.textTheme.labelSmall,
+            textAlign: TextAlign.end,
+          ),
+        ),
+      ),
+    ),
+    bottomTitles: AxisTitles(
+      sideTitles: SideTitles(
+        showTitles: true,
+        reservedSize: 28,
+        interval: 1,
+        getTitlesWidget: (value, meta) {
+          final i = value.round();
+          if (i < 0 ||
+              i >= data.length ||
+              (value - i).abs() > 0.01 ||
+              i % labelInterval != 0) {
+            return const SizedBox.shrink();
+          }
+          return Padding(
+            padding: const EdgeInsetsDirectional.only(top: 6),
+            child: Text(
+              _shortDate(context, data[i].date),
+              style: theme.textTheme.labelSmall,
+            ),
+          );
+        },
+      ),
+    ),
+  );
+}
 
 class _RevenueTrendCard extends StatelessWidget {
   final List<JsonMap> rows;
@@ -520,100 +783,38 @@ class _RevenueTrendCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-
-    final data = [
-      for (final r in rows)
-        (
-          date: _str(r, const ['date', 'posting_date'], fallback: ''),
-          revenue: _num(r, const ['revenue']),
-          orders: _num(r, const ['orders']),
-        ),
-    ];
-
+    final data = _trendPoints(rows);
     final isEmpty = data.isEmpty;
     final revenueColor = theme.colorScheme.primary;
-    final ordersColor = Colors.orange.shade700;
-
     final maxRevenue = isEmpty
         ? 0.0
         : data.map((e) => e.revenue).reduce((a, b) => a > b ? a : b);
-    final maxOrders = isEmpty
-        ? 0.0
-        : data.map((e) => e.orders).reduce((a, b) => a > b ? a : b);
-    final labelInterval =
-        data.length <= 6 ? 1 : (data.length / 5).ceil();
 
     return ReportChartCard(
       title: l10n.reportRevenueTrend,
       isEmpty: isEmpty,
       emptyText: l10n.reportNoData,
-      height: 240,
-      trailing: Wrap(
-        spacing: 8,
-        children: [
-          _LegendDot(color: revenueColor, label: l10n.reportKpiTotalRevenue),
-          _LegendDot(color: ordersColor, label: l10n.reportKpiTotalOrders),
-        ],
-      ),
+      height: 220,
       child: isEmpty
           ? const SizedBox.shrink()
           : LineChart(
               LineChartData(
                 minX: 0,
-                maxX: (data.length - 1).toDouble(),
+                maxX: data.length <= 1 ? 1 : (data.length - 1).toDouble(),
                 minY: 0,
                 maxY: maxRevenue <= 0 ? 1 : maxRevenue * 1.15,
                 lineTouchData: const LineTouchData(enabled: false),
                 gridData: const FlGridData(show: true, drawVerticalLine: false),
                 borderData: FlBorderData(show: false),
-                titlesData: FlTitlesData(
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 44,
-                      getTitlesWidget: (value, meta) => Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Text(
-                          formatCompactCurrency(context, value),
-                          style: theme.textTheme.labelSmall,
-                          textAlign: TextAlign.right,
-                        ),
-                      ),
-                    ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 28,
-                      interval: 1,
-                      getTitlesWidget: (value, meta) {
-                        final i = value.round();
-                        if (i < 0 ||
-                            i >= data.length ||
-                            i % labelInterval != 0) {
-                          return const SizedBox.shrink();
-                        }
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text(
-                            _shortDate(context, data[i].date),
-                            style: theme.textTheme.labelSmall,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                titlesData: _trendTitles(
+                  context,
+                  data,
+                  (v) => formatCompactCurrency(context, v),
                 ),
                 lineBarsData: [
-                  // Revenue (primary axis scale).
                   LineChartBarData(
                     isCurved: true,
+                    preventCurveOverShooting: true,
                     color: revenueColor,
                     barWidth: 2.5,
                     dotData: const FlDotData(show: false),
@@ -626,33 +827,69 @@ class _RevenueTrendCard extends StatelessWidget {
                         FlSpot(i.toDouble(), data[i].revenue),
                     ],
                   ),
-                  // Orders — scaled to the revenue axis so the shape stays
-                  // visible alongside revenue on a shared vertical axis.
-                  LineChartBarData(
-                    isCurved: true,
-                    color: ordersColor,
-                    barWidth: 2,
-                    dashArray: const [5, 4],
-                    dotData: const FlDotData(show: false),
-                    spots: [
-                      for (var i = 0; i < data.length; i++)
-                        FlSpot(
-                          i.toDouble(),
-                          _scaleOrders(data[i].orders, maxOrders, maxRevenue),
-                        ),
-                    ],
-                  ),
                 ],
               ),
             ),
     );
   }
+}
 
-  /// Rescales the orders series onto the revenue axis so both lines are
-  /// legible on one chart (orders otherwise flatten against large revenue).
-  double _scaleOrders(double orders, double maxOrders, double maxRevenue) {
-    if (maxOrders <= 0 || maxRevenue <= 0) return 0;
-    return orders / maxOrders * maxRevenue;
+// ── Orders trend (bars, on their own axis) ──────────────────────────────────
+
+/// Orders on their own chart: rescaling them onto the revenue axis made the
+/// line's height meaningless.
+class _OrdersTrendCard extends StatelessWidget {
+  final List<JsonMap> rows;
+  const _OrdersTrendCard({required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final data = _trendPoints(rows);
+    final maxOrders = data.isEmpty
+        ? 0.0
+        : data.map((e) => e.orders).reduce((a, b) => a > b ? a : b);
+    final isEmpty = data.isEmpty || maxOrders <= 0;
+    final ordersColor = Colors.orange.shade700;
+
+    return ReportChartCard(
+      title: l10n.rptG1OrdersTrend,
+      isEmpty: isEmpty,
+      emptyText: l10n.reportNoData,
+      height: 180,
+      child: isEmpty
+          ? const SizedBox.shrink()
+          : BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: maxOrders * 1.15,
+                barTouchData: BarTouchData(enabled: false),
+                gridData: const FlGridData(show: true, drawVerticalLine: false),
+                borderData: FlBorderData(show: false),
+                titlesData: _trendTitles(
+                  context,
+                  data,
+                  (v) => formatCount(context, v.round()),
+                ),
+                barGroups: [
+                  for (var i = 0; i < data.length; i++)
+                    BarChartGroupData(
+                      x: i,
+                      barRods: [
+                        BarChartRodData(
+                          toY: data[i].orders,
+                          color: ordersColor,
+                          width: data.length > 20 ? 4 : 8,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(2),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+    );
   }
 }
 
@@ -709,7 +946,7 @@ class _HBar extends StatelessWidget {
     final theme = Theme.of(context);
     final f = fraction.clamp(0.02, 1.0);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsetsDirectional.symmetric(vertical: 3),
       child: Row(
         children: [
           SizedBox(
@@ -732,6 +969,7 @@ class _HBar extends StatelessWidget {
                     color: theme.colorScheme.surfaceContainerHighest,
                   ),
                   FractionallySizedBox(
+                    alignment: AlignmentDirectional.centerStart,
                     widthFactor: f,
                     child: Container(
                       height: 14,
@@ -769,7 +1007,7 @@ class _LegendDot extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsetsDirectional.symmetric(vertical: 2),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -813,9 +1051,9 @@ class _TableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Card(
-      margin: const EdgeInsets.only(top: 8),
+      margin: const EdgeInsetsDirectional.only(top: 8),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsetsDirectional.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,

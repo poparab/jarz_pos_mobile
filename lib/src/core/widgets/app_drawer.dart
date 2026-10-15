@@ -584,14 +584,10 @@ class AppDrawer extends ConsumerWidget {
         children: managementChildren,
         routes: const [
           AppRoutes.manager,
+          // `matchesRoute` also matches `$route/...`, so this one entry
+          // highlights the group on every report (`/reports/...`), including
+          // reports added later.
           AppRoutes.reports,
-          AppRoutes.reportsShipping,
-          AppRoutes.reportsInventory,
-          AppRoutes.reportsProduct,
-          AppRoutes.reportsCustomer,
-          AppRoutes.reportsExecutive,
-          AppRoutes.reportsB2b,
-          AppRoutes.reportsProfitLoss,
           AppRoutes.followups,
           AppRoutes.wooSync,
           AppRoutes.users,

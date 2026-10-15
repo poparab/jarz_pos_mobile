@@ -102,7 +102,7 @@ Future<void> _pumpScreen(
     ProviderScope(
       overrides: [
         fleetRepositoryProvider.overrideWithValue(repository),
-        canAccessManagerDashboardRoleProvider.overrideWithValue(canView),
+        canViewLiveCourierMapProvider.overrideWithValue(canView),
         // Keep the map off the real tile server.
         locationTileProviderProvider.overrideWithValue(FakeTileProvider()),
         if (branch != null)

@@ -17073,4 +17073,1163 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courierSetupCopied => 'اتنسخ.';
+
+  @override
+  String get rptCourierBalancesPartnerFallback => 'شريك توصيل';
+
+  @override
+  String rptInstapayExpectedReference(String reference) {
+    return 'المرجع: $reference';
+  }
+
+  @override
+  String get rptRangeToday => 'اليوم';
+
+  @override
+  String get rptRangeYesterday => 'أمس';
+
+  @override
+  String get rptRangeLast7Days => 'آخر 7 أيام';
+
+  @override
+  String get rptRangeThisMonth => 'هذا الشهر';
+
+  @override
+  String get rptRangeLastMonth => 'الشهر الماضي';
+
+  @override
+  String get rptRangeLast30Days => 'آخر 30 يومًا';
+
+  @override
+  String get rptRangeLast90Days => 'آخر 90 يومًا';
+
+  @override
+  String get rptRangeThisYear => 'من بداية السنة';
+
+  @override
+  String get rptBranchLabel => 'الفرع';
+
+  @override
+  String get rptAllBranches => 'كل الفروع';
+
+  @override
+  String get rptExport => 'تصدير CSV';
+
+  @override
+  String get rptExportEmpty => 'لا توجد بيانات للتصدير بعد.';
+
+  @override
+  String get rptExportFailed => 'تعذّر تصدير التقرير.';
+
+  @override
+  String get rptExportCopied => 'المشاركة غير متاحة، لذلك تم نسخ التقرير.';
+
+  @override
+  String get rptHubOverview => 'نظرة عامة';
+
+  @override
+  String get rptHubDailyOps => 'التشغيل اليومي';
+
+  @override
+  String get rptHubSalesCustomers => 'المبيعات والعملاء';
+
+  @override
+  String get rptHubStock => 'المخزون';
+
+  @override
+  String get rptHubPeople => 'الفريق';
+
+  @override
+  String get rptBusinessOverviewTitle => 'نظرة عامة على النشاط';
+
+  @override
+  String get rptBusinessOverviewSubtitle =>
+      'الأرباح والخسائر وأهم الأرقام والتقسيم حسب الفرع';
+
+  @override
+  String get rptUnitEconomicsTitle => 'اقتصاديات الطلب';
+
+  @override
+  String get rptUnitEconomicsSubtitle => 'هامش المساهمة لكل طلب ونقطة التعادل';
+
+  @override
+  String get rptDailyCloseTitle => 'إقفال اليوم';
+
+  @override
+  String get rptDailyCloseSubtitle => 'المبيعات حسب الفرع والقناة وطريقة الدفع';
+
+  @override
+  String get rptCashOverShortTitle => 'زيادة وعجز النقدية';
+
+  @override
+  String get rptCashOverShortSubtitle =>
+      'فروقات الدرج حسب الفرع والكاشير والوردية';
+
+  @override
+  String get rptFulfilmentSlaTitle => 'زمن تنفيذ الطلبات';
+
+  @override
+  String get rptFulfilmentSlaSubtitle =>
+      'زمن التجهيز والتوصيل والطلبات المتأخرة والإلغاءات';
+
+  @override
+  String get rptPromoTitle => 'أكواد الخصم';
+
+  @override
+  String get rptPromoSubtitle => 'الطلبات والخصم والإيراد لكل كود';
+
+  @override
+  String get rptStockAdjustmentsTitle => 'الهالك وتسويات المخزون';
+
+  @override
+  String get rptStockAdjustmentsSubtitle => 'قيمة المخزون المفقود والزائد';
+
+  @override
+  String get rptLabourCostTitle => 'تكلفة العمالة';
+
+  @override
+  String get rptLabourCostSubtitle => 'تكلفة العمالة مقارنة بالمبيعات لكل فرع';
+
+  @override
+  String get rptInventoryRestockTitle => 'المخزون وإعادة الطلب';
+
+  @override
+  String get rptInventoryRestockSubtitle =>
+      'مستويات المخزون وسرعة البيع وما يجب طلبه';
+
+  @override
+  String get rptCustomersSegmentsTitle => 'العملاء والشرائح';
+
+  @override
+  String get rptCustomersSegmentsSubtitle =>
+      'الاحتفاظ بالعملاء وأفضل العملاء وشرائح العملاء';
+
+  @override
+  String get rptShippingCouriersTitle => 'الشحن والمناديب';
+
+  @override
+  String get rptShippingCouriersSubtitle =>
+      'تكلفة المناديب مقابل رسوم الشحن والأرصدة غير المسوّاة';
+
+  @override
+  String get rptComingSoon => 'هذا التقرير قيد التجهيز.';
+
+  @override
+  String get rptAccessDenied => 'ليس لديك صلاحية لعرض هذا التقرير.';
+
+  @override
+  String get rptB2bReportTooltip => 'تقرير مبيعات الشركات';
+
+  @override
+  String get rptAlertsTitle => 'التنبيهات';
+
+  @override
+  String get rptDailyCloseNetSales => 'صافي المبيعات';
+
+  @override
+  String get rptDailyCloseOrders => 'الطلبات';
+
+  @override
+  String get rptDailyCloseAvgOrder => 'متوسط قيمة الطلب';
+
+  @override
+  String get rptDailyCloseShipping => 'إيراد الشحن';
+
+  @override
+  String get rptDailyCloseReturns => 'المرتجعات';
+
+  @override
+  String rptDailyCloseReturnsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مرتجع',
+      many: '$count مرتجعًا',
+      few: '$count مرتجعات',
+      two: 'مرتجعان',
+      one: 'مرتجع واحد',
+      zero: 'لا مرتجعات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rptDailyCloseCancelled => 'الملغاة';
+
+  @override
+  String get rptDailyCloseGrossSales => 'إجمالي المبيعات';
+
+  @override
+  String get rptDailyCloseGrandTotal => 'الإجمالي الكلي';
+
+  @override
+  String get rptDailyCloseOutstanding => 'لم يُحصَّل بعد';
+
+  @override
+  String get rptDailyCloseOutstandingHint =>
+      'يُسوّى لاحقًا بقيد يومية (طلبات، المناديب)';
+
+  @override
+  String get rptDailyCloseChannels => 'المبيعات حسب القناة';
+
+  @override
+  String get rptDailyCloseByHour => 'المبيعات حسب الساعة';
+
+  @override
+  String get rptDailyClosePayments => 'المدفوعات حسب طريقة الدفع';
+
+  @override
+  String get rptDailyCloseBranches => 'الفروع';
+
+  @override
+  String get rptDailyCloseBranchesHint =>
+      'اضغط على الفرع لعرض قنواته ومدفوعاته';
+
+  @override
+  String get rptDailyCloseChannel => 'القناة';
+
+  @override
+  String get rptDailyCloseMode => 'طريقة الدفع';
+
+  @override
+  String get rptDailyCloseAmount => 'المبلغ';
+
+  @override
+  String get rptDailyCloseShare => 'النسبة';
+
+  @override
+  String get rptDailyCloseBranch => 'الفرع';
+
+  @override
+  String get rptDailyCloseHour => 'الساعة';
+
+  @override
+  String get rptDailyClosePrevDay => 'اليوم السابق';
+
+  @override
+  String get rptDailyCloseNextDay => 'اليوم التالي';
+
+  @override
+  String rptDailyCloseOrdersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طلب',
+      many: '$count طلبًا',
+      few: '$count طلبات',
+      two: 'طلبان',
+      one: 'طلب واحد',
+      zero: 'لا طلبات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rptDailyCloseChannelPos => 'الفرع (نقطة البيع)';
+
+  @override
+  String get rptDailyCloseChannelWoo => 'المتجر الإلكتروني';
+
+  @override
+  String get rptDailyCloseChannelTalabat => 'طلبات';
+
+  @override
+  String get rptDailyCloseChannelB2b => 'الشركات';
+
+  @override
+  String get rptDailyCloseChannelStaff => 'الموظفون';
+
+  @override
+  String get rptDailyCloseChannelSamples => 'العينات';
+
+  @override
+  String get rptDailyCloseChannelPartner => 'شريك التوصيل';
+
+  @override
+  String rptDailyCloseScopedTo(String branches) {
+    return 'مقتصر على فروعك: $branches';
+  }
+
+  @override
+  String get rptCashOverShortShifts => 'الورديات';
+
+  @override
+  String get rptCashOverShortWithDiff => 'ورديات بها فرق';
+
+  @override
+  String get rptCashOverShortOver => 'زيادة';
+
+  @override
+  String get rptCashOverShortShort => 'عجز';
+
+  @override
+  String get rptCashOverShortNet => 'الصافي';
+
+  @override
+  String get rptCashOverShortBranches => 'حسب الفرع';
+
+  @override
+  String get rptCashOverShortCashiers => 'حسب الكاشير';
+
+  @override
+  String get rptCashOverShortCashiersHint => 'الأكبر عجزًا أولاً';
+
+  @override
+  String get rptCashOverShortCashier => 'الكاشير';
+
+  @override
+  String get rptCashOverShortBranch => 'الفرع';
+
+  @override
+  String get rptCashOverShortShiftList => 'إغلاقات الورديات';
+
+  @override
+  String get rptCashOverShortShiftListHint =>
+      'الأحدث أولاً. اضغط على الوردية لعرض التفاصيل.';
+
+  @override
+  String get rptCashOverShortShift => 'الوردية';
+
+  @override
+  String get rptCashOverShortOpened => 'وقت الفتح';
+
+  @override
+  String get rptCashOverShortClosed => 'وقت الإغلاق';
+
+  @override
+  String get rptCashOverShortExpected => 'المتوقع';
+
+  @override
+  String get rptCashOverShortCounted => 'المعدود';
+
+  @override
+  String get rptCashOverShortDifference => 'الفرق';
+
+  @override
+  String get rptCashOverShortOpeningEntry => 'قيد الفتح';
+
+  @override
+  String get rptCashOverShortOpeningDifference => 'الفرق عند الفتح';
+
+  @override
+  String get rptCashOverShortLedger => 'حساب زيادة وعجز النقدية';
+
+  @override
+  String get rptCashOverShortLedgerHint =>
+      'ما تم قيده في الدفاتر خلال هذه الفترة';
+
+  @override
+  String get rptCashOverShortAtClose => 'مقيد عند إغلاق الوردية';
+
+  @override
+  String get rptCashOverShortAtOpen => 'مقيد عند فتح الوردية';
+
+  @override
+  String get rptCashOverShortUnlinked => 'غير مرتبط بوردية';
+
+  @override
+  String get rptCashOverShortNotClosed => 'لم تُغلق';
+
+  @override
+  String get rptCashOverShortNoShifts => 'لا توجد ورديات مغلقة في هذه الفترة';
+
+  @override
+  String get rptSlaOrders => 'الطلبات';
+
+  @override
+  String get rptSlaDelivered => 'تم توصيلها';
+
+  @override
+  String get rptSlaCancelled => 'ملغاة';
+
+  @override
+  String get rptSlaReturned => 'مرتجعة';
+
+  @override
+  String get rptSlaMedianDispatch => 'الوقت الوسيط حتى الخروج للتوصيل';
+
+  @override
+  String get rptSlaMedianDeliver => 'الوقت الوسيط حتى التوصيل';
+
+  @override
+  String get rptSlaP90Deliver => '٩٠٪ من الطلبات وصلت خلال';
+
+  @override
+  String get rptSlaLateOrders => 'طلبات متأخرة';
+
+  @override
+  String get rptSlaOpenLate => 'متأخرة ولم تُسلَّم بعد';
+
+  @override
+  String rptSlaLatePct(String pct) {
+    return '$pct٪ من الطلبات المسلّمة';
+  }
+
+  @override
+  String rptSlaMinutes(String minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String rptSlaHoursMinutes(String hours, String minutes) {
+    return '$hours س $minutes د';
+  }
+
+  @override
+  String rptSlaLateRule(String minutes) {
+    return 'متأخر = تم التوصيل بعد نهاية موعد التوصيل، أو بعد أكثر من $minutes دقيقة من الطلب إذا لم يكن له موعد.';
+  }
+
+  @override
+  String rptSlaDataSince(String date) {
+    return 'تُسجَّل أوقات الطلبات منذ $date؛ الطلبات الأقدم ليس لها أوقات.';
+  }
+
+  @override
+  String rptSlaTimedCoverage(String dispatched, String delivered) {
+    return 'طلبات بأوقات مسجّلة: $dispatched خرجت للتوصيل، $delivered تم توصيلها';
+  }
+
+  @override
+  String get rptSlaByDay => 'زمن التوصيل حسب اليوم';
+
+  @override
+  String get rptSlaByDayHint => 'الوسيط بالدقائق من الطلب حتى التوصيل';
+
+  @override
+  String get rptSlaLateByDay => 'الطلبات المتأخرة حسب اليوم';
+
+  @override
+  String get rptSlaBranches => 'حسب الفرع';
+
+  @override
+  String get rptSlaBranch => 'الفرع';
+
+  @override
+  String get rptSlaDispatchCol => 'حتى الخروج';
+
+  @override
+  String get rptSlaDeliverCol => 'حتى التوصيل';
+
+  @override
+  String get rptSlaLateCol => 'متأخر';
+
+  @override
+  String get rptSlaLateList => 'الطلبات المتأخرة (الأسوأ أولاً)';
+
+  @override
+  String get rptSlaLateListHint => 'اضغط على الطلب لعرض أوقاته';
+
+  @override
+  String get rptSlaInvoice => 'الطلب';
+
+  @override
+  String get rptSlaCustomer => 'العميل';
+
+  @override
+  String get rptSlaLateBy => 'متأخر بمقدار';
+
+  @override
+  String get rptSlaCreated => 'وقت الطلب';
+
+  @override
+  String get rptSlaDeadline => 'الموعد النهائي';
+
+  @override
+  String get rptSlaDeliveredAt => 'وقت التوصيل';
+
+  @override
+  String get rptSlaNotDelivered => 'لم يُسلَّم بعد';
+
+  @override
+  String get rptSlaSlot => 'موعد التوصيل';
+
+  @override
+  String get rptSlaRule => 'معيار التأخير';
+
+  @override
+  String get rptSlaRuleSlot => 'نهاية موعد التوصيل';
+
+  @override
+  String get rptSlaRuleSlotStart => 'بداية الموعد + الحد الزمني';
+
+  @override
+  String get rptSlaRuleThreshold => 'الحد الزمني';
+
+  @override
+  String get rptSlaState => 'الحالة';
+
+  @override
+  String get rptSlaTotalTime => 'من الطلب حتى التوصيل';
+
+  @override
+  String get rptSlaCancellations => 'أسباب الإلغاء';
+
+  @override
+  String get rptSlaReason => 'السبب';
+
+  @override
+  String get rptSlaCount => 'العدد';
+
+  @override
+  String get rptSlaNoReason => 'بدون سبب';
+
+  @override
+  String get rptSlaNoLate => 'لا توجد طلبات متأخرة في هذه الفترة';
+
+  @override
+  String get rptSlaCopyInvoice => 'نسخ رقم الطلب';
+
+  @override
+  String get rptSlaCopied => 'تم نسخ رقم الطلب';
+
+  @override
+  String rptG1BranchGlNote(String branch) {
+    return 'الفرع $branch: المبيعات وتكلفة البضاعة ودخل الشحن خاصة بهذا الفرع. المصروفات وصافي الربح ومطابقة الدفاتر على مستوى الشركة كلها.';
+  }
+
+  @override
+  String get rptG1AtAGlance => 'نظرة سريعة';
+
+  @override
+  String get rptG1ByBranchTitle => 'حسب الفرع';
+
+  @override
+  String get rptG1ByBranchHint => 'اضغط على فرع لعرض أرقامه فقط';
+
+  @override
+  String get rptG1ColMargin => 'الهامش';
+
+  @override
+  String get rptG1ColMetric => 'البند';
+
+  @override
+  String get rptG1ColAmount => 'المبلغ';
+
+  @override
+  String get rptG1ShipCostVsCharged => 'تكلفة التوصيل مقابل المحصّل';
+
+  @override
+  String get rptG1ShipCostVsChargedHint =>
+      'ما دفعه العملاء للتوصيل مقابل ما تكلّفه المندوبون';
+
+  @override
+  String get rptG1ShipLossByArea => 'الخسارة حسب المنطقة';
+
+  @override
+  String get rptG1ShipLossByAreaHint =>
+      'صافي الشحن لكل منطقة، الأكبر خسارة أولاً';
+
+  @override
+  String get rptG1ColArea => 'المنطقة';
+
+  @override
+  String get rptG1ColCost => 'التكلفة';
+
+  @override
+  String get rptG1ColCharged => 'المحصّل';
+
+  @override
+  String get rptG1ColNet => 'الصافي';
+
+  @override
+  String get rptG1Settled => 'تمت تسويته';
+
+  @override
+  String rptG1UnsettledAsOf(String date) {
+    return 'حتى $date';
+  }
+
+  @override
+  String get rptG1ColCourier => 'المندوب';
+
+  @override
+  String get rptG1ColOwed => 'المستحق';
+
+  @override
+  String get rptG1ColDaysAged => 'الأيام';
+
+  @override
+  String get rptG1DoubleTrips => 'رحلات مزدوجة';
+
+  @override
+  String get rptG1DoubleExtraCost => 'تكلفة توصيل إضافية';
+
+  @override
+  String rptG1OverridesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تعديل',
+      many: '$count تعديلاً',
+      few: '$count تعديلات',
+      two: 'تعديلان',
+      one: 'تعديل واحد',
+      zero: 'لا تعديلات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rptG1Units => 'الوحدات';
+
+  @override
+  String get rptG1ColType => 'النوع';
+
+  @override
+  String get rptG1CostBasis => 'أساس التكلفة';
+
+  @override
+  String get rptG1CostActual => 'فعلية';
+
+  @override
+  String get rptG1CostBom => 'تقديرية (الوصفة)';
+
+  @override
+  String get rptG1CostNone => 'بدون تكلفة';
+
+  @override
+  String rptG1CostCoverage(String pct) {
+    return 'تكلفة البضاعة فعلية لـ $pct% من الإيراد، والباقي تقديري من الوصفات.';
+  }
+
+  @override
+  String get rptG1OrdersTrend => 'الطلبات عبر الفترة';
+
+  @override
+  String get rptG1ProductTapHint => 'اضغط على منتج لعرض التفاصيل';
+
+  @override
+  String get rptG1AvgPrice => 'متوسط سعر الوحدة';
+
+  @override
+  String get rptG1CostPerUnit => 'تكلفة الوحدة';
+
+  @override
+  String get rptG1ColClient => 'العميل';
+
+  @override
+  String get rptG1ColGroup => 'المجموعة';
+
+  @override
+  String get rptG1ColClients => 'العملاء';
+
+  @override
+  String get rptG1ColLastOrder => 'آخر طلب';
+
+  @override
+  String get rptG1ColDaysSince => 'منذ (يوم)';
+
+  @override
+  String get rptG2RestockAll => 'الكل';
+
+  @override
+  String get rptG2RestockStatusOther => 'أخرى';
+
+  @override
+  String get rptG2ColumnSuggestedQty => 'الكمية المقترحة';
+
+  @override
+  String get rptG2ColumnDaysCover => 'أيام التغطية';
+
+  @override
+  String get rptG2RestockEmpty => 'لا توجد أصناف مطابقة لهذا الفلتر.';
+
+  @override
+  String get rptG2RestockHint => 'اضغط على أي صنف لعرض معدل بيعه.';
+
+  @override
+  String rptG2RecencyDaysAgo(String days) {
+    return 'منذ $days يوم';
+  }
+
+  @override
+  String rptG2OrdersCount(String count) {
+    return '$count طلب';
+  }
+
+  @override
+  String get rptG2SegmentOverlay => 'فئة إضافية';
+
+  @override
+  String get rptG2SegmentsOverlayNote =>
+      'الفئات الإضافية تتداخل مع غيرها ولا تُحسب في الإجمالي.';
+
+  @override
+  String get rptG2ColumnMobile => 'الجوال';
+
+  @override
+  String get rptG2ColumnTerritory => 'المنطقة';
+
+  @override
+  String get rptG2ColumnUpdatedOn => 'تاريخ التحديث';
+
+  @override
+  String get rptG2CustomerSummaryTitle => 'ملخص العميل';
+
+  @override
+  String get rptG2StockValue => 'قيمة المخزون';
+
+  @override
+  String get rptG2GrandTotal => 'الإجمالي العام';
+
+  @override
+  String get rptG2GroupTotal => 'إجمالي المجموعة';
+
+  @override
+  String get rptG2TotalQty => 'إجمالي الكمية';
+
+  @override
+  String get rptG2Company => 'الشركة';
+
+  @override
+  String get rptG2Refresh => 'تحديث';
+
+  @override
+  String get rptUnitEconInputsTitle => 'مدخلات المالك';
+
+  @override
+  String get rptUnitEconInputsSubtitle =>
+      'قيم تُدخلها بنفسك. هي تقديرات وغير مسجلة في الدفاتر.';
+
+  @override
+  String get rptUnitEconEditInputs => 'تعديل المدخلات';
+
+  @override
+  String get rptUnitEconAdSpend => 'الإنفاق الإعلاني';
+
+  @override
+  String get rptUnitEconAdSpendHelp => 'الإجمالي للفترة المحددة';
+
+  @override
+  String get rptUnitEconKashierPct => 'نسبة رسوم كاشير';
+
+  @override
+  String get rptUnitEconKashierPctHelp =>
+      'تُطبق على الإيرادات المدفوعة عبر كاشير';
+
+  @override
+  String get rptUnitEconTalabatPct => 'نسبة عمولة طلبات';
+
+  @override
+  String get rptUnitEconTalabatPctHelp => 'تُطبق على إيرادات قناة طلبات';
+
+  @override
+  String get rptUnitEconExtraFixed => 'تكاليف ثابتة إضافية';
+
+  @override
+  String get rptUnitEconExtraFixedHelp =>
+      'تكاليف غير مسجلة في الدفاتر مثل رواتب خارج كشف الرواتب أو عائد المستثمر أو الأدوات';
+
+  @override
+  String rptUnitEconAppliedAmount(String amount) {
+    return 'المطبق في هذا التقرير: $amount';
+  }
+
+  @override
+  String get rptUnitEconResetDefaults => 'استعادة القيم الافتراضية';
+
+  @override
+  String get rptUnitEconInvalidNumber => 'أدخل رقمًا يساوي صفرًا أو أكثر';
+
+  @override
+  String get rptUnitEconInvalidPct => 'أدخل نسبة بين 0 و100';
+
+  @override
+  String get rptUnitEconBadgeOwnerInput => 'مدخل من المالك';
+
+  @override
+  String get rptUnitEconBadgeEstimate => 'تقديري';
+
+  @override
+  String get rptUnitEconLegend =>
+      'الأرقام الموسومة بـ«تقديري» أو «مدخل من المالك» ليست مبالغ مسجلة في الدفاتر.';
+
+  @override
+  String get rptUnitEconContributionMargin => 'هامش المساهمة';
+
+  @override
+  String get rptUnitEconNetProfit => 'صافي الربح';
+
+  @override
+  String get rptUnitEconWaterfallTitle => 'من الإيرادات إلى صافي الربح';
+
+  @override
+  String get rptUnitEconRevenue => 'الإيرادات';
+
+  @override
+  String get rptUnitEconCogs => 'تكلفة البضاعة';
+
+  @override
+  String get rptUnitEconShippingNet => 'صافي تكلفة التوصيل';
+
+  @override
+  String get rptUnitEconKashierFees => 'رسوم كاشير';
+
+  @override
+  String get rptUnitEconTalabatCommission => 'عمولة طلبات';
+
+  @override
+  String get rptUnitEconVariableTotal => 'التكاليف المتغيرة';
+
+  @override
+  String get rptUnitEconContribution => 'المساهمة';
+
+  @override
+  String get rptUnitEconRecurring => 'المصروفات المتكررة';
+
+  @override
+  String get rptUnitEconOtherExpenses => 'مصروفات أخرى';
+
+  @override
+  String get rptUnitEconFixedTotal => 'التكاليف الثابتة';
+
+  @override
+  String get rptUnitEconBreakEvenTitle => 'نقطة التعادل';
+
+  @override
+  String get rptUnitEconBreakEvenRevenue => 'إيرادات التعادل';
+
+  @override
+  String get rptUnitEconBreakEvenOrders => 'طلبات التعادل';
+
+  @override
+  String get rptUnitEconGap => 'الفجوة حتى التعادل';
+
+  @override
+  String rptUnitEconPastBreakEven(String amount) {
+    return 'تجاوزت نقطة التعادل بمقدار $amount';
+  }
+
+  @override
+  String rptUnitEconProgress(String pct) {
+    return 'تم بلوغ $pct من إيرادات التعادل';
+  }
+
+  @override
+  String get rptUnitEconNoBreakEven =>
+      'لا توجد نقطة تعادل: الطلبات لا تغطي تكاليفها المتغيرة.';
+
+  @override
+  String get rptUnitEconPerOrderTitle => 'لكل طلب';
+
+  @override
+  String get rptUnitEconFees => 'الرسوم';
+
+  @override
+  String get rptUnitEconShipping => 'التوصيل';
+
+  @override
+  String get rptUnitEconNotesTitle => 'ملاحظات';
+
+  @override
+  String get rptUnitEconMetric => 'البند';
+
+  @override
+  String get rptUnitEconValue => 'القيمة';
+
+  @override
+  String get rptUnitEconNoteAdSpendIsOwnerInput =>
+      'الإنفاق الإعلاني من إدخالك وليس مبلغًا مسجلًا.';
+
+  @override
+  String get rptUnitEconNoteAdSpendNotEntered =>
+      'لم يتم إدخال الإنفاق الإعلاني، لذلك صافي الربح لا يشمل الإعلانات.';
+
+  @override
+  String get rptUnitEconNoteExtraFixedIsOwnerInput =>
+      'التكاليف الثابتة الإضافية من إدخالك وليست مبالغ مسجلة.';
+
+  @override
+  String get rptUnitEconNoteKashierFeesEstimated =>
+      'رسوم كاشير تقديرية بناءً على النسبة التي أدخلتها.';
+
+  @override
+  String get rptUnitEconNoteTalabatCommissionEstimated =>
+      'عمولة طلبات تقديرية بناءً على النسبة التي أدخلتها.';
+
+  @override
+  String get rptUnitEconNoteBookedPartnerCommissionReplaced =>
+      'تم استبدال عمولة الشريك المسجلة بالتقدير حتى لا تُحتسب مرتين.';
+
+  @override
+  String get rptUnitEconNoteBookedKashierFeesReplaced =>
+      'تم استبدال رسوم كاشير المسجلة بالتقدير حتى لا تُحتسب مرتين.';
+
+  @override
+  String get rptUnitEconNoteStockAdjustmentInOther =>
+      'تسويات المخزون مدرجة ضمن المصروفات الأخرى.';
+
+  @override
+  String get rptUnitEconNoteCogsIncomplete =>
+      'تكلفة البضاعة غير مكتملة: بعض الأصناف بلا تكلفة.';
+
+  @override
+  String get rptUnitEconNoteShippingExpenseIncomplete =>
+      'مصروف التوصيل غير مكتمل لهذه الفترة.';
+
+  @override
+  String get rptUnitEconNoteRecurringNotFullyPosted =>
+      'بعض المصروفات المتكررة المستحقة في هذه الفترة لم تُسجل بعد.';
+
+  @override
+  String get rptUnitEconNoteAdsAlsoBooked =>
+      'الإعلانات مسجلة أيضًا في الدفاتر؛ تأكد من عدم احتسابها مرتين.';
+
+  @override
+  String get rptUnitEconNoteContributionNotPositive =>
+      'المساهمة ليست موجبة، لذلك لا توجد نقطة تعادل.';
+
+  @override
+  String get rptUnitEconBasisTitle => 'أساس الحساب';
+
+  @override
+  String get rptUnitEconBasisSubtitle =>
+      'الأرقام المسجلة التي بُنيت عليها التقديرات';
+
+  @override
+  String get rptUnitEconBasisKashierReceipts => 'متحصلات كاشير';
+
+  @override
+  String get rptUnitEconBasisTalabatSales => 'مبيعات منصة طلبات';
+
+  @override
+  String get rptUnitEconBasisTalabatOrders => 'عدد طلبات منصة طلبات';
+
+  @override
+  String get rptUnitEconBasisShippingIncome => 'إيراد التوصيل';
+
+  @override
+  String get rptUnitEconBasisShippingExpense => 'مصروف التوصيل';
+
+  @override
+  String get rptUnitEconBasisStockAdjustment => 'تسوية المخزون';
+
+  @override
+  String get rptUnitEconBasisBookedPartnerCommission => 'عمولة الشريك المسجلة';
+
+  @override
+  String get rptUnitEconBasisBookedKashierFees => 'رسوم كاشير المسجلة';
+
+  @override
+  String get rptUnitEconBasisRecurringDue => 'المصروفات المتكررة المستحقة';
+
+  @override
+  String get rptUnitEconBasisCogsCoverage => 'المبيعات ذات التكلفة المعروفة';
+
+  @override
+  String get rptUnitEconBasisLedgerNetProfit => 'صافي الربح في الدفاتر';
+
+  @override
+  String get rptPromoConsumerOnly =>
+      'طلبات المستهلكين فقط (بدون مبيعات الشركات)';
+
+  @override
+  String get rptPromoOrdersWithPromo => 'طلبات بكود خصم';
+
+  @override
+  String rptPromoShareOfOrders(String pct, String count) {
+    return '$pct من $count طلب مستهلك';
+  }
+
+  @override
+  String get rptPromoDiscountTotal => 'إجمالي الخصم';
+
+  @override
+  String get rptPromoRevenue => 'إيراد الطلبات بكود';
+
+  @override
+  String get rptPromoAov => 'متوسط الطلب بكود';
+
+  @override
+  String get rptPromoNonPromoAov => 'متوسط الطلب بدون كود';
+
+  @override
+  String rptPromoAovDiff(String diff) {
+    return '$diff مقارنة بدون كود';
+  }
+
+  @override
+  String get rptPromoNewCustomers => 'عملاء جدد عبر الأكواد';
+
+  @override
+  String get rptPromoCodesTitle => 'الأكواد';
+
+  @override
+  String get rptPromoCode => 'الكود';
+
+  @override
+  String get rptPromoOrders => 'الطلبات';
+
+  @override
+  String get rptPromoDiscount => 'الخصم';
+
+  @override
+  String get rptPromoRevenueShort => 'الإيراد';
+
+  @override
+  String get rptPromoAovShort => 'متوسط الطلب';
+
+  @override
+  String get rptPromoNew => 'عملاء جدد';
+
+  @override
+  String get rptPromoRepeatAfter => 'طلبوا مرة أخرى';
+
+  @override
+  String get rptPromoRepeatAfterHelp => 'عملاء طلبوا لاحقًا مرة أخرى بدون كود';
+
+  @override
+  String get rptPromoDiscountRate => 'الخصم كنسبة من الإيراد';
+
+  @override
+  String get rptPromoChartTitle => 'الإيراد والخصم لكل كود';
+
+  @override
+  String get rptPromoNoCodes => 'لم تُستخدم أي أكواد في هذه الفترة.';
+
+  @override
+  String get rptWasteLoss => 'مخزون مفقود';
+
+  @override
+  String get rptWasteGain => 'مخزون زائد';
+
+  @override
+  String get rptWasteNet => 'الصافي';
+
+  @override
+  String get rptWasteEntriesCount => 'الحركات';
+
+  @override
+  String get rptWasteByType => 'حسب النوع';
+
+  @override
+  String get rptWasteByBranch => 'حسب الفرع';
+
+  @override
+  String get rptWasteWorstItems => 'أكبر الخسائر حسب الصنف';
+
+  @override
+  String get rptWasteEntries => 'أحدث الحركات';
+
+  @override
+  String get rptWasteItem => 'الصنف';
+
+  @override
+  String get rptWasteItemCode => 'كود الصنف';
+
+  @override
+  String get rptWasteQty => 'الكمية';
+
+  @override
+  String get rptWasteUom => 'الوحدة';
+
+  @override
+  String get rptWasteValue => 'القيمة';
+
+  @override
+  String get rptWasteDate => 'التاريخ';
+
+  @override
+  String get rptWasteVoucher => 'المستند';
+
+  @override
+  String get rptWasteWarehouse => 'المخزن';
+
+  @override
+  String get rptWasteBranch => 'الفرع';
+
+  @override
+  String get rptWasteType => 'النوع';
+
+  @override
+  String get rptWasteRemarks => 'ملاحظات';
+
+  @override
+  String get rptWasteSignHint =>
+      'القيم السالبة مخزون مفقود والموجبة مخزون زائد.';
+
+  @override
+  String get rptWasteTypeStockReconciliation => 'جرد المخزون';
+
+  @override
+  String get rptWasteTypeMaterialIssue => 'صرف مواد (هالك)';
+
+  @override
+  String get rptWasteTypeMaterialReceipt => 'استلام مواد';
+
+  @override
+  String get rptWasteTypeStockEntry => 'حركة مخزون';
+
+  @override
+  String get rptLabourPctOfSales => 'العمالة كنسبة من المبيعات';
+
+  @override
+  String get rptLabourCost => 'تكلفة العمالة';
+
+  @override
+  String get rptLabourSales => 'المبيعات';
+
+  @override
+  String get rptLabourHours => 'الساعات';
+
+  @override
+  String get rptLabourSalesPerHour => 'المبيعات لكل ساعة';
+
+  @override
+  String get rptLabourHeadcount => 'عدد الموظفين';
+
+  @override
+  String get rptLabourBasisSalarySlips => 'بناءً على قسائم الرواتب';
+
+  @override
+  String get rptLabourBasisSalarySlipsHelp =>
+      'التكلفة من قسائم الرواتب موزعة على الفترة المحددة.';
+
+  @override
+  String get rptLabourBasisRecurring => 'بناءً على مصروفات الرواتب المتكررة';
+
+  @override
+  String get rptLabourBasisRecurringHelp =>
+      'لا توجد قسائم رواتب لهذه الفترة، لذلك التكلفة من مصروفات الرواتب المتكررة موزعة على الفترة.';
+
+  @override
+  String get rptLabourBasisEstimate => 'تكلفة تقديرية';
+
+  @override
+  String get rptLabourBasisEstimateHelp =>
+      'لم يتم العثور على رواتب لهذه الفترة، لذلك التكلفة تقديرية وقد تكون غير دقيقة.';
+
+  @override
+  String get rptLabourByBranch => 'حسب الفرع';
+
+  @override
+  String get rptLabourBranch => 'الفرع';
+
+  @override
+  String get rptLabourEmployees => 'الموظفون';
+
+  @override
+  String get rptLabourEmployee => 'الموظف';
+
+  @override
+  String get rptLabourEmployeeId => 'رقم الموظف';
+
+  @override
+  String get rptLabourDays => 'الأيام';
+
+  @override
+  String get rptLabourCostPerHour => 'التكلفة لكل ساعة';
+
+  @override
+  String get rptLabourUnassigned => 'غير محدد';
+
+  @override
+  String get rptLabourChartTitle => 'تكلفة العمالة مقابل المبيعات';
+
+  @override
+  String get rptG2ColumnStatus => 'الحالة';
+
+  @override
+  String get rptG2LastSale => 'آخر بيع';
 }

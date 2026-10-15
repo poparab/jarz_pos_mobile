@@ -374,8 +374,8 @@ void main() {
     // Non-inverted labels: positive balance collects, negative pays.
     expect(find.text('Collect From Courier'), findsOneWidget);
     expect(find.text('Pay Courier'), findsOneWidget);
-    expect(find.text('125.00'), findsOneWidget);
-    expect(find.text('-80.00'), findsOneWidget);
+    expect(find.text('EGP125.00'), findsOneWidget);
+    expect(find.text('-EGP80.00'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await expectLater(

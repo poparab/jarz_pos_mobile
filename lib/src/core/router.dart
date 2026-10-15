@@ -12,7 +12,6 @@ import '../features/pos/presentation/screens/pos_screen.dart';
 import '../features/pos/presentation/screens/pos_profile_selection_screen.dart';
 import '../features/kanban/screens/kanban_board_screen.dart';
 import 'session/session_manager.dart';
-import '../features/pos/presentation/screens/courier_balances_screen.dart';
 import '../features/printing/printer_selection_screen.dart'
     if (dart.library.html) '../features/printing/printer_selection_screen_web.dart';
 import '../features/manager/presentation/manager_dashboard_screen.dart';
@@ -39,9 +38,7 @@ import '../features/user_admin/presentation/user_admin_list_screen.dart';
 import '../features/geo/presentation/screens/address_pin_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
 import '../features/partner_settlements/presentation/partner_settlements_screen.dart';
-import '../features/reports/presentation/screens/customer_segments_screen.dart';
 import '../features/followups/presentation/screens/followups_screen.dart';
-import '../features/reports/presentation/screens/velocity_alerts_screen.dart';
 import '../features/reports/presentation/screens/warehouse_alignment_screen.dart';
 import '../features/reports/presentation/screens/profit_and_loss_screen.dart';
 import '../features/woo_sync/presentation/screens/woo_duplicates_screen.dart';
@@ -59,8 +56,15 @@ import '../features/reports/presentation/screens/shipping_analytics_screen.dart'
 import '../features/reports/presentation/screens/inventory_intelligence_screen.dart';
 import '../features/reports/presentation/screens/product_analytics_screen.dart';
 import '../features/reports/presentation/screens/customer_analytics_screen.dart';
-import '../features/reports/presentation/screens/executive_overview_screen.dart';
 import '../features/reports/presentation/screens/b2b_sales_clients_screen.dart';
+import '../features/reports/presentation/screens/stock_reports_screen.dart';
+import '../features/reports/presentation/screens/daily_close_screen.dart';
+import '../features/reports/presentation/screens/cash_over_short_screen.dart';
+import '../features/reports/presentation/screens/fulfilment_sla_screen.dart';
+import '../features/reports/presentation/screens/unit_economics_screen.dart';
+import '../features/reports/presentation/screens/promo_performance_screen.dart';
+import '../features/reports/presentation/screens/stock_adjustments_screen.dart';
+import '../features/reports/presentation/screens/labour_cost_screen.dart';
 import '../features/master_orders/presentation/master_orders_screen.dart';
 import '../features/instapay_reconciliation/presentation/instapay_reconciliation_screen.dart';
 import 'network/user_service.dart';
@@ -268,6 +272,55 @@ String? resolveB2bRedirect({
   return null;
 }
 
+/// Whether [roles] may open the `/reports...` [location], mirroring each
+/// report's backend gate (and the hub's tile gates):
+///  - the hub: [UserRoles.canAccessReportsHub];
+///  - Materials and the daily-operations reports (daily close, cash
+///    over/short, fulfilment SLA): the line-manager tier,
+///    [UserRoles.canViewMaterialsReport];
+///  - Warehouse alignment: [UserRoles.canAccessManagerDashboard];
+///  - every other report: [UserRoles.canViewAllReports].
+///
+/// Returns null when [location] is not a reports path.
+@visibleForTesting
+bool? canOpenReportsLocation({
+  required UserRoles roles,
+  required String location,
+}) {
+  final path = location.split('?').first;
+  if (path == AppRoutes.reports || path == '${AppRoutes.reports}/') {
+    return roles.canAccessReportsHub;
+  }
+  if (!path.startsWith('${AppRoutes.reports}/')) return null;
+  bool under(String route) => path == route || path.startsWith('$route/');
+  if (under(AppRoutes.reportsMaterials) ||
+      under(AppRoutes.reportsDailyClose) ||
+      under(AppRoutes.reportsCashOverShort) ||
+      under(AppRoutes.reportsFulfilmentSla)) {
+    return roles.canViewMaterialsReport;
+  }
+  if (under(AppRoutes.reportsWarehouseAlignment)) {
+    return roles.canAccessManagerDashboard;
+  }
+  return roles.canViewAllReports;
+}
+
+/// Redirect for a reports location the user's roles do not allow: back to
+/// the hub when they can open it (and are not already on it), otherwise to
+/// their home. Null when allowed or not a reports path.
+@visibleForTesting
+String? resolveReportsRedirect({
+  required UserRoles roles,
+  required String location,
+}) {
+  final allowed = canOpenReportsLocation(roles: roles, location: location);
+  if (allowed == null || allowed) return null;
+  final path = location.split('?').first;
+  final onHub = path == AppRoutes.reports || path == '${AppRoutes.reports}/';
+  if (!onHub && roles.canAccessReportsHub) return AppRoutes.reports;
+  return homeRouteFor(roles);
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(currentAuthStateProvider);
   final isAuthenticated = authState;
@@ -328,10 +381,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         final roles = rolesAsync.valueOrNull;
         if (roles != null) {
           return resolveB2bRedirect(
-            roles: roles,
-            location: state.matchedLocation,
-            isB2bOrderMode: state.uri.queryParameters['mode'] == 'b2b_order',
-          );
+                roles: roles,
+                location: state.matchedLocation,
+                isB2bOrderMode:
+                    state.uri.queryParameters['mode'] == 'b2b_order',
+              ) ??
+              resolveReportsRedirect(
+                roles: roles,
+                location: state.matchedLocation,
+              );
         }
       }
       return null;
@@ -374,11 +432,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => KanbanBoardScreen(
           openReceipts: state.uri.queryParameters['receipts'] == '1',
         ),
-      ),
-      GoRoute(
-        path: AppRoutes.courierBalances,
-        name: 'courier-balances',
-        builder: (context, state) => const CourierBalancesScreen(),
       ),
       GoRoute(
         path: AppRoutes.printers,
@@ -609,17 +662,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) =>
             const PhoneLandscapeScope(child: InventoryIntelligenceScreen()),
       ),
+      // Merged reports: Velocity lives in Inventory & restock, Segments in
+      // Customers & segments, and the Executive overview in the P&L
+      // "Business overview". The old paths stay so saved links still land.
       GoRoute(
         path: AppRoutes.reportsVelocity,
         name: 'reports-velocity',
-        builder: (context, state) =>
-            const PhoneLandscapeScope(child: VelocityAlertsScreen()),
+        redirect: (context, state) => AppRoutes.reportsInventory,
       ),
       GoRoute(
         path: AppRoutes.reportsSegments,
         name: 'reports-segments',
-        builder: (context, state) =>
-            const PhoneLandscapeScope(child: CustomerSegmentsScreen()),
+        redirect: (context, state) => AppRoutes.reportsCustomer,
       ),
       GoRoute(
         path: AppRoutes.followups,
@@ -647,8 +701,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.reportsExecutive,
         name: 'reports-executive',
-        builder: (context, state) =>
-            const PhoneLandscapeScope(child: ExecutiveOverviewScreen()),
+        redirect: (context, state) => AppRoutes.reportsProfitLoss,
       ),
       GoRoute(
         path: AppRoutes.reportsB2b,
@@ -661,6 +714,64 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'reports-profit-loss',
         builder: (context, state) =>
             const PhoneLandscapeScope(child: ProfitAndLossScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsUnitEconomics,
+        name: 'reports-unit-economics',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: UnitEconomicsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsDailyClose,
+        name: 'reports-daily-close',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: DailyCloseScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsCashOverShort,
+        name: 'reports-cash-over-short',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: CashOverShortScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsFulfilmentSla,
+        name: 'reports-fulfilment-sla',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: FulfilmentSlaScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsPromo,
+        name: 'reports-promo-codes',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: PromoPerformanceScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsStockAdjustments,
+        name: 'reports-stock-adjustments',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: StockAdjustmentsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsLabourCost,
+        name: 'reports-labour-cost',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: LabourCostScreen()),
+      ),
+      // The two stock reports as single-report routes: no tab bar, so a
+      // materials-only user cannot swipe into Final Products.
+      GoRoute(
+        path: AppRoutes.reportsFinalProducts,
+        name: 'reports-final-products',
+        builder: (context, state) => const PhoneLandscapeScope(
+          child: StockReportsScreen(initialTab: 0, singleReport: true),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.reportsMaterials,
+        name: 'reports-materials',
+        builder: (context, state) => const PhoneLandscapeScope(
+          child: StockReportsScreen(initialTab: 1, singleReport: true),
+        ),
       ),
       GoRoute(
         path: AppRoutes.masterOrders,

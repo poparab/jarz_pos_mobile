@@ -5,6 +5,24 @@ import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../data/models/warehouse_alignment_row.dart';
 import '../../data/warehouse_alignment_service.dart';
+import '../../state/reports_providers.dart';
+import '../widgets/report_branch_selector.dart';
+import '../widgets/report_states.dart';
+
+/// The filter the watchlist actually runs with: the shared report branch
+/// ([reportBranchProvider], null = all branches) plus the row limit kept in
+/// [warehouseAlignmentFilterProvider]. With no branch and the default limit
+/// this equals `const WarehouseAlignmentFilter()`.
+final _effectiveFilterProvider = Provider.autoDispose<WarehouseAlignmentFilter>(
+  (ref) {
+    final branch = ref.watch(reportBranchProvider);
+    final base = ref.watch(warehouseAlignmentFilterProvider);
+    return base.copyWith(
+      branch: branch,
+      clearBranch: branch == null || branch.isEmpty,
+    );
+  },
+);
 
 /// Read-only watchlist of submitted invoices whose item warehouses disagree
 /// with their branch — the drift upstream of the recurring negative-bin
@@ -13,15 +31,13 @@ import '../../data/warehouse_alignment_service.dart';
 /// This screen is deliberately a dead end: there is NO repair action here.
 /// The repair endpoint kept a stricter admin gate and must never be called
 /// from mobile — the point of this screen is early visibility, not action.
-/// Same chrome / loading / error / empty handling as the other report
-/// screens (see [InventoryIntelligenceScreen]).
 class WarehouseAlignmentScreen extends ConsumerWidget {
   const WarehouseAlignmentScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final filter = ref.watch(warehouseAlignmentFilterProvider);
+    final filter = ref.watch(_effectiveFilterProvider);
     final async = ref.watch(warehouseAlignmentReportProvider(filter));
 
     return Scaffold(
@@ -30,6 +46,7 @@ class WarehouseAlignmentScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: l10n.rptG2Refresh,
             onPressed: () =>
                 ref.invalidate(warehouseAlignmentReportProvider(filter)),
           ),
@@ -40,30 +57,26 @@ class WarehouseAlignmentScreen extends ConsumerWidget {
           const _WatchlistBanner(),
           const _FilterBar(),
           Expanded(
-            child: async.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => _ErrorBody(
-                onRetry: () =>
-                    ref.invalidate(warehouseAlignmentReportProvider(filter)),
-              ),
-              data: (rows) => RefreshIndicator(
-                onRefresh: () async =>
-                    ref.invalidate(warehouseAlignmentReportProvider(filter)),
-                child: rows.isEmpty
-                    ? ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.5,
-                            child: Center(
-                              child: Text(l10n.warehouseAlignEmpty),
-                            ),
-                          ),
-                        ],
+            child: RefreshIndicator(
+              onRefresh: () =>
+                  ref.refresh(warehouseAlignmentReportProvider(filter).future),
+              child: async.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (e, _) => ReportErrorView(
+                  error: e,
+                  onRetry: () =>
+                      ref.invalidate(warehouseAlignmentReportProvider(filter)),
+                ),
+                data: (rows) => rows.isEmpty
+                    ? ReportEmptyView(
+                        message: l10n.warehouseAlignEmpty,
+                        icon: Icons.verified_outlined,
                       )
                     : ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            12, 4, 12, 24),
                         itemCount: rows.length,
                         itemBuilder: (context, i) =>
                             _AlignmentRowCard(row: rows[i]),
@@ -87,7 +100,7 @@ class _WatchlistBanner extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
           Icon(Icons.visibility_outlined,
@@ -106,40 +119,15 @@ class _WatchlistBanner extends StatelessWidget {
   }
 }
 
-class _FilterBar extends ConsumerStatefulWidget {
+/// Branch (shared report selector, clearable via "All branches") and the
+/// row limit.
+class _FilterBar extends ConsumerWidget {
   const _FilterBar();
-
-  @override
-  ConsumerState<_FilterBar> createState() => _FilterBarState();
-}
-
-class _FilterBarState extends ConsumerState<_FilterBar> {
-  late final TextEditingController _branchController;
 
   static const _limitOptions = [25, 50, 100, 200];
 
   @override
-  void initState() {
-    super.initState();
-    final filter = ref.read(warehouseAlignmentFilterProvider);
-    _branchController = TextEditingController(text: filter.branch ?? '');
-  }
-
-  @override
-  void dispose() {
-    _branchController.dispose();
-    super.dispose();
-  }
-
-  void _applyBranch(String value) {
-    final trimmed = value.trim();
-    ref.read(warehouseAlignmentFilterProvider.notifier).update(
-          (f) => f.copyWith(branch: trimmed.isEmpty ? null : trimmed),
-        );
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final filter = ref.watch(warehouseAlignmentFilterProvider);
     final limit = _limitOptions.contains(filter.limit)
@@ -147,21 +135,12 @@ class _FilterBarState extends ConsumerState<_FilterBar> {
         : _limitOptions.first;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 4),
       child: Row(
         children: [
           Expanded(
-            child: TextField(
-              controller: _branchController,
-              decoration: InputDecoration(
-                isDense: true,
-                labelText: l10n.warehouseAlignBranchFilterLabel,
-                hintText: l10n.warehouseAlignBranchFilterAll,
-                prefixIcon: const Icon(Icons.storefront_outlined, size: 18),
-                border: const OutlineInputBorder(),
-              ),
-              onSubmitted: _applyBranch,
-              textInputAction: TextInputAction.search,
+            child: ReportBranchSelector(
+              label: l10n.warehouseAlignBranchFilterLabel,
             ),
           ),
           const SizedBox(width: 8),
@@ -170,7 +149,10 @@ class _FilterBarState extends ConsumerState<_FilterBar> {
             underline: const SizedBox.shrink(),
             items: [
               for (final option in _limitOptions)
-                DropdownMenuItem(value: option, child: Text('$option')),
+                DropdownMenuItem(
+                  value: option,
+                  child: Text(formatCount(context, option)),
+                ),
             ],
             onChanged: (value) {
               if (value == null) return;
@@ -195,9 +177,9 @@ class _AlignmentRowCard extends StatelessWidget {
     final l10n = context.l10n;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsetsDirectional.only(bottom: 10),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsetsDirectional.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -222,6 +204,14 @@ class _AlignmentRowCard extends StatelessWidget {
             if ((row.customer ?? '').isNotEmpty) ...[
               const SizedBox(height: 2),
               Text(row.customer!, style: theme.textTheme.bodyMedium),
+            ],
+            if ((row.company ?? '').isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(
+                '${l10n.rptG2Company}: ${row.company}',
+                style: theme.textTheme.labelSmall
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
             ],
             if ((row.postingDate ?? '').isNotEmpty ||
                 (row.operationalProfile ?? '').isNotEmpty) ...[
@@ -253,7 +243,7 @@ class _AlignmentRowCard extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  padding: const EdgeInsetsDirectional.symmetric(horizontal: 6),
                   child: Icon(Icons.compare_arrows,
                       size: 18, color: theme.colorScheme.error),
                 ),
@@ -293,7 +283,7 @@ class _WarehouseColumn extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsetsDirectional.all(8),
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(8),
@@ -320,32 +310,6 @@ class _WarehouseColumn extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
         ],
-      ),
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final VoidCallback onRetry;
-  const _ErrorBody({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l10n.reportError, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: onRetry,
-              child: Text(l10n.reportsRetry),
-            ),
-          ],
-        ),
       ),
     );
   }

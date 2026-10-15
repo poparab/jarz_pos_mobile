@@ -6,6 +6,7 @@ import '../../state/courier_ws_bridge.dart';
 import '../../data/models/courier_balance.dart';
 import '../../../pos/state/pos_notifier.dart';
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/network/courier_service.dart';
 import '../../../kanban/providers/kanban_provider.dart';
@@ -236,7 +237,7 @@ class _CourierTile extends StatelessWidget {
                 children: [
                   Icon(Icons.handshake, size: 12, color: Colors.deepPurple.shade400),
                   const SizedBox(width: 3),
-                  Text(b.deliveryPartner ?? 'Partner',
+                  Text(b.deliveryPartner ?? l10n.rptCourierBalancesPartnerFallback,
                     style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.deepPurple.shade700)),
                 ],
               ),
@@ -250,12 +251,20 @@ class _CourierTile extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text(
-              amount.toStringAsFixed(2),
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+            // The formatted amount carries the currency symbol, so it may
+            // shrink rather than overflow the fixed-width trailing slot.
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerEnd,
+                child: Text(
+                  formatCurrency(context, amount),
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -331,8 +340,8 @@ class _CourierTile extends StatelessWidget {
                         subtitle: Text(
                           context.l10n.courierBalancesCityOrderLine(
                             d.city,
-                            d.amount.toStringAsFixed(2),
-                            d.shipping.toStringAsFixed(2),
+                            formatCurrency(context, d.amount),
+                            formatCurrency(context, d.shipping),
                           ),
                         ),
                         trailing: SizedBox(
@@ -340,13 +349,18 @@ class _CourierTile extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(context.l10n.courierBalancesNetLabel, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                                  Text(net.toStringAsFixed(2), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                ],
+                              Flexible(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(context.l10n.courierBalancesNetLabel, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(formatCurrency(context, net), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                    ),
+                                  ],
+                                ),
                               ),
                               const SizedBox(width: 8),
                               SizedBox(
@@ -485,7 +499,7 @@ class _InlineSettleAllButtonState extends ConsumerState<_InlineSettleAllButton> 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.posProfileSelectionPrompt)));
       return;
     }
-    final amount = b.balance.abs().toStringAsFixed(2);
+    final amount = formatCurrency(context, b.balance.abs());
     // Mirror _CourierTile / _SettleAllButtonState: a POSITIVE balance means the
     // courier owes the store, so we COLLECT from them; negative means we pay them.
     // The label was previously inverted here, which is why inline "Settle All"
@@ -565,7 +579,7 @@ class _SettleAllButtonState extends ConsumerState<_SettleAllButton> {
     }
   final collectFromCourier = b.balance > 0; // positive -> collect (courier owes store)
   final actionLabel = collectFromCourier ? context.l10n.settlementTitleCollectFromCourier : context.l10n.settlementTitlePayCourier;
-    final netLabel = b.balance.abs().toStringAsFixed(2);
+    final netLabel = formatCurrency(context, b.balance.abs());
     final invoices = b.details.map((d) => d.displayId).toList();
 
     final confirmed = await showDialog<bool>(

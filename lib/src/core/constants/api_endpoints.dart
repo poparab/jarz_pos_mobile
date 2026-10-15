@@ -574,6 +574,29 @@ abstract final class ApiEndpoints {
   static const getProfitAndLoss =
       '/api/method/jarz_pos.api.financial_report.get_profit_and_loss';
 
+  // ── Reports · Operations (reports overhaul) ───────────────────────────
+  // Branch = POS Profile. Every one takes `date_from` / `date_to` and an
+  // optional `branch`; daily close, cash over/short and SLA also admit the
+  // line-manager tier.
+  static const getReportBranches =
+      '/api/method/jarz_pos.api.ops_reports.get_report_branches';
+  static const getDailyClose =
+      '/api/method/jarz_pos.api.ops_reports.get_daily_close';
+  static const getCashOverShort =
+      '/api/method/jarz_pos.api.ops_reports.get_cash_over_short';
+  static const getFulfilmentSla =
+      '/api/method/jarz_pos.api.ops_reports.get_fulfilment_sla';
+
+  // ── Reports · Business (reports overhaul) ─────────────────────────────
+  static const getUnitEconomics =
+      '/api/method/jarz_pos.api.business_reports.get_unit_economics';
+  static const getPromoPerformance =
+      '/api/method/jarz_pos.api.business_reports.get_promo_performance';
+  static const getStockAdjustments =
+      '/api/method/jarz_pos.api.business_reports.get_stock_adjustments';
+  static const getLabourCost =
+      '/api/method/jarz_pos.api.business_reports.get_labour_cost';
+
   // ── Settings ──────────────────────────────────────────────────────────
   static const getReceiptConfig =
       '/api/method/jarz_pos.api.pos.get_receipt_config';

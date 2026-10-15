@@ -5,46 +5,84 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
+import '../../data/models/executive_overview.dart';
 import '../../data/models/profit_and_loss.dart';
+import '../../data/models/report_envelopes.dart';
 import '../../state/reports_providers.dart';
 import '../widgets/kpi_card.dart';
+import '../widgets/report_alerts_card.dart';
 import '../widgets/report_chart_card.dart';
-import '../widgets/report_date_range_bar.dart';
+import '../widgets/report_export_button.dart';
+import '../widgets/report_filter_bar.dart';
+import '../widgets/report_states.dart';
+import '../widgets/report_table.dart';
 
-/// Profit & Loss: revenue split B2B vs B2C, cost of sales, shipping income vs
-/// expense, recurring and other expenses, and net profit for the selected
-/// range.
+/// Business overview: the headline numbers (revenue, orders, AOV, customers,
+/// critical stock, net shipping), the split per branch, then the full profit
+/// & loss: revenue split B2B vs B2C, cost of sales, shipping income vs
+/// expense, recurring and other expenses, and net profit for the range.
 ///
-/// Every number comes from the ledger-reconciled backend report; this screen
-/// only lays it out. When the books for the period are incomplete (stock or
-/// courier cost never posted) the warnings are shown first, because they
-/// qualify every figure below them.
+/// Every P&L number comes from the ledger-reconciled backend report; this
+/// screen only lays it out. When the books for the period are incomplete
+/// (stock or courier cost never posted) the warnings are shown first, because
+/// they qualify every figure below them. With a branch selected, the
+/// invoice-based sections follow the branch but the GL-based ones stay
+/// company-wide, and a banner says so.
 class ProfitAndLossScreen extends ConsumerWidget {
   const ProfitAndLossScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final range = ref.watch(reportRangeProvider);
-    final async = ref.watch(profitAndLossProvider(range));
+    final q = ref.watch(reportQueryProvider);
+    final async = ref.watch(profitAndLossReportProvider(q));
+    // The KPI strip is a bonus: it degrades to nothing while loading or on
+    // error, so the P&L never waits on (or fails with) the executive call.
+    final exec = ref.watch(executiveOverviewProvider(q)).valueOrNull;
+
+    Future<void> refresh() {
+      ref.invalidate(executiveOverviewProvider(q));
+      return ref.refresh(profitAndLossReportProvider(q).future);
+    }
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.pnlTitle)),
+      appBar: AppBar(
+        title: Text(l10n.rptBusinessOverviewTitle),
+        actions: [
+          ReportExportButton(
+            title: l10n.rptBusinessOverviewTitle,
+            rows: () => _pnlExportRows(context, async.valueOrNull),
+          ),
+        ],
+      ),
       body: Column(
         children: [
-          const ReportDateRangeBar(),
+          const ReportFilterBar(),
           Expanded(
             child: async.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => _ErrorRetry(
-                onRetry: () => ref.invalidate(profitAndLossProvider(range)),
+              error: (e, _) => RefreshIndicator(
+                onRefresh: refresh,
+                child: ReportErrorView(
+                  error: e,
+                  onRetry: () =>
+                      ref.invalidate(profitAndLossReportProvider(q)),
+                ),
               ),
-              data: (data) => RefreshIndicator(
-                onRefresh: () async {
-                  ref.invalidate(profitAndLossProvider(range));
-                  await ref.read(profitAndLossProvider(range).future);
-                },
-                child: ProfitAndLossContent(data: data),
+              data: (report) => RefreshIndicator(
+                onRefresh: refresh,
+                child: ProfitAndLossContent(
+                  data: report.data,
+                  branches: report.branches,
+                  kpis: exec?.kpis,
+                  alerts: ReportAlert.listFrom(exec?.alerts),
+                  selectedBranch: q.branchOrNull,
+                  onBranchTap: (branch) {
+                    final notifier = ref.read(reportBranchProvider.notifier);
+                    // Tapping the selected branch again goes back to all.
+                    notifier.state = notifier.state == branch ? null : branch;
+                  },
+                ),
               ),
             ),
           ),
@@ -54,20 +92,110 @@ class ProfitAndLossScreen extends ConsumerWidget {
   }
 }
 
+/// CSV for the export button: the headline P&L lines, then the branch split.
+List<List<String>> _pnlExportRows(
+  BuildContext context,
+  ProfitAndLossReport? report,
+) {
+  if (report == null) return const [];
+  final l10n = context.l10n;
+  final s = report.data.summary;
+  String n(num v) => v.toStringAsFixed(2);
+  return [
+    [l10n.rptG1ColMetric, l10n.rptG1ColAmount],
+    [l10n.pnlTotalRevenue, n(s.totalRevenue)],
+    [l10n.pnlB2cRevenue, n(s.b2cRevenue)],
+    [l10n.pnlB2bRevenue, n(s.b2bRevenue)],
+    [l10n.pnlShippingIncome, n(s.shippingIncome)],
+    [l10n.pnlCostOfSales, n(s.costOfSales)],
+    [l10n.pnlGrossProfit, n(s.grossProfit)],
+    [l10n.pnlShippingExpense, n(s.shippingExpense)],
+    [l10n.pnlRecurringExpenses, n(s.recurringExpenses)],
+    [l10n.pnlOtherExpenses, n(s.otherExpenses)],
+    [l10n.pnlTotalExpenses, n(s.totalExpenses)],
+    [l10n.pnlNetProfit, n(s.netProfit)],
+    [l10n.reportKpiOrders, '${s.orders}'],
+    if (report.branches.isNotEmpty) ...[
+      const <String>[],
+      [
+        l10n.rptBranchLabel,
+        l10n.reportKpiOrders,
+        l10n.reportKpiRevenue,
+        l10n.pnlCostOfSales,
+        l10n.reportKpiGrossProfit,
+        l10n.rptG1ColMargin,
+        l10n.pnlShippingIncome,
+      ],
+      for (final b in report.branches)
+        [
+          b.branch,
+          '${b.orders}',
+          n(b.revenue),
+          n(b.cogs),
+          n(b.grossProfit),
+          b.grossMarginPct.toStringAsFixed(1),
+          n(b.shippingIncome),
+        ],
+    ],
+  ];
+}
+
 /// The scrollable body, split out so tests can render it from a fixture.
 class ProfitAndLossContent extends StatelessWidget {
   final ProfitAndLoss data;
-  const ProfitAndLossContent({super.key, required this.data});
+
+  /// Invoice-based split per branch; the section hides when empty.
+  final List<PnlBranchRow> branches;
+
+  /// Headline KPIs from the executive endpoint; the strip hides when null.
+  final ExecutiveKpis? kpis;
+
+  /// Business alerts from the executive endpoint (stock, shipping, ...).
+  final List<ReportAlert> alerts;
+
+  /// The branch the report is filtered to, or null for all branches.
+  final String? selectedBranch;
+
+  /// Called with a branch name when a row of the branch split is tapped.
+  final ValueChanged<String>? onBranchTap;
+
+  const ProfitAndLossContent({
+    super.key,
+    required this.data,
+    this.branches = const [],
+    this.kpis,
+    this.alerts = const [],
+    this.selectedBranch,
+    this.onBranchTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final branch = selectedBranch;
+    final kpis = this.kpis;
     return ListView(
-      padding: const EdgeInsets.all(12),
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsetsDirectional.all(12),
       children: [
+        if (branch != null || data.dataQuality.glCompanyWide)
+          _BranchScopeBanner(branch: branch ?? ''),
+        if (kpis != null) ...[
+          _ExecutiveStrip(kpis: kpis),
+          const SizedBox(height: 8),
+        ],
+        if (alerts.isNotEmpty) ReportAlertsCard(alerts: alerts),
         _Warnings(data: data),
         _LedgerCheck(reconciliation: data.reconciliation),
         const SizedBox(height: 8),
         _KpiGrid(data: data),
+        if (branches.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _ByBranchCard(
+            rows: branches,
+            selected: branch,
+            onTap: onBranchTap,
+          ),
+        ],
         const SizedBox(height: 12),
         _RevenueByChannelCard(data: data),
         const SizedBox(height: 12),
@@ -89,6 +217,317 @@ class ProfitAndLossContent extends StatelessWidget {
         _ExpenseMixCard(summary: data.summary),
         const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Branch scope banner, executive KPI strip, branch split
+// ─────────────────────────────────────────────────────────────────────────
+
+/// With a branch selected only the invoice-based figures follow it; the
+/// GL-based ones (expenses, net profit, the ledger check) are company-wide.
+class _BranchScopeBanner extends StatelessWidget {
+  final String branch;
+  const _BranchScopeBanner({required this.branch});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.primary;
+    return Card(
+      margin: const EdgeInsetsDirectional.only(bottom: 8),
+      color: color.withValues(alpha: 0.08),
+      child: Padding(
+        padding: const EdgeInsetsDirectional.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.info_outline, size: 20, color: color),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                context.l10n.rptG1BranchGlNote(branch),
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The headline KPIs folded in from the old Executive Overview screen, as a
+/// horizontally scrolling strip so the P&L stays near the top.
+class _ExecutiveStrip extends StatelessWidget {
+  final ExecutiveKpis kpis;
+  const _ExecutiveStrip({required this.kpis});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    Color signed(double v) => v >= 0 ? _positive : _negative;
+    const w = 150.0;
+    final cards = <Widget>[
+      KpiCard(
+        width: w,
+        label: l10n.reportKpiRevenue,
+        value: formatCompactCurrency(context, kpis.revenue),
+        icon: Icons.payments_outlined,
+        color: theme.colorScheme.primary,
+      ),
+      KpiCard(
+        width: w,
+        label: l10n.reportKpiOrders,
+        value: formatCount(context, kpis.orders),
+        icon: Icons.receipt_long_outlined,
+        color: theme.colorScheme.tertiary,
+      ),
+      KpiCard(
+        width: w,
+        label: l10n.reportKpiAov,
+        value: formatCurrency(context, kpis.avgOrderValue),
+        icon: Icons.shopping_cart_outlined,
+        color: theme.colorScheme.secondary,
+      ),
+      KpiCard(
+        width: w,
+        label: l10n.reportKpiCustomers,
+        value: formatCount(context, kpis.customers),
+        icon: Icons.groups_outlined,
+        color: Colors.teal.shade700,
+      ),
+      KpiCard(
+        width: w,
+        label: l10n.reportKpiCriticalStock,
+        value: formatCount(context, kpis.criticalStock),
+        icon: Icons.inventory_2_outlined,
+        color: kpis.criticalStock > 0 ? _negative : _positive,
+      ),
+      KpiCard(
+        width: w,
+        label: l10n.reportKpiNetShippingPl,
+        value: formatCompactCurrency(context, kpis.netShippingPl),
+        icon: Icons.local_shipping_outlined,
+        color: signed(kpis.netShippingPl),
+      ),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 4, bottom: 4),
+          child: Text(
+            l10n.rptG1AtAGlance,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < cards.length; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                cards[i],
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Revenue and gross profit per branch (invoice-based). Tapping a row
+/// filters the whole report to that branch.
+class _ByBranchCard extends StatelessWidget {
+  final List<PnlBranchRow> rows;
+  final String? selected;
+  final ValueChanged<String>? onTap;
+
+  const _ByBranchCard({required this.rows, this.selected, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final sorted = [...rows]..sort((a, b) => b.revenue.compareTo(a.revenue));
+    final maxRevenue = sorted.fold<double>(
+      0,
+      (m, r) => r.revenue > m ? r.revenue : m,
+    );
+    final selectedIndex = sorted.indexWhere((r) => r.branch == selected);
+    final tap = onTap;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.rptG1ByBranchTitle,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (tap != null)
+              Text(
+                l10n.rptG1ByBranchHint,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            const SizedBox(height: 10),
+            for (final r in sorted)
+              _BranchBar(
+                label: r.branch,
+                revenue: r.revenue,
+                grossProfit: r.grossProfit,
+                maxRevenue: maxRevenue,
+                highlighted: r.branch == selected,
+              ),
+            const SizedBox(height: 4),
+            _Legend(
+              items: [
+                _LegendItem(
+                  color: _branchRevenueColor(theme),
+                  label: l10n.reportKpiRevenue,
+                ),
+                _LegendItem(color: _positive, label: l10n.reportKpiGrossProfit),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ReportTable(
+              columns: [
+                ReportColumn(l10n.rptBranchLabel, flex: 3),
+                ReportColumn(l10n.reportKpiOrders, numeric: true, flex: 2),
+                ReportColumn(l10n.reportKpiRevenue, numeric: true, flex: 3),
+                ReportColumn(
+                  l10n.reportKpiGrossProfit,
+                  numeric: true,
+                  flex: 3,
+                ),
+                ReportColumn(l10n.rptG1ColMargin, numeric: true, flex: 2),
+              ],
+              rows: [
+                for (final r in sorted)
+                  [
+                    r.branch,
+                    formatCount(context, r.orders),
+                    formatCompactCurrency(context, r.revenue),
+                    formatCompactCurrency(context, r.grossProfit),
+                    '${_pct(r.grossMarginPct)}%',
+                  ],
+              ],
+              cellColor: (row, col) {
+                if (row == selectedIndex) return theme.colorScheme.primary;
+                if (col == 3 && sorted[row].grossProfit < 0) return _negative;
+                return null;
+              },
+              onRowTap: tap == null ? null : (i) => tap(sorted[i].branch),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Color _branchRevenueColor(ThemeData theme) =>
+    theme.colorScheme.primary.withValues(alpha: 0.35);
+
+/// One branch: revenue as the full bar, gross profit as the inner fill.
+class _BranchBar extends StatelessWidget {
+  final String label;
+  final double revenue;
+  final double grossProfit;
+  final double maxRevenue;
+  final bool highlighted;
+
+  const _BranchBar({
+    required this.label,
+    required this.revenue,
+    required this.grossProfit,
+    required this.maxRevenue,
+    required this.highlighted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final revFrac = maxRevenue <= 0
+        ? 0.0
+        : (revenue / maxRevenue).clamp(0.0, 1.0).toDouble();
+    final gpFrac = maxRevenue <= 0
+        ? 0.0
+        : (_pos(grossProfit) / maxRevenue).clamp(0.0, 1.0).toDouble();
+    final style = theme.textTheme.labelSmall?.copyWith(
+      fontWeight: highlighted ? FontWeight.bold : null,
+      color: highlighted ? theme.colorScheme.primary : null,
+    );
+    return Padding(
+      padding: const EdgeInsetsDirectional.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 90,
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: style,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: SizedBox(
+                height: 14,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ColoredBox(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                      ),
+                    ),
+                    FractionallySizedBox(
+                      alignment: AlignmentDirectional.centerStart,
+                      widthFactor: revFrac,
+                      heightFactor: 1,
+                      child: ColoredBox(color: _branchRevenueColor(theme)),
+                    ),
+                    FractionallySizedBox(
+                      alignment: AlignmentDirectional.centerStart,
+                      widthFactor: gpFrac,
+                      heightFactor: 1,
+                      child: ColoredBox(color: _positive),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          SizedBox(
+            width: 64,
+            child: Text(
+              formatCompactCurrency(context, revenue),
+              textAlign: TextAlign.end,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: style,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -134,12 +573,12 @@ class _Warnings extends StatelessWidget {
     final theme = Theme.of(context);
     final color = Colors.orange.shade800;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsetsDirectional.only(bottom: 8),
       child: Column(
         children: [
           for (final m in messages)
             Card(
-              margin: const EdgeInsets.only(bottom: 6),
+              margin: const EdgeInsetsDirectional.only(bottom: 6),
               color: color.withValues(alpha: 0.10),
               child: ListTile(
                 dense: true,
@@ -366,7 +805,7 @@ class _RevenueByChannelCard extends StatelessWidget {
                 ),
               ),
             ),
-            titlesData: _titles(theme, labels),
+            titlesData: _titles(context, labels),
           ),
         ),
       ),
@@ -654,7 +1093,7 @@ class _RevenueVsExpensesCard extends StatelessWidget {
             maxX: (points.length - 1).clamp(0, double.maxFinite).toDouble(),
             gridData: const FlGridData(show: true, drawVerticalLine: false),
             borderData: FlBorderData(show: false),
-            titlesData: _titles(theme, labels),
+            titlesData: _titles(context, labels),
             extraLinesData: ExtraLinesData(
               horizontalLines: [
                 HorizontalLine(y: 0, color: theme.dividerColor, strokeWidth: 1),
@@ -1211,39 +1650,14 @@ class _LegendItem extends StatelessWidget {
   );
 }
 
-class _ErrorRetry extends StatelessWidget {
-  final VoidCallback onRetry;
-  const _ErrorRetry({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 40, color: theme.colorScheme.error),
-          const SizedBox(height: 8),
-          Text(l10n.reportError, style: theme.textTheme.bodyMedium),
-          const SizedBox(height: 12),
-          FilledButton.tonal(
-            onPressed: onRetry,
-            child: Text(l10n.reportsRetry),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ── pure helpers ──────────────────────────────────────────────────────────
 
 double _pos(double v) => v > 0 ? v : 0;
 
 String _pct(double v) => v.toStringAsFixed(v.abs() >= 10 ? 0 : 1);
 
-String _compact(num value) => NumberFormat.compact().format(value);
+String _compact(BuildContext context, num value) =>
+    NumberFormat.compact(locale: context.l10n.localeName).format(value);
 
 String _bucketLabel(BuildContext context, String raw, String granularity) {
   final d = DateTime.tryParse(raw);
@@ -1272,7 +1686,8 @@ String _channelLabel(BuildContext context, String channel) {
   };
 }
 
-FlTitlesData _titles(ThemeData theme, List<String> labels) {
+FlTitlesData _titles(BuildContext context, List<String> labels) {
+  final theme = Theme.of(context);
   // At most ~6 labels. BarChart asks for a title per group and ignores
   // `interval`, so the step is also enforced inside getTitlesWidget.
   final step = labels.isEmpty
@@ -1288,7 +1703,10 @@ FlTitlesData _titles(ThemeData theme, List<String> labels) {
         reservedSize: 50,
         getTitlesWidget: (value, meta) => SideTitleWidget(
           axisSide: meta.axisSide,
-          child: Text(_compact(value), style: theme.textTheme.labelSmall),
+          child: Text(
+            _compact(context, value),
+            style: theme.textTheme.labelSmall,
+          ),
         ),
       ),
     ),

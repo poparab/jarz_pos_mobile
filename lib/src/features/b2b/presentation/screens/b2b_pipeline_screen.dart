@@ -83,6 +83,14 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
           // the rep who owns these accounts lives on this board, and a label
           // that needs printing is a days-long lead time, not a same-day fix.
           const _LabelAlertAction(),
+          // The B2B sales report moved here from the Reports hub; same
+          // `_ensure_jarz_manager` gate as its endpoint.
+          if (rolesAsync.valueOrNull?.canViewAllReports ?? false)
+            IconButton(
+              tooltip: context.l10n.rptB2bReportTooltip,
+              icon: const Icon(Icons.bar_chart),
+              onPressed: () => context.push(AppRoutes.reportsB2b),
+            ),
           IconButton(
             tooltip: context.l10n.b2bRefresh,
             icon: const Icon(Icons.refresh),

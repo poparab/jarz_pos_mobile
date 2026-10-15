@@ -102,7 +102,7 @@ class _FleetMapScreenState extends ConsumerState<FleetMapScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final canView = ref.watch(canAccessManagerDashboardRoleProvider);
+    final canView = ref.watch(canViewLiveCourierMapProvider);
     final state = ref.watch(fleetControllerProvider);
 
     return Scaffold(
@@ -130,8 +130,8 @@ class _FleetMapScreenState extends ConsumerState<FleetMapScreen>
   }) {
     final l10n = context.l10n;
 
-    // Role gate mirrors the server's supervisor-only rule. The 403 branch below
-    // still exists because the client's role set can only ever approximate it.
+    // Role gate mirrors `ROLES.COURIER_MAP_VIEWER` (the drawer uses the same
+    // provider). The 403 branch below still exists because the client's role set can only ever approximate it.
     if (!canView || state.isPermissionDenied) {
       return FleetMessagePanel(
         icon: Icons.lock_outline,

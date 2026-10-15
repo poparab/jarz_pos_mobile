@@ -356,12 +356,23 @@ class PnlDataQuality {
   final double shippingExpenseCoveragePct;
   final List<String> warnings;
 
+  /// Note codes from the backend (e.g. `gl_company_wide` when a branch is
+  /// selected). Read from `notes` (list) or `note` (string); empty on an
+  /// older backend.
+  final List<String> notes;
+
+  /// True when the backend says the GL-based sections ignore the selected
+  /// branch (note code `gl_company_wide`, sent only with a branch).
+  final bool glCompanyWide;
+
   const PnlDataQuality({
     this.orders = 0,
     this.stockPostedOrders = 0,
     this.cogsCoveragePct = 100,
     this.shippingExpenseCoveragePct = 100,
     this.warnings = const [],
+    this.notes = const [],
+    this.glCompanyWide = false,
   });
 
   factory PnlDataQuality.fromJson(JsonMap j) => PnlDataQuality(
@@ -374,6 +385,13 @@ class PnlDataQuality {
         ? _d(j['shipping_expense_coverage_pct'])
         : 100,
     warnings: _strings(j['warnings']),
+    notes: [
+      ..._strings(j['notes']),
+      if (j['note'] is String && (j['note'] as String).trim().isNotEmpty)
+        (j['note'] as String).trim(),
+    ],
+    glCompanyWide: j['gl_company_wide'] == true ||
+        _strings(j['notes']).contains('gl_company_wide'),
   );
 }
 

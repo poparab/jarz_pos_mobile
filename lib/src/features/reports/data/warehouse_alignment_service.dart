@@ -94,9 +94,15 @@ class WarehouseAlignmentFilter {
 
   const WarehouseAlignmentFilter({this.branch, this.limit = 100});
 
-  WarehouseAlignmentFilter copyWith({String? branch, int? limit}) =>
+  /// [clearBranch] resets the branch to "all branches"; a plain
+  /// `copyWith(branch: null)` keeps the current one (null means "unchanged").
+  WarehouseAlignmentFilter copyWith({
+    String? branch,
+    bool clearBranch = false,
+    int? limit,
+  }) =>
       WarehouseAlignmentFilter(
-        branch: branch ?? this.branch,
+        branch: clearBranch ? null : (branch ?? this.branch),
         limit: limit ?? this.limit,
       );
 

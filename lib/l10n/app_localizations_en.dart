@@ -17091,4 +17091,1159 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courierSetupCopied => 'Copied.';
+
+  @override
+  String get rptCourierBalancesPartnerFallback => 'Partner';
+
+  @override
+  String rptInstapayExpectedReference(String reference) {
+    return 'Ref: $reference';
+  }
+
+  @override
+  String get rptRangeToday => 'Today';
+
+  @override
+  String get rptRangeYesterday => 'Yesterday';
+
+  @override
+  String get rptRangeLast7Days => 'Last 7 days';
+
+  @override
+  String get rptRangeThisMonth => 'This month';
+
+  @override
+  String get rptRangeLastMonth => 'Last month';
+
+  @override
+  String get rptRangeLast30Days => 'Last 30 days';
+
+  @override
+  String get rptRangeLast90Days => 'Last 90 days';
+
+  @override
+  String get rptRangeThisYear => 'Year to date';
+
+  @override
+  String get rptBranchLabel => 'Branch';
+
+  @override
+  String get rptAllBranches => 'All branches';
+
+  @override
+  String get rptExport => 'Export CSV';
+
+  @override
+  String get rptExportEmpty => 'There is nothing to export yet.';
+
+  @override
+  String get rptExportFailed => 'Could not export the report.';
+
+  @override
+  String get rptExportCopied =>
+      'Sharing is unavailable, so the report was copied to the clipboard.';
+
+  @override
+  String get rptHubOverview => 'Overview';
+
+  @override
+  String get rptHubDailyOps => 'Daily operations';
+
+  @override
+  String get rptHubSalesCustomers => 'Sales & customers';
+
+  @override
+  String get rptHubStock => 'Stock';
+
+  @override
+  String get rptHubPeople => 'People';
+
+  @override
+  String get rptBusinessOverviewTitle => 'Business overview';
+
+  @override
+  String get rptBusinessOverviewSubtitle =>
+      'Profit & loss, key figures and the split by branch';
+
+  @override
+  String get rptUnitEconomicsTitle => 'Unit economics';
+
+  @override
+  String get rptUnitEconomicsSubtitle =>
+      'Contribution per order and the break-even point';
+
+  @override
+  String get rptDailyCloseTitle => 'Daily close';
+
+  @override
+  String get rptDailyCloseSubtitle =>
+      'Sales by branch, channel and payment method';
+
+  @override
+  String get rptCashOverShortTitle => 'Cash over/short';
+
+  @override
+  String get rptCashOverShortSubtitle =>
+      'Drawer differences by branch, cashier and shift';
+
+  @override
+  String get rptFulfilmentSlaTitle => 'Fulfilment SLA';
+
+  @override
+  String get rptFulfilmentSlaSubtitle =>
+      'Time to dispatch and deliver, late orders and cancellations';
+
+  @override
+  String get rptPromoTitle => 'Promo codes';
+
+  @override
+  String get rptPromoSubtitle => 'Orders, discount and revenue for each code';
+
+  @override
+  String get rptStockAdjustmentsTitle => 'Waste & adjustments';
+
+  @override
+  String get rptStockAdjustmentsSubtitle =>
+      'The value of stock lost and gained';
+
+  @override
+  String get rptLabourCostTitle => 'Labour cost';
+
+  @override
+  String get rptLabourCostSubtitle =>
+      'Labour cost against sales for each branch';
+
+  @override
+  String get rptInventoryRestockTitle => 'Inventory & restock';
+
+  @override
+  String get rptInventoryRestockSubtitle =>
+      'Stock levels, sales speed and what to reorder';
+
+  @override
+  String get rptCustomersSegmentsTitle => 'Customers & segments';
+
+  @override
+  String get rptCustomersSegmentsSubtitle =>
+      'Retention, top customers and customer segments';
+
+  @override
+  String get rptShippingCouriersTitle => 'Shipping & couriers';
+
+  @override
+  String get rptShippingCouriersSubtitle =>
+      'Courier cost against shipping charged, and unsettled balances';
+
+  @override
+  String get rptComingSoon => 'This report is on its way.';
+
+  @override
+  String get rptAccessDenied => 'You do not have access to this report.';
+
+  @override
+  String get rptB2bReportTooltip => 'B2B sales report';
+
+  @override
+  String get rptAlertsTitle => 'Alerts';
+
+  @override
+  String get rptDailyCloseNetSales => 'Net sales';
+
+  @override
+  String get rptDailyCloseOrders => 'Orders';
+
+  @override
+  String get rptDailyCloseAvgOrder => 'Avg order value';
+
+  @override
+  String get rptDailyCloseShipping => 'Shipping income';
+
+  @override
+  String get rptDailyCloseReturns => 'Returns';
+
+  @override
+  String rptDailyCloseReturnsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count returns',
+      one: '1 return',
+      zero: 'No returns',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rptDailyCloseCancelled => 'Cancelled';
+
+  @override
+  String get rptDailyCloseGrossSales => 'Gross sales';
+
+  @override
+  String get rptDailyCloseGrandTotal => 'Grand total';
+
+  @override
+  String get rptDailyCloseOutstanding => 'Not yet collected';
+
+  @override
+  String get rptDailyCloseOutstandingHint =>
+      'Settled later by journal entry (Talabat, couriers)';
+
+  @override
+  String get rptDailyCloseChannels => 'Sales by channel';
+
+  @override
+  String get rptDailyCloseByHour => 'Sales by hour';
+
+  @override
+  String get rptDailyClosePayments => 'Payments by method';
+
+  @override
+  String get rptDailyCloseBranches => 'Branches';
+
+  @override
+  String get rptDailyCloseBranchesHint =>
+      'Tap a branch for its channels and payments';
+
+  @override
+  String get rptDailyCloseChannel => 'Channel';
+
+  @override
+  String get rptDailyCloseMode => 'Payment method';
+
+  @override
+  String get rptDailyCloseAmount => 'Amount';
+
+  @override
+  String get rptDailyCloseShare => 'Share';
+
+  @override
+  String get rptDailyCloseBranch => 'Branch';
+
+  @override
+  String get rptDailyCloseHour => 'Hour';
+
+  @override
+  String get rptDailyClosePrevDay => 'Previous day';
+
+  @override
+  String get rptDailyCloseNextDay => 'Next day';
+
+  @override
+  String rptDailyCloseOrdersCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count orders',
+      one: '1 order',
+      zero: 'No orders',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rptDailyCloseChannelPos => 'Walk-in (POS)';
+
+  @override
+  String get rptDailyCloseChannelWoo => 'Online store';
+
+  @override
+  String get rptDailyCloseChannelTalabat => 'Talabat';
+
+  @override
+  String get rptDailyCloseChannelB2b => 'B2B';
+
+  @override
+  String get rptDailyCloseChannelStaff => 'Staff';
+
+  @override
+  String get rptDailyCloseChannelSamples => 'Samples';
+
+  @override
+  String get rptDailyCloseChannelPartner => 'Delivery partner';
+
+  @override
+  String rptDailyCloseScopedTo(String branches) {
+    return 'Limited to your branches: $branches';
+  }
+
+  @override
+  String get rptCashOverShortShifts => 'Shifts';
+
+  @override
+  String get rptCashOverShortWithDiff => 'Shifts with a difference';
+
+  @override
+  String get rptCashOverShortOver => 'Over';
+
+  @override
+  String get rptCashOverShortShort => 'Short';
+
+  @override
+  String get rptCashOverShortNet => 'Net';
+
+  @override
+  String get rptCashOverShortBranches => 'By branch';
+
+  @override
+  String get rptCashOverShortCashiers => 'By cashier';
+
+  @override
+  String get rptCashOverShortCashiersHint => 'Largest shortage first';
+
+  @override
+  String get rptCashOverShortCashier => 'Cashier';
+
+  @override
+  String get rptCashOverShortBranch => 'Branch';
+
+  @override
+  String get rptCashOverShortShiftList => 'Shift closes';
+
+  @override
+  String get rptCashOverShortShiftListHint =>
+      'Newest first. Tap a shift for details.';
+
+  @override
+  String get rptCashOverShortShift => 'Shift';
+
+  @override
+  String get rptCashOverShortOpened => 'Opened';
+
+  @override
+  String get rptCashOverShortClosed => 'Closed';
+
+  @override
+  String get rptCashOverShortExpected => 'Expected';
+
+  @override
+  String get rptCashOverShortCounted => 'Counted';
+
+  @override
+  String get rptCashOverShortDifference => 'Difference';
+
+  @override
+  String get rptCashOverShortOpeningEntry => 'Opening entry';
+
+  @override
+  String get rptCashOverShortOpeningDifference => 'Difference at opening';
+
+  @override
+  String get rptCashOverShortLedger => 'Cash Over/Short account';
+
+  @override
+  String get rptCashOverShortLedgerHint =>
+      'What was booked to the ledger in this period';
+
+  @override
+  String get rptCashOverShortAtClose => 'Booked at shift close';
+
+  @override
+  String get rptCashOverShortAtOpen => 'Booked at shift open';
+
+  @override
+  String get rptCashOverShortUnlinked => 'Not linked to a shift';
+
+  @override
+  String get rptCashOverShortNotClosed => 'Not closed';
+
+  @override
+  String get rptCashOverShortNoShifts => 'No closed shifts in this period';
+
+  @override
+  String get rptSlaOrders => 'Orders';
+
+  @override
+  String get rptSlaDelivered => 'Delivered';
+
+  @override
+  String get rptSlaCancelled => 'Cancelled';
+
+  @override
+  String get rptSlaReturned => 'Returned';
+
+  @override
+  String get rptSlaMedianDispatch => 'Median time to dispatch';
+
+  @override
+  String get rptSlaMedianDeliver => 'Median time to deliver';
+
+  @override
+  String get rptSlaP90Deliver => '90% delivered within';
+
+  @override
+  String get rptSlaLateOrders => 'Late orders';
+
+  @override
+  String get rptSlaOpenLate => 'Late, not delivered yet';
+
+  @override
+  String rptSlaLatePct(String pct) {
+    return '$pct% of delivered';
+  }
+
+  @override
+  String rptSlaMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String rptSlaHoursMinutes(String hours, String minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String rptSlaLateRule(String minutes) {
+    return 'Late = delivered after the slot end, or more than $minutes minutes after the order when it has no slot.';
+  }
+
+  @override
+  String rptSlaDataSince(String date) {
+    return 'Order timings are recorded from $date; earlier orders have no timings.';
+  }
+
+  @override
+  String rptSlaTimedCoverage(String dispatched, String delivered) {
+    return 'Timed orders: $dispatched dispatched, $delivered delivered';
+  }
+
+  @override
+  String get rptSlaByDay => 'Delivery time by day';
+
+  @override
+  String get rptSlaByDayHint => 'Median minutes from order to delivery';
+
+  @override
+  String get rptSlaLateByDay => 'Late orders by day';
+
+  @override
+  String get rptSlaBranches => 'By branch';
+
+  @override
+  String get rptSlaBranch => 'Branch';
+
+  @override
+  String get rptSlaDispatchCol => 'To dispatch';
+
+  @override
+  String get rptSlaDeliverCol => 'To deliver';
+
+  @override
+  String get rptSlaLateCol => 'Late';
+
+  @override
+  String get rptSlaLateList => 'Late orders (worst first)';
+
+  @override
+  String get rptSlaLateListHint => 'Tap an order for its timings';
+
+  @override
+  String get rptSlaInvoice => 'Order';
+
+  @override
+  String get rptSlaCustomer => 'Customer';
+
+  @override
+  String get rptSlaLateBy => 'Late by';
+
+  @override
+  String get rptSlaCreated => 'Ordered at';
+
+  @override
+  String get rptSlaDeadline => 'Deadline';
+
+  @override
+  String get rptSlaDeliveredAt => 'Delivered at';
+
+  @override
+  String get rptSlaNotDelivered => 'Not delivered yet';
+
+  @override
+  String get rptSlaSlot => 'Delivery slot';
+
+  @override
+  String get rptSlaRule => 'Judged by';
+
+  @override
+  String get rptSlaRuleSlot => 'Slot end';
+
+  @override
+  String get rptSlaRuleSlotStart => 'Slot start + time limit';
+
+  @override
+  String get rptSlaRuleThreshold => 'Time limit';
+
+  @override
+  String get rptSlaState => 'Status';
+
+  @override
+  String get rptSlaTotalTime => 'Order to delivery';
+
+  @override
+  String get rptSlaCancellations => 'Cancellation reasons';
+
+  @override
+  String get rptSlaReason => 'Reason';
+
+  @override
+  String get rptSlaCount => 'Count';
+
+  @override
+  String get rptSlaNoReason => 'No reason given';
+
+  @override
+  String get rptSlaNoLate => 'No late orders in this period';
+
+  @override
+  String get rptSlaCopyInvoice => 'Copy order number';
+
+  @override
+  String get rptSlaCopied => 'Order number copied';
+
+  @override
+  String rptG1BranchGlNote(String branch) {
+    return 'Branch $branch: sales, cost of goods and shipping income are for this branch. Expenses, net profit and the ledger check are company-wide.';
+  }
+
+  @override
+  String get rptG1AtAGlance => 'At a glance';
+
+  @override
+  String get rptG1ByBranchTitle => 'By branch';
+
+  @override
+  String get rptG1ByBranchHint => 'Tap a branch to show only its figures';
+
+  @override
+  String get rptG1ColMargin => 'Margin';
+
+  @override
+  String get rptG1ColMetric => 'Metric';
+
+  @override
+  String get rptG1ColAmount => 'Amount';
+
+  @override
+  String get rptG1ShipCostVsCharged => 'Courier cost vs charged';
+
+  @override
+  String get rptG1ShipCostVsChargedHint =>
+      'What customers paid for delivery against what couriers cost';
+
+  @override
+  String get rptG1ShipLossByArea => 'Loss by area';
+
+  @override
+  String get rptG1ShipLossByAreaHint =>
+      'Shipping net per area, biggest loss first';
+
+  @override
+  String get rptG1ColArea => 'Area';
+
+  @override
+  String get rptG1ColCost => 'Cost';
+
+  @override
+  String get rptG1ColCharged => 'Charged';
+
+  @override
+  String get rptG1ColNet => 'Net';
+
+  @override
+  String get rptG1Settled => 'Settled';
+
+  @override
+  String rptG1UnsettledAsOf(String date) {
+    return 'As of $date';
+  }
+
+  @override
+  String get rptG1ColCourier => 'Courier';
+
+  @override
+  String get rptG1ColOwed => 'Owed';
+
+  @override
+  String get rptG1ColDaysAged => 'Days';
+
+  @override
+  String get rptG1DoubleTrips => 'Double trips';
+
+  @override
+  String get rptG1DoubleExtraCost => 'Extra courier cost';
+
+  @override
+  String rptG1OverridesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count overrides',
+      one: '1 override',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rptG1Units => 'Units';
+
+  @override
+  String get rptG1ColType => 'Type';
+
+  @override
+  String get rptG1CostBasis => 'Cost basis';
+
+  @override
+  String get rptG1CostActual => 'Actual';
+
+  @override
+  String get rptG1CostBom => 'Estimated (BOM)';
+
+  @override
+  String get rptG1CostNone => 'No cost';
+
+  @override
+  String rptG1CostCoverage(String pct) {
+    return 'Cost of goods is actual for $pct% of revenue; the rest is estimated from recipes (BOM).';
+  }
+
+  @override
+  String get rptG1OrdersTrend => 'Orders over time';
+
+  @override
+  String get rptG1ProductTapHint => 'Tap a product for details';
+
+  @override
+  String get rptG1AvgPrice => 'Avg price per unit';
+
+  @override
+  String get rptG1CostPerUnit => 'Cost per unit';
+
+  @override
+  String get rptG1ColClient => 'Client';
+
+  @override
+  String get rptG1ColGroup => 'Group';
+
+  @override
+  String get rptG1ColClients => 'Clients';
+
+  @override
+  String get rptG1ColLastOrder => 'Last order';
+
+  @override
+  String get rptG1ColDaysSince => 'Days since';
+
+  @override
+  String get rptG2RestockAll => 'All';
+
+  @override
+  String get rptG2RestockStatusOther => 'Other';
+
+  @override
+  String get rptG2ColumnSuggestedQty => 'Suggested';
+
+  @override
+  String get rptG2ColumnDaysCover => 'Days cover';
+
+  @override
+  String get rptG2RestockEmpty => 'No items match this filter.';
+
+  @override
+  String get rptG2RestockHint => 'Tap an item to see its sales velocity.';
+
+  @override
+  String rptG2RecencyDaysAgo(String days) {
+    return '$days days ago';
+  }
+
+  @override
+  String rptG2OrdersCount(String count) {
+    return '$count orders';
+  }
+
+  @override
+  String get rptG2SegmentOverlay => 'Overlay';
+
+  @override
+  String get rptG2SegmentsOverlayNote =>
+      'Overlay segments overlap the others and are not counted in the total.';
+
+  @override
+  String get rptG2ColumnMobile => 'Mobile';
+
+  @override
+  String get rptG2ColumnTerritory => 'Territory';
+
+  @override
+  String get rptG2ColumnUpdatedOn => 'Updated on';
+
+  @override
+  String get rptG2CustomerSummaryTitle => 'Customer summary';
+
+  @override
+  String get rptG2StockValue => 'Stock value';
+
+  @override
+  String get rptG2GrandTotal => 'Grand total';
+
+  @override
+  String get rptG2GroupTotal => 'Group total';
+
+  @override
+  String get rptG2TotalQty => 'Total qty';
+
+  @override
+  String get rptG2Company => 'Company';
+
+  @override
+  String get rptG2Refresh => 'Refresh';
+
+  @override
+  String get rptUnitEconInputsTitle => 'Owner inputs';
+
+  @override
+  String get rptUnitEconInputsSubtitle =>
+      'Values you enter. They are estimates and are not booked in the ledger.';
+
+  @override
+  String get rptUnitEconEditInputs => 'Edit inputs';
+
+  @override
+  String get rptUnitEconAdSpend => 'Ad spend';
+
+  @override
+  String get rptUnitEconAdSpendHelp => 'Total for the selected period';
+
+  @override
+  String get rptUnitEconKashierPct => 'Kashier fee %';
+
+  @override
+  String get rptUnitEconKashierPctHelp =>
+      'Applied to revenue paid through Kashier';
+
+  @override
+  String get rptUnitEconTalabatPct => 'Talabat commission %';
+
+  @override
+  String get rptUnitEconTalabatPctHelp => 'Applied to Talabat-channel revenue';
+
+  @override
+  String get rptUnitEconExtraFixed => 'Extra fixed costs';
+
+  @override
+  String get rptUnitEconExtraFixedHelp =>
+      'Costs not in the books, such as salaries off payroll, investor return or tools';
+
+  @override
+  String rptUnitEconAppliedAmount(String amount) {
+    return 'Applied in this report: $amount';
+  }
+
+  @override
+  String get rptUnitEconResetDefaults => 'Reset to defaults';
+
+  @override
+  String get rptUnitEconInvalidNumber => 'Enter a number of 0 or more';
+
+  @override
+  String get rptUnitEconInvalidPct => 'Enter a percentage between 0 and 100';
+
+  @override
+  String get rptUnitEconBadgeOwnerInput => 'Owner input';
+
+  @override
+  String get rptUnitEconBadgeEstimate => 'Estimate';
+
+  @override
+  String get rptUnitEconLegend =>
+      'Figures tagged Estimate or Owner input are not booked amounts.';
+
+  @override
+  String get rptUnitEconContributionMargin => 'Contribution margin';
+
+  @override
+  String get rptUnitEconNetProfit => 'Net profit';
+
+  @override
+  String get rptUnitEconWaterfallTitle => 'From revenue to net profit';
+
+  @override
+  String get rptUnitEconRevenue => 'Revenue';
+
+  @override
+  String get rptUnitEconCogs => 'Cost of goods';
+
+  @override
+  String get rptUnitEconShippingNet => 'Net delivery cost';
+
+  @override
+  String get rptUnitEconKashierFees => 'Kashier fees';
+
+  @override
+  String get rptUnitEconTalabatCommission => 'Talabat commission';
+
+  @override
+  String get rptUnitEconVariableTotal => 'Variable costs';
+
+  @override
+  String get rptUnitEconContribution => 'Contribution';
+
+  @override
+  String get rptUnitEconRecurring => 'Recurring expenses';
+
+  @override
+  String get rptUnitEconOtherExpenses => 'Other expenses';
+
+  @override
+  String get rptUnitEconFixedTotal => 'Fixed costs';
+
+  @override
+  String get rptUnitEconBreakEvenTitle => 'Break-even';
+
+  @override
+  String get rptUnitEconBreakEvenRevenue => 'Break-even revenue';
+
+  @override
+  String get rptUnitEconBreakEvenOrders => 'Break-even orders';
+
+  @override
+  String get rptUnitEconGap => 'Gap to break-even';
+
+  @override
+  String rptUnitEconPastBreakEven(String amount) {
+    return 'Past break-even by $amount';
+  }
+
+  @override
+  String rptUnitEconProgress(String pct) {
+    return '$pct of break-even revenue reached';
+  }
+
+  @override
+  String get rptUnitEconNoBreakEven =>
+      'No break-even point: orders do not cover their variable costs.';
+
+  @override
+  String get rptUnitEconPerOrderTitle => 'Per order';
+
+  @override
+  String get rptUnitEconFees => 'Fees';
+
+  @override
+  String get rptUnitEconShipping => 'Delivery';
+
+  @override
+  String get rptUnitEconNotesTitle => 'Notes';
+
+  @override
+  String get rptUnitEconMetric => 'Metric';
+
+  @override
+  String get rptUnitEconValue => 'Value';
+
+  @override
+  String get rptUnitEconNoteAdSpendIsOwnerInput =>
+      'Ad spend is your input, not a booked amount.';
+
+  @override
+  String get rptUnitEconNoteAdSpendNotEntered =>
+      'Ad spend is not entered, so net profit leaves out advertising.';
+
+  @override
+  String get rptUnitEconNoteExtraFixedIsOwnerInput =>
+      'Extra fixed costs are your input, not booked amounts.';
+
+  @override
+  String get rptUnitEconNoteKashierFeesEstimated =>
+      'Kashier fees are estimated from your fee %.';
+
+  @override
+  String get rptUnitEconNoteTalabatCommissionEstimated =>
+      'Talabat commission is estimated from your commission %.';
+
+  @override
+  String get rptUnitEconNoteBookedPartnerCommissionReplaced =>
+      'Booked partner commission was replaced by the estimate so it is not counted twice.';
+
+  @override
+  String get rptUnitEconNoteBookedKashierFeesReplaced =>
+      'Booked Kashier fees were replaced by the estimate so they are not counted twice.';
+
+  @override
+  String get rptUnitEconNoteStockAdjustmentInOther =>
+      'Stock adjustments are included in other expenses.';
+
+  @override
+  String get rptUnitEconNoteCogsIncomplete =>
+      'Cost of goods is incomplete: some items have no cost.';
+
+  @override
+  String get rptUnitEconNoteShippingExpenseIncomplete =>
+      'Delivery expense is incomplete for this period.';
+
+  @override
+  String get rptUnitEconNoteRecurringNotFullyPosted =>
+      'Some recurring expenses due in this period are not posted yet.';
+
+  @override
+  String get rptUnitEconNoteAdsAlsoBooked =>
+      'Ads are also booked in the ledger; check they are not counted twice.';
+
+  @override
+  String get rptUnitEconNoteContributionNotPositive =>
+      'Contribution is not positive, so there is no break-even point.';
+
+  @override
+  String get rptUnitEconBasisTitle => 'Calculation basis';
+
+  @override
+  String get rptUnitEconBasisSubtitle =>
+      'Booked figures the estimates start from';
+
+  @override
+  String get rptUnitEconBasisKashierReceipts => 'Kashier receipts';
+
+  @override
+  String get rptUnitEconBasisTalabatSales => 'Talabat sales';
+
+  @override
+  String get rptUnitEconBasisTalabatOrders => 'Talabat orders';
+
+  @override
+  String get rptUnitEconBasisShippingIncome => 'Delivery income';
+
+  @override
+  String get rptUnitEconBasisShippingExpense => 'Delivery expense';
+
+  @override
+  String get rptUnitEconBasisStockAdjustment => 'Stock adjustment';
+
+  @override
+  String get rptUnitEconBasisBookedPartnerCommission =>
+      'Booked partner commission';
+
+  @override
+  String get rptUnitEconBasisBookedKashierFees => 'Booked Kashier fees';
+
+  @override
+  String get rptUnitEconBasisRecurringDue => 'Recurring expenses due';
+
+  @override
+  String get rptUnitEconBasisCogsCoverage => 'Sales with a known cost';
+
+  @override
+  String get rptUnitEconBasisLedgerNetProfit => 'Net profit in the ledger';
+
+  @override
+  String get rptPromoConsumerOnly => 'Consumer orders only (B2B excluded)';
+
+  @override
+  String get rptPromoOrdersWithPromo => 'Orders with a code';
+
+  @override
+  String rptPromoShareOfOrders(String pct, String count) {
+    return '$pct of $count consumer orders';
+  }
+
+  @override
+  String get rptPromoDiscountTotal => 'Discount given';
+
+  @override
+  String get rptPromoRevenue => 'Revenue with codes';
+
+  @override
+  String get rptPromoAov => 'Avg order with code';
+
+  @override
+  String get rptPromoNonPromoAov => 'Avg order without code';
+
+  @override
+  String rptPromoAovDiff(String diff) {
+    return '$diff vs no code';
+  }
+
+  @override
+  String get rptPromoNewCustomers => 'New customers via codes';
+
+  @override
+  String get rptPromoCodesTitle => 'Codes';
+
+  @override
+  String get rptPromoCode => 'Code';
+
+  @override
+  String get rptPromoOrders => 'Orders';
+
+  @override
+  String get rptPromoDiscount => 'Discount';
+
+  @override
+  String get rptPromoRevenueShort => 'Revenue';
+
+  @override
+  String get rptPromoAovShort => 'Avg order';
+
+  @override
+  String get rptPromoNew => 'New customers';
+
+  @override
+  String get rptPromoRepeatAfter => 'Ordered again';
+
+  @override
+  String get rptPromoRepeatAfterHelp =>
+      'Customers who ordered again later without a code';
+
+  @override
+  String get rptPromoDiscountRate => 'Discount as % of revenue';
+
+  @override
+  String get rptPromoChartTitle => 'Revenue and discount by code';
+
+  @override
+  String get rptPromoNoCodes => 'No codes were used in this period.';
+
+  @override
+  String get rptWasteLoss => 'Stock lost';
+
+  @override
+  String get rptWasteGain => 'Stock gained';
+
+  @override
+  String get rptWasteNet => 'Net';
+
+  @override
+  String get rptWasteEntriesCount => 'Entries';
+
+  @override
+  String get rptWasteByType => 'By type';
+
+  @override
+  String get rptWasteByBranch => 'By branch';
+
+  @override
+  String get rptWasteWorstItems => 'Biggest losses by item';
+
+  @override
+  String get rptWasteEntries => 'Latest entries';
+
+  @override
+  String get rptWasteItem => 'Item';
+
+  @override
+  String get rptWasteItemCode => 'Item code';
+
+  @override
+  String get rptWasteQty => 'Qty';
+
+  @override
+  String get rptWasteUom => 'Unit';
+
+  @override
+  String get rptWasteValue => 'Value';
+
+  @override
+  String get rptWasteDate => 'Date';
+
+  @override
+  String get rptWasteVoucher => 'Document';
+
+  @override
+  String get rptWasteWarehouse => 'Warehouse';
+
+  @override
+  String get rptWasteBranch => 'Branch';
+
+  @override
+  String get rptWasteType => 'Type';
+
+  @override
+  String get rptWasteRemarks => 'Remarks';
+
+  @override
+  String get rptWasteSignHint =>
+      'Negative values are stock lost; positive values are stock found.';
+
+  @override
+  String get rptWasteTypeStockReconciliation => 'Stock count';
+
+  @override
+  String get rptWasteTypeMaterialIssue => 'Material issue (waste)';
+
+  @override
+  String get rptWasteTypeMaterialReceipt => 'Material receipt';
+
+  @override
+  String get rptWasteTypeStockEntry => 'Stock entry';
+
+  @override
+  String get rptLabourPctOfSales => 'Labour % of sales';
+
+  @override
+  String get rptLabourCost => 'Labour cost';
+
+  @override
+  String get rptLabourSales => 'Sales';
+
+  @override
+  String get rptLabourHours => 'Hours';
+
+  @override
+  String get rptLabourSalesPerHour => 'Sales per hour';
+
+  @override
+  String get rptLabourHeadcount => 'Headcount';
+
+  @override
+  String get rptLabourBasisSalarySlips => 'Based on salary slips';
+
+  @override
+  String get rptLabourBasisSalarySlipsHelp =>
+      'Cost comes from salary slips, prorated to the selected period.';
+
+  @override
+  String get rptLabourBasisRecurring => 'Based on recurring salary expenses';
+
+  @override
+  String get rptLabourBasisRecurringHelp =>
+      'No salary slips cover this period, so cost comes from recurring salary expenses, prorated.';
+
+  @override
+  String get rptLabourBasisEstimate => 'Estimated cost';
+
+  @override
+  String get rptLabourBasisEstimateHelp =>
+      'No payroll was found for this period, so the cost is an estimate and may be off.';
+
+  @override
+  String get rptLabourByBranch => 'By branch';
+
+  @override
+  String get rptLabourBranch => 'Branch';
+
+  @override
+  String get rptLabourEmployees => 'Employees';
+
+  @override
+  String get rptLabourEmployee => 'Employee';
+
+  @override
+  String get rptLabourEmployeeId => 'Employee ID';
+
+  @override
+  String get rptLabourDays => 'Days';
+
+  @override
+  String get rptLabourCostPerHour => 'Cost per hour';
+
+  @override
+  String get rptLabourUnassigned => 'Unassigned';
+
+  @override
+  String get rptLabourChartTitle => 'Labour cost vs sales';
+
+  @override
+  String get rptG2ColumnStatus => 'Status';
+
+  @override
+  String get rptG2LastSale => 'Last sale';
 }

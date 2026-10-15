@@ -6,42 +6,64 @@ import 'package:intl/intl.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
+import '../../../../core/network/user_service.dart';
 import '../../data/models/inventory_intelligence.dart';
+import '../../data/models/report_envelopes.dart';
 import '../../data/models/report_json.dart';
+import '../../data/velocity_alerts_repository.dart';
 import '../../state/reports_providers.dart';
+import '../../state/velocity_alerts_providers.dart';
 import '../widgets/kpi_card.dart';
 import '../widgets/report_chart_card.dart';
-import '../widgets/report_date_range_bar.dart';
+import '../widgets/report_filter_bar.dart';
+import '../widgets/report_section_card.dart';
+import '../widgets/report_states.dart';
+import '../widgets/report_table.dart';
 
-/// Inventory Intelligence dashboard: stock-health KPIs, a velocity-distribution
-/// donut, a top-movers bar chart, and restock / slow-mover / overstock / top
-/// seller tables. Data comes from `inventoryIntelligenceProvider(range)`.
-/// Loosely-typed JSON rows are read defensively so a missing key never crashes.
+/// Inventory & restock: stock-health KPIs, one velocity-based restock list
+/// (critical / watch / slow / overstock, per branch), a velocity donut, top
+/// movers and top sellers. Absorbs the old Velocity Alerts screen: tapping a
+/// restock row opens the item's velocity detail, and managers can recalculate
+/// the velocity job from the app bar.
+///
+/// Data comes from `inventoryReportProvider(reportQuery)`; the branch selector
+/// scopes stock and restock alerts to that branch's warehouse.
 class InventoryIntelligenceScreen extends ConsumerWidget {
   const InventoryIntelligenceScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final range = ref.watch(reportRangeProvider);
-    final async = ref.watch(inventoryIntelligenceProvider(range));
+    final query = ref.watch(reportQueryProvider);
+    final async = ref.watch(inventoryReportProvider(query));
+    final roles = ref.watch(userRolesFutureProvider).valueOrNull;
+    final canRecalculate = roles?.canViewAllReports ?? false;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.reportInventoryTitle)),
+      appBar: AppBar(
+        title: Text(l10n.reportInventoryTitle),
+        actions: [
+          if (canRecalculate)
+            IconButton(
+              icon: const Icon(Icons.autorenew),
+              tooltip: l10n.velocityReportRecalculateAction,
+              onPressed: () => _confirmAndRecalculate(context, ref),
+            ),
+        ],
+      ),
       body: Column(
         children: [
-          const ReportDateRangeBar(),
+          const ReportFilterBar(),
           Expanded(
-            child: async.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => _ErrorBody(
-                onRetry: () =>
-                    ref.invalidate(inventoryIntelligenceProvider(range)),
-              ),
-              data: (data) => RefreshIndicator(
-                onRefresh: () async =>
-                    ref.invalidate(inventoryIntelligenceProvider(range)),
-                child: _Body(data: data),
+            child: RefreshIndicator(
+              onRefresh: () => ref.refresh(inventoryReportProvider(query).future),
+              child: async.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => ReportErrorView(
+                  error: e,
+                  onRetry: () => ref.invalidate(inventoryReportProvider(query)),
+                ),
+                data: (report) => _Body(report: report),
               ),
             ),
           ),
@@ -49,62 +71,109 @@ class InventoryIntelligenceScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _confirmAndRecalculate(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.velocityReportRecalculateConfirmTitle),
+        content: Text(l10n.velocityReportRecalculateConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.velocityReportRecalculateAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final repo = ref.read(velocityAlertsRepositoryProvider);
+      final count = await repo.runVelocityUpdateNow();
+      ref.invalidate(inventoryReportProvider);
+      ref.invalidate(itemVelocityDetailProvider);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.velocityReportRecalculateSuccess(count))),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.velocityReportRecalculateError)),
+      );
+    }
+  }
 }
 
 // ── Body ───────────────────────────────────────────────────────────────
 
 class _Body extends StatelessWidget {
-  final InventoryIntelligence data;
-  const _Body({required this.data});
+  final InventoryReport report;
+  const _Body({required this.report});
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final data = report.data;
     final s = data.summary;
     final scheme = Theme.of(context).colorScheme;
-
-    final criticalEmpty = data.alerts.critical.isEmpty;
-    final watchEmpty = data.alerts.watchList.isEmpty;
+    // Older servers do not send `restock`; derive the same list from the
+    // legacy alert buckets so the screen still works before the deploy.
+    final restock =
+        report.restock.isNotEmpty ? report.restock : _legacyRestock(data);
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 12, 24),
       children: [
         // KPI cards ────────────────────────────────────────────────
         _KpiWrap(cards: [
           KpiCard(
             label: l10n.reportInvKpiStockItems,
-            value: _fmtInt(s.totalStockItems),
+            value: formatCount(context, s.totalStockItems),
             icon: Icons.inventory_2_outlined,
           ),
           KpiCard(
             label: l10n.reportInvKpiCritical,
-            value: _fmtInt(s.criticalCount),
+            value: formatCount(context, s.criticalCount),
             icon: Icons.error_outline,
             color: scheme.error,
           ),
           KpiCard(
             label: l10n.reportInvKpiWatch,
-            value: _fmtInt(s.watchCount),
+            value: formatCount(context, s.watchCount),
             icon: Icons.visibility_outlined,
             color: Colors.amber.shade800,
           ),
           KpiCard(
             label: l10n.reportInvKpiSlow,
-            value: _fmtInt(s.slowCount),
+            value: formatCount(context, s.slowCount),
             icon: Icons.trending_down,
           ),
           KpiCard(
             label: l10n.reportInvKpiOverstock,
-            value: _fmtInt(s.overstockCount),
+            value: formatCount(context, s.overstockCount),
             icon: Icons.warehouse_outlined,
           ),
           KpiCard(
             label: l10n.reportInvKpiStockValue,
             value: formatCompactCurrency(context, s.totalStockValue),
-            icon: Icons.attach_money,
+            icon: Icons.payments_outlined,
           ),
         ]),
+        const SizedBox(height: 12),
+
+        // Restock list (merged velocity alerts) ───────────────────
+        _RestockSection(rows: restock),
         const SizedBox(height: 12),
 
         // Stock velocity donut ─────────────────────────────────────
@@ -116,7 +185,7 @@ class _Body extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        // Top movers bar chart ─────────────────────────────────────
+        // Top movers: one heading, chart then table ────────────────
         ReportChartCard(
           title: l10n.reportTopMovers,
           isEmpty: data.topMovers.isEmpty,
@@ -125,117 +194,379 @@ class _Body extends StatelessWidget {
         ),
         if (data.topMovers.isNotEmpty) ...[
           const SizedBox(height: 8),
-          _TableCard(
-            title: l10n.reportTopMovers,
-            columns: [
-              _Column(l10n.reportsColumnItem, (r) => _itemLabel(r)),
-              _Column(l10n.reportsColumnVelocity30d,
-                  (r) => _fmtNum(_n(r, _velocity30)),
-                  numeric: true),
-              _Column(l10n.reportsColumnVelocity60d,
-                  (r) => _fmtNum(_n(r, const ['velocity_60d', 'velocity_60'])),
-                  numeric: true),
-              _Column(l10n.reportsColumnTrend,
-                  (r) => localizedVelocityTrend(context, _text(r, const ['trend'])),
-                  numeric: true),
-            ],
-            rows: data.topMovers,
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.all(12),
+              child: ReportTable(
+                columns: [
+                  ReportColumn(l10n.reportsColumnItem, flex: 3),
+                  ReportColumn(l10n.reportsColumnVelocity30d,
+                      numeric: true, flex: 2),
+                  ReportColumn(l10n.reportsColumnVelocity60d,
+                      numeric: true, flex: 2),
+                  ReportColumn(l10n.reportsColumnTrend, flex: 2),
+                ],
+                rows: [
+                  for (final r in data.topMovers)
+                    [
+                      _itemLabel(r),
+                      _fmtRate(context, _n(r, _velocity30)),
+                      _fmtRate(context, _n(r, const ['velocity_60d', 'velocity_60'])),
+                      localizedVelocityTrend(context, _text(r, const ['trend'])),
+                    ],
+                ],
+                onRowTap: (i) {
+                  final r = data.topMovers[i];
+                  final code = _text(r, const ['item_code'], fallback: '');
+                  if (code.isEmpty) return;
+                  showVelocityDetailSheet(
+                    context,
+                    itemCode: code,
+                    itemName: _itemLabel(r),
+                  );
+                },
+                maxRows: 10,
+              ),
+            ),
           ),
         ],
         const SizedBox(height: 12),
 
-        // Restock alerts (critical + watch list) ───────────────────
-        if (criticalEmpty && watchEmpty)
-          ReportChartCard(
-            title: l10n.reportRestockAlerts,
-            isEmpty: true,
-            emptyText: l10n.reportNoData,
-            child: const SizedBox.shrink(),
-          )
-        else ...[
-          _SectionHeader(title: l10n.reportRestockAlerts),
-          const SizedBox(height: 6),
-          if (!criticalEmpty)
-            _TableCard(
-              title: l10n.reportCriticalItems,
-              titleColor: scheme.error,
-              columns: _alertColumns(context),
-              rows: data.alerts.critical,
+        // Top sellers in range ─────────────────────────────────────
+        if (data.topSoldInRange.isNotEmpty)
+          ReportSectionCard(
+            title: l10n.reportTopSellers,
+            child: ReportTable(
+              columns: [
+                ReportColumn(l10n.reportsColumnItem, flex: 3),
+                ReportColumn(l10n.reportsColumnSold, numeric: true, flex: 2),
+                ReportColumn(l10n.reportsColumnRevenue, numeric: true, flex: 3),
+              ],
+              rows: [
+                for (final r in data.topSoldInRange)
+                  [
+                    _itemLabel(r),
+                    _fmtQty(context, _n(r, _qtySold)),
+                    formatCurrency(
+                      context,
+                      _n(r, const ['revenue', 'stock_value', 'value']),
+                    ),
+                  ],
+              ],
+              maxRows: 10,
             ),
-          if (!criticalEmpty && !watchEmpty) const SizedBox(height: 8),
-          if (!watchEmpty)
-            _TableCard(
-              title: l10n.reportWatchList,
-              titleColor: Colors.amber.shade800,
-              columns: _alertColumns(context),
-              rows: data.alerts.watchList,
-            ),
-        ],
-        const SizedBox(height: 12),
-
-        // Slow movers (always shown; empty-state when no rows) ──────
-        _TableSection(
-          title: l10n.reportSlowMovers,
-          hideIfEmpty: false,
-          columns: [
-            _Column(l10n.reportsColumnItem, (r) => _itemLabel(r)),
-            _Column(l10n.reportsColumnStock,
-                (r) => _fmtNum(_n(r, _currentStock)),
-                numeric: true),
-            _Column(l10n.reportsColumnTrend,
-                (r) => localizedVelocityTrend(context, _text(r, const ['trend'])),
-                numeric: true),
-          ],
-          rows: data.alerts.slowMovers,
-        ),
-        const SizedBox(height: 12),
-
-        // Overstocked (hidden when empty) ──────────────────────────
-        _TableSection(
-          title: l10n.reportOverstocked,
-          hideIfEmpty: true,
-          columns: [
-            _Column(l10n.reportsColumnItem, (r) => _itemLabel(r)),
-            _Column(l10n.reportsColumnStock,
-                (r) => _fmtNum(_n(r, _currentStock)),
-                numeric: true),
-            _Column(l10n.reportsColumnCover, (r) => _fmtNum(_n(r, _daysCover)),
-                numeric: true),
-          ],
-          rows: data.alerts.overstocked,
-        ),
-        const SizedBox(height: 12),
-
-        // Top sellers in range (hidden when empty) ─────────────────
-        _TableSection(
-          title: l10n.reportTopSellers,
-          hideIfEmpty: true,
-          columns: [
-            _Column(l10n.reportsColumnItem, (r) => _itemLabel(r)),
-            _Column(l10n.reportsColumnSold, (r) => _fmtNum(_n(r, _qtySold)),
-                numeric: true),
-            _Column(l10n.reportsColumnRevenue,
-                (r) => _fmtMoney(_n(r, const ['revenue', 'stock_value', 'value'])),
-                numeric: true),
-          ],
-          rows: data.topSoldInRange,
-        ),
+          ),
       ],
     );
   }
+}
 
-  /// Shared column layout for critical / watch-list alert rows.
-  List<_Column> _alertColumns(BuildContext context) {
+// ── Restock list ───────────────────────────────────────────────────────
+
+class _RestockSection extends StatefulWidget {
+  final List<RestockRow> rows;
+  const _RestockSection({required this.rows});
+
+  @override
+  State<_RestockSection> createState() => _RestockSectionState();
+}
+
+class _RestockSectionState extends State<_RestockSection> {
+  /// Null = all statuses.
+  RestockStatus? _filter;
+
+  static const _statuses = [
+    RestockStatus.critical,
+    RestockStatus.watch,
+    RestockStatus.slow,
+    RestockStatus.overstock,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return [
-      _Column(l10n.reportsColumnItem, (r) => _itemLabel(r)),
-      _Column(l10n.reportsColumnStock, (r) => _fmtNum(_n(r, _currentStock)),
-          numeric: true),
-      _Column(l10n.reportsColumnCover, (r) => _fmtNum(_n(r, _daysCover)),
-          numeric: true),
-      _Column(l10n.reportsColumnVelocity, (r) => _fmtNum(_n(r, _velocity30)),
-          numeric: true),
-    ];
+    final rows = widget.rows;
+    final visible = _filter == null
+        ? rows
+        : rows.where((r) => r.status == _filter).toList(growable: false);
+
+    return ReportSectionCard(
+      title: l10n.rptInventoryRestockTitle,
+      subtitle: l10n.rptInventoryRestockSubtitle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _chip(context, null, l10n.rptG2RestockAll, rows.length),
+                for (final st in _statuses)
+                  _chip(
+                    context,
+                    st,
+                    restockStatusLabel(context, st),
+                    rows.where((r) => r.status == st).length,
+                  ),
+              ],
+            ),
+          ),
+          if (visible.isNotEmpty)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(top: 6, bottom: 2),
+              child: Text(
+                l10n.rptG2RestockHint,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ),
+          ReportTable(
+            columns: [
+              ReportColumn(l10n.reportsColumnItem, flex: 4),
+              ReportColumn(l10n.reportsColumnStock, numeric: true, flex: 2),
+              ReportColumn(l10n.rptG2ColumnDaysCover, numeric: true, flex: 2),
+              ReportColumn(l10n.rptG2ColumnSuggestedQty,
+                  numeric: true, flex: 2),
+            ],
+            rows: [
+              for (final r in visible)
+                [
+                  r.displayName,
+                  _fmtQty(context, r.stock),
+                  r.daysCover == null ? '—' : _fmtQty(context, r.daysCover!),
+                  r.suggestedQty > 0 ? _fmtQty(context, r.suggestedQty) : '—',
+                ],
+            ],
+            cellColor: (row, col) =>
+                col == 0 ? restockStatusColor(context, visible[row].status) : null,
+            onRowTap: (i) {
+              final r = visible[i];
+              if (r.itemCode.isEmpty) return;
+              showVelocityDetailSheet(
+                context,
+                itemCode: r.itemCode,
+                itemName: r.displayName,
+                restock: r,
+              );
+            },
+            maxRows: 15,
+            emptyText: l10n.rptG2RestockEmpty,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(
+    BuildContext context,
+    RestockStatus? status,
+    String label,
+    int count,
+  ) {
+    final color =
+        status == null ? null : restockStatusColor(context, status);
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 6),
+      child: ChoiceChip(
+        selected: _filter == status,
+        avatar: color == null
+            ? null
+            : CircleAvatar(backgroundColor: color, radius: 5),
+        label: Text('$label  ${formatCount(context, count)}'),
+        onSelected: (_) => setState(() => _filter = status),
+      ),
+    );
+  }
+}
+
+/// Localised label for a restock status (reuses the velocity summary keys).
+String restockStatusLabel(BuildContext context, RestockStatus status) {
+  final l10n = context.l10n;
+  return switch (status) {
+    RestockStatus.critical => l10n.velocityReportSummaryCritical,
+    RestockStatus.watch => l10n.velocityReportSummaryWatch,
+    RestockStatus.slow => l10n.velocityReportSummarySlow,
+    RestockStatus.overstock => l10n.velocityReportSummaryOverstock,
+    RestockStatus.unknown => l10n.rptG2RestockStatusOther,
+  };
+}
+
+Color restockStatusColor(BuildContext context, RestockStatus status) {
+  final scheme = Theme.of(context).colorScheme;
+  return switch (status) {
+    RestockStatus.critical => scheme.error,
+    RestockStatus.watch => Colors.amber.shade800,
+    RestockStatus.slow => Colors.blueGrey,
+    RestockStatus.overstock => Colors.indigo,
+    RestockStatus.unknown => scheme.outline,
+  };
+}
+
+/// Builds the restock list from the legacy `alerts` buckets, for servers that
+/// predate the `restock` key.
+List<RestockRow> _legacyRestock(InventoryIntelligence data) {
+  RestockRow conv(JsonMap r, RestockStatus status) => RestockRow(
+        itemCode: _text(r, const ['item_code'], fallback: ''),
+        itemName: _text(r, const ['item_name'], fallback: ''),
+        itemGroup: _text(r, const ['item_group'], fallback: ''),
+        stock: _n(r, _currentStock),
+        velocity30d: _n(r, _velocity30),
+        daysCover: _nOrNull(r, _daysCover),
+        status: status,
+        trend: _text(r, const ['trend'], fallback: ''),
+      );
+  return [
+    for (final r in data.alerts.critical) conv(r, RestockStatus.critical),
+    for (final r in data.alerts.watchList) conv(r, RestockStatus.watch),
+    for (final r in data.alerts.slowMovers) conv(r, RestockStatus.slow),
+    for (final r in data.alerts.overstocked) conv(r, RestockStatus.overstock),
+  ];
+}
+
+// ── Velocity detail sheet (from the retired Velocity Alerts screen) ────
+
+void showVelocityDetailSheet(
+  BuildContext context, {
+  required String itemCode,
+  required String itemName,
+  RestockRow? restock,
+}) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => _VelocityDetailSheet(
+      itemCode: itemCode,
+      itemName: itemName,
+      restock: restock,
+    ),
+  );
+}
+
+class _VelocityDetailSheet extends ConsumerWidget {
+  final String itemCode;
+  final String itemName;
+  final RestockRow? restock;
+  const _VelocityDetailSheet({
+    required this.itemCode,
+    required this.itemName,
+    this.restock,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final async = ref.watch(itemVelocityDetailProvider(itemCode));
+    final r = restock;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsetsDirectional.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.velocityReportDetailTitle,
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            Text(itemName, style: theme.textTheme.bodyMedium),
+            if (r != null) ...[
+              const SizedBox(height: 12),
+              _detailRow(
+                context,
+                l10n.reportsColumnStock,
+                r.uom.isEmpty
+                    ? _fmtQty(context, r.stock)
+                    : '${_fmtQty(context, r.stock)} ${r.uom}',
+              ),
+              _detailRow(
+                context,
+                l10n.rptG2ColumnDaysCover,
+                r.daysCover == null ? '—' : _fmtQty(context, r.daysCover!),
+              ),
+              _detailRow(
+                context,
+                l10n.rptG2ColumnSuggestedQty,
+                r.suggestedQty > 0 ? _fmtQty(context, r.suggestedQty) : '—',
+              ),
+              _detailRow(
+                context,
+                l10n.rptG2ColumnStatus,
+                restockStatusLabel(context, r.status),
+                color: restockStatusColor(context, r.status),
+              ),
+              if (r.stockValue > 0)
+                _detailRow(
+                  context,
+                  l10n.rptG2StockValue,
+                  formatCurrency(context, r.stockValue),
+                ),
+              _detailRow(
+                context,
+                l10n.rptG2LastSale,
+                r.lastSale == null
+                    ? '—'
+                    : formatDateString(context, r.lastSale),
+              ),
+              const Divider(height: 20),
+            ] else
+              const SizedBox(height: 16),
+            async.when(
+              loading: () => const Padding(
+                padding: EdgeInsetsDirectional.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (e, _) => Padding(
+                padding: const EdgeInsetsDirectional.symmetric(vertical: 12),
+                child: Text(l10n.reportError),
+              ),
+              data: (detail) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _detailRow(context, l10n.reportsColumnVelocity30d,
+                      _fmtRate(context, detail.velocity30d)),
+                  _detailRow(context, l10n.reportsColumnVelocity60d,
+                      _fmtRate(context, detail.velocity60d)),
+                  _detailRow(context, l10n.reportsColumnTrend,
+                      localizedVelocityTrend(context, detail.trend)),
+                  if (r == null)
+                    _detailRow(context, l10n.reportsColumnStock,
+                        _fmtQty(context, detail.stockOnHand)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(
+    BuildContext context,
+    String label,
+    String value, {
+    Color? color,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsetsDirectional.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: theme.textTheme.bodyMedium),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.bold, color: color),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -334,7 +665,7 @@ class _VelocityDonut extends StatelessWidget {
               children: [
                 for (final s in entries)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    padding: const EdgeInsetsDirectional.symmetric(vertical: 3),
                     child: Row(
                       children: [
                         Container(
@@ -356,7 +687,7 @@ class _VelocityDonut extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          _fmtNum(s.value),
+                          _fmtQty(context, s.value),
                           style: theme.textTheme.labelSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
@@ -416,7 +747,7 @@ class _TopMoversChart extends StatelessWidget {
             getTooltipItem: (group, _, rod, _) {
               final r = top[group.x];
               return BarTooltipItem(
-                '${_itemLabel(r)}\n${_fmtNum(rod.toY)}',
+                '${_itemLabel(r)}\n${_fmtRate(context, rod.toY)}',
                 theme.textTheme.labelSmall!
                     .copyWith(color: scheme.onInverseSurface),
               );
@@ -438,7 +769,7 @@ class _TopMoversChart extends StatelessWidget {
                 final i = value.toInt();
                 if (i < 0 || i >= top.length) return const SizedBox.shrink();
                 return Padding(
-                  padding: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsetsDirectional.only(top: 4),
                   child: SizedBox(
                     width: 52,
                     child: Text(
@@ -475,173 +806,10 @@ class _TopMoversChart extends StatelessWidget {
   }
 }
 
-// ── Tables ─────────────────────────────────────────────────────────────
-
-class _Column {
-  final String label;
-  final String Function(JsonMap) cell;
-  final bool numeric;
-  const _Column(this.label, this.cell, {this.numeric = false});
-}
-
-/// Renders a titled table, or an empty-state / hidden slot depending on rows.
-class _TableSection extends StatelessWidget {
-  final String title;
-  final List<_Column> columns;
-  final List<JsonMap> rows;
-  final bool hideIfEmpty;
-
-  const _TableSection({
-    required this.title,
-    required this.columns,
-    required this.rows,
-    required this.hideIfEmpty,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (rows.isEmpty) {
-      if (hideIfEmpty) return const SizedBox.shrink();
-      return ReportChartCard(
-        title: title,
-        isEmpty: true,
-        emptyText: context.l10n.reportNoData,
-        child: const SizedBox.shrink(),
-      );
-    }
-    return _TableCard(title: title, columns: columns, rows: rows);
-  }
-}
-
-class _TableCard extends StatelessWidget {
-  final String title;
-  final Color? titleColor;
-  final List<_Column> columns;
-  final List<JsonMap> rows;
-
-  const _TableCard({
-    required this.title,
-    required this.columns,
-    required this.rows,
-    this.titleColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final headerStyle = theme.textTheme.bodySmall?.copyWith(
-      fontWeight: FontWeight.bold,
-    );
-    final cellStyle = theme.textTheme.bodySmall;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: titleColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columnSpacing: 18,
-                headingRowHeight: 40,
-                dataRowMinHeight: 36,
-                dataRowMaxHeight: 46,
-                columns: [
-                  for (final c in columns)
-                    DataColumn(
-                      numeric: c.numeric,
-                      label: Text(c.label, style: headerStyle),
-                    ),
-                ],
-                rows: [
-                  for (final r in rows)
-                    DataRow(
-                      cells: [
-                        for (final c in columns)
-                          DataCell(
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 160),
-                              child: Text(
-                                c.cell(r),
-                                style: cellStyle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, top: 4),
-      child: Text(
-        title,
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: theme.colorScheme.primary,
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final VoidCallback onRetry;
-  const _ErrorBody({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l10n.reportError, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: onRetry,
-              child: Text(l10n.reportsRetry),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ── Row / value helpers (null-safe) ────────────────────────────────────
 
 // Movers rows expose `velocity_30d`; alert rows (critical/watch) expose
-// `daily_velocity` — both are covered so a single list works for every table.
+// `daily_velocity`; both are covered so a single list works everywhere.
 const _velocity30 = ['velocity_30d', 'velocity', 'velocity_30', 'daily_velocity'];
 const _currentStock = ['stock_on_hand', 'current_stock', 'qty', 'stock_qty'];
 const _daysCover = ['days_remaining', 'days_of_cover', 'days_left', 'days_cover'];
@@ -661,30 +829,25 @@ String _text(JsonMap r, List<String> keys, {String fallback = '-'}) {
 }
 
 /// First parseable numeric value among [keys], else 0.
-double _n(JsonMap r, List<String> keys) {
+double _n(JsonMap r, List<String> keys) => _nOrNull(r, keys) ?? 0;
+
+double? _nOrNull(JsonMap r, List<String> keys) {
   for (final k in keys) {
-    final v = r[k];
-    if (v is num) return v.toDouble();
-    if (v is String) {
-      final p = double.tryParse(v);
-      if (p != null) return p;
-    }
+    final v = ReportJson.dblOrNull(r[k]);
+    if (v != null) return v;
   }
-  return 0;
+  return null;
 }
 
 String _shortLabel(String s) => s.length <= 10 ? s : '${s.substring(0, 9)}…';
 
-final _intFmt = NumberFormat.decimalPattern();
-final _moneyFmt = NumberFormat.currency(symbol: 'EGP ', decimalDigits: 0);
+/// Quantities: whole numbers plain, otherwise one decimal; locale digits.
+String _fmtQty(BuildContext context, num v) =>
+    NumberFormat('#,##0.#', context.l10n.localeName).format(v);
 
-String _fmtInt(num v) => _intFmt.format(v);
-
-String _fmtNum(num v) => v == v.truncateToDouble()
-    ? _intFmt.format(v.toInt())
-    : v.toStringAsFixed(1);
-
-String _fmtMoney(num v) => _moneyFmt.format(v);
+/// Per-day sales rates: up to two decimals; locale digits.
+String _fmtRate(BuildContext context, num v) =>
+    NumberFormat('#,##0.##', context.l10n.localeName).format(v);
 
 const _palette = <Color>[
   Color(0xFF2E7D32),

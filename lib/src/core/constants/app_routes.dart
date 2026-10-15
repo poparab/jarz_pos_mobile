@@ -8,7 +8,6 @@ abstract final class AppRoutes {
   static const pos = '/pos';
   static const selectProfile = '/pos/select-profile';
   static const kanban = '/kanban';
-  static const courierBalances = '/courier-balances';
   static const printers = '/printers';
   static const manager = '/manager';
   static const shiftMonitor = '/shift-monitor';
@@ -82,6 +81,17 @@ abstract final class AppRoutes {
   static const reportsExecutive = '/reports/executive';
   static const reportsB2b = '/reports/b2b';
   static const reportsProfitLoss = '/reports/profit-loss';
+
+  // ── Reports overhaul: new reports + single-report stock routes ────────
+  static const reportsUnitEconomics = '/reports/unit-economics';
+  static const reportsDailyClose = '/reports/daily-close';
+  static const reportsCashOverShort = '/reports/cash-over-short';
+  static const reportsFulfilmentSla = '/reports/fulfilment-sla';
+  static const reportsPromo = '/reports/promo-codes';
+  static const reportsStockAdjustments = '/reports/stock-adjustments';
+  static const reportsLabourCost = '/reports/labour-cost';
+  static const reportsFinalProducts = '/reports/final-products';
+  static const reportsMaterials = '/reports/materials';
   static const masterOrders = '/master-orders';
   static const instapayReconciliation = '/instapay-reconciliation';
   static const profile = '/profile';
@@ -128,6 +138,9 @@ abstract final class AppRoutes {
   static const addressPin = '/address-pin';
 
   // ── Reports added to the existing hub ─────────────────────────────────
+  // Velocity and Segments were merged into Inventory and Customers, and the
+  // Executive overview into the P&L "Business overview"; the old paths (and
+  // [reportsExecutive]) stay as redirects so saved links still land.
   static const reportsVelocity = '/reports/velocity';
   static const reportsSegments = '/reports/segments';
   static const reportsWarehouseAlignment = '/reports/warehouse-alignment';

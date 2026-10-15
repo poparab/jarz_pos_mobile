@@ -27,27 +27,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:jarz_pos/l10n/app_localizations.dart';
-import 'package:jarz_pos/src/features/reports/data/models/shipping_analytics.dart';
-import 'package:jarz_pos/src/features/reports/data/models/inventory_intelligence.dart';
-import 'package:jarz_pos/src/features/reports/data/models/product_analytics.dart';
-import 'package:jarz_pos/src/features/reports/data/models/customer_analytics.dart';
+import 'package:jarz_pos/src/core/network/user_service.dart';
+import 'package:jarz_pos/src/features/reports/data/models/report_envelopes.dart';
 import 'package:jarz_pos/src/features/reports/data/models/executive_overview.dart';
 import 'package:jarz_pos/src/features/reports/data/models/b2b_sales_clients.dart';
-import 'package:jarz_pos/src/features/reports/data/models/profit_and_loss.dart';
 import 'package:jarz_pos/src/features/reports/state/reports_providers.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/shipping_analytics_screen.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/inventory_intelligence_screen.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/product_analytics_screen.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/customer_analytics_screen.dart';
-import 'package:jarz_pos/src/features/reports/presentation/screens/executive_overview_screen.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/b2b_sales_clients_screen.dart';
 import 'package:jarz_pos/src/features/reports/presentation/screens/profit_and_loss_screen.dart';
 
 // Phone-width, very-tall render surface (logical px). Tall enough to capture the
 // KPI grid plus the first couple of data sections/charts in one image.
 const double _kLogicalWidth = 400;
-// Tall enough that even the Executive board (whose KPI grid sits *below* a long
-// priority-alerts list) still captures the KPI numbers in one frame.
+// Tall enough that the Business overview (executive KPI strip, by-branch split
+// and the P&L statement) still captures the KPI numbers in one frame.
 const double _kLogicalHeight = 3600;
 const double _kDpr = 2.0;
 
@@ -135,14 +131,21 @@ Future<void> _renderDashboard(
   required String name,
   required Widget screen,
   required Override override,
+  List<Override> extraOverrides = const [],
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         // Ignore the network: always yield the parsed fixture.
         override,
+        ...extraOverrides,
         // Fixed, deterministic range for the date bar.
         reportRangeProvider.overrideWith((ref) => _fixedRange),
+        // The branch selector and role-gated actions stay off the network.
+        reportBranchesProvider.overrideWith((ref) => const []),
+        userRolesFutureProvider.overrideWith(
+          (ref) async => const UserRoles(user: 'golden', roles: []),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -198,55 +201,44 @@ void main() {
     });
   });
 
-  testWidgets('Executive Overview dashboard renders fixture', (tester) async {
-    final model = ExecutiveOverview.fromJson(_loadFixture('executive_analytics'));
-    await _renderDashboard(
-      tester,
-      name: 'executive_overview',
-      screen: const ExecutiveOverviewScreen(),
-      override: executiveOverviewProvider.overrideWith((ref, range) => model),
-    );
-  });
-
   testWidgets('Shipping Analytics dashboard renders fixture', (tester) async {
-    final model = ShippingAnalytics.fromJson(_loadFixture('shipping_analytics'));
+    final model = ShippingReport.fromJson(_loadFixture('shipping_analytics'));
     await _renderDashboard(
       tester,
       name: 'shipping_analytics',
       screen: const ShippingAnalyticsScreen(),
-      override: shippingAnalyticsProvider.overrideWith((ref, range) => model),
+      override: shippingReportProvider.overrideWith((ref, query) => model),
     );
   });
 
   testWidgets('Inventory Intelligence dashboard renders fixture', (tester) async {
     final model =
-        InventoryIntelligence.fromJson(_loadFixture('inventory_analytics'));
+        InventoryReport.fromJson(_loadFixture('inventory_analytics'));
     await _renderDashboard(
       tester,
       name: 'inventory_intelligence',
       screen: const InventoryIntelligenceScreen(),
-      override:
-          inventoryIntelligenceProvider.overrideWith((ref, range) => model),
+      override: inventoryReportProvider.overrideWith((ref, query) => model),
     );
   });
 
   testWidgets('Product Analytics dashboard renders fixture', (tester) async {
-    final model = ProductAnalytics.fromJson(_loadFixture('product_analytics'));
+    final model = ProductReport.fromJson(_loadFixture('product_analytics'));
     await _renderDashboard(
       tester,
       name: 'product_analytics',
       screen: const ProductAnalyticsScreen(),
-      override: productAnalyticsProvider.overrideWith((ref, range) => model),
+      override: productReportProvider.overrideWith((ref, query) => model),
     );
   });
 
   testWidgets('Customer Analytics dashboard renders fixture', (tester) async {
-    final model = CustomerAnalytics.fromJson(_loadFixture('customer_analytics'));
+    final model = CustomerReport.fromJson(_loadFixture('customer_analytics'));
     await _renderDashboard(
       tester,
       name: 'customer_analytics',
       screen: const CustomerAnalyticsScreen(),
-      override: customerAnalyticsProvider.overrideWith((ref, range) => model),
+      override: customerReportProvider.overrideWith((ref, query) => model),
     );
   });
 
@@ -262,12 +254,19 @@ void main() {
 
   // Captured from PRODUCTION, 2026-09-01..26 (ledger-reconciled, B2B split).
   testWidgets('Profit & Loss renders fixture', (tester) async {
-    final model = ProfitAndLoss.fromJson(_loadFixture('profit_and_loss'));
+    final model =
+        ProfitAndLossReport.fromJson(_loadFixture('profit_and_loss'));
+    // The P&L is the "Business overview": it carries the executive KPI strip.
+    final exec =
+        ExecutiveOverview.fromJson(_loadFixture('executive_analytics'));
     await _renderDashboard(
       tester,
       name: 'profit_and_loss',
       screen: const ProfitAndLossScreen(),
-      override: profitAndLossProvider.overrideWith((ref, range) => model),
+      override: profitAndLossReportProvider.overrideWith((ref, q) => model),
+      extraOverrides: [
+        executiveOverviewProvider.overrideWith((ref, q) => exec),
+      ],
     );
   });
 
@@ -275,12 +274,18 @@ void main() {
   // incomplete-books warnings must lead the page.
   testWidgets('Profit & Loss renders incomplete-books fixture', (tester) async {
     final model =
-        ProfitAndLoss.fromJson(_loadFixture('profit_and_loss_incomplete'));
+        ProfitAndLossReport.fromJson(_loadFixture('profit_and_loss_incomplete'));
     await _renderDashboard(
       tester,
       name: 'profit_and_loss_incomplete',
       screen: const ProfitAndLossScreen(),
-      override: profitAndLossProvider.overrideWith((ref, range) => model),
+      override: profitAndLossReportProvider.overrideWith((ref, q) => model),
+      // Executive call failing: the KPI strip just hides.
+      extraOverrides: [
+        executiveOverviewProvider.overrideWith(
+          (ref, q) => throw StateError('offline'),
+        ),
+      ],
     );
   });
 }
