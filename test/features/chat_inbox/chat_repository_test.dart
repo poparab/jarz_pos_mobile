@@ -1,5 +1,6 @@
 // ChatRepository: the wire calls of contract §3 (GET reads with query
-// parameters, POST writes with bodies) and the same-site media guard.
+// parameters, POST writes with bodies; get_conversation marks the thread read,
+// so it is a POST) and the same-site media guard.
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:jarz_pos/src/core/constants/api_endpoints.dart';
@@ -54,7 +55,7 @@ void main() {
     });
   });
 
-  test('get_conversation sends the name and page size', () async {
+  test('get_conversation is a POST with the name and page size', () async {
     dio.setResponse(ApiEndpoints.chatGetConversation, {
       'message': {
         'conversation': {'name': 'CHAT-1', 'channel': 'WhatsApp'},
@@ -64,8 +65,8 @@ void main() {
       },
     });
     final thread = await repo.fetchConversation('CHAT-1');
-    expect(lastRequest()['method'], 'GET');
-    expect(lastRequest()['queryParameters'], {'name': 'CHAT-1', 'limit': 50});
+    expect(lastRequest()['method'], 'POST');
+    expect(lastRequest()['data'], {'name': 'CHAT-1', 'limit': 50});
     expect(thread.conversation.name, 'CHAT-1');
     expect(thread.draft, isNull);
   });

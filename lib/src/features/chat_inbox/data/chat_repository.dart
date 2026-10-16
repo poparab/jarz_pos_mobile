@@ -65,15 +65,16 @@ class ChatRepository {
   }
 
   /// `get_conversation` — header, messages (oldest → newest), the Pending
-  /// draft and the customer card. Opening a thread resets its unread count.
+  /// draft and the customer card. Opening a thread resets its unread count,
+  /// which is a write, so this is a POST (a forged GET must not mark it read).
   Future<ChatThread> fetchConversation(
     String name, {
     int limit = 50,
     String? before,
   }) async {
-    final response = await _dio.get(
+    final response = await _dio.post(
       ApiEndpoints.chatGetConversation,
-      queryParameters: {
+      data: {
         'name': name,
         'limit': limit,
         if (before != null && before.isNotEmpty) 'before': before,
