@@ -16,6 +16,7 @@ import '../../features/courier_alerts/state/courier_alerts_providers.dart';
 import '../../features/purchase_request/state/purchase_request_notifier.dart';
 import '../../features/approvals/presentation/pending_approvals_widgets.dart';
 import '../../features/cash_custody/state/cash_custody_notifier.dart';
+import '../../features/chat_inbox/state/chat_providers.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -58,6 +59,7 @@ class AppDrawer extends ConsumerWidget {
     final canViewPricing = ref.watch(canViewPricingProvider);
     final canAccessBranchAccess = ref.watch(canAccessBranchAccessProvider);
     final canAccessFollowups = ref.watch(canAccessFollowupsProvider);
+    final canAccessChats = ref.watch(canAccessChatsProvider);
     final canRaiseItemRequest = ref.watch(canRaiseItemRequestProvider);
     final canManageUsers = ref.watch(canManageUsersProvider);
     final canAccessProductionBoard =
@@ -204,6 +206,9 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuMasterOrders,
           onTap: () => navigate(AppRoutes.masterOrders),
         ),
+      // Customer chats (WhatsApp / Instagram / Messenger) with the AI reply
+      // copilot: moderators and the manager tier, as `api/chat.py` enforces.
+      if (canAccessChats) _ChatsNavTile(onTap: () => navigate(AppRoutes.chats)),
     ];
 
     final deliveryChildren = <Widget>[
@@ -484,6 +489,7 @@ class AppDrawer extends ConsumerWidget {
           AppRoutes.shiftEnd,
           AppRoutes.kanban,
           AppRoutes.masterOrders,
+          AppRoutes.chats,
         ],
       ),
       _DrawerGroupSpec(
@@ -923,6 +929,50 @@ class _CourierAlertsBadge extends ConsumerWidget {
           fontWeight: FontWeight.w700,
         ),
       ),
+    );
+  }
+}
+
+/// Drawer entry for the chat inbox, badged with the unread inbound messages
+/// across every conversation (`get_unread_total`). The provider is
+/// `autoDispose` and re-reads on each `jarz_chat_update`, and renders no
+/// badge while pending or on error.
+class _ChatsNavTile extends ConsumerWidget {
+  final VoidCallback onTap;
+
+  const _ChatsNavTile({required this.onTap});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(chatUnreadTotalProvider).maybeWhen(
+          data: (total) => total.unreadTotal,
+          orElse: () => 0,
+        );
+
+    return ListTile(
+      key: const ValueKey('drawer-chats'),
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      leading: const Icon(Icons.forum_outlined),
+      title: Text(context.l10n.chatNavLabel),
+      trailing: count <= 0
+          ? null
+          : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFFB3261E),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                count > 99 ? '99+' : '$count',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+      onTap: onTap,
     );
   }
 }

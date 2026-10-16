@@ -18232,4 +18232,433 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rptG2LastSale => 'آخر بيع';
+
+  @override
+  String get chatNavLabel => 'المحادثات';
+
+  @override
+  String get chatInboxTitle => 'المحادثات';
+
+  @override
+  String get chatNotAllowed => 'حسابك مالوش صلاحية على محادثات العملاء.';
+
+  @override
+  String get chatInboxLoadError => 'مقدرناش نحمّل المحادثات.';
+
+  @override
+  String get chatInboxEmpty => 'مفيش محادثات هنا لسه.';
+
+  @override
+  String get chatInboxEmptySearch => 'مفيش محادثات مطابقة للبحث.';
+
+  @override
+  String get chatSearchHint => 'ابحث بالاسم أو الموبايل';
+
+  @override
+  String get chatLoadMore => 'حمّل أكتر';
+
+  @override
+  String get chatLoadOlder => 'حمّل الرسايل الأقدم';
+
+  @override
+  String get chatSegmentOpen => 'مفتوحة';
+
+  @override
+  String get chatSegmentMine => 'بتاعتي';
+
+  @override
+  String get chatSegmentAll => 'الكل';
+
+  @override
+  String get chatSegmentClosed => 'مقفولة';
+
+  @override
+  String get chatChannelAll => 'كل القنوات';
+
+  @override
+  String get chatChannelWhatsApp => 'واتساب';
+
+  @override
+  String get chatChannelMessenger => 'ماسنجر';
+
+  @override
+  String get chatChannelInstagram => 'إنستجرام';
+
+  @override
+  String get chatChannelFacebookComment => 'تعليق فيسبوك';
+
+  @override
+  String get chatChannelInstagramComment => 'تعليق إنستجرام';
+
+  @override
+  String get chatStatusOpen => 'مفتوحة';
+
+  @override
+  String get chatStatusAnswered => 'اترد عليها';
+
+  @override
+  String get chatStatusClosed => 'مقفولة';
+
+  @override
+  String get chatIntentInquiry => 'استفسار';
+
+  @override
+  String get chatIntentOrder => 'طلب';
+
+  @override
+  String get chatIntentOther => 'أخرى';
+
+  @override
+  String get chatComplaintBadge => 'شكوى';
+
+  @override
+  String chatPreviewYou(String text) {
+    return 'انت: $text';
+  }
+
+  @override
+  String chatWaitingMinutes(String minutes) {
+    return 'مستني من $minutes دقيقة';
+  }
+
+  @override
+  String get chatDraftReadyTooltip => 'فيه رد مقترح جاهز';
+
+  @override
+  String chatAssignedTo(String name) {
+    return 'متحولة لـ $name';
+  }
+
+  @override
+  String get chatAssignedToYou => 'المحادثة دي بقت معاك.';
+
+  @override
+  String chatSentBy(String name) {
+    return 'بعتها $name';
+  }
+
+  @override
+  String get chatSentBySystem => 'اتبعتت أوتوماتيك';
+
+  @override
+  String get chatSentFromPhone => 'اتبعتت من الموبايل';
+
+  @override
+  String get chatMessageFailed => 'موصلتش';
+
+  @override
+  String get chatMessageImage => 'صورة';
+
+  @override
+  String get chatMessageAudio => 'رسالة صوتية';
+
+  @override
+  String get chatMessageVideo => 'فيديو';
+
+  @override
+  String get chatMessageDocument => 'ملف';
+
+  @override
+  String get chatMessageSticker => 'ستيكر';
+
+  @override
+  String get chatMessageLocation => 'لوكيشن';
+
+  @override
+  String get chatMessageReaction => 'تفاعل';
+
+  @override
+  String get chatMessageTemplate => 'رسالة جاهزة';
+
+  @override
+  String get chatMessageUnsupported => 'رسالة مش مدعومة';
+
+  @override
+  String get chatOpenInMaps => 'افتح على الخريطة';
+
+  @override
+  String get chatOpenMedia => 'افتح';
+
+  @override
+  String get chatMediaLoadFailed => 'مقدرناش نفتح الملف.';
+
+  @override
+  String get chatMediaUnavailable => 'الملف مش متاح';
+
+  @override
+  String get chatThreadLoadError => 'مقدرناش نحمّل المحادثة دي.';
+
+  @override
+  String get chatWindowClosedBanner =>
+      'فترة الرد (24 ساعة) خلصت. ممكن العميل ميوصلوش رد عادي لحد ما يبعت تاني.';
+
+  @override
+  String get chatComposerHint => 'اكتب ردك';
+
+  @override
+  String get chatComposerSendTooltip => 'ابعت';
+
+  @override
+  String get chatActionAssignToMe => 'خليها معايا';
+
+  @override
+  String get chatActionClose => 'اقفل المحادثة';
+
+  @override
+  String get chatActionReopen => 'افتح المحادثة تاني';
+
+  @override
+  String get chatActionCustomerCard => 'بيانات العميل';
+
+  @override
+  String get chatActionLinkCustomer => 'اربط بعميل';
+
+  @override
+  String get chatActionStartOrder => 'ابدأ طلب';
+
+  @override
+  String get chatActionFailed => 'العملية منجحتش. جرّب تاني.';
+
+  @override
+  String get chatClosedDone => 'المحادثة اتقفلت.';
+
+  @override
+  String get chatReopenedDone => 'المحادثة اتفتحت تاني.';
+
+  @override
+  String get chatStartOrderNeedsCustomer => 'اربط المحادثة بعميل الأول.';
+
+  @override
+  String get chatCustomerNotLinked => 'المحادثة دي لسه مش مربوطة بعميل.';
+
+  @override
+  String get chatCustomerPhone => 'الموبايل';
+
+  @override
+  String get chatCustomerTerritory => 'المنطقة';
+
+  @override
+  String get chatCustomerTotalOrders => 'عدد الطلبات';
+
+  @override
+  String get chatCustomerLastOrder => 'آخر طلب';
+
+  @override
+  String get chatCustomerLifetimeValue => 'إجمالي المشتريات';
+
+  @override
+  String get chatCustomerRecentItems => 'آخر أصناف';
+
+  @override
+  String get chatLinkSearchHint => 'ابحث عن العميل بالاسم أو الموبايل';
+
+  @override
+  String get chatLinkNoResults => 'ملقيناش عملاء.';
+
+  @override
+  String get chatLinkSearchFailed => 'البحث عن العميل منجحش.';
+
+  @override
+  String chatLinkDone(String name) {
+    return 'اتربطت بـ $name.';
+  }
+
+  @override
+  String get chatDraftTitle => 'الرد المقترح';
+
+  @override
+  String get chatDraftEditedLabel => 'متعدّل';
+
+  @override
+  String get chatDraftUnavailable => 'مفيش رد مقترح — اكتب ردك بنفسك.';
+
+  @override
+  String chatDraftUpsell(String item) {
+    return 'ضيف: $item';
+  }
+
+  @override
+  String chatDraftNeedsHuman(String reason) {
+    return 'محتاجك: $reason';
+  }
+
+  @override
+  String get chatDraftComplaintLock =>
+      'دي شكوى. عدّل الرد بأسلوبك قبل ما تبعته.';
+
+  @override
+  String get chatDraftRegenerate => 'اقترح رد تاني';
+
+  @override
+  String get chatDraftReject => 'ارفض';
+
+  @override
+  String get chatDraftEdit => 'عدّل';
+
+  @override
+  String get chatDraftSend => 'ابعت';
+
+  @override
+  String get chatPlantedTitle => 'اختبار تدريب';
+
+  @override
+  String chatPlantedNotSent(String error) {
+    return 'اختبار تدريب — الرد ده كان فيه غلطة مقصودة: $error. متبعتش.';
+  }
+
+  @override
+  String get chatPlantedNotSentNoDetail =>
+      'اختبار تدريب — الرد ده كان فيه غلطة مقصودة. متبعتش.';
+
+  @override
+  String chatPlantedCaught(String error) {
+    return 'برافو — الرد ده كان فيه غلطة مقصودة: $error. انت صلحتها ورَدّك اتبعت.';
+  }
+
+  @override
+  String get chatPlantedCaughtNoDetail =>
+      'برافو — الرد ده كان فيه غلطة مقصودة. انت صلحتها ورَدّك اتبعت.';
+
+  @override
+  String chatPlantedMissed(String error) {
+    return 'اختبار تدريب — الرد ده كان فيه غلطة مقصودة: $error. رَدّك المتعدّل اتبعت بيها، فابعت للعميل تصحيح.';
+  }
+
+  @override
+  String get chatPlantedMissedNoDetail =>
+      'اختبار تدريب — الرد ده كان فيه غلطة مقصودة. رَدّك المتعدّل اتبعت بيها، فابعت للعميل تصحيح.';
+
+  @override
+  String get chatPlantedRealDraftReady => 'الرد الحقيقي جاهز تحت.';
+
+  @override
+  String get chatRejectTitle => 'ليه بترفض الرد ده؟';
+
+  @override
+  String get chatRejectChooseReason => 'اختار سبب.';
+
+  @override
+  String get chatRejectReasonWrongInfo => 'معلومة غلط';
+
+  @override
+  String get chatRejectReasonWrongPrice => 'سعر أو رقم غلط';
+
+  @override
+  String get chatRejectReasonTone => 'الأسلوب مش مناسب';
+
+  @override
+  String get chatRejectReasonOffTopic => 'مش بيرد على العميل';
+
+  @override
+  String get chatRejectReasonUpsell => 'اقتراح بيع إضافي مش مناسب';
+
+  @override
+  String get chatRejectReasonOther => 'سبب تاني';
+
+  @override
+  String get chatRejectNoteHint => 'ضيف ملاحظة (اختياري)';
+
+  @override
+  String get chatRejectNoteRequired => 'اكتب السبب من فضلك.';
+
+  @override
+  String get chatRejectConfirm => 'ارفض الرد';
+
+  @override
+  String get chatRejectCaught =>
+      'برافو — الرد ده كان اختبار تدريب فيه غلطة مقصودة.';
+
+  @override
+  String get chatRegenerateTitle => 'اقترح رد تاني';
+
+  @override
+  String get chatRegenerateHintLabel => 'توجيه للرد الجديد (اختياري)';
+
+  @override
+  String get chatRegenerateHintExample => 'مثلاً: اذكر إن التوصيل مجاني';
+
+  @override
+  String get chatMetricsTitle => 'إحصائيات المحادثات';
+
+  @override
+  String get chatMetricsNotAllowed => 'إحصائيات المحادثات للمديرين بس.';
+
+  @override
+  String get chatMetricsLoadError => 'مقدرناش نحمّل الإحصائيات.';
+
+  @override
+  String get chatMetricsConversations => 'المحادثات';
+
+  @override
+  String get chatMetricsInbound => 'رسايل جات';
+
+  @override
+  String get chatMetricsOutbound => 'رسايل اتبعتت';
+
+  @override
+  String get chatMetricsMedianFirstResponse => 'متوسط أول رد';
+
+  @override
+  String chatMetricsMinutes(String minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String get chatMetricsUnansweredOpen => 'مفتوحة ومتردش عليها';
+
+  @override
+  String get chatMetricsWaitingOverAlert => 'مستنية كتير';
+
+  @override
+  String get chatMetricsDrafts => 'الردود المقترحة';
+
+  @override
+  String get chatMetricsTotal => 'الإجمالي';
+
+  @override
+  String get chatMetricsAsIsRate => 'نسبة اللي اتبعت زي ما هو';
+
+  @override
+  String get chatMetricsSentAsIs => 'اتبعت من غير تعديل';
+
+  @override
+  String get chatMetricsSentEdited => 'اتبعت متعدّل';
+
+  @override
+  String get chatMetricsRejected => 'اترفض';
+
+  @override
+  String get chatMetricsSuperseded => 'اتلغى بعد رسالة جديدة';
+
+  @override
+  String get chatMetricsBlocked => 'اتمنع';
+
+  @override
+  String get chatMetricsPlanted => 'اختبارات التدريب اللي اتكشفت';
+
+  @override
+  String chatMetricsPlantedValue(String caught, String total) {
+    return '$caught من $total';
+  }
+
+  @override
+  String get chatMetricsCost => 'تكلفة الذكاء الاصطناعي';
+
+  @override
+  String get chatMetricsByModerator => 'حسب الموديريتور';
+
+  @override
+  String get chatMetricsNoModerators => 'مفيش ردود في الفترة دي.';
+
+  @override
+  String get chatMetricsModerator => 'الموديريتور';
+
+  @override
+  String get chatMetricsModSent => 'اتبعت';
+
+  @override
+  String get chatMetricsModAsIs => 'زي ما هو';
+
+  @override
+  String get chatMetricsModEdited => 'متعدّل';
 }

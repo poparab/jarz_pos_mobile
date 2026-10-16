@@ -23,6 +23,7 @@ class WebSocketService {
   final _courierUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
   final _shiftUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
   final _branchAccessStreamController = StreamController<Map<String, dynamic>>.broadcast();
+  final _chatUpdateStreamController = StreamController<Map<String, dynamic>>.broadcast();
   Timer? _reconnectTimer;
   Timer? _heartbeatTimer;
   bool _isConnecting = false;
@@ -37,6 +38,9 @@ class WebSocketService {
 
   /// This user's branch access changed; re-read the POS branch list.
   Stream<Map<String, dynamic>> get branchAccessUpdates => _branchAccessStreamController.stream;
+
+  /// `jarz_chat_update` payloads for the chat inbox, thread and badge.
+  Stream<Map<String, dynamic>> get chatUpdates => _chatUpdateStreamController.stream;
 
   /// Every Socket.IO event this client binds a handler to.
   ///
@@ -62,6 +66,8 @@ class WebSocketService {
     ...courierStopEvents,
     // Branch access (sent to the affected user only)
     WsEvents.branchAccessChanged,
+    // Chat inbox (sent to chat-role users only)
+    WsEvents.chatUpdate,
   ];
 
   /// Courier events that change a card's *contents* without moving it between
@@ -467,6 +473,11 @@ class WebSocketService {
         // The payload is informational; the listener re-reads the whole list.
         _branchAccessStreamController.add(data ?? const <String, dynamic>{});
         break;
+      case WsEvents.chatUpdate:
+        if (data != null) {
+          _chatUpdateStreamController.add(data);
+        }
+        break;
       case WsEvents.shiftStarted:
       case WsEvents.shiftEnded:
         if (data != null) {
@@ -550,6 +561,7 @@ class WebSocketService {
   _courierUpdateStreamController.close();
   _shiftUpdateStreamController.close();
     _branchAccessStreamController.close();
+    _chatUpdateStreamController.close();
   }
 }
 

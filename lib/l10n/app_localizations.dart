@@ -30316,6 +30316,804 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last sale'**
   String get rptG2LastSale;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Chats'**
+  String get chatNavLabel;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Chats'**
+  String get chatInboxTitle;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Your account does not have access to customer chats.'**
+  String get chatNotAllowed;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t load the chats.'**
+  String get chatInboxLoadError;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'No chats here yet.'**
+  String get chatInboxEmpty;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'No chats match your search.'**
+  String get chatInboxEmptySearch;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or phone'**
+  String get chatSearchHint;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get chatLoadMore;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Load older messages'**
+  String get chatLoadOlder;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get chatSegmentOpen;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get chatSegmentMine;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get chatSegmentAll;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get chatSegmentClosed;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'All channels'**
+  String get chatChannelAll;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get chatChannelWhatsApp;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Messenger'**
+  String get chatChannelMessenger;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get chatChannelInstagram;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Facebook comment'**
+  String get chatChannelFacebookComment;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram comment'**
+  String get chatChannelInstagramComment;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get chatStatusOpen;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Answered'**
+  String get chatStatusAnswered;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get chatStatusClosed;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Inquiry'**
+  String get chatIntentInquiry;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get chatIntentOrder;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get chatIntentOther;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint'**
+  String get chatComplaintBadge;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'You: {text}'**
+  String chatPreviewYou(String text);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting {minutes} min'**
+  String chatWaitingMinutes(String minutes);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'An AI draft is ready'**
+  String get chatDraftReadyTooltip;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned to {name}'**
+  String chatAssignedTo(String name);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'This chat is now assigned to you.'**
+  String get chatAssignedToYou;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Sent by {name}'**
+  String chatSentBy(String name);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Sent automatically'**
+  String get chatSentBySystem;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Sent from the phone'**
+  String get chatSentFromPhone;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Not delivered'**
+  String get chatMessageFailed;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get chatMessageImage;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get chatMessageAudio;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get chatMessageVideo;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get chatMessageDocument;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Sticker'**
+  String get chatMessageSticker;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get chatMessageLocation;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Reaction'**
+  String get chatMessageReaction;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Template message'**
+  String get chatMessageTemplate;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported message'**
+  String get chatMessageUnsupported;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Maps'**
+  String get chatOpenInMaps;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get chatOpenMedia;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t open the file.'**
+  String get chatMediaLoadFailed;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'File not available'**
+  String get chatMediaUnavailable;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t load this chat.'**
+  String get chatThreadLoadError;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'The 24-hour reply window has closed. The customer may not receive a normal reply until they message again.'**
+  String get chatWindowClosedBanner;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Type a reply'**
+  String get chatComposerHint;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatComposerSendTooltip;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to me'**
+  String get chatActionAssignToMe;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Close chat'**
+  String get chatActionClose;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen chat'**
+  String get chatActionReopen;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Customer card'**
+  String get chatActionCustomerCard;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a customer'**
+  String get chatActionLinkCustomer;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Start order'**
+  String get chatActionStartOrder;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'\'t work. Please try again.'**
+  String get chatActionFailed;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Chat closed.'**
+  String get chatClosedDone;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Chat reopened.'**
+  String get chatReopenedDone;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Link this chat to a customer first.'**
+  String get chatStartOrderNeedsCustomer;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'This chat is not linked to a customer yet.'**
+  String get chatCustomerNotLinked;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get chatCustomerPhone;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Area'**
+  String get chatCustomerTerritory;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Total orders'**
+  String get chatCustomerTotalOrders;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Last order'**
+  String get chatCustomerLastOrder;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Total spent'**
+  String get chatCustomerLifetimeValue;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Recent items'**
+  String get chatCustomerRecentItems;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Search customers by name or phone'**
+  String get chatLinkSearchHint;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'No customers found.'**
+  String get chatLinkNoResults;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Customer search failed.'**
+  String get chatLinkSearchFailed;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Linked to {name}.'**
+  String chatLinkDone(String name);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested reply'**
+  String get chatDraftTitle;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Edited'**
+  String get chatDraftEditedLabel;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Draft unavailable — type your reply.'**
+  String get chatDraftUnavailable;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Add: {item}'**
+  String chatDraftUpsell(String item);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Needs you: {reason}'**
+  String chatDraftNeedsHuman(String reason);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'This is a complaint. Edit the reply in your own words before sending.'**
+  String get chatDraftComplaintLock;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate'**
+  String get chatDraftRegenerate;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get chatDraftReject;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get chatDraftEdit;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatDraftSend;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Training check'**
+  String get chatPlantedTitle;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Training check — this draft had a deliberate mistake: {error}. It was not sent.'**
+  String chatPlantedNotSent(String error);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Training check — this draft had a deliberate mistake. It was not sent.'**
+  String get chatPlantedNotSentNoDetail;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Well spotted — this draft had a deliberate mistake: {error}. You fixed it, and your reply was sent.'**
+  String chatPlantedCaught(String error);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Well spotted — this draft had a deliberate mistake. You fixed it, and your reply was sent.'**
+  String get chatPlantedCaughtNoDetail;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Training check — this draft had a deliberate mistake: {error}. Your edited reply was sent with it, so please send the customer a correction.'**
+  String chatPlantedMissed(String error);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Training check — this draft had a deliberate mistake. Your edited reply was sent with it, so please send the customer a correction.'**
+  String get chatPlantedMissedNoDetail;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'The real draft is ready below.'**
+  String get chatPlantedRealDraftReady;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you rejecting this draft?'**
+  String get chatRejectTitle;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a reason.'**
+  String get chatRejectChooseReason;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong information'**
+  String get chatRejectReasonWrongInfo;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong price or number'**
+  String get chatRejectReasonWrongPrice;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong tone'**
+  String get chatRejectReasonTone;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Does not answer the customer'**
+  String get chatRejectReasonOffTopic;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Bad upsell suggestion'**
+  String get chatRejectReasonUpsell;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get chatRejectReasonOther;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note (optional)'**
+  String get chatRejectNoteHint;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Please describe the reason.'**
+  String get chatRejectNoteRequired;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Reject draft'**
+  String get chatRejectConfirm;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Well spotted — that draft was a training check with a deliberate mistake.'**
+  String get chatRejectCaught;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate the draft'**
+  String get chatRegenerateTitle;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Hint for the new draft (optional)'**
+  String get chatRegenerateHintLabel;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. mention free delivery'**
+  String get chatRegenerateHintExample;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Chat metrics'**
+  String get chatMetricsTitle;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Chat metrics are for managers only.'**
+  String get chatMetricsNotAllowed;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'\'t load the chat metrics.'**
+  String get chatMetricsLoadError;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Conversations'**
+  String get chatMetricsConversations;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Messages received'**
+  String get chatMetricsInbound;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Messages sent'**
+  String get chatMetricsOutbound;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Median first response'**
+  String get chatMetricsMedianFirstResponse;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String chatMetricsMinutes(String minutes);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Open, unanswered'**
+  String get chatMetricsUnansweredOpen;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting too long'**
+  String get chatMetricsWaitingOverAlert;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'AI drafts'**
+  String get chatMetricsDrafts;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get chatMetricsTotal;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Sent as-is'**
+  String get chatMetricsAsIsRate;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Sent unchanged'**
+  String get chatMetricsSentAsIs;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Sent edited'**
+  String get chatMetricsSentEdited;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get chatMetricsRejected;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Superseded'**
+  String get chatMetricsSuperseded;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get chatMetricsBlocked;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Training checks caught'**
+  String get chatMetricsPlanted;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'{caught} of {total}'**
+  String chatMetricsPlantedValue(String caught, String total);
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'AI cost'**
+  String get chatMetricsCost;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'By moderator'**
+  String get chatMetricsByModerator;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'No replies in this period.'**
+  String get chatMetricsNoModerators;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Moderator'**
+  String get chatMetricsModerator;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get chatMetricsModSent;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'As-is'**
+  String get chatMetricsModAsIs;
+
+  /// Chat inbox (AI moderator assist).
+  ///
+  /// In en, this message translates to:
+  /// **'Edited'**
+  String get chatMetricsModEdited;
 }
 
 class _AppLocalizationsDelegate

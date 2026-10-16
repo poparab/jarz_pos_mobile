@@ -16,6 +16,8 @@ import 'package:jarz_pos/src/core/widgets/app_drawer.dart';
 import 'package:jarz_pos/src/features/approvals/models/pending_approvals.dart';
 import 'package:jarz_pos/src/features/approvals/state/pending_approvals_provider.dart';
 import 'package:jarz_pos/src/features/cash_custody/state/cash_custody_notifier.dart';
+import 'package:jarz_pos/src/features/chat_inbox/data/models/chat_models.dart';
+import 'package:jarz_pos/src/features/chat_inbox/state/chat_providers.dart';
 import 'package:jarz_pos/src/features/kanban/providers/kanban_provider.dart';
 import 'package:jarz_pos/src/features/manager/state/manager_providers.dart';
 import 'package:jarz_pos/src/features/pos/state/pos_notifier.dart';
@@ -98,6 +100,7 @@ List<Override> roleDrawerOverrides(List<String> roles) {
         fetchedAt: DateTime(2026, 9, 26),
       ),
     ),
+    chatUnreadTotalProvider.overrideWith((ref) async => ChatUnreadTotal.zero),
     posNotifierProvider.overrideWith((ref) => _FakePos()),
     kanbanProvider.overrideWith((ref) => _FakeKanban()),
     webSocketServiceProvider.overrideWithValue(MockWebSocketService()),

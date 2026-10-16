@@ -34,6 +34,7 @@ import '../../credit/data/models/settlement_models.dart' show SettlementParty;
 import '../../credit/state/credit_providers.dart';
 import '../../followups/state/followups_providers.dart';
 import '../../courier_alerts/state/courier_alerts_providers.dart';
+import '../../chat_inbox/state/chat_providers.dart';
 
 /// Ceiling for the alert poll's backoff.
 ///
@@ -577,6 +578,16 @@ class OrderAlertBridge {
           _navigateTo(AppRoutes.courierAlerts);
         }
         break;
+      case 'chat_waiting':
+        _logger.info('FCM chat waiting: ${data['conversation'] ?? ''}');
+        // A customer chat has waited too long for a reply. The tray entry is
+        // drawn natively (no order alarm); here the inbox badge and any open
+        // chat screen catch up, and a tap opens the conversation.
+        _refreshChats(data['conversation']?.toString());
+        if (openedApp) {
+          _navigateToChat(data['route']?.toString());
+        }
+        break;
       default:
         _logger.debug('Ignored push message of type $type');
     }
@@ -674,6 +685,22 @@ class OrderAlertBridge {
     _ref.invalidate(courierAlertsProvider);
   }
 
+  /// Unread badge + an open inbox/thread. Never starts a screen's fetch.
+  void _refreshChats(String? conversation) {
+    try {
+      final id = conversation?.trim() ?? '';
+      refreshChatsAfterPush(_ref, conversation: id.isEmpty ? null : id);
+    } catch (error, stackTrace) {
+      _logger.error('Failed to refresh chats after push', error, stackTrace);
+    }
+  }
+
+  /// The push carries the thread's route; anything else lands on the inbox.
+  void _navigateToChat(String? route) {
+    final target = route?.trim() ?? '';
+    _navigateTo(target.startsWith(AppRoutes.chats) ? target : AppRoutes.chats);
+  }
+
   void _navigateTo(String route) {
     final context = rootNavigatorKey.currentContext;
     if (context == null) {
@@ -735,6 +762,9 @@ class OrderAlertBridge {
     } else if (type == 'courier_alert') {
       _refreshCourierAlerts();
       _navigateTo(AppRoutes.courierAlerts);
+    } else if (type == 'chat_waiting') {
+      _refreshChats(payload['conversation']);
+      _navigateToChat(payload['route']);
     }
   }
 

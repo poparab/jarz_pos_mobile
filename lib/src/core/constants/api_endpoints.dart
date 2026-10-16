@@ -1076,4 +1076,23 @@ abstract final class ApiEndpoints {
   static const userAdminSetEnabled = '$_userAdmin.set_enabled';
   static const userAdminResetPassword = '$_userAdmin.reset_password';
   static const userAdminDeleteUser = '$_userAdmin.delete_user';
+
+  // ── Chat inbox (moderator reply copilot) ──────────────────────────────
+  // WhatsApp / Instagram / Messenger conversations with an AI-drafted reply
+  // the moderator sends as-is, edits, rejects or regenerates. GETs take query
+  // parameters; everything that writes is a POST. None of these may be
+  // replayed offline (see kOfflineReplayExcludedPrefixes).
+  static const _chat = '/api/method/jarz_pos.api.chat';
+  static const chatGetConversations = '$_chat.get_conversations';
+  static const chatGetConversation = '$_chat.get_conversation';
+  static const chatSendMessage = '$_chat.send_message';
+  static const chatSendDraft = '$_chat.send_draft';
+  static const chatRejectDraft = '$_chat.reject_draft';
+  static const chatRegenerateDraft = '$_chat.regenerate_draft';
+  static const chatAssignConversation = '$_chat.assign_conversation';
+  static const chatSetConversationStatus = '$_chat.set_conversation_status';
+  static const chatLinkCustomer = '$_chat.link_customer';
+  static const chatGetOrderPrefill = '$_chat.get_order_prefill';
+  static const chatGetMetrics = '$_chat.get_chat_metrics';
+  static const chatGetUnreadTotal = '$_chat.get_unread_total';
 }

@@ -149,6 +149,16 @@ abstract final class AppRoutes {
   // The sender's daily due list of WhatsApp / call touches after delivery.
   static const followups = '/followups';
 
+  // ── Chat inbox (moderator reply copilot) ──────────────────────────────
+  // WhatsApp / Instagram / Messenger conversations with an AI-drafted reply.
+  // `/chats/metrics` is matched before `/chats/:name` (it is declared first).
+  static const chats = '/chats';
+  static const chatsMetrics = '/chats/metrics';
+
+  /// One conversation thread (`CHAT-00001`).
+  static String chatThreadFor(String name) =>
+      '$chats/${Uri.encodeComponent(name)}';
+
   // ── Credit accounts (B2B shops buying on account) ─────────────────────
   // The rolling-balance view: which shops owe money, their open invoices
   // oldest-first, and the payment that clears them FIFO. Manager-gated, like

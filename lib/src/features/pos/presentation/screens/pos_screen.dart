@@ -56,6 +56,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
   bool _b2bBindingApplied = false;
   bool _b2bBindingInProgress = false;
   String? _b2bBindingError;
+  bool _chatOrderApplied = false;
 
   bool get _isB2bOrderRoute =>
       widget.launchData?['mode']?.toString() == 'b2b_order';
@@ -178,6 +179,30 @@ class _PosScreenState extends ConsumerState<PosScreen>
             .trim() ??
         '';
     return requiredProfile.isNotEmpty;
+  }
+
+  /// Applies a chat binding passed via [PosScreen.launchData]:
+  /// `{mode: 'chat_order', conversation, customer}` (from the chat inbox's
+  /// "Start order"). Only preselects the linked customer, once, after a POS
+  /// profile is chosen; the order then follows the normal path.
+  void _scheduleChatOrderBinding(PosState state) {
+    final launchData = widget.launchData;
+    if (_chatOrderApplied ||
+        launchData?['mode']?.toString() != 'chat_order' ||
+        state.selectedProfile == null) {
+      return;
+    }
+    final customer = launchData?['customer'];
+    if (customer is! Map ||
+        (customer['name']?.toString().trim().isEmpty ?? true)) {
+      return;
+    }
+    _chatOrderApplied = true;
+    final selected = Map<String, dynamic>.from(customer);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(posNotifierProvider.notifier).selectCustomer(selected);
+    });
   }
 
   void _scheduleB2bBinding(PosState state) {
@@ -484,6 +509,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
   Widget build(BuildContext context) {
     final state = ref.watch(posNotifierProvider);
     _scheduleB2bBinding(state);
+    _scheduleChatOrderBinding(state);
     final requirePosShift = ref.watch(requirePosShiftProvider);
     final activeShiftAsync = ref.watch(activeShiftProvider);
     // Enforce POS profile selection: show startup popup chooser on entry

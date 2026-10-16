@@ -58,6 +58,13 @@ class JarzFirebaseMessagingService : FlutterFirebaseMessagingService() {
                 "settlement_reminder" -> {
                     OrderAlertNative.showApprovalNotification(applicationContext, data)
                 }
+                // Chat inbox: a customer has waited past the alert threshold.
+                // Same foreground gap, same QUIET approvals channel -- never the
+                // order alarm. The tap carries conversation + route so
+                // _handleLaunchPayload opens that chat thread.
+                "chat_waiting" -> {
+                    OrderAlertNative.showApprovalNotification(applicationContext, data)
+                }
             }
         }
         super.onMessageReceived(remoteMessage)

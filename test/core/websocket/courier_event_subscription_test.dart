@@ -96,4 +96,32 @@ void main() {
       await sub.cancel();
     });
   });
+
+  group('chat update event', () {
+    test('is bound on connect and keeps its backend name', () {
+      expect(WsEvents.chatUpdate, 'jarz_chat_update');
+      expect(
+        WebSocketService.subscribedEvents,
+        contains(WsEvents.chatUpdate),
+      );
+    });
+
+    test('is routed to chatUpdates, and an empty payload is dropped', () async {
+      final service = WebSocketService();
+      final received = <Map<String, dynamic>>[];
+      final sub = service.chatUpdates.listen(received.add);
+      service.debugHandleMessage({
+        'event': WsEvents.chatUpdate,
+        'data': <String, dynamic>{
+          'conversation': 'CHAT-0001',
+          'kind': 'message',
+        },
+      });
+      service.debugHandleMessage({'event': WsEvents.chatUpdate});
+      await Future<void>.delayed(Duration.zero);
+      expect(received, hasLength(1));
+      expect(received.single['conversation'], 'CHAT-0001');
+      await sub.cancel();
+    });
+  });
 }

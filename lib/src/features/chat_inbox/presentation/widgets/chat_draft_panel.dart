@@ -1,0 +1,281 @@
+import 'package:flutter/material.dart';
+
+import '../../../../core/localization/localization_extensions.dart';
+import '../../data/models/chat_models.dart';
+
+/// The AI draft docked above the composer: text (editable), upsell chip,
+/// warnings, the "needs you" reason, and Send / Edit / Reject / Regenerate.
+///
+/// A complaint draft is locked: Send stays disabled until the text differs
+/// from the draft (the server refuses an unchanged complaint reply anyway).
+/// A Failed draft shows "draft unavailable — type your reply" and only
+/// Regenerate.
+class ChatDraftPanel extends StatefulWidget {
+  const ChatDraftPanel({
+    super.key,
+    required this.draft,
+    required this.busy,
+    required this.onSend,
+    required this.onReject,
+    required this.onRegenerate,
+  });
+
+  final ChatDraft draft;
+
+  /// A draft action is in flight; every button is disabled meanwhile.
+  final bool busy;
+  final ValueChanged<String> onSend;
+  final VoidCallback onReject;
+  final VoidCallback onRegenerate;
+
+  @override
+  State<ChatDraftPanel> createState() => _ChatDraftPanelState();
+}
+
+class _ChatDraftPanelState extends State<ChatDraftPanel> {
+  late final TextEditingController _controller;
+  bool _editing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.draft.draftText);
+    _controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatDraftPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.draft.name != widget.draft.name) {
+      // A new draft (regenerated, or the real one after a training check):
+      // start from its text, out of edit mode.
+      _controller.text = widget.draft.draftText;
+      _editing = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onTextChanged);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _addUpsell() {
+    final line = widget.draft.upsellText?.trim() ?? '';
+    if (line.isEmpty || _controller.text.contains(line)) return;
+    final current = _controller.text.trimRight();
+    _controller.text = current.isEmpty ? line : '$current\n$line';
+    setState(() => _editing = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final draft = widget.draft;
+    final text = _controller.text;
+    final unchanged = draft.isUnchanged(text);
+    final complaintLocked = draft.isComplaint && unchanged;
+    final canSend = !widget.busy && text.trim().isNotEmpty && !complaintLocked;
+
+    return Material(
+      key: const ValueKey('chat-draft-panel'),
+      color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.45),
+      child: SafeArea(
+        top: false,
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.auto_awesome, size: 18, color: theme.colorScheme.primary),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      l10n.chatDraftTitle,
+                      style: theme.textTheme.titleSmall,
+                    ),
+                  ),
+                  if (!draft.isFailed && !unchanged)
+                    Text(
+                      l10n.chatDraftEditedLabel,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  if (widget.busy) ...[
+                    const SizedBox(width: 8),
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 6),
+              if (draft.isFailed) ...[
+                Text(
+                  l10n.chatDraftUnavailable,
+                  key: const ValueKey('chat-draft-unavailable'),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: TextButton.icon(
+                    key: const ValueKey('chat-draft-regenerate'),
+                    onPressed: widget.busy ? null : widget.onRegenerate,
+                    icon: const Icon(Icons.refresh),
+                    label: Text(l10n.chatDraftRegenerate),
+                  ),
+                ),
+              ] else ...[
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 180),
+                  child: _editing
+                      ? TextField(
+                          key: const ValueKey('chat-draft-field'),
+                          controller: _controller,
+                          minLines: 2,
+                          maxLines: 6,
+                          maxLength: 4096,
+                          textInputAction: TextInputAction.newline,
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        )
+                      : SingleChildScrollView(
+                          child: SelectableText(
+                            text,
+                            key: const ValueKey('chat-draft-text'),
+                          ),
+                        ),
+                ),
+                if (draft.upsellLabel != null) ...[
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Tooltip(
+                      message: draft.upsellText ?? draft.upsellLabel!,
+                      child: ActionChip(
+                        key: const ValueKey('chat-draft-upsell'),
+                        avatar: const Icon(Icons.add_shopping_cart, size: 18),
+                        label: Text(l10n.chatDraftUpsell(draft.upsellLabel!)),
+                        onPressed: (draft.upsellText?.trim().isNotEmpty ?? false)
+                            ? _addUpsell
+                            : null,
+                      ),
+                    ),
+                  ),
+                ],
+                for (final warning in draft.warnings)
+                  _NoteRow(
+                    icon: Icons.warning_amber_rounded,
+                    color: Colors.orange.shade800,
+                    text: warning,
+                  ),
+                if (draft.needsHumanReason != null)
+                  _NoteRow(
+                    icon: Icons.support_agent,
+                    color: theme.colorScheme.tertiary,
+                    text: l10n.chatDraftNeedsHuman(draft.needsHumanReason!),
+                  ),
+                if (complaintLocked)
+                  _NoteRow(
+                    key: const ValueKey('chat-draft-complaint-lock'),
+                    icon: Icons.lock_outline,
+                    color: theme.colorScheme.error,
+                    text: l10n.chatDraftComplaintLock,
+                  ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  alignment: WrapAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      key: const ValueKey('chat-draft-regenerate'),
+                      onPressed: widget.busy ? null : widget.onRegenerate,
+                      icon: const Icon(Icons.refresh),
+                      label: Text(l10n.chatDraftRegenerate),
+                    ),
+                    TextButton.icon(
+                      key: const ValueKey('chat-draft-reject'),
+                      onPressed: widget.busy ? null : widget.onReject,
+                      icon: const Icon(Icons.thumb_down_alt_outlined),
+                      label: Text(l10n.chatDraftReject),
+                    ),
+                    OutlinedButton.icon(
+                      key: const ValueKey('chat-draft-edit'),
+                      onPressed: widget.busy
+                          ? null
+                          : () => setState(() => _editing = !_editing),
+                      icon: Icon(_editing ? Icons.check : Icons.edit_outlined),
+                      label: Text(
+                        _editing ? l10n.commonDone : l10n.chatDraftEdit,
+                      ),
+                    ),
+                    FilledButton.icon(
+                      key: const ValueKey('chat-draft-send'),
+                      onPressed:
+                          canSend ? () => widget.onSend(text.trim()) : null,
+                      icon: const Icon(Icons.send),
+                      label: Text(l10n.chatDraftSend),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NoteRow extends StatelessWidget {
+  const _NoteRow({
+    super.key,
+    required this.icon,
+    required this.color,
+    required this.text,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

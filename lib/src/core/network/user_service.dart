@@ -339,6 +339,15 @@ class UserRoles {
   /// the senders are the managers and line managers.
   bool get canAccessFollowups => _isLineManagerTier;
 
+  /// Whether this user may work the chat inbox (WhatsApp / Instagram /
+  /// Messenger / ad comments). Mirrors `api/chat.py`'s `CHAT_ROLES` =
+  /// `{Moderator, Jarz Manager, System Manager} | LINE_MANAGER_TIER`.
+  bool get canAccessChats => _isLineManagerTier || isModerator;
+
+  /// Whether this user sees the chat metrics screen: the manager tier only.
+  /// The endpoint itself admits every chat role; the screen is a manager view.
+  bool get canViewChatMetrics => _isLineManagerTier;
+
   /// Whether this user may read follow-up stats. Narrower than the list:
   /// `get_followup_stats` admits JARZ Manager and System Manager only.
   bool get canViewFollowupStats =>
@@ -726,6 +735,14 @@ final canAccessFollowupsProvider =
 /// Follow-up stats link. See [UserRoles.canViewFollowupStats].
 final canViewFollowupStatsProvider =
     Provider<bool>((ref) => _roleGate(ref, (r) => r.canViewFollowupStats));
+
+/// Chat inbox. See [UserRoles.canAccessChats].
+final canAccessChatsProvider =
+    Provider<bool>((ref) => _roleGate(ref, (r) => r.canAccessChats));
+
+/// Chat metrics link. See [UserRoles.canViewChatMetrics].
+final canViewChatMetricsProvider =
+    Provider<bool>((ref) => _roleGate(ref, (r) => r.canViewChatMetrics));
 
 final canRaiseItemRequestProvider =
     Provider<bool>((ref) => _roleGate(ref, (r) => r.canRaiseItemRequest));

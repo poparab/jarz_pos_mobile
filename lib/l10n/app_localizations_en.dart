@@ -18246,4 +18246,436 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rptG2LastSale => 'Last sale';
+
+  @override
+  String get chatNavLabel => 'Chats';
+
+  @override
+  String get chatInboxTitle => 'Chats';
+
+  @override
+  String get chatNotAllowed =>
+      'Your account does not have access to customer chats.';
+
+  @override
+  String get chatInboxLoadError => 'Couldn\'t load the chats.';
+
+  @override
+  String get chatInboxEmpty => 'No chats here yet.';
+
+  @override
+  String get chatInboxEmptySearch => 'No chats match your search.';
+
+  @override
+  String get chatSearchHint => 'Search by name or phone';
+
+  @override
+  String get chatLoadMore => 'Load more';
+
+  @override
+  String get chatLoadOlder => 'Load older messages';
+
+  @override
+  String get chatSegmentOpen => 'Open';
+
+  @override
+  String get chatSegmentMine => 'Mine';
+
+  @override
+  String get chatSegmentAll => 'All';
+
+  @override
+  String get chatSegmentClosed => 'Closed';
+
+  @override
+  String get chatChannelAll => 'All channels';
+
+  @override
+  String get chatChannelWhatsApp => 'WhatsApp';
+
+  @override
+  String get chatChannelMessenger => 'Messenger';
+
+  @override
+  String get chatChannelInstagram => 'Instagram';
+
+  @override
+  String get chatChannelFacebookComment => 'Facebook comment';
+
+  @override
+  String get chatChannelInstagramComment => 'Instagram comment';
+
+  @override
+  String get chatStatusOpen => 'Open';
+
+  @override
+  String get chatStatusAnswered => 'Answered';
+
+  @override
+  String get chatStatusClosed => 'Closed';
+
+  @override
+  String get chatIntentInquiry => 'Inquiry';
+
+  @override
+  String get chatIntentOrder => 'Order';
+
+  @override
+  String get chatIntentOther => 'Other';
+
+  @override
+  String get chatComplaintBadge => 'Complaint';
+
+  @override
+  String chatPreviewYou(String text) {
+    return 'You: $text';
+  }
+
+  @override
+  String chatWaitingMinutes(String minutes) {
+    return 'Waiting $minutes min';
+  }
+
+  @override
+  String get chatDraftReadyTooltip => 'An AI draft is ready';
+
+  @override
+  String chatAssignedTo(String name) {
+    return 'Assigned to $name';
+  }
+
+  @override
+  String get chatAssignedToYou => 'This chat is now assigned to you.';
+
+  @override
+  String chatSentBy(String name) {
+    return 'Sent by $name';
+  }
+
+  @override
+  String get chatSentBySystem => 'Sent automatically';
+
+  @override
+  String get chatSentFromPhone => 'Sent from the phone';
+
+  @override
+  String get chatMessageFailed => 'Not delivered';
+
+  @override
+  String get chatMessageImage => 'Photo';
+
+  @override
+  String get chatMessageAudio => 'Voice note';
+
+  @override
+  String get chatMessageVideo => 'Video';
+
+  @override
+  String get chatMessageDocument => 'Document';
+
+  @override
+  String get chatMessageSticker => 'Sticker';
+
+  @override
+  String get chatMessageLocation => 'Location';
+
+  @override
+  String get chatMessageReaction => 'Reaction';
+
+  @override
+  String get chatMessageTemplate => 'Template message';
+
+  @override
+  String get chatMessageUnsupported => 'Unsupported message';
+
+  @override
+  String get chatOpenInMaps => 'Open in Maps';
+
+  @override
+  String get chatOpenMedia => 'Open';
+
+  @override
+  String get chatMediaLoadFailed => 'Couldn\'t open the file.';
+
+  @override
+  String get chatMediaUnavailable => 'File not available';
+
+  @override
+  String get chatThreadLoadError => 'Couldn\'t load this chat.';
+
+  @override
+  String get chatWindowClosedBanner =>
+      'The 24-hour reply window has closed. The customer may not receive a normal reply until they message again.';
+
+  @override
+  String get chatComposerHint => 'Type a reply';
+
+  @override
+  String get chatComposerSendTooltip => 'Send';
+
+  @override
+  String get chatActionAssignToMe => 'Assign to me';
+
+  @override
+  String get chatActionClose => 'Close chat';
+
+  @override
+  String get chatActionReopen => 'Reopen chat';
+
+  @override
+  String get chatActionCustomerCard => 'Customer card';
+
+  @override
+  String get chatActionLinkCustomer => 'Link to a customer';
+
+  @override
+  String get chatActionStartOrder => 'Start order';
+
+  @override
+  String get chatActionFailed => 'That didn\'t work. Please try again.';
+
+  @override
+  String get chatClosedDone => 'Chat closed.';
+
+  @override
+  String get chatReopenedDone => 'Chat reopened.';
+
+  @override
+  String get chatStartOrderNeedsCustomer =>
+      'Link this chat to a customer first.';
+
+  @override
+  String get chatCustomerNotLinked =>
+      'This chat is not linked to a customer yet.';
+
+  @override
+  String get chatCustomerPhone => 'Phone';
+
+  @override
+  String get chatCustomerTerritory => 'Area';
+
+  @override
+  String get chatCustomerTotalOrders => 'Total orders';
+
+  @override
+  String get chatCustomerLastOrder => 'Last order';
+
+  @override
+  String get chatCustomerLifetimeValue => 'Total spent';
+
+  @override
+  String get chatCustomerRecentItems => 'Recent items';
+
+  @override
+  String get chatLinkSearchHint => 'Search customers by name or phone';
+
+  @override
+  String get chatLinkNoResults => 'No customers found.';
+
+  @override
+  String get chatLinkSearchFailed => 'Customer search failed.';
+
+  @override
+  String chatLinkDone(String name) {
+    return 'Linked to $name.';
+  }
+
+  @override
+  String get chatDraftTitle => 'Suggested reply';
+
+  @override
+  String get chatDraftEditedLabel => 'Edited';
+
+  @override
+  String get chatDraftUnavailable => 'Draft unavailable — type your reply.';
+
+  @override
+  String chatDraftUpsell(String item) {
+    return 'Add: $item';
+  }
+
+  @override
+  String chatDraftNeedsHuman(String reason) {
+    return 'Needs you: $reason';
+  }
+
+  @override
+  String get chatDraftComplaintLock =>
+      'This is a complaint. Edit the reply in your own words before sending.';
+
+  @override
+  String get chatDraftRegenerate => 'Regenerate';
+
+  @override
+  String get chatDraftReject => 'Reject';
+
+  @override
+  String get chatDraftEdit => 'Edit';
+
+  @override
+  String get chatDraftSend => 'Send';
+
+  @override
+  String get chatPlantedTitle => 'Training check';
+
+  @override
+  String chatPlantedNotSent(String error) {
+    return 'Training check — this draft had a deliberate mistake: $error. It was not sent.';
+  }
+
+  @override
+  String get chatPlantedNotSentNoDetail =>
+      'Training check — this draft had a deliberate mistake. It was not sent.';
+
+  @override
+  String chatPlantedCaught(String error) {
+    return 'Well spotted — this draft had a deliberate mistake: $error. You fixed it, and your reply was sent.';
+  }
+
+  @override
+  String get chatPlantedCaughtNoDetail =>
+      'Well spotted — this draft had a deliberate mistake. You fixed it, and your reply was sent.';
+
+  @override
+  String chatPlantedMissed(String error) {
+    return 'Training check — this draft had a deliberate mistake: $error. Your edited reply was sent with it, so please send the customer a correction.';
+  }
+
+  @override
+  String get chatPlantedMissedNoDetail =>
+      'Training check — this draft had a deliberate mistake. Your edited reply was sent with it, so please send the customer a correction.';
+
+  @override
+  String get chatPlantedRealDraftReady => 'The real draft is ready below.';
+
+  @override
+  String get chatRejectTitle => 'Why are you rejecting this draft?';
+
+  @override
+  String get chatRejectChooseReason => 'Choose a reason.';
+
+  @override
+  String get chatRejectReasonWrongInfo => 'Wrong information';
+
+  @override
+  String get chatRejectReasonWrongPrice => 'Wrong price or number';
+
+  @override
+  String get chatRejectReasonTone => 'Wrong tone';
+
+  @override
+  String get chatRejectReasonOffTopic => 'Does not answer the customer';
+
+  @override
+  String get chatRejectReasonUpsell => 'Bad upsell suggestion';
+
+  @override
+  String get chatRejectReasonOther => 'Other';
+
+  @override
+  String get chatRejectNoteHint => 'Add a note (optional)';
+
+  @override
+  String get chatRejectNoteRequired => 'Please describe the reason.';
+
+  @override
+  String get chatRejectConfirm => 'Reject draft';
+
+  @override
+  String get chatRejectCaught =>
+      'Well spotted — that draft was a training check with a deliberate mistake.';
+
+  @override
+  String get chatRegenerateTitle => 'Regenerate the draft';
+
+  @override
+  String get chatRegenerateHintLabel => 'Hint for the new draft (optional)';
+
+  @override
+  String get chatRegenerateHintExample => 'e.g. mention free delivery';
+
+  @override
+  String get chatMetricsTitle => 'Chat metrics';
+
+  @override
+  String get chatMetricsNotAllowed => 'Chat metrics are for managers only.';
+
+  @override
+  String get chatMetricsLoadError => 'Couldn\'t load the chat metrics.';
+
+  @override
+  String get chatMetricsConversations => 'Conversations';
+
+  @override
+  String get chatMetricsInbound => 'Messages received';
+
+  @override
+  String get chatMetricsOutbound => 'Messages sent';
+
+  @override
+  String get chatMetricsMedianFirstResponse => 'Median first response';
+
+  @override
+  String chatMetricsMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get chatMetricsUnansweredOpen => 'Open, unanswered';
+
+  @override
+  String get chatMetricsWaitingOverAlert => 'Waiting too long';
+
+  @override
+  String get chatMetricsDrafts => 'AI drafts';
+
+  @override
+  String get chatMetricsTotal => 'Total';
+
+  @override
+  String get chatMetricsAsIsRate => 'Sent as-is';
+
+  @override
+  String get chatMetricsSentAsIs => 'Sent unchanged';
+
+  @override
+  String get chatMetricsSentEdited => 'Sent edited';
+
+  @override
+  String get chatMetricsRejected => 'Rejected';
+
+  @override
+  String get chatMetricsSuperseded => 'Superseded';
+
+  @override
+  String get chatMetricsBlocked => 'Blocked';
+
+  @override
+  String get chatMetricsPlanted => 'Training checks caught';
+
+  @override
+  String chatMetricsPlantedValue(String caught, String total) {
+    return '$caught of $total';
+  }
+
+  @override
+  String get chatMetricsCost => 'AI cost';
+
+  @override
+  String get chatMetricsByModerator => 'By moderator';
+
+  @override
+  String get chatMetricsNoModerators => 'No replies in this period.';
+
+  @override
+  String get chatMetricsModerator => 'Moderator';
+
+  @override
+  String get chatMetricsModSent => 'Sent';
+
+  @override
+  String get chatMetricsModAsIs => 'As-is';
+
+  @override
+  String get chatMetricsModEdited => 'Edited';
 }

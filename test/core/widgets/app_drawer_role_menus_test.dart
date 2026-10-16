@@ -53,6 +53,7 @@ const _allGated = {
   'Reports',
   'WooCommerce Sync',
   'Users',
+  'Chats',
 };
 
 Future<Set<String>> _menuFor(WidgetTester tester, List<String> roles) async {
@@ -98,10 +99,10 @@ void main() {
     expect(await _menuFor(tester, RoleProfiles.staff), _base);
   });
 
-  testWidgets('moderator: staff + Master Orders', (tester) async {
+  testWidgets('moderator: staff + Master Orders + Chats', (tester) async {
     expect(
       await _menuFor(tester, RoleProfiles.moderator),
-      {..._base, 'Master Orders'},
+      {..._base, 'Master Orders', 'Chats'},
     );
   });
 
@@ -125,6 +126,7 @@ void main() {
         'Branch Access',
         'Manager Dashboard',
         'Reports',
+        'Chats',
       },
     );
   });

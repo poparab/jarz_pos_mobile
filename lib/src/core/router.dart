@@ -39,6 +39,9 @@ import '../features/geo/presentation/screens/address_pin_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
 import '../features/partner_settlements/presentation/partner_settlements_screen.dart';
 import '../features/followups/presentation/screens/followups_screen.dart';
+import '../features/chat_inbox/presentation/screens/chat_inbox_screen.dart';
+import '../features/chat_inbox/presentation/screens/chat_metrics_screen.dart';
+import '../features/chat_inbox/presentation/screens/chat_thread_screen.dart';
 import '../features/reports/presentation/screens/warehouse_alignment_screen.dart';
 import '../features/reports/presentation/screens/profit_and_loss_screen.dart';
 import '../features/woo_sync/presentation/screens/woo_duplicates_screen.dart';
@@ -679,6 +682,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.followups,
         name: 'followups',
         builder: (context, state) => const FollowupsScreen(),
+      ),
+      // Chat inbox. The thread and metrics are nested so a push that opens a
+      // thread directly (`go('/chats/CHAT-00001')`) still has the inbox under
+      // it for Back. `metrics` is declared before `:name` so it wins.
+      GoRoute(
+        path: AppRoutes.chats,
+        name: 'chats',
+        builder: (context, state) => const ChatInboxScreen(),
+        routes: [
+          GoRoute(
+            path: 'metrics',
+            name: 'chats-metrics',
+            builder: (context, state) => const ChatMetricsScreen(),
+          ),
+          GoRoute(
+            path: ':name',
+            name: 'chat-thread',
+            builder: (context, state) => ChatThreadScreen(
+              conversation: state.pathParameters['name'] ?? '',
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.reportsWarehouseAlignment,

@@ -57,6 +57,12 @@ abstract final class WsEvents {
   static const courierDepositDeclared = 'jarz_pos_courier_deposit_declared';
   static const addressPinUpdated = 'jarz_pos_address_pin_updated';
 
+  // ── Chat inbox (moderator reply copilot) ──────────────────────────────
+  /// A chat conversation changed: new message, new / failed draft, status or
+  /// assignment. Payload `{conversation, kind: message|draft|status|assigned,
+  /// summary, message|null, draft|null}`; sent to chat-role users only.
+  static const chatUpdate = 'jarz_chat_update';
+
   // ── Legacy / generic ─────────────────────────────────────────────────
   static const newPosInvoice = 'new_pos_invoice';
   static const posProfileUpdate = 'pos_profile_update';

@@ -32,6 +32,8 @@ const kUpgradeRequiredStatus = 426;
 /// replay. Keep this list narrow and explicit.
 const kOfflineReplayExcludedPrefixes = <String>[
   '/api/method/jarz_pos.api.tasks.',
+  // A replayed chat send would message the customer twice.
+  '/api/method/jarz_pos.api.chat.',
 ];
 
 /// Whether a failed request may be parked in the offline queue for replay.

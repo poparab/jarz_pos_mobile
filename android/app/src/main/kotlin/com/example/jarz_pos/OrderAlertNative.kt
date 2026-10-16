@@ -415,8 +415,13 @@ object OrderAlertNative {
         // native path, exactly the collapse the FCM tag was changed to avoid.
         // A settlement reminder is keyed on kind + customer, so two shops'
         // reminders (or one shop's due-soon and overdue) are separate entries.
+        // A chat_waiting alert is keyed on the conversation, so the repeat
+        // alert for the same customer replaces its tray entry instead of
+        // stacking a new one every ten minutes.
         val requestId = if (data["type"] == "settlement_reminder") {
             "settlement:${data["kind"] ?: ""}:${data["customer"] ?: ""}"
+        } else if (data["type"] == "chat_waiting") {
+            "chat:${data["conversation"] ?: ""}"
         } else {
             data["notification_id"] ?: data["expense_id"] ?: ""
         }
@@ -441,6 +446,9 @@ object OrderAlertNative {
             // settlement_reminder: which shop's credit account to open on tap.
             putExtra("customer", data["customer"] ?: "")
             putExtra("kind", data["kind"] ?: "")
+            // chat_waiting: which conversation to open, and its in-app route.
+            putExtra("conversation", data["conversation"] ?: "")
+            putExtra("route", data["route"] ?: "")
         }
 
         val pendingIntent = PendingIntent.getActivity(
