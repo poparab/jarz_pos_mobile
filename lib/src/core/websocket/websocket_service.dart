@@ -10,10 +10,6 @@ import '../constants/timing_config.dart';
 import '../network/cookie_manager.dart';
 import '../router.dart';
 import '../session/session_manager.dart';
-import 'package:flutter/material.dart';
-
-import '../localization/localization_extensions.dart';
-import '../utils/order_display_id.dart';
 
 class WebSocketService {
   WebSocketChannel? _channel;
@@ -34,6 +30,17 @@ class WebSocketService {
   /// Refused connects in a row; stretches the retry so a logged-out device or
   /// a broken proxy is not re-tried every 5 s for ever.
   int _failedConnects = 0;
+
+  /// Bumped by [reconnect] and [disconnect]. An attempt that is still waiting
+  /// on the stored sid when the session changes must not build a socket with
+  /// the sid it read before the change.
+  int _generation = 0;
+
+  @visibleForTesting
+  int get debugFailedConnects => _failedConnects;
+
+  @visibleForTesting
+  bool get debugShouldReconnect => _shouldReconnect;
 
   Stream<Map<String, dynamic>> get invoiceStream => _invoiceStreamController.stream;
   Stream<Map<String, dynamic>> get posUpdateStream => _posUpdateStreamController.stream;
@@ -147,7 +154,37 @@ class WebSocketService {
     unawaited(_connect());
   }
 
+  /// Drops the current socket and connects again at once with whatever sid is
+  /// stored now.
+  ///
+  /// The socket is authenticated once, at connect, by the sid it carried. A
+  /// live socket therefore keeps hearing the previous user's room after a
+  /// logout and login, and one that was refused before login sits in the
+  /// back-off for up to a minute. Called on every sign-in.
+  void reconnect() {
+    _generation++;
+    _reconnectTimer?.cancel();
+    _heartbeatTimer?.cancel();
+    _dropTransport();
+    _failedConnects = 0;
+    _isConnecting = false;
+    _shouldReconnect = true;
+    connect();
+  }
+
+  void _dropTransport() {
+    final io = _io;
+    final channel = _channel;
+    // Cleared before disposing, so the old socket's disconnect handler sees it
+    // was replaced and does not schedule a retry of its own.
+    _io = null;
+    _channel = null;
+    try { io?.dispose(); } catch (_) {}
+    try { channel?.sink.close(); } catch (_) {}
+  }
+
   Future<void> _connect() async {
+    final generation = _generation;
   // Prefer explicit WEBSOCKET_URL. If not provided, DEFAULT TO SOCKET.IO at baseUrl/socket.io.
   // Only use raw ws when WEBSOCKET_URL explicitly contains a ws:// URL (optionally ending with /websocket or /ws).
   final explicit = dotenv.env['WEBSOCKET_URL'];
@@ -173,6 +210,7 @@ class WebSocketService {
     // Read on every attempt: the first connect usually runs before login, and
     // the reconnect after it is what carries the session.
     final sessionId = await _readSessionId();
+    if (generation != _generation) return; // superseded by reconnect/disconnect
     if (!_shouldReconnect) {
       _isConnecting = false;
       return;
@@ -187,6 +225,7 @@ class WebSocketService {
     void bindSocket({required bool allowAltRetry}) {
       final socket = _io!;
       socket.onConnect((_) {
+        if (!identical(_io, socket)) return; // replaced before it got through
         if (kDebugMode) {
           debugPrint('✅ SOCKET.IO: Connected');
         }
@@ -445,51 +484,8 @@ class WebSocketService {
           if (kDebugMode) {
             debugPrint('🤝 WEBSOCKET: Sales Partner collect prompt ${data['invoice']} amount=${data['amount']}');
           }
-          // Fire an immediate UI prompt using the global navigator if available
-          try {
-            final navigatorKey = rootNavigatorKey; // imported via router.dart
-            final ctx = navigatorKey.currentContext;
-            if (ctx != null) {
-              final inv = orderDisplayId(
-                (data['invoice'] ?? '').toString(),
-                wooOrderId: data['woo_order_id'],
-              );
-              final amtRaw = (data['outstanding'] ?? data['amount'] ?? '').toString();
-              String amt = amtRaw;
-              try { amt = double.parse(amtRaw).toStringAsFixed(2); } catch (_) {}
-              showDialog(
-                context: ctx,
-                builder: (c) {
-                  final dialogL10n = c.l10n;
-                  return AlertDialog(
-                    title: Text(dialogL10n.websocketCollectCashTitle),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          amt,
-                          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(dialogL10n.websocketCollectCashMessage),
-                        if (inv.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          Text(dialogL10n.websocketInvoiceLabel(inv), style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                        ],
-                      ],
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(c).pop(),
-                        child: Text(dialogL10n.commonOk),
-                      ),
-                    ],
-                  );
-                },
-              );
-            }
-          } catch (_) {}
+          // No dialog here: the Kanban provider shows the collect-cash dialog
+          // for this event. A second one from this service stacked two dialogs.
         }
         break;
       // ── Courier stop outcomes (COURIER_CONTRACTS §7) ──────────────────
@@ -605,11 +601,13 @@ class WebSocketService {
   }
 
   void disconnect() {
+    _generation++;
     _shouldReconnect = false;
+    _isConnecting = false;
     _reconnectTimer?.cancel();
     _heartbeatTimer?.cancel();
-  try { _channel?.sink.close(); } catch (_) {}
-    try { _io?.dispose(); } catch (_) {}
+    _dropTransport();
+    if (_connectionStatusController.isClosed) return;
     _connectionStatusController.add(false);
     if (kDebugMode) {
       debugPrint('🔌 WEBSOCKET: Disconnected');
@@ -634,6 +632,24 @@ final webSocketServiceProvider = Provider<WebSocketService>((ref) {
   // Ensure connection starts when first watched
   // Safe to call repeatedly; service guards concurrent connects
   service.connect();
+  followAuthState(ref, service);
   ref.onDispose(() => service.dispose());
   return service;
 });
+
+/// Keeps [service] on the signed-in user's session.
+///
+/// The socket outlives a sign-in, and its sid is fixed when it connects. Sign
+/// in: connect again with the new sid. Sign out: drop it, so the device stops
+/// hearing the previous user's room and stops retrying a dead session.
+@visibleForTesting
+void followAuthState(Ref ref, WebSocketService service) {
+  ref.listen<bool>(currentAuthStateProvider, (previous, next) {
+    if (previous == next) return;
+    if (next) {
+      service.reconnect();
+    } else {
+      service.disconnect();
+    }
+  });
+}

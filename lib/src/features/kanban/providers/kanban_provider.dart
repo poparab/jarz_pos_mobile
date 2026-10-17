@@ -15,6 +15,7 @@ import '../../../core/websocket/websocket_service.dart';
 import '../../../core/offline/offline_queue.dart';
 import '../../../core/connectivity/connectivity_service.dart';
 import '../../../core/router.dart';
+import '../../../core/utils/order_display_id.dart';
 import '../../pos/state/pos_notifier.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
@@ -71,6 +72,30 @@ class KanbanState {
 }
 
 // Kanban state notifier
+/// Lets the collect-cash dialog through once per invoice within [window].
+///
+/// A Sales Partner hand-off announces itself several times over (the tap's own
+/// response plus three realtime events), each of which used to open a dialog.
+@visibleForTesting
+class CollectCashPromptGate {
+  CollectCashPromptGate({this.window = const Duration(seconds: 30), DateTime Function()? clock})
+      : _clock = clock ?? DateTime.now;
+
+  final Duration window;
+  final DateTime Function() _clock;
+  final Map<String, DateTime> _shownAt = {};
+
+  bool shouldShow(String? invoiceId) {
+    // Without an invoice there is nothing to match echoes against.
+    if (invoiceId == null || invoiceId.isEmpty) return true;
+    final now = _clock();
+    _shownAt.removeWhere((_, at) => now.difference(at) >= window);
+    if (_shownAt.containsKey(invoiceId)) return false;
+    _shownAt[invoiceId] = now;
+    return true;
+  }
+}
+
 class KanbanNotifier extends StateNotifier<KanbanState> {
   final KanbanService _kanbanService;
   WebSocketService? _wsService;
@@ -443,7 +468,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
           final mode = (event['mode'] ?? '').toString();
           if (invoiceId != null && mode == 'sales_partner_collect_prompt') {
             final amt = (event['outstanding'] ?? event['amount'] ?? '').toString();
-            _showCollectCashDialog(amount: amt, invoiceId: invoiceId);
+            _showCollectCashDialog(amount: amt, invoiceId: invoiceId, wooOrderId: event['woo_order_id']);
             // don't return; allow subsequent handlers to patch board if needed
           }
         } catch (_) {}
@@ -457,8 +482,9 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
           if (invoiceId != null && hasPartner && mode == 'sales_partner_unpaid_cash' && paymentEntry != null) {
             // Ensure card patched to Out For Delivery
             _patchInvoiceOutForDelivery(invoiceId, event);
-            // Show collect cash dialog informing staff (idempotent UI attempt)
-            _showCollectCashDialog(amount: amt, invoiceId: invoiceId);
+            // Show collect cash dialog informing staff (once per invoice, see
+            // [CollectCashPromptGate])
+            _showCollectCashDialog(amount: amt, invoiceId: invoiceId, wooOrderId: event['woo_order_id']);
             return; // handled
           }
         } catch (_) {}
@@ -488,7 +514,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
                 final cashPE = event['cash_payment_entry'] ?? event['cashPaymentEntry'];
                 final amt = (event['amount'] ?? '').toString();
                 if (hadPartner && cashPE != null) {
-                  _showCollectCashDialog(amount: amt, invoiceId: invoiceId);
+                  _showCollectCashDialog(amount: amt, invoiceId: invoiceId, wooOrderId: event['woo_order_id']);
                 }
               }
             } catch (_) {}
@@ -511,8 +537,15 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     }
   }
 
+  final _collectCashPromptGate = CollectCashPromptGate();
+
   // UI helper: show collect cash dialog; requires root navigator context.
-  void _showCollectCashDialog({required String amount, String? invoiceId}) {
+  //
+  // One hand-off reaches here up to four times: the tap itself, then the
+  // collect-prompt, unpaid-OFD and state-change events. The gate lets the first
+  // through and drops the echoes, so staff see one dialog, not a stack.
+  void _showCollectCashDialog({required String amount, String? invoiceId, Object? wooOrderId}) {
+    if (!_collectCashPromptGate.shouldShow(invoiceId)) return;
     try {
       // Prefer global navigator key context so dialog is shown even if focus is elsewhere
       final navKey = _ref.read(navigatorKeyProvider);
@@ -547,7 +580,8 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
                 Text(l10n.websocketCollectCashMessage),
                 if (invoiceId != null && invoiceId.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text(l10n.websocketInvoiceLabel(invoiceId), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  // The Woo order number is what staff call the order by.
+                  Text(l10n.websocketInvoiceLabel(orderDisplayId(invoiceId, wooOrderId: wooOrderId)), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ],
             ),
@@ -928,7 +962,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
             // Show collect prompt immediately (in addition to realtime listener) for reliability
             final amt = (res['amount'] ?? '').toString();
             if (amt.isNotEmpty) {
-              _showCollectCashDialog(amount: amt, invoiceId: invoiceId);
+              _showCollectCashDialog(amount: amt, invoiceId: invoiceId, wooOrderId: card.wooOrderId);
             }
             // Refresh authoritative data
             await loadInvoices();
