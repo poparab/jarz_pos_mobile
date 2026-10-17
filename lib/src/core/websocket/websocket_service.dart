@@ -7,7 +7,9 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import '../constants/ws_events.dart';
 import '../constants/timing_config.dart';
+import '../network/cookie_manager.dart';
 import '../router.dart';
+import '../session/session_manager.dart';
 import 'package:flutter/material.dart';
 
 import '../localization/localization_extensions.dart';
@@ -28,6 +30,10 @@ class WebSocketService {
   Timer? _heartbeatTimer;
   bool _isConnecting = false;
   bool _shouldReconnect = true;
+
+  /// Refused connects in a row; stretches the retry so a logged-out device or
+  /// a broken proxy is not re-tried every 5 s for ever.
+  int _failedConnects = 0;
 
   Stream<Map<String, dynamic>> get invoiceStream => _invoiceStreamController.stream;
   Stream<Map<String, dynamic>> get posUpdateStream => _posUpdateStreamController.stream;
@@ -81,10 +87,67 @@ class WebSocketService {
     WsEvents.addressPinUpdated,
   };
 
+  /// Fallback when FRAPPE_SITE is unset: the docker site name on both servers.
+  static const String defaultSiteNamespace = 'frontend';
+
+  /// The Socket.IO URI for [base], on the `/<site>` namespace.
+  ///
+  /// Frappe's socket server authenticates and delivers events only on the
+  /// namespace named after the site (`/frontend`). A client on the default `/`
+  /// namespace connects and then hears nothing, which is how realtime stayed
+  /// dead without a single error.
+  @visibleForTesting
+  static String socketIoUri(String base, String siteName) {
+    var trimmed = base.trim();
+    while (trimmed.endsWith('/')) {
+      trimmed = trimmed.substring(0, trimmed.length - 1);
+    }
+    final site = siteName.trim().isEmpty ? defaultSiteNamespace : siteName.trim();
+    return '$trimmed/$site';
+  }
+
+  /// Headers the socket server needs to resolve this user.
+  ///
+  /// Frappe authenticates a socket by replaying its `sid` cookie against
+  /// `frappe.realtime.get_user_info`; without it the connect is refused and the
+  /// socket never joins the user's room, where `jarz_chat_update` is sent. On
+  /// web the browser sends the cookie itself and refuses a scripted one.
+  @visibleForTesting
+  static Map<String, String> socketAuthHeaders(String? sessionId) {
+    if (kIsWeb || sessionId == null || sessionId.isEmpty) return const {};
+    return {'Cookie': 'sid=$sessionId'};
+  }
+
+  Future<String?> _readSessionId() async {
+    try {
+      return await SessionManager().getSessionId() ?? await CookieManager.getSessionId();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  socketio.Socket _buildSocket(String base, String siteName, String? sessionId) {
+    return socketio.io(
+      socketIoUri(base, siteName),
+      socketio.OptionBuilder()
+          .setPath('/socket.io/')
+          .setQuery({'site_name': siteName})
+          .setTransports(['websocket', 'polling'])
+          .setExtraHeaders(socketAuthHeaders(sessionId))
+          // A fresh manager per attempt, so a retry after login carries the new sid.
+          .enableForceNew()
+          .disableAutoConnect()
+          .build(),
+    );
+  }
+
   void connect() {
     if (_isConnecting) return;
     _isConnecting = true;
-    
+    unawaited(_connect());
+  }
+
+  Future<void> _connect() async {
   // Prefer explicit WEBSOCKET_URL. If not provided, DEFAULT TO SOCKET.IO at baseUrl/socket.io.
   // Only use raw ws when WEBSOCKET_URL explicitly contains a ws:// URL (optionally ending with /websocket or /ws).
   final explicit = dotenv.env['WEBSOCKET_URL'];
@@ -107,121 +170,113 @@ class WebSocketService {
 
   if (shouldUseSocketIo && !isExplicitRawPath) {
     final socketBase = (socketOverride != null && socketOverride.isNotEmpty) ? socketOverride : baseUrl;
-    if (kDebugMode) {
-      debugPrint('🔌 SOCKET.IO: Connecting to $socketBase/socket.io (site=$siteName)');
+    // Read on every attempt: the first connect usually runs before login, and
+    // the reconnect after it is what carries the session.
+    final sessionId = await _readSessionId();
+    if (!_shouldReconnect) {
+      _isConnecting = false;
+      return;
     }
-    _io = socketio.io(socketBase,
-      socketio.OptionBuilder()
-          .setPath('/socket.io/')
-          .setQuery({'site_name': siteName})
-          .setTransports(['websocket', 'polling'])
-          .disableAutoConnect()
-          .build());
+    if (kDebugMode) {
+      debugPrint('🔌 SOCKET.IO: Connecting to ${socketIoUri(socketBase, siteName)} '
+          '(auth=${sessionId != null && sessionId.isNotEmpty})');
+    }
 
-        _io!.onConnect((_) {
-          if (kDebugMode) {
-            debugPrint('✅ SOCKET.IO: Connected');
-          }
-          _connectionStatusController.add(true);
-          _isConnecting = false;
-          _subscribeToUpdates();
-          _startHeartbeat();
-        });
-        // Listen to specific Frappe realtime events by name
-        void bindEvent(String eventName) {
-          _io!.on(eventName, (payload) {
-            try {
-              if (payload is String) {
-                final decoded = json.decode(payload);
-                _handleWebSocketMessage({'event': eventName, 'data': decoded});
-              } else if (payload is Map) {
-                _handleWebSocketMessage({'event': eventName, 'data': Map<String, dynamic>.from(payload)});
-              } else {
-                _handleWebSocketMessage({'event': eventName, 'data': {}});
-              }
-            } catch (e) {
-              if (kDebugMode) {
-                debugPrint('❌ SOCKET.IO: Error handling $eventName: $e');
-              }
-            }
-          });
+    // Binds every handler to the current [_io]. Shared by the first attempt and
+    // the :9000 retry so the retry hears the same events.
+    void bindSocket({required bool allowAltRetry}) {
+      final socket = _io!;
+      socket.onConnect((_) {
+        if (kDebugMode) {
+          debugPrint('✅ SOCKET.IO: Connected');
         }
-        for (final ev in subscribedEvents) { bindEvent(ev); }
-        // Generic fallback
-        _io!.on(WsEvents.message, (data) {
+        _failedConnects = 0;
+        _connectionStatusController.add(true);
+        _isConnecting = false;
+        _subscribeToUpdates();
+        _startHeartbeat();
+      });
+      // Listen to specific Frappe realtime events by name
+      void bindEvent(String eventName) {
+        socket.on(eventName, (payload) {
           try {
-            if (data is String) {
-              final decoded = json.decode(data);
-              _handleWebSocketMessage(decoded);
-            } else if (data is Map<String, dynamic>) {
-              _handleWebSocketMessage(Map<String, dynamic>.from(data));
+            if (payload is String) {
+              final decoded = json.decode(payload);
+              _handleWebSocketMessage({'event': eventName, 'data': decoded});
+            } else if (payload is Map) {
+              _handleWebSocketMessage({'event': eventName, 'data': Map<String, dynamic>.from(payload)});
+            } else {
+              _handleWebSocketMessage({'event': eventName, 'data': {}});
             }
           } catch (e) {
             if (kDebugMode) {
-              debugPrint('❌ SOCKET.IO: Error parsing message: $e');
+              debugPrint('❌ SOCKET.IO: Error handling $eventName: $e');
             }
           }
         });
-        _io!.onDisconnect((_) {
+      }
+      for (final ev in subscribedEvents) { bindEvent(ev); }
+      // Generic fallback
+      socket.on(WsEvents.message, (data) {
+        try {
+          if (data is String) {
+            final decoded = json.decode(data);
+            _handleWebSocketMessage(decoded);
+          } else if (data is Map<String, dynamic>) {
+            _handleWebSocketMessage(Map<String, dynamic>.from(data));
+          }
+        } catch (e) {
           if (kDebugMode) {
-            debugPrint('🔌 SOCKET.IO: Disconnected');
+            debugPrint('❌ SOCKET.IO: Error parsing message: $e');
           }
-          _connectionStatusController.add(false);
-          _isConnecting = false;
-          if (_shouldReconnect) _scheduleReconnect();
-        });
-        _io!.onError((err) {
-          if (kDebugMode) {
-            debugPrint('❌ SOCKET.IO: Error: $err');
-          }
-          _connectionStatusController.add(false);
-          _isConnecting = false;
-          // If no explicit SOCKET_IO_URL override and baseUrl looks like :8000, try :9000 once
-          final noOverride = (socketOverride == null || socketOverride.isEmpty);
-          if (noOverride && (baseUrl.contains(':8000'))) {
-            try {
-              final alt = baseUrl.replaceFirst(':8000', ':9000');
-              if (kDebugMode) {
-                debugPrint('🔁 SOCKET.IO: Retrying on $alt/socket.io (site=$siteName)');
-              }
-              _io?.dispose();
-              _io = socketio.io(alt,
-                socketio.OptionBuilder()
-                    .setPath('/socket.io/')
-                    .setQuery({'site_name': siteName})
-                    .setTransports(['websocket', 'polling'])
-                    .disableAutoConnect()
-                    .build());
-              _io!.onConnect((_) {
-                if (kDebugMode) {
-                  debugPrint('✅ SOCKET.IO: Connected (alt port)');
-                }
-                _connectionStatusController.add(true);
-                _isConnecting = false;
-                _subscribeToUpdates();
-                _startHeartbeat();
-              });
-              _io!.onDisconnect((_) {
-                if (kDebugMode) {
-                  debugPrint('🔌 SOCKET.IO: Disconnected (alt port)');
-                }
-                _connectionStatusController.add(false);
-                _isConnecting = false;
-                if (_shouldReconnect) _scheduleReconnect();
-              });
-              _io!.onError((err2) {
-                if (kDebugMode) {
-                  debugPrint('❌ SOCKET.IO: Alt Error: $err2');
-                }
-                if (_shouldReconnect) _scheduleReconnect();
-              });
-              _io!.connect();
-              return;
-            } catch (_) {}
-          }
-          if (_shouldReconnect) _scheduleReconnect();
-        });
-        _io!.connect();
+        }
+      });
+      socket.onDisconnect((_) {
+        if (!identical(_io, socket)) return; // replaced on purpose
+        if (kDebugMode) {
+          debugPrint('🔌 SOCKET.IO: Disconnected');
+        }
+        _connectionStatusController.add(false);
+        _isConnecting = false;
+        if (_shouldReconnect) _scheduleReconnect();
+      });
+      void onFailure(dynamic err) {
+        if (!identical(_io, socket)) return; // a stale socket we already replaced
+        if (kDebugMode) {
+          debugPrint('❌ SOCKET.IO: Error: $err');
+        }
+        _connectionStatusController.add(false);
+        _isConnecting = false;
+        // If no explicit SOCKET_IO_URL override and baseUrl looks like :8000, try :9000 once
+        final noOverride = (socketOverride == null || socketOverride.isEmpty);
+        if (allowAltRetry && noOverride && baseUrl.contains(':8000')) {
+          try {
+            final alt = baseUrl.replaceFirst(':8000', ':9000');
+            if (kDebugMode) {
+              debugPrint('🔁 SOCKET.IO: Retrying on ${socketIoUri(alt, siteName)}');
+            }
+            _io = _buildSocket(alt, siteName, sessionId);
+            try { socket.dispose(); } catch (_) {}
+            bindSocket(allowAltRetry: false);
+            _io!.connect();
+            return;
+          } catch (_) {}
+        }
+        // The server refuses the namespace connect (no or expired sid) with a
+        // connect_error, which socket.io does not retry by itself.
+        _failedConnects++;
+        try { socket.dispose(); } catch (_) {}
+        if (_shouldReconnect) _scheduleReconnect();
+      }
+      socket.onConnectError(onFailure);
+      socket.onError(onFailure);
+    }
+
+    final previous = _io;
+    _io = _buildSocket(socketBase, siteName, sessionId);
+    try { previous?.dispose(); } catch (_) {}
+    bindSocket(allowAltRetry: true);
+    _io!.connect();
   } else {
         // Raw WebSocket only when explicitly requested via WEBSOCKET_URL
   final endpoint = useUrl;
@@ -496,10 +551,8 @@ class WebSocketService {
 
   void _subscribeToUpdates() {
     if (_io != null) {
-      // Frappe socket.io rooms: use event names per publish_realtime
-      // For compatibility, emit a custom subscribe event consumed by a small server bridge (if any).
-      // If none, rely on receiving global events (user="*") which requires no room join.
-      // No-op for now.
+      // Nothing to send: once the sid authenticates, Frappe joins this socket
+      // to its user room (and the site room for System Users) by itself.
     } else if (_channel != null) {
       // Subscribe to POS-related events
       _channel!.sink.add(json.encode({
@@ -523,9 +576,20 @@ class WebSocketService {
     });
   }
 
+  /// 5 s, doubling per refused connect, capped at a minute.
+  @visibleForTesting
+  static Duration reconnectDelayFor(int failedConnects) {
+    final base = NetworkTimeouts.wsReconnectDelay;
+    if (failedConnects <= 1) return base;
+    final shift = failedConnects - 1 > 4 ? 4 : failedConnects - 1;
+    final delay = base * (1 << shift);
+    const cap = Duration(minutes: 1);
+    return delay > cap ? cap : delay;
+  }
+
   void _scheduleReconnect() {
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(NetworkTimeouts.wsReconnectDelay, () {
+    _reconnectTimer = Timer(reconnectDelayFor(_failedConnects), () {
       if (_shouldReconnect) {
         connect();
       }
