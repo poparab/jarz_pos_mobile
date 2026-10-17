@@ -209,6 +209,7 @@ class _TripGroupCardState extends State<TripGroupCard> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (_) => DraggableScrollableSheet(
+        expand: false,
         initialChildSize: ResponsiveUtils.getCartBottomSheetInitialSize(context),
         minChildSize: ResponsiveUtils.getCartBottomSheetMinSize(context),
         maxChildSize: ResponsiveUtils.getCartBottomSheetMaxSize(context),
