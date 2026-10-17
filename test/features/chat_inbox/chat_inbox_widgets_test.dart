@@ -103,8 +103,16 @@ void main() {
   group('ChatInboxFilter', () {
     test('maps segments to the wire status; Mine adds mine=1', () {
       const f = ChatInboxFilter();
-      expect(f.wireStatus, 'Open');
+      // Open = not Closed: every status, with exclude_closed.
+      expect(f.wireStatus, 'all');
+      expect(f.excludeClosed, isTrue);
       expect(f.copyWith(segment: ChatInboxSegment.closed).wireStatus, 'Closed');
+      expect(
+        f.copyWith(segment: ChatInboxSegment.closed).excludeClosed,
+        isFalse,
+      );
+      expect(f.copyWith(segment: ChatInboxSegment.all).excludeClosed, isFalse);
+      expect(f.copyWith(segment: ChatInboxSegment.mine).excludeClosed, isFalse);
       final mine = f.copyWith(segment: ChatInboxSegment.mine);
       expect(mine.wireStatus, 'all');
       expect(mine.mine, isTrue);
@@ -118,8 +126,13 @@ void main() {
     test('chatSummaryMatchesFilter judges segment, channel and owner', () {
       const open = ChatInboxFilter();
       expect(chatSummaryMatchesFilter(_s('A'), open, _me), isTrue);
+      // Answered stays in Open; only Closed leaves it.
       expect(
         chatSummaryMatchesFilter(_s('A', status: 'Answered'), open, _me),
+        isTrue,
+      );
+      expect(
+        chatSummaryMatchesFilter(_s('A', status: 'Closed'), open, _me),
         isFalse,
       );
       expect(
@@ -208,7 +221,20 @@ void main() {
       ['CHAT-2', 'CHAT-1'],
     );
 
+    // A reply makes it Answered: it stays in Open (not Closed) ...
     emit(_summary('CHAT-1', status: 'Answered'));
+    await Future<void>.delayed(Duration.zero);
+    expect(
+      container.read(chatInboxProvider).value!.conversations.map((c) => c.name),
+      ['CHAT-2', 'CHAT-1'],
+    );
+    expect(
+      container.read(chatInboxProvider).value!.conversations.last.status,
+      'Answered',
+    );
+
+    // ... and closing it drops it.
+    emit(_summary('CHAT-1', status: 'Closed'));
     await Future<void>.delayed(Duration.zero);
     expect(
       container.read(chatInboxProvider).value!.conversations.map((c) => c.name),
@@ -262,7 +288,11 @@ void main() {
 
     // The Open segment carries the open count from get_unread_total.
     expect(find.text('Open (2)'), findsOneWidget);
-    expect(dio.requestLog.first['queryParameters'], {'status': 'Open', 'limit': 30});
+    expect(dio.requestLog.first['queryParameters'], {
+      'status': 'all',
+      'exclude_closed': 1,
+      'limit': 30,
+    });
   });
 
   testWidgets('complaint draft: Send stays disabled until the text is edited',

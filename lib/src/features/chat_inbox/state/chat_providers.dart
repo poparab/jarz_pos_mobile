@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/user_service.dart';
@@ -57,14 +58,21 @@ class ChatInboxFilter {
     this.search = '',
   });
 
-  /// `status` for `get_conversations`. "Mine" spans every status: the API
-  /// has no "not closed" filter, and a moderator's own answered chats are
-  /// still theirs.
+  /// `status` for `get_conversations`. "Open" means "not Closed" (Open and
+  /// Answered), so a chat does not vanish the moment a moderator replies: it
+  /// is sent as `all` plus `exclude_closed=1` (see [excludeClosed]). "Mine"
+  /// spans every status: a moderator's own answered chats are still theirs.
   String get wireStatus => switch (segment) {
-        ChatInboxSegment.open => ChatStatuses.open,
         ChatInboxSegment.closed => ChatStatuses.closed,
-        ChatInboxSegment.mine || ChatInboxSegment.all => 'all',
+        ChatInboxSegment.open ||
+        ChatInboxSegment.mine ||
+        ChatInboxSegment.all =>
+          'all',
       };
+
+  /// Whether Closed chats are left out: sent as `exclude_closed=1`, and also
+  /// filtered on the client because an older backend ignores the parameter.
+  bool get excludeClosed => segment == ChatInboxSegment.open;
 
   bool get mine => segment == ChatInboxSegment.mine;
   bool get hasSearch => search.trim().isNotEmpty;
@@ -106,7 +114,7 @@ bool chatSummaryMatchesFilter(
     return false;
   }
   return switch (filter.segment) {
-    ChatInboxSegment.open => summary.status == ChatStatuses.open,
+    ChatInboxSegment.open => summary.status != ChatStatuses.closed,
     ChatInboxSegment.closed => summary.status == ChatStatuses.closed,
     ChatInboxSegment.mine =>
       currentUser != null && summary.assignedTo == currentUser,
@@ -128,12 +136,18 @@ class ChatInboxState {
   final int openCount;
   final bool loadingMore;
 
+  /// The `before` cursor for the next page: the `last_message_at` of the last
+  /// row the SERVER returned, before any client-side filtering. Keyed on the
+  /// raw page so dropping Closed rows locally never skips or repeats a page.
+  final String? nextBefore;
+
   const ChatInboxState({
     this.filter = const ChatInboxFilter(),
     this.conversations = const <ChatConversationSummary>[],
     this.hasMore = false,
     this.openCount = 0,
     this.loadingMore = false,
+    this.nextBefore,
   });
 
   ChatInboxState copyWith({
@@ -142,6 +156,7 @@ class ChatInboxState {
     bool? hasMore,
     int? openCount,
     bool? loadingMore,
+    String? nextBefore,
   }) {
     return ChatInboxState(
       filter: filter ?? this.filter,
@@ -149,38 +164,181 @@ class ChatInboxState {
       hasMore: hasMore ?? this.hasMore,
       openCount: openCount ?? this.openCount,
       loadingMore: loadingMore ?? this.loadingMore,
+      nextBefore: nextBefore ?? this.nextBefore,
     );
   }
+}
+
+/// One fetched slice of the inbox: the rows that passed the client-side
+/// filter, and pagination judged on the raw server pages.
+class ChatInboxFetch {
+  final List<ChatConversationSummary> rows;
+
+  /// `last_message_at` of the last raw row fetched (the next `before`).
+  final String? cursor;
+  final bool hasMore;
+  final int openCount;
+
+  const ChatInboxFetch({
+    required this.rows,
+    required this.cursor,
+    required this.hasMore,
+    required this.openCount,
+  });
+}
+
+/// Whether the app is in the foreground, for the polling timers. `inactive`
+/// still counts (a desktop/web window that lost focus is still on screen);
+/// an unknown state (no binding, as in a plain unit test) counts too.
+bool chatAppInForeground() {
+  try {
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    return lifecycle == null ||
+        lifecycle == AppLifecycleState.resumed ||
+        lifecycle == AppLifecycleState.inactive;
+  } catch (_) {
+    return true;
+  }
+}
+
+/// Merge a freshly fetched first page into [latest] without resetting what
+/// the moderator scrolled to. Rows inside the fresh page's time window are
+/// replaced by the page (so a row that left the filter drops out); rows older
+/// than the window (later pages already loaded) are kept as they are.
+ChatInboxState mergeChatInboxFirstPage(
+  ChatInboxState latest,
+  ChatInboxFetch fresh,
+) {
+  final freshRows = [...fresh.rows]..sort(compareChatSummaries);
+  if (!fresh.hasMore) {
+    // The fresh page is the whole list.
+    return latest.copyWith(
+      conversations: freshRows,
+      hasMore: false,
+      openCount: fresh.openCount,
+    ).withCursor(fresh.cursor);
+  }
+  final windowEnd = fresh.cursor!;
+  final freshNames = {for (final c in freshRows) c.name};
+  final older = latest.conversations.where((c) {
+    if (freshNames.contains(c.name)) return false;
+    final at = c.lastMessageAt;
+    return at == null || at.isEmpty || at.compareTo(windowEnd) < 0;
+  });
+  final merged = [...freshRows, ...older]..sort(compareChatSummaries);
+  final loadedCursor = latest.nextBefore;
+  final keepLoaded = loadedCursor != null &&
+      loadedCursor.isNotEmpty &&
+      loadedCursor.compareTo(windowEnd) < 0;
+  return ChatInboxState(
+    filter: latest.filter,
+    conversations: merged,
+    hasMore: keepLoaded ? latest.hasMore : true,
+    openCount: fresh.openCount,
+    loadingMore: latest.loadingMore,
+    nextBefore: keepLoaded ? loadedCursor : windowEnd,
+  );
+}
+
+extension on ChatInboxState {
+  /// [copyWith] cannot clear [nextBefore]; this sets it, null included.
+  ChatInboxState withCursor(String? cursor) => ChatInboxState(
+        filter: filter,
+        conversations: conversations,
+        hasMore: hasMore,
+        openCount: openCount,
+        loadingMore: loadingMore,
+        nextBefore: cursor,
+      );
 }
 
 class ChatInboxNotifier extends AutoDisposeAsyncNotifier<ChatInboxState> {
   static const pageSize = 30;
 
+  /// How often the open inbox re-reads its first page (realtime events do
+  /// not always arrive), and the wait after a failed poll.
+  static const pollInterval = Duration(seconds: 15);
+  static const pollErrorBackoff = Duration(seconds: 30);
+
+  /// With Closed rows dropped on the client (an older backend), a raw page
+  /// can filter down to nothing; read on up to this many pages for a row.
+  static const maxPagesPerFetch = 4;
+
   ChatInboxFilter _filter = const ChatInboxFilter();
   int _requestSeq = 0;
+
+  Timer? _poll;
+  int _pollGeneration = 0;
+  bool _silentInFlight = false;
 
   ChatInboxFilter get filter => _filter;
 
   @override
   Future<ChatInboxState> build() async {
     final sub = listenChatUpdates(ref, _onChatUpdate);
-    ref.onDispose(() => sub?.cancel());
+    _poll?.cancel();
+    final generation = ++_pollGeneration;
+    ref.onDispose(() {
+      sub?.cancel();
+      _poll?.cancel();
+      _poll = null;
+      _pollGeneration++;
+    });
+    _schedulePoll(generation, pollInterval);
     return _load(_filter);
   }
 
+  /// Fetch from [before] (null: the first page), dropping rows the filter
+  /// excludes on the client. The cursor and "has more" come from the raw
+  /// server page, never from the filtered rows.
+  Future<ChatInboxFetch> _fetch(ChatInboxFilter filter, {String? before}) async {
+    final repo = ref.read(chatRepositoryProvider);
+    final rows = <ChatConversationSummary>[];
+    final seen = <String>{};
+    var cursor = before;
+    var hasMore = false;
+    var openCount = 0;
+    for (var i = 0; i < maxPagesPerFetch; i++) {
+      final page = await repo.fetchConversations(
+        status: filter.wireStatus,
+        channel: filter.channel,
+        search: filter.search,
+        mine: filter.mine,
+        limit: pageSize,
+        before: cursor,
+        excludeClosed: filter.excludeClosed,
+      );
+      if (i == 0) openCount = page.openCount;
+      final raw = page.conversations;
+      final rawLast = raw.isEmpty ? null : raw.last.lastMessageAt;
+      final advanced =
+          rawLast != null && rawLast.isNotEmpty && rawLast != cursor;
+      if (advanced) cursor = rawLast;
+      hasMore = advanced && (page.hasMore || raw.length >= pageSize);
+      for (final row in raw) {
+        if (filter.excludeClosed && row.status == ChatStatuses.closed) {
+          continue;
+        }
+        if (seen.add(row.name)) rows.add(row);
+      }
+      if (rows.isNotEmpty || !hasMore) break;
+    }
+    return ChatInboxFetch(
+      rows: rows,
+      cursor: cursor,
+      hasMore: hasMore,
+      openCount: openCount,
+    );
+  }
+
   Future<ChatInboxState> _load(ChatInboxFilter filter) async {
-    final page = await ref.read(chatRepositoryProvider).fetchConversations(
-          status: filter.wireStatus,
-          channel: filter.channel,
-          search: filter.search,
-          mine: filter.mine,
-          limit: pageSize,
-        );
+    final fetched = await _fetch(filter);
     return ChatInboxState(
       filter: filter,
-      conversations: page.conversations,
-      hasMore: page.hasMore,
-      openCount: page.openCount,
+      conversations: fetched.rows,
+      hasMore: fetched.hasMore,
+      openCount: fetched.openCount,
+      nextBefore: fetched.cursor,
     );
   }
 
@@ -202,33 +360,93 @@ class ChatInboxNotifier extends AutoDisposeAsyncNotifier<ChatInboxState> {
     state = next;
   }
 
-  /// Next page, keyed on the last row's `last_message_at`.
+  /// Re-read the first page and merge it in place: no spinner, no reset of
+  /// the loaded pages or the scroll position. Skipped while a load, a reload
+  /// or another silent refresh is running. Returns false when the fetch
+  /// failed; errors never reach the screen.
+  Future<bool> silentRefresh() async {
+    final current = state.valueOrNull;
+    if (current == null ||
+        state.isLoading ||
+        current.loadingMore ||
+        _silentInFlight) {
+      return true;
+    }
+    final seq = _requestSeq;
+    final filter = current.filter;
+    _silentInFlight = true;
+    try {
+      final fresh = await _fetch(filter);
+      if (seq != _requestSeq) return true;
+      final latest = state.valueOrNull;
+      if (latest == null ||
+          state.isLoading ||
+          latest.loadingMore ||
+          latest.filter != filter) {
+        return true;
+      }
+      final merged = mergeChatInboxFirstPage(latest, fresh);
+      state = AsyncData(merged);
+      _syncBadge(latest, merged);
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      _silentInFlight = false;
+    }
+  }
+
+  /// The drawer badge and the Open segment count read `get_unread_total`;
+  /// re-read it when the poll saw the counts move.
+  void _syncBadge(ChatInboxState before, ChatInboxState after) {
+    if (!ref.exists(chatUnreadTotalProvider)) return;
+    int unread(ChatInboxState s) =>
+        s.conversations.fold(0, (sum, c) => sum + c.unreadCount);
+    final badge = ref.read(chatUnreadTotalProvider).valueOrNull;
+    final moved = badge == null ||
+        badge.openCount != after.openCount ||
+        before.openCount != after.openCount ||
+        unread(before) != unread(after);
+    if (moved) ref.invalidate(chatUnreadTotalProvider);
+  }
+
+  void _schedulePoll(int generation, Duration delay) {
+    if (generation != _pollGeneration) return;
+    _poll?.cancel();
+    _poll = Timer(delay, () => unawaited(_pollTick(generation)));
+  }
+
+  Future<void> _pollTick(int generation) async {
+    if (generation != _pollGeneration) return;
+    var ok = true;
+    if (chatAppInForeground()) ok = await silentRefresh();
+    _schedulePoll(generation, ok ? pollInterval : pollErrorBackoff);
+  }
+
+  /// Next page, keyed on the raw cursor of the last server page.
   Future<void> loadMore() async {
     final current = state.valueOrNull;
     if (current == null || !current.hasMore || current.loadingMore) return;
-    if (current.conversations.isEmpty) return;
+    final before = current.nextBefore ??
+        (current.conversations.isEmpty
+            ? null
+            : current.conversations.last.lastMessageAt);
+    if (before == null || before.isEmpty) return;
     final seq = _requestSeq;
     state = AsyncData(current.copyWith(loadingMore: true));
     try {
-      final page = await ref.read(chatRepositoryProvider).fetchConversations(
-            status: current.filter.wireStatus,
-            channel: current.filter.channel,
-            search: current.filter.search,
-            mine: current.filter.mine,
-            limit: pageSize,
-            before: current.conversations.last.lastMessageAt,
-          );
+      final fetched = await _fetch(current.filter, before: before);
       if (seq != _requestSeq) return;
       final latest = state.valueOrNull ?? current;
       final seen = latest.conversations.map((c) => c.name).toSet();
       state = AsyncData(latest.copyWith(
         conversations: [
           ...latest.conversations,
-          ...page.conversations.where((c) => !seen.contains(c.name)),
+          ...fetched.rows.where((c) => !seen.contains(c.name)),
         ],
-        hasMore: page.hasMore,
+        hasMore: fetched.hasMore,
         loadingMore: false,
-      ));
+      ).withCursor(fetched.cursor));
     } catch (_) {
       if (seq != _requestSeq) return;
       final latest = state.valueOrNull ?? current;
@@ -366,19 +584,44 @@ class ChatThreadNotifier
     extends AutoDisposeFamilyAsyncNotifier<ChatThreadState, String> {
   static const pageSize = 50;
 
+  /// How often an open thread re-reads its newest page (realtime events do
+  /// not always arrive), and the wait after a failed refresh.
+  static const pollInterval = Duration(seconds: 5);
+  static const pollErrorBackoff = Duration(seconds: 15);
+
+  /// The debounced re-read after an inbound socket message. The poll skips a
+  /// tick while it is pending, so the two never fire back to back.
   Timer? _silentRefresh;
+
+  Timer? _poll;
+  int _pollGeneration = 0;
+  int _refreshesInFlight = 0;
+  bool _lastRefreshFailed = false;
+
+  /// Writes in flight (send, reject, regenerate, assign, status, link) and a
+  /// counter bumped at the start and end of each. A refresh that overlapped a
+  /// write may carry the draft and header from before it, so it only merges
+  /// its messages.
+  int _mutationsInFlight = 0;
+  int _mutationSeq = 0;
 
   ChatRepository get _repo => ref.read(chatRepositoryProvider);
 
   @override
   Future<ChatThreadState> build(String arg) async {
     final sub = listenChatUpdates(ref, _onChatUpdate);
+    _poll?.cancel();
+    final generation = ++_pollGeneration;
     ref.onDispose(() {
       sub?.cancel();
       _silentRefresh?.cancel();
+      _poll?.cancel();
+      _poll = null;
+      _pollGeneration++;
     });
     final thread = await _repo.fetchConversation(arg, limit: pageSize);
     _afterServerRead(thread.conversation);
+    _schedulePoll(generation, pollInterval);
     return ChatThreadState(
       conversation: thread.conversation,
       messages: thread.messages,
@@ -388,15 +631,56 @@ class ChatThreadNotifier
     );
   }
 
+  void _schedulePoll(int generation, Duration delay) {
+    if (generation != _pollGeneration) return;
+    _poll?.cancel();
+    _poll = Timer(delay, () => unawaited(_pollTick(generation)));
+  }
+
+  /// Whether a poll tick should stand aside: a refresh or a write is already
+  /// running, the socket debounce is about to refresh, older messages are
+  /// loading, or there is no thread on screen yet.
+  bool get _pollBusy =>
+      _refreshesInFlight > 0 ||
+      _mutationsInFlight > 0 ||
+      (_silentRefresh?.isActive ?? false) ||
+      !state.hasValue ||
+      (state.valueOrNull?.loadingOlder ?? false);
+
+  Future<void> _pollTick(int generation) async {
+    if (generation != _pollGeneration) return;
+    if (!_pollBusy && chatAppInForeground()) {
+      await _refresh(silent: true);
+    }
+    _schedulePoll(
+      generation,
+      _lastRefreshFailed ? pollErrorBackoff : pollInterval,
+    );
+  }
+
+  Future<T> _mutate<T>(Future<T> Function() body) async {
+    _mutationsInFlight++;
+    _mutationSeq++;
+    try {
+      return await body();
+    } finally {
+      _mutationsInFlight--;
+      _mutationSeq++;
+    }
+  }
+
   /// `get_conversation` reset the unread count; reflect that in the inbox
-  /// row and the drawer badge.
-  void _afterServerRead(ChatConversationSummary conversation) {
+  /// row and, when [badge] is set, the drawer badge.
+  void _afterServerRead(
+    ChatConversationSummary conversation, {
+    bool badge = true,
+  }) {
     if (ref.exists(chatInboxProvider)) {
       final inbox = ref.read(chatInboxProvider.notifier);
       inbox.applySummary(conversation.copyWith(unreadCount: 0));
       inbox.markRead(conversation.name);
     }
-    if (ref.exists(chatUnreadTotalProvider)) {
+    if (badge && ref.exists(chatUnreadTotalProvider)) {
       ref.invalidate(chatUnreadTotalProvider);
     }
   }
@@ -410,7 +694,11 @@ class ChatThreadNotifier
 
   /// Re-read the newest page and merge it, keeping older pages already
   /// loaded. Errors are swallowed unless [silent] is false.
-  Future<void> refresh({bool silent = true}) async {
+  Future<void> refresh({bool silent = true}) => _refresh(silent: silent);
+
+  Future<void> _refresh({required bool silent}) async {
+    final mutationSeq = _mutationSeq;
+    _refreshesInFlight++;
     try {
       final thread = await _repo.fetchConversation(arg, limit: pageSize);
       final current = state.valueOrNull;
@@ -422,24 +710,43 @@ class ChatThreadNotifier
           customer: thread.customer,
           hasMoreOlder: thread.messages.length >= pageSize,
         ));
+        _afterServerRead(thread.conversation);
       } else {
-        // `get_conversation` only returns a Pending draft; keep a Failed one
-        // the socket delivered, so "draft unavailable" does not vanish.
-        final keepFailed = thread.draft == null &&
-            (current.draft?.isFailed ?? false);
-        state = AsyncData(current.copyWith(
-          conversation: thread.conversation,
-          messages: mergeChatMessages(current.messages, thread.messages),
-          draft: thread.draft,
-          clearDraft: thread.draft == null && !keepFailed,
-          customer: thread.customer,
-        ));
+        final messages = mergeChatMessages(current.messages, thread.messages);
+        final grew = messages.length != current.messages.length;
+        if (mutationSeq != _mutationSeq || _mutationsInFlight > 0) {
+          // A write overlapped this read: its draft and header may predate
+          // the write, so keep what the write set and take only messages.
+          state = AsyncData(current.copyWith(messages: messages));
+          _afterServerRead(current.conversation, badge: grew);
+        } else {
+          // `get_conversation` only returns a Pending draft; keep a Failed
+          // one the socket delivered, so "draft unavailable" does not vanish.
+          final keepFailed = thread.draft == null &&
+              (current.draft?.isFailed ?? false);
+          state = AsyncData(current.copyWith(
+            conversation: thread.conversation,
+            messages: messages,
+            draft: thread.draft,
+            clearDraft: thread.draft == null && !keepFailed,
+            customer: thread.customer,
+          ));
+          _afterServerRead(
+            thread.conversation,
+            badge: grew ||
+                current.conversation.unreadCount > 0 ||
+                thread.conversation.unreadCount > 0,
+          );
+        }
       }
-      _afterServerRead(thread.conversation);
+      _lastRefreshFailed = false;
     } catch (e, st) {
+      _lastRefreshFailed = true;
       if (!silent) {
         state = AsyncError<ChatThreadState>(e, st).copyWithPrevious(state);
       }
+    } finally {
+      _refreshesInFlight--;
     }
   }
 
@@ -486,12 +793,16 @@ class ChatThreadNotifier
     required String draft,
     required String finalText,
   }) async {
-    final result = await _repo.sendDraft(draft: draft, finalText: finalText);
-    _appendMessage(result.message);
-    final next = result.nextDraft;
-    _update((s) => chatDraftIsShowable(next)
-        ? s.copyWith(draft: next)
-        : s.copyWith(clearDraft: true));
+    final result = await _mutate(() async {
+      final result =
+          await _repo.sendDraft(draft: draft, finalText: finalText);
+      _appendMessage(result.message);
+      final next = result.nextDraft;
+      _update((s) => chatDraftIsShowable(next)
+          ? s.copyWith(draft: next)
+          : s.copyWith(clearDraft: true));
+      return result;
+    });
     unawaited(refresh());
     return result;
   }
@@ -499,57 +810,70 @@ class ChatThreadNotifier
   Future<ChatRejectResult> rejectDraft({
     required String draft,
     required String reason,
-  }) async {
-    final result = await _repo.rejectDraft(draft: draft, reason: reason);
-    final next = result.nextDraft;
-    _update((s) => chatDraftIsShowable(next)
-        ? s.copyWith(draft: next)
-        : s.copyWith(clearDraft: true));
-    return result;
+  }) {
+    return _mutate(() async {
+      final result = await _repo.rejectDraft(draft: draft, reason: reason);
+      final next = result.nextDraft;
+      _update((s) => chatDraftIsShowable(next)
+          ? s.copyWith(draft: next)
+          : s.copyWith(clearDraft: true));
+      return result;
+    });
   }
 
-  Future<ChatDraft?> regenerateDraft({String? hint}) async {
-    final draft = await _repo.regenerateDraft(conversation: arg, hint: hint);
-    _update((s) => draft != null
-        ? s.copyWith(draft: draft)
-        : s.copyWith(clearDraft: true));
-    return draft;
+  Future<ChatDraft?> regenerateDraft({String? hint}) {
+    return _mutate(() async {
+      final draft = await _repo.regenerateDraft(conversation: arg, hint: hint);
+      _update((s) => draft != null
+          ? s.copyWith(draft: draft)
+          : s.copyWith(clearDraft: true));
+      return draft;
+    });
   }
 
   /// A reply typed from scratch; it supersedes any Pending draft.
   Future<ChatMessage> sendMessage(String text) async {
-    final message = await _repo.sendMessage(conversation: arg, text: text);
-    _appendMessage(message);
-    _update((s) => s.copyWith(clearDraft: true));
+    final message = await _mutate(() async {
+      final message = await _repo.sendMessage(conversation: arg, text: text);
+      _appendMessage(message);
+      _update((s) => s.copyWith(clearDraft: true));
+      return message;
+    });
     unawaited(refresh());
     return message;
   }
 
-  Future<void> assignToMe() async {
-    final summary = await _repo.assignConversation(conversation: arg);
-    _update((s) => s.copyWith(conversation: summary));
-    _publishSummary(summary);
+  Future<void> assignToMe() {
+    return _mutate(() async {
+      final summary = await _repo.assignConversation(conversation: arg);
+      _update((s) => s.copyWith(conversation: summary));
+      _publishSummary(summary);
+    });
   }
 
   Future<void> setStatus(String status) async {
-    final summary =
-        await _repo.setConversationStatus(conversation: arg, status: status);
-    _update((s) => s.copyWith(conversation: summary));
-    _publishSummary(summary);
+    await _mutate(() async {
+      final summary =
+          await _repo.setConversationStatus(conversation: arg, status: status);
+      _update((s) => s.copyWith(conversation: summary));
+      _publishSummary(summary);
+    });
     if (ref.exists(chatUnreadTotalProvider)) {
       ref.invalidate(chatUnreadTotalProvider);
     }
   }
 
-  Future<ChatLinkResult> linkCustomer(String customer) async {
-    final result =
-        await _repo.linkCustomer(conversation: arg, customer: customer);
-    _update((s) => s.copyWith(
-          conversation: result.conversation,
-          customer: result.customer,
-        ));
-    _publishSummary(result.conversation);
-    return result;
+  Future<ChatLinkResult> linkCustomer(String customer) {
+    return _mutate(() async {
+      final result =
+          await _repo.linkCustomer(conversation: arg, customer: customer);
+      _update((s) => s.copyWith(
+            conversation: result.conversation,
+            customer: result.customer,
+          ));
+      _publishSummary(result.conversation);
+      return result;
+    });
   }
 
   Future<ChatOrderPrefill> orderPrefill() => _repo.fetchOrderPrefill(arg);
@@ -652,7 +976,11 @@ final chatMetricsProvider = FutureProvider.autoDispose
 void refreshChatsAfterPush(Ref ref, {String? conversation}) {
   ref.invalidate(chatUnreadTotalProvider);
   if (ref.exists(chatInboxProvider)) {
-    unawaited(ref.read(chatInboxProvider.notifier).refresh());
+    final inbox = ref.read(chatInboxProvider.notifier);
+    // Merge in place when a list is showing; reload an errored one.
+    unawaited(ref.read(chatInboxProvider).hasValue
+        ? inbox.silentRefresh()
+        : inbox.refresh());
   }
   final name = conversation?.trim() ?? '';
   if (name.isNotEmpty && ref.exists(chatThreadProvider(name))) {

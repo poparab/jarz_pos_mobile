@@ -53,6 +53,19 @@ void main() {
       'limit': 30,
       'before': '2026-10-16 09:00:00',
     });
+
+    // The Open (not Closed) segment: exclude_closed is sent only when asked.
+    await repo.fetchConversations(status: 'all', excludeClosed: true);
+    expect(lastRequest()['queryParameters'], {
+      'status': 'all',
+      'exclude_closed': 1,
+      'limit': 30,
+    });
+    await repo.fetchConversations(status: 'all');
+    expect(
+      (lastRequest()['queryParameters'] as Map).containsKey('exclude_closed'),
+      isFalse,
+    );
   });
 
   test('get_conversation is a POST with the name and page size', () async {

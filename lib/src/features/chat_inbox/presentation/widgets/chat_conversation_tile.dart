@@ -43,6 +43,9 @@ class ChatConversationTile extends StatelessWidget {
     final waitingAlert =
         waiting != null && waiting >= kChatWaitingAlertMinutes;
     final unread = summary.unreadCount;
+    // Status Open = the customer is waiting for a reply; the name is bold so
+    // it stands out from Answered rows in the Open (not Closed) segment.
+    final needsReply = summary.status == ChatStatuses.open;
     final preview = summary.lastMessagePreview ?? '';
     final previewText = summary.lastDirection == 'Outbound' && preview.isNotEmpty
         ? l10n.chatPreviewYou(preview)
@@ -93,7 +96,9 @@ class ChatConversationTile extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontWeight: unread > 0 ? FontWeight.bold : FontWeight.w500,
+                fontWeight: unread > 0 || needsReply
+                    ? FontWeight.bold
+                    : FontWeight.w500,
               ),
             ),
           ),

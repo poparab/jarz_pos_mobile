@@ -41,6 +41,9 @@ class ChatRepository {
 
   /// `get_conversations`. [status] is `Open` / `Answered` / `Closed` / `all`;
   /// [before] is the `last_message_at` of the last row already shown.
+  /// [excludeClosed] sends `exclude_closed=1` (with `status=all`: every chat
+  /// that is not Closed). An older backend ignores it, so a caller that needs
+  /// it must still drop Closed rows itself.
   Future<ChatConversationPage> fetchConversations({
     String status = ChatStatuses.open,
     String? channel,
@@ -48,6 +51,7 @@ class ChatRepository {
     bool mine = false,
     int limit = 30,
     String? before,
+    bool excludeClosed = false,
   }) async {
     final trimmedSearch = search?.trim() ?? '';
     final response = await _dio.get(
@@ -57,6 +61,7 @@ class ChatRepository {
         if (channel != null && channel.isNotEmpty) 'channel': channel,
         if (trimmedSearch.isNotEmpty) 'search': trimmedSearch,
         if (mine) 'mine': 1,
+        if (excludeClosed) 'exclude_closed': 1,
         'limit': limit,
         if (before != null && before.isNotEmpty) 'before': before,
       },
