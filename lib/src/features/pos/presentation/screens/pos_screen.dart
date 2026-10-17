@@ -1085,6 +1085,10 @@ class _PosScreenState extends ConsumerState<PosScreen>
       isScrollControlled: true,
       useSafeArea: true,
       builder: (context) => DraggableScrollableSheet(
+        // Size the modal sheet to the cart itself; with the default
+        // expand: true the sheet fills the screen and its empty top
+        // shows as a blank box above the cart on phones.
+        expand: false,
         initialChildSize: initialChildSize,
         minChildSize: minChildSize,
         maxChildSize: maxChildSize,
