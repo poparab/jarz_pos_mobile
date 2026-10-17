@@ -125,6 +125,7 @@ class LocationLinkField extends ConsumerStatefulWidget {
   static const pasteButtonKey = ValueKey('location_link_paste');
   static const retryButtonKey = ValueKey('location_link_retry');
   static const previewKey = ValueKey('location_link_preview');
+  static const swappedWarningKey = ValueKey('location_link_swapped_warning');
 
   @override
   ConsumerState<LocationLinkField> createState() => _LocationLinkFieldState();
@@ -154,6 +155,9 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
   LatLng? _point;
   String? _precision;
   double? _distanceFromBranchM;
+
+  /// The server read the typed pair as longitude,latitude and flipped it.
+  bool _swapped = false;
 
   @override
   void initState() {
@@ -210,6 +214,7 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
         _point = null;
         _precision = null;
         _distanceFromBranchM = null;
+        _swapped = false;
         _lastAttempted = '';
       });
       _emit();
@@ -224,6 +229,7 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
       _point = null;
       _precision = null;
       _distanceFromBranchM = null;
+      _swapped = false;
     });
     _emit();
 
@@ -272,6 +278,7 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
       _point = null;
       _precision = null;
       _distanceFromBranchM = null;
+      _swapped = false;
       _lastAttempted = '';
     });
     _emit();
@@ -346,6 +353,7 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
         // Kept so the message can name the distance; the value stays out of
         // [_value] because the state is not `confirmed`.
         _distanceFromBranchM = distance;
+        _swapped = false;
         _point = null;
       });
       _emit();
@@ -358,6 +366,7 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
       _point = preview.point;
       _precision = preview.precision;
       _distanceFromBranchM = distance;
+      _swapped = preview.swapped;
     });
     _emit();
   }
@@ -483,10 +492,33 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
     }
   }
 
+  /// Shown under the resolved coordinates when the server flipped a typed
+  /// `longitude, latitude` pair. The point is still accepted — the warning only
+  /// tells staff to eyeball the pin before saving.
+  ///
+  /// Inline Arabic/English rather than new `.arb` keys: an `.arb` edit forces a
+  /// full APK, and this has to ship as a Shorebird patch. The icon is
+  /// `wrong_location_outlined`, already in the tree-shaken font (kanban pin chip).
+  Widget? _buildSwappedWarning() {
+    if (_state != _FieldState.confirmed || !_swapped) return null;
+    final arabic = Localizations.localeOf(context).languageCode == 'ar';
+    return KeyedSubtree(
+      key: LocationLinkField.swappedWarningKey,
+      child: _StatusLine(
+        icon: Icons.wrong_location_outlined,
+        color: Colors.amber[900]!,
+        text: arabic
+            ? 'تم عكس الإحداثيات المكتوبة (خط الطول أولاً) — راجع الدبوس على الخريطة'
+            : 'The typed coordinates were flipped (longitude first) — check the pin on the map',
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final statusLine = _buildStatusLine();
+    final swappedWarning = _buildSwappedWarning();
     final point = _state == _FieldState.confirmed ? _point : null;
 
     return Column(
@@ -516,6 +548,10 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
           ),
         ),
         if (statusLine != null) ...[const SizedBox(height: 6), statusLine],
+        if (swappedWarning != null) ...[
+          const SizedBox(height: 4),
+          swappedWarning,
+        ],
         if (widget.showPreview && point != null) ...[
           const SizedBox(height: 8),
           KeyedSubtree(

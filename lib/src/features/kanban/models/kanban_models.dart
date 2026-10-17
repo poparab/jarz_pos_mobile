@@ -188,8 +188,10 @@ class InvoiceCard {
   /// `jarz_checkout`, `maps_link`, ...). Empty when absent or unknown.
   final String pinSource;
   /// `pin_flag`: comma-separated warning tokens from the backend
-  /// (`outside_area`, `area_mismatch`, `outside_egypt`). Empty when clean or
-  /// absent. Can be non-empty with no usable pin (`outside_egypt` drops it).
+  /// (`outside_area`, `area_mismatch`, `outside_egypt`, `pin_removed`). Empty
+  /// when clean or absent. Can be non-empty with no usable pin (`outside_egypt`
+  /// drops it; `pin_removed` means the customer deleted the pin on the website
+  /// and the coordinates are blank).
   final String pinFlag;
 
   // ── Delivery outcome (courier lane M2) ────────────────────────────────
@@ -925,6 +927,7 @@ class InvoiceCard {
   static const pinFlagOutsideArea = 'outside_area';
   static const pinFlagAreaMismatch = 'area_mismatch';
   static const pinFlagOutsideEgypt = 'outside_egypt';
+  static const pinFlagPinRemoved = 'pin_removed';
 
   /// [pinFlag] split into its trimmed, non-empty, de-duplicated tokens.
   List<String> get pinFlags {

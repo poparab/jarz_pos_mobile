@@ -48,6 +48,7 @@ const _cairo = LatLng(30.0444, 31.2357);
 Future<LocationLinkValue?> _pumpField(
   WidgetTester tester, {
   required GeoRepository repository,
+  Locale locale = const Locale('en'),
   LocationLinkValue initialValue = LocationLinkValue.empty,
   ValueChanged<LocationLinkValue>? onChanged,
 }) async {
@@ -55,7 +56,7 @@ Future<LocationLinkValue?> _pumpField(
     ProviderScope(
       overrides: [geoRepositoryProvider.overrideWithValue(repository)],
       child: MaterialApp(
-        locale: const Locale('en'),
+        locale: locale,
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
@@ -100,7 +101,75 @@ MapsLinkPreview _resolved({double distance = 4200}) => MapsLinkPreview(
   distanceFromBranchM: distance,
 );
 
+const _swappedEn =
+    'The typed coordinates were flipped (longitude first) — check the pin on the map';
+const _swappedAr =
+    'تم عكس الإحداثيات المكتوبة (خط الطول أولاً) — راجع الدبوس على الخريطة';
+
+MapsLinkPreview _swappedPreview() => MapsLinkPreview(
+  success: true,
+  latitude: _cairo.latitude,
+  longitude: _cairo.longitude,
+  precision: 'pos_link',
+  distanceFromBranchM: 4200,
+  swapped: true,
+  typedLatitude: _cairo.longitude,
+  typedLongitude: _cairo.latitude,
+);
+
 void main() {
+  testWidgets('a swapped resolve shows the flipped-coordinates warning', (
+    tester,
+  ) async {
+    final repo = _FakeGeoRepository((_) => _swappedPreview());
+    LocationLinkValue? emitted;
+    await _pumpField(
+      tester,
+      repository: repo,
+      onChanged: (value) => emitted = value,
+    );
+    await _paste(tester, '31.2357, 30.0444');
+
+    expect(find.text(_swappedEn), findsOneWidget);
+    expect(find.byKey(LocationLinkField.swappedWarningKey), findsOneWidget);
+    // The corrected point is still accepted and emitted.
+    expect(emitted?.isConfirmed, isTrue);
+    expect(emitted?.latitude, _cairo.latitude);
+    expect(
+      find.text('MAP ${_cairo.latitude},${_cairo.longitude}'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the swapped warning is Arabic in the Arabic locale', (
+    tester,
+  ) async {
+    final repo = _FakeGeoRepository((_) => _swappedPreview());
+    await _pumpField(tester, repository: repo, locale: const Locale('ar'));
+    await _paste(tester, '31.2357, 30.0444');
+
+    expect(find.text(_swappedAr), findsOneWidget);
+    expect(find.text(_swappedEn), findsNothing);
+  });
+
+  testWidgets('no swapped warning on a normal resolve, and it clears on edit', (
+    tester,
+  ) async {
+    var swapped = true;
+    final repo = _FakeGeoRepository(
+      (_) => swapped ? _swappedPreview() : _resolved(),
+    );
+    await _pumpField(tester, repository: repo);
+    await _paste(tester, '31.2357, 30.0444');
+    expect(find.text(_swappedEn), findsOneWidget);
+
+    swapped = false;
+    await _paste(tester, '30.0444, 31.2357');
+    expect(find.text(_swappedEn), findsNothing);
+    expect(find.textContaining('Location confirmed'), findsOneWidget);
+  });
+
   testWidgets('the paste button fills the field and resolves it', (
     tester,
   ) async {

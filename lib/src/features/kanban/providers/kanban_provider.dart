@@ -1,12 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:jarz_pos/l10n/app_localizations.dart';
 import '../models/kanban_models.dart';
 import '../services/kanban_service.dart';
 import '../services/notification_polling_service.dart';
 import '../widgets/transfer_proof_logic.dart'
     show ReceiptLookupFailure, classifyReceiptLookupError;
+import 'collect_cash_prompt.dart';
 import 'dispatch_outcome.dart';
 import '../../../core/constants/ws_events.dart';
 import '../../../core/network/dio_provider.dart'; // shared Dio instance
@@ -14,8 +13,6 @@ import '../../../core/network/frappe_error_message.dart';
 import '../../../core/websocket/websocket_service.dart';
 import '../../../core/offline/offline_queue.dart';
 import '../../../core/connectivity/connectivity_service.dart';
-import '../../../core/router.dart';
-import '../../../core/utils/order_display_id.dart';
 import '../../pos/state/pos_notifier.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
@@ -71,31 +68,25 @@ class KanbanState {
   }
 }
 
-// Kanban state notifier
-/// Lets the collect-cash dialog through once per invoice within [window].
+/// Whether a socket event concerns one of [selected] branches.
 ///
-/// A Sales Partner hand-off announces itself several times over (the tap's own
-/// response plus three realtime events), each of which used to open a dialog.
-@visibleForTesting
-class CollectCashPromptGate {
-  CollectCashPromptGate({this.window = const Duration(seconds: 30), DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now;
-
-  final Duration window;
-  final DateTime Function() _clock;
-  final Map<String, DateTime> _shownAt = {};
-
-  bool shouldShow(String? invoiceId) {
-    // Without an invoice there is nothing to match echoes against.
-    if (invoiceId == null || invoiceId.isEmpty) return true;
-    final now = _clock();
-    _shownAt.removeWhere((_, at) => now.difference(at) >= window);
-    if (_shownAt.containsKey(invoiceId)) return false;
-    _shownAt[invoiceId] = now;
-    return true;
-  }
+/// Empty [selected] means "all of my branches" (the server already scoped the
+/// event to them), and an event that names no branch is let through rather
+/// than risk dropping a legitimate update. Shared by the board and the app-wide
+/// collect-cash listener so both judge an event the same way.
+bool kanbanEventIsForBranches(Map<String, dynamic> event, Set<String> selected) {
+  if (selected.isEmpty) return true;
+  final branch = (event['kanban_profile'] ??
+          event['custom_kanban_profile'] ??
+          event['pos_profile'] ??
+          '')
+      .toString()
+      .trim();
+  if (branch.isEmpty) return true;
+  return selected.contains(branch);
 }
 
+// Kanban state notifier
 class KanbanNotifier extends StateNotifier<KanbanState> {
   final KanbanService _kanbanService;
   WebSocketService? _wsService;
@@ -366,20 +357,8 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
   /// assigned to several branches who has filtered down to one. Without it,
   /// another branch's order could still trigger a board reload or — worse — pop
   /// a "collect cash" dialog for an order this user is not handling.
-  bool _eventIsForVisibleBranch(Map<String, dynamic> event) {
-    final selected = state.selectedBranches;
-    if (selected.isEmpty) return true; // server already scoped it to our branches
-    final branch = (event['kanban_profile'] ??
-            event['custom_kanban_profile'] ??
-            event['pos_profile'] ??
-            '')
-        .toString()
-        .trim();
-    // No branch on the payload means we cannot judge it; let it through rather
-    // than risk dropping a legitimate update.
-    if (branch.isEmpty) return true;
-    return selected.contains(branch);
-  }
+  bool _eventIsForVisibleBranch(Map<String, dynamic> event) =>
+      kanbanEventIsForBranches(event, state.selectedBranches);
 
   /// Whether a realtime event is a courier stop outcome or an address pin
   /// correction — the events that change a card's contents without moving it
@@ -463,28 +442,18 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
           return;
         }
 
-        // Pre-payment collect prompt for Sales Partner unpaid flow
-        try {
-          final mode = (event['mode'] ?? '').toString();
-          if (invoiceId != null && mode == 'sales_partner_collect_prompt') {
-            final amt = (event['outstanding'] ?? event['amount'] ?? '').toString();
-            _showCollectCashDialog(amount: amt, invoiceId: invoiceId, wooOrderId: event['woo_order_id']);
-            // don't return; allow subsequent handlers to patch board if needed
-          }
-        } catch (_) {}
+        // The collect-cash dialog for these events is opened app-wide by
+        // [collectCashPromptListenerProvider], not here: this notifier exists
+        // only once Kanban has been opened. The board just patches its cards.
         // Detect Sales Partner unpaid Out For Delivery fast-path realtime event
         // Backend event: jarz_pos_sales_partner_unpaid_ofd (mode == sales_partner_unpaid_cash)
         try {
           final mode = (event['mode'] ?? '').toString();
           final paymentEntry = event['payment_entry'];
-          final amt = (event['amount'] ?? '').toString();
           final hasPartner = (event['sales_partner'] ?? event['salesPartner'] ?? '').toString().isNotEmpty;
           if (invoiceId != null && hasPartner && mode == 'sales_partner_unpaid_cash' && paymentEntry != null) {
             // Ensure card patched to Out For Delivery
             _patchInvoiceOutForDelivery(invoiceId, event);
-            // Show collect cash dialog informing staff (once per invoice, see
-            // [CollectCashPromptGate])
-            _showCollectCashDialog(amount: amt, invoiceId: invoiceId, wooOrderId: event['woo_order_id']);
             return; // handled
           }
         } catch (_) {}
@@ -505,19 +474,6 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
         final newKey = event['new_state_key'] as String?;
         if (invoiceId != null && newKey != null) {
             _applyRealtimeMove(invoiceId, oldKey, newKey);
-            // POPUP TRIGGER: Sales Partner + Cash on Out For Delivery
-            try {
-              final becameOFD = (newKey == 'out_for_delivery');
-              if (becameOFD) {
-                final hadPartner = (((event['sales_partner'] ?? event['salesPartner'])?.toString()) ?? '').isNotEmpty;
-                // Backend now includes cash_payment_entry when cash PE was created on OFD transition
-                final cashPE = event['cash_payment_entry'] ?? event['cashPaymentEntry'];
-                final amt = (event['amount'] ?? '').toString();
-                if (hadPartner && cashPE != null) {
-                  _showCollectCashDialog(amount: amt, invoiceId: invoiceId, wooOrderId: event['woo_order_id']);
-                }
-              }
-            } catch (_) {}
         }
       });
   // Also listen for new POS invoices and refresh the Received column
@@ -537,64 +493,17 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
     }
   }
 
-  final _collectCashPromptGate = CollectCashPromptGate();
-
-  // UI helper: show collect cash dialog; requires root navigator context.
-  //
-  // One hand-off reaches here up to four times: the tap itself, then the
-  // collect-prompt, unpaid-OFD and state-change events. The gate lets the first
-  // through and drops the echoes, so staff see one dialog, not a stack.
+  // UI helper for the board's own actions (the unpaid Sales Partner dispatch
+  // and a cash payment). One hand-off reaches the dialog up to four times: the
+  // tap itself, then the collect-prompt, unpaid-OFD and state-change events
+  // (handled app-wide by [collectCashPromptListenerProvider]). All of them go
+  // through the one shared [CollectCashPromptGate], so staff see one dialog.
   void _showCollectCashDialog({required String amount, String? invoiceId, Object? wooOrderId}) {
-    if (!_collectCashPromptGate.shouldShow(invoiceId)) return;
-    try {
-      // Prefer global navigator key context so dialog is shown even if focus is elsewhere
-      final navKey = _ref.read(navigatorKeyProvider);
-      BuildContext? ctx = navKey.currentContext;
-      ctx ??= WidgetsBinding.instance.rootElement;
-      ctx ??= WidgetsBinding.instance.focusManager.primaryFocus?.context;
-      if (ctx == null) return; // no context available to anchor dialog
-      // Parse amount to a nicely formatted value
-      String amountLabel;
-      try {
-        final v = double.parse(amount.toString());
-        amountLabel = v.toStringAsFixed(2);
-      } catch (_) {
-        amountLabel = amount.toString();
-      }
-      showDialog(
-        context: ctx,
-        builder: (c) {
-          final l10n = AppLocalizations.of(c);
-          return AlertDialog(
-            title: Text(l10n.websocketCollectCashTitle),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Emphasize amount
-                Text(
-                  amountLabel,
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                Text(l10n.websocketCollectCashMessage),
-                if (invoiceId != null && invoiceId.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  // The Woo order number is what staff call the order by.
-                  Text(l10n.websocketInvoiceLabel(orderDisplayId(invoiceId, wooOrderId: wooOrderId)), style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                ],
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(c).pop(),
-                child: Text(l10n.commonOk),
-              ),
-            ],
-          );
-        },
-      );
-    } catch (_) {}
+    _ref.read(collectCashPrompterProvider).show(
+          amount: amount,
+          invoiceId: invoiceId,
+          wooOrderId: wooOrderId,
+        );
   }
 
   void _attachNotificationPolling() {
@@ -1206,7 +1115,7 @@ class KanbanNotifier extends StateNotifier<KanbanState> {
       
       // Show collect cash dialog if payment was successful and method is Cash
   if (result['success'] == true && paymentMode.toLowerCase() == 'cash') {
-        final amount = result['amount'] ?? result['paid_amount'];
+        final amount = result['amount'] ?? result['paid_amount'] ?? result['allocated_amount'];
         if (amount != null) {
           _showCollectCashDialog(
             amount: amount.toString(),

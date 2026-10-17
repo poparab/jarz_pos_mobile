@@ -436,6 +436,7 @@ void main() {
       'outside_area': 'Pin outside the chosen delivery area',
       'area_mismatch': "Pin doesn't match the chosen area",
       'outside_egypt': 'Pin is outside Egypt — location ignored',
+      'pin_removed': 'Customer removed the pin — no location for this order',
     };
 
     Color badgeColor(WidgetTester tester, String label) =>
@@ -491,6 +492,26 @@ void main() {
         badgeTooltip(tester, find.byIcon(Icons.wrong_location_outlined))
             .message,
         'الدبوس خارج مصر — تم تجاهل الموقع',
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('pin_removed with no coordinates shows the warning chip, '
+        'in Arabic too', (tester) async {
+      await _pumpCard(tester, _card(pinFlag: 'pin_removed'));
+      expect(find.text('No map pin'), findsOneWidget);
+      expect(find.byIcon(Icons.wrong_location_outlined), findsOneWidget);
+      expect(badgeColor(tester, 'No map pin'), Colors.amber[900]);
+
+      await _pumpCard(
+        tester,
+        _card(pinFlag: 'pin_removed'),
+        locale: const Locale('ar'),
+      );
+      expect(
+        badgeTooltip(tester, find.byIcon(Icons.wrong_location_outlined))
+            .message,
+        'العميل حذف الدبوس — لا يوجد موقع لهذا الطلب',
       );
       expect(tester.takeException(), isNull);
     });

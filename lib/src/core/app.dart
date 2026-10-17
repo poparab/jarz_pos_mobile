@@ -25,6 +25,7 @@ import '../features/app_update/presentation/app_update_gate.dart';
 import '../features/auth/presentation/session_expired_gate.dart';
 import '../features/app_update/state/app_update_provider.dart';
 import '../features/approvals/presentation/pending_approvals_widgets.dart';
+import '../features/kanban/providers/collect_cash_prompt.dart';
 
 class JarzPosApp extends ConsumerWidget {
   const JarzPosApp({super.key});
@@ -174,6 +175,9 @@ class _AuthenticatedServiceBootstrapState
     ref.watch(courierWsBridgeProvider);
     ref.watch(branchAccessWsBridgeProvider);
     ref.watch(orderAlertBridgeProvider);
+    // Collect-cash prompts reach the cashier on any screen, not only once the
+    // Kanban board has been opened. Does not load the board.
+    ref.watch(collectCashPromptListenerProvider);
     ref.watch(shorebirdUpdateProvider);
 
     return widget.child;

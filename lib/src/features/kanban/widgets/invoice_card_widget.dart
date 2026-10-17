@@ -2032,14 +2032,9 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.invoicePaymentSuccess('${result['payment_entry']}'))),
         );
-
-        // Show collect cash dialog for cash payments
-        if (method.toLowerCase() == PaymentModes.cashLower) {
-          final amount = result['amount'] ?? result['allocated_amount'];
-          if (amount != null && mounted && context.mounted) {
-            _showCollectCashDialog(context, amount.toString(), widget.invoice.name);
-          }
-        }
+        // The collect-cash dialog for a cash payment is opened by
+        // `notifier.payInvoice` through the shared, once-per-invoice gate. A
+        // second dialog here stacked on top of it.
       } else {
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.invoicePaymentFailed)),
@@ -2172,25 +2167,6 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
         ),
       );
     }
-  }
-
-  void _showCollectCashDialog(BuildContext context, String amount, String invoiceId) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.invoiceCollectCashTitle),
-        content: Text(
-          context.l10n.invoiceCollectCashBody(amount, invoiceId),
-          style: const TextStyle(fontSize: 16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(context.l10n.commonOk),
-          ),
-        ],
-      ),
-    );
   }
 
   // ignore: unused_element
@@ -3244,6 +3220,10 @@ class _InvoiceCardWidgetState extends ConsumerState<InvoiceCardWidget>
           return arabic
               ? 'الدبوس خارج مصر — تم تجاهل الموقع'
               : 'Pin is outside Egypt — location ignored';
+        case InvoiceCard.pinFlagPinRemoved:
+          return arabic
+              ? 'العميل حذف الدبوس — لا يوجد موقع لهذا الطلب'
+              : 'Customer removed the pin — no location for this order';
         default:
           return arabic ? 'تحذير على الدبوس: $flag' : 'Pin warning: $flag';
       }

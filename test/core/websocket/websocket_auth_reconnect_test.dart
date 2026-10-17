@@ -1,9 +1,69 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jarz_pos/l10n/app_localizations.dart';
 import 'package:jarz_pos/src/core/constants/ws_events.dart';
 import 'package:jarz_pos/src/core/router.dart';
 import 'package:jarz_pos/src/core/websocket/websocket_service.dart';
+import 'package:jarz_pos/src/features/kanban/providers/collect_cash_prompt.dart';
 import 'package:jarz_pos/src/features/kanban/providers/kanban_provider.dart';
+
+const _invoice = 'ACC-SINV-2026-00001';
+
+Map<String, dynamic> _collectPromptMessage() => {
+      'event': WsEvents.salesPartnerCollectPrompt,
+      'data': {
+        'invoice': _invoice,
+        'amount': 250.0,
+        'outstanding': 250.0,
+        'sales_partner': 'Talabat',
+        'mode': 'sales_partner_collect_prompt',
+      },
+    };
+
+Map<String, dynamic> _unpaidOfdMessage() => {
+      'event': WsEvents.salesPartnerUnpaidOfd,
+      'data': {
+        'invoice': _invoice,
+        'amount': 250.0,
+        'sales_partner': 'Talabat',
+        'payment_entry': 'ACC-PAY-2026-00001',
+        'mode': 'sales_partner_unpaid_cash',
+      },
+    };
+
+/// The signed-in shell in miniature: a root navigator on its own key and a
+/// widget that keeps the app-wide collect-cash listener alive, the way
+/// `_AuthenticatedServiceBootstrap` does. No Kanban widget anywhere.
+Future<ProviderContainer> _pumpShell(
+  WidgetTester tester, {
+  required WebSocketService socket,
+  bool signedIn = true,
+}) async {
+  final navKey = GlobalKey<NavigatorState>();
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        webSocketServiceProvider.overrideWithValue(socket),
+        navigatorKeyProvider.overrideWithValue(navKey),
+        currentAuthStateProvider.overrideWith((ref) => signedIn),
+      ],
+      child: MaterialApp(
+        navigatorKey: navKey,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: Consumer(
+          builder: (context, ref, _) {
+            ref.watch(collectCashPromptListenerProvider);
+            return const Scaffold(body: Text('POS'));
+          },
+        ),
+      ),
+    ),
+  );
+  return ProviderScope.containerOf(tester.element(find.text('POS')));
+}
 
 /// A real [WebSocketService] whose transport never opens, so the session
 /// bookkeeping can be checked without a server.
@@ -126,6 +186,104 @@ void main() {
 
       expect(updates, hasLength(1));
       expect(updates.single['mode'], 'sales_partner_collect_prompt');
+    });
+  });
+
+  group('App-wide collect-cash listener', () {
+    testWidgets('prompts once on POS when Kanban was never opened', (tester) async {
+      final socket = _RecordingSocket();
+      addTearDown(socket.dispose);
+      final container = await _pumpShell(tester, socket: socket);
+
+      socket.debugHandleMessage(_collectPromptMessage());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Collect Cash'), findsOneWidget);
+      expect(find.text('250.00'), findsOneWidget);
+      // The prompt did not come from the board, and did not start it either.
+      expect(container.exists(kanbanProvider), isFalse);
+    });
+
+    testWidgets('a second path for the same invoice within 30 s shows nothing', (tester) async {
+      final socket = _RecordingSocket();
+      addTearDown(socket.dispose);
+      final container = await _pumpShell(tester, socket: socket);
+
+      socket.debugHandleMessage(_collectPromptMessage());
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+
+      // The unpaid-OFD echo of the same hand-off.
+      socket.debugHandleMessage(_unpaidOfdMessage());
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+
+      // The board's own tap path shares the same gate.
+      final shown = container.read(collectCashPrompterProvider).show(
+            amount: '250',
+            invoiceId: _invoice,
+          );
+      await tester.pumpAndSettle();
+      expect(shown, isFalse);
+      expect(find.byType(AlertDialog), findsOneWidget);
+    });
+
+    testWidgets('a tap path first suppresses the realtime echo', (tester) async {
+      final socket = _RecordingSocket();
+      addTearDown(socket.dispose);
+      final container = await _pumpShell(tester, socket: socket);
+
+      expect(
+        container.read(collectCashPrompterProvider).show(amount: '250', invoiceId: _invoice),
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      socket.debugHandleMessage(_unpaidOfdMessage());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+    });
+
+    testWidgets('opens nothing while signed out', (tester) async {
+      final socket = _RecordingSocket();
+      addTearDown(socket.dispose);
+      await _pumpShell(tester, socket: socket, signedIn: false);
+
+      socket.debugHandleMessage(_collectPromptMessage());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    test('only the three collect-cash shapes ask for a prompt', () {
+      expect(collectCashPromptFor(_collectPromptMessage()['data'] as Map<String, dynamic>), isNotNull);
+      expect(collectCashPromptFor(_unpaidOfdMessage()['data'] as Map<String, dynamic>), isNotNull);
+      expect(
+        collectCashPromptFor({
+          'invoice_id': _invoice,
+          'old_state_key': 'ready',
+          'new_state_key': 'out_for_delivery',
+          'sales_partner': 'Talabat',
+          'cash_payment_entry': 'ACC-PAY-2026-00002',
+          'amount': 100,
+        })?.invoiceId,
+        _invoice,
+      );
+      // A plain courier OFD move, and a partner one without a cash PE.
+      expect(
+        collectCashPromptFor({'invoice_id': _invoice, 'new_state_key': 'out_for_delivery'}),
+        isNull,
+      );
+      expect(
+        collectCashPromptFor({
+          'invoice_id': _invoice,
+          'new_state_key': 'out_for_delivery',
+          'sales_partner': 'Talabat',
+        }),
+        isNull,
+      );
+      expect(collectCashPromptFor({'mode': 'sales_partner_collect_prompt'}), isNull);
     });
   });
 

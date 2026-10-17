@@ -20,6 +20,12 @@ class MapsLinkPreview {
     this.requestId,
     this.resolved,
     this.reason,
+    this.swapped = false,
+    this.typedLatitude,
+    this.typedLongitude,
+    this.swapReference,
+    this.precisionNote,
+    this.distanceReference,
   });
 
   /// A local failure that never reached (or never parsed from) the server.
@@ -32,7 +38,13 @@ class MapsLinkPreview {
         pending = false,
         requestId = null,
         resolved = false,
-        reason = null;
+        reason = null,
+        swapped = false,
+        typedLatitude = null,
+        typedLongitude = null,
+        swapReference = null,
+        precisionNote = null,
+        distanceReference = null;
 
   final bool success;
   final double? latitude;
@@ -72,6 +84,27 @@ class MapsLinkPreview {
   /// `outside_service_area`, …). Mapped to a localised message, never shown.
   final String? reason;
 
+  /// True when the server read the typed pair as `longitude, latitude` and
+  /// flipped it. [latitude]/[longitude] hold the corrected point; the pair as
+  /// typed is in [typedLatitude]/[typedLongitude]. False on an older backend.
+  final bool swapped;
+
+  /// The coordinates exactly as typed, before any flip. Only sent with
+  /// [swapped].
+  final double? typedLatitude;
+  final double? typedLongitude;
+
+  /// What the server compared against to decide a flip was needed (a label
+  /// such as the branch or territory). Informational only.
+  final String? swapReference;
+
+  /// Server-translated sentence explaining a flip (or a precision caveat).
+  final String? precisionNote;
+
+  /// What [distanceFromBranchM] was measured from: `pos_profile`, `territory`
+  /// or `cairo_fallback`. Null on an older backend.
+  final String? distanceReference;
+
   /// Backend reason for a link whose point lies outside the delivery area.
   static const String outsideServiceArea = 'outside_service_area';
 
@@ -91,6 +124,12 @@ class MapsLinkPreview {
       requestId: _nonEmpty(json['request_id']),
       resolved: json.containsKey('resolved') ? _parseBool(json['resolved']) : null,
       reason: _nonEmpty(json['reason']),
+      swapped: _parseBool(json['swapped']),
+      typedLatitude: _parseDouble(json['typed_latitude']),
+      typedLongitude: _parseDouble(json['typed_longitude']),
+      swapReference: _nonEmpty(json['swap_reference']),
+      precisionNote: _nonEmpty(json['precision_note']),
+      distanceReference: _nonEmpty(json['distance_reference']),
     );
   }
 
@@ -105,6 +144,12 @@ class MapsLinkPreview {
         'request_id': requestId,
         'resolved': resolved,
         'reason': reason,
+        'swapped': swapped,
+        'typed_latitude': typedLatitude,
+        'typed_longitude': typedLongitude,
+        'swap_reference': swapReference,
+        'precision_note': precisionNote,
+        'distance_reference': distanceReference,
       };
 
   /// True only when the server both reported success and handed back a usable
