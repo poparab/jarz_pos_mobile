@@ -272,6 +272,62 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('refuses a link outside Egypt with its own message', (
+    tester,
+  ) async {
+    // The exact shape `preview_maps_link` answers for a Paris link. It still
+    // carries the point (as an older backend would under latitude/longitude),
+    // so this also proves `resolved: false` wins over the coordinates.
+    final repo = _FakeGeoRepository(
+      (_) => MapsLinkPreview.fromJson(const {
+        'success': true,
+        'resolved': false,
+        'pending': false,
+        'short_link': false,
+        'reason': 'outside_service_area',
+        'latitude': 48.8566,
+        'longitude': 2.3522,
+        'outside_latitude': 48.8566,
+        'outside_longitude': 2.3522,
+      }),
+    );
+    LocationLinkValue? emitted;
+
+    await _pumpField(
+      tester,
+      repository: repo,
+      onChanged: (value) => emitted = value,
+    );
+    await _paste(tester, 'https://maps.google.com/?q=48.8566,2.3522');
+
+    expect(find.textContaining('outside Egypt'), findsOneWidget);
+    expect(find.textContaining('Could not read a location'), findsNothing);
+    expect(find.textContaining('Location confirmed'), findsNothing);
+    expect(find.textContaining('MAP '), findsNothing);
+    expect(emitted!.isConfirmed, isFalse);
+    expect(emitted!.toRequestFields().containsKey('latitude'), isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('any other refusal keeps the generic unreadable message', (
+    tester,
+  ) async {
+    final repo = _FakeGeoRepository(
+      (_) => MapsLinkPreview.fromJson(const {
+        'success': true,
+        'resolved': false,
+        'reason': 'no_coordinates_in_expanded_link',
+      }),
+    );
+
+    await _pumpField(tester, repository: repo);
+    await _paste(tester, 'https://maps.app.goo.gl/aShop');
+
+    expect(find.textContaining('Could not read a location'), findsOneWidget);
+    expect(find.textContaining('outside Egypt'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('surfaces a server failure as an inline error', (tester) async {
     final repo = _FakeGeoRepository(
       (_) => const MapsLinkPreview.failure('could not follow redirect'),

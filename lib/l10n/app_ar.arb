@@ -2633,6 +2633,7 @@
   },
   "locationLinkErrorUnrecognized": "ده مش شكل رابط خرائط. الصق رابط من خرائط جوجل أو إحداثيات زي 30.0444, 31.2357.",
   "locationLinkErrorUnresolved": "مقدرناش نطلع موقع من الرابط ده. افتحه في الخرائط وشيره تاني والصق الرابط الجديد.",
+  "locationLinkErrorOutsideArea": "الموقع ده برة مصر، فمينفعش يكون عنوان توصيل. راجع الرابط.",
   "locationLinkErrorTooFar": "النقطة دي {distance} — بعيدة أوي على إنها عنوان توصيل. راجع الرابط.",
   "@locationLinkErrorTooFar": {
     "placeholders": {

@@ -6151,6 +6151,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not read a location from this link. Open it in Maps, share it again, and paste the new link.';
 
   @override
+  String get locationLinkErrorOutsideArea =>
+      'This location is outside Egypt, so it cannot be a delivery address. Check the link.';
+
+  @override
   String locationLinkErrorTooFar(Object distance) {
     return 'This point is $distance — too far to be a delivery address. Check the link.';
   }

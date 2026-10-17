@@ -18,6 +18,8 @@ class MapsLinkPreview {
     this.error,
     this.pending = false,
     this.requestId,
+    this.resolved,
+    this.reason,
   });
 
   /// A local failure that never reached (or never parsed from) the server.
@@ -28,7 +30,9 @@ class MapsLinkPreview {
         precision = null,
         distanceFromBranchM = null,
         pending = false,
-        requestId = null;
+        requestId = null,
+        resolved = false,
+        reason = null;
 
   final bool success;
   final double? latitude;
@@ -59,6 +63,20 @@ class MapsLinkPreview {
   /// Ticket to poll while [pending]. Null on any terminal answer.
   final String? requestId;
 
+  /// The server's own verdict. `success` only says the request worked; a link
+  /// that parsed but was refused (a point outside Egypt) answers
+  /// `success: true, resolved: false`. Null on a backend that predates the key.
+  final bool? resolved;
+
+  /// Machine-readable refusal (`no_coordinates_in_link`,
+  /// `outside_service_area`, …). Mapped to a localised message, never shown.
+  final String? reason;
+
+  /// Backend reason for a link whose point lies outside the delivery area.
+  static const String outsideServiceArea = 'outside_service_area';
+
+  bool get isOutsideServiceArea => reason == outsideServiceArea;
+
   factory MapsLinkPreview.fromJson(Map<String, dynamic> json) {
     return MapsLinkPreview(
       success: _parseBool(json['success']),
@@ -71,6 +89,8 @@ class MapsLinkPreview {
       error: _nonEmpty(json['error'] ?? json['message']),
       pending: _parseBool(json['pending']),
       requestId: _nonEmpty(json['request_id']),
+      resolved: json.containsKey('resolved') ? _parseBool(json['resolved']) : null,
+      reason: _nonEmpty(json['reason']),
     );
   }
 
@@ -83,12 +103,15 @@ class MapsLinkPreview {
         'error': error,
         'pending': pending,
         'request_id': requestId,
+        'resolved': resolved,
+        'reason': reason,
       };
 
   /// True only when the server both reported success and handed back a usable
   /// point. `success: true` with null coordinates is treated as a failure —
   /// stamping a half-resolved address is worse than asking staff to retry.
-  bool get isResolved => success && point != null;
+  /// An explicit `resolved: false` wins over any coordinates in the payload.
+  bool get isResolved => success && resolved != false && point != null;
 
   /// The resolved point, or null when the payload carries no usable pair.
   LatLng? get point {

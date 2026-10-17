@@ -10181,6 +10181,12 @@ abstract class AppLocalizations {
   /// **'Could not read a location from this link. Open it in Maps, share it again, and paste the new link.'**
   String get locationLinkErrorUnresolved;
 
+  /// No description provided for @locationLinkErrorOutsideArea.
+  ///
+  /// In en, this message translates to:
+  /// **'This location is outside Egypt, so it cannot be a delivery address. Check the link.'**
+  String get locationLinkErrorOutsideArea;
+
   /// No description provided for @locationLinkErrorTooFar.
   ///
   /// In en, this message translates to:

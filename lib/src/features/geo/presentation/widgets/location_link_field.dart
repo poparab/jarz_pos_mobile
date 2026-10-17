@@ -78,7 +78,7 @@ typedef LocationPreviewBuilder =
 
 enum _FieldState { empty, pending, checking, confirmed, error }
 
-enum _FieldError { unrecognized, unresolved, tooFar, network }
+enum _FieldError { unrecognized, unresolved, outsideArea, tooFar, network }
 
 /// Paste-a-Maps-link field with inline validation and a map preview.
 ///
@@ -322,11 +322,17 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
       // The server's own wording is English-only and often internal, so the
       // user sees a localised message — but the detail still gets logged.
       debugPrint(
-        'LocationLinkField: "$input" unresolved — ${preview.error ?? 'no reason given'}',
+        'LocationLinkField: "$input" unresolved — '
+        '${preview.reason ?? preview.error ?? 'no reason given'}',
       );
       setState(() {
         _state = _FieldState.error;
-        _error = _FieldError.unresolved;
+        // A point read correctly but outside Egypt gets its own wording:
+        // "could not read" would send staff re-sharing a link that is fine
+        // as a link and wrong as an address.
+        _error = preview.isOutsideServiceArea
+            ? _FieldError.outsideArea
+            : _FieldError.unresolved;
       });
       _emit();
       return;
@@ -374,6 +380,8 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
         return l10n.locationLinkErrorUnrecognized;
       case _FieldError.unresolved:
         return l10n.locationLinkErrorUnresolved;
+      case _FieldError.outsideArea:
+        return l10n.locationLinkErrorOutsideArea;
       case _FieldError.tooFar:
         final distance = _distanceFromBranchM;
         return l10n.locationLinkErrorTooFar(
