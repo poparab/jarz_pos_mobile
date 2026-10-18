@@ -15093,6 +15093,12 @@ abstract class AppLocalizations {
   /// **'Open to-dos'**
   String get b2bSectionOpenTodos;
 
+  /// B2B account page: a collapsible section title followed by how many items it holds, e.g. Open to-dos (3).
+  ///
+  /// In en, this message translates to:
+  /// **'{title} ({count})'**
+  String b2bAccountSectionWithCount(String title, int count);
+
   /// No description provided for @b2bNone.
   ///
   /// In en, this message translates to:
@@ -15458,6 +15464,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear filters'**
   String get b2bActiveClearFilters;
+
+  /// Active customers: the change shown next to the up/down arrow in a delta badge; value is the already-formatted whole number.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}%'**
+  String b2bActivePercent(String value);
+
+  /// Active customers card: area and customer name on one line when both are known.
+  ///
+  /// In en, this message translates to:
+  /// **'{area} · {customer}'**
+  String b2bActivePlace(String area, String customer);
 
   /// No description provided for @b2bNewLead.
   ///

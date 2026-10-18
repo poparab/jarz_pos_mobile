@@ -1264,9 +1264,10 @@ class _AccountBody extends StatelessWidget {
             const SizedBox(height: 16),
             _CollapsibleHeader(
               key: const ValueKey('b2b-open-todos-header'),
-              title:
-                  '${context.l10n.b2bSectionOpenTodos} '
-                  '(${account.openTodos.length})',
+              title: context.l10n.b2bAccountSectionWithCount(
+                context.l10n.b2bSectionOpenTodos,
+                account.openTodos.length,
+              ),
               expanded: todosExpanded,
               onToggle: onToggleTodos,
             ),
@@ -1511,7 +1512,9 @@ class _CollapsibleJourney extends ConsumerWidget {
     final title = context.l10n.journeySectionTitle;
     return _CollapsibleToggle(
       key: const ValueKey('b2b-journey-expand'),
-      title: count == null ? title : '$title ($count)',
+      title: count == null
+          ? title
+          : context.l10n.b2bAccountSectionWithCount(title, count),
       style: LeadsTheme.heading,
       expanded: false,
       onToggle: onToggle,

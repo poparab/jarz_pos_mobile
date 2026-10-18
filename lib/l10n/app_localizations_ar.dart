@@ -9089,6 +9089,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get b2bSectionOpenTodos => 'المهام المفتوحة';
 
   @override
+  String b2bAccountSectionWithCount(String title, int count) {
+    return '$title ($count)';
+  }
+
+  @override
   String get b2bNone => 'مفيش';
 
   @override
@@ -9333,6 +9338,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get b2bActiveClearFilters => 'مسح التصفية';
+
+  @override
+  String b2bActivePercent(String value) {
+    return '$value%';
+  }
+
+  @override
+  String b2bActivePlace(String area, String customer) {
+    return '$area · $customer';
+  }
 
   @override
   String get b2bNewLead => 'عميل محتمل جديد';

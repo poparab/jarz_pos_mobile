@@ -9132,6 +9132,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get b2bSectionOpenTodos => 'Open to-dos';
 
   @override
+  String b2bAccountSectionWithCount(String title, int count) {
+    return '$title ($count)';
+  }
+
+  @override
   String get b2bNone => 'None';
 
   @override
@@ -9371,6 +9376,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get b2bActiveClearFilters => 'Clear filters';
+
+  @override
+  String b2bActivePercent(String value) {
+    return '$value%';
+  }
+
+  @override
+  String b2bActivePlace(String area, String customer) {
+    return '$area · $customer';
+  }
 
   @override
   String get b2bNewLead => 'New lead';

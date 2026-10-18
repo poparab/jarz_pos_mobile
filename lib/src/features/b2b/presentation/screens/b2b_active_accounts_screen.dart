@@ -52,6 +52,12 @@ class _B2bActiveAccountsScreenState
     });
   }
 
+  Future<void> _openPipeline() async {
+    await context.push(AppRoutes.b2bPipeline);
+    // Accounts moved to or from Active on the board belong on this list now.
+    if (mounted) _refresh();
+  }
+
   Future<void> _openAccount(B2bActiveAccount a) async {
     await context.push(
       AppRoutes.b2bAccount,
@@ -96,7 +102,7 @@ class _B2bActiveAccountsScreenState
             key: const Key('b2b_active_pipeline_action'),
             tooltip: l10n.b2bActivePipelineBoard,
             icon: const Icon(Icons.view_kanban_outlined),
-            onPressed: () => context.push(AppRoutes.b2bPipeline),
+            onPressed: _openPipeline,
           ),
           IconButton(
             tooltip: l10n.b2bRefresh,
@@ -165,7 +171,11 @@ class _B2bActiveAccountsScreenState
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => _ErrorView(error: error, onRetry: _refresh),
+        error: (error, _) => _ErrorView(
+          error: error,
+          onRetry: _refresh,
+          onOpenPipeline: _openPipeline,
+        ),
         data: _buildData,
       ),
     );
@@ -191,7 +201,7 @@ class _B2bActiveAccountsScreenState
             SliverFillRemaining(
               hasScrollBody: false,
               child: _EmptyView(
-                onOpenPipeline: () => context.push(AppRoutes.b2bPipeline),
+                onOpenPipeline: _openPipeline,
               ),
             )
           else ...[
@@ -213,7 +223,7 @@ class _B2bActiveAccountsScreenState
                   children: [
                     FilledButton.tonalIcon(
                       key: const Key('b2b_active_pipeline_button'),
-                      onPressed: () => context.push(AppRoutes.b2bPipeline),
+                      onPressed: _openPipeline,
                       icon: const Icon(Icons.view_kanban_outlined),
                       label: Text(context.l10n.b2bActivePipelineBoard),
                     ),
@@ -463,13 +473,12 @@ class _DeltaBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final up = pct > 0;
-    final down = pct < 0;
+    // A change that rounds to 0% reads as unchanged, not as a tiny rise/fall.
+    final rounded = pct.abs().round();
+    final up = pct > 0 && rounded > 0;
+    final down = pct < 0 && rounded > 0;
     final color = up ? _kGreen : (down ? _kRed : Colors.grey.shade600);
-    final text = NumberFormat(
-      '#,##0',
-      context.l10n.localeName,
-    ).format(pct.abs().round());
+    final text = NumberFormat('#,##0', context.l10n.localeName).format(rounded);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -481,7 +490,7 @@ class _DeltaBadge extends StatelessWidget {
           color: color,
         ),
         Text(
-          '$text%',
+          context.l10n.b2bActivePercent(text),
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 color: color,
                 fontWeight: FontWeight.w700,
@@ -515,10 +524,11 @@ class _AccountCard extends StatelessWidget {
       color: scheme.onSurfaceVariant,
     );
 
-    final placeParts = <String>[
-      if (a.territory != null) a.territory!,
-      if (a.customerName != null && a.customerName != a.title) a.customerName!,
-    ];
+    final area = a.territory;
+    final customerName = a.customerName != a.title ? a.customerName : null;
+    final place = area != null && customerName != null
+        ? l10n.b2bActivePlace(area, customerName)
+        : (area ?? customerName);
 
     final chips = <Widget>[
       ..._reorderChip(context, a),
@@ -596,7 +606,7 @@ class _AccountCard extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          if (placeParts.isNotEmpty)
+                          if (place != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 2),
                               child: Row(
@@ -609,7 +619,7 @@ class _AccountCard extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
-                                      placeParts.join(' · '),
+                                      place,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: muted,
@@ -825,11 +835,15 @@ class _Figure extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: valueColor,
+            Flexible(
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: valueColor,
+                ),
               ),
             ),
             if (trailing != null) ...[const SizedBox(width: 2), trailing!],
@@ -922,7 +936,12 @@ class _NoMatchesView extends StatelessWidget {
 class _ErrorView extends StatelessWidget {
   final Object error;
   final VoidCallback onRetry;
-  const _ErrorView({required this.error, required this.onRetry});
+  final VoidCallback onOpenPipeline;
+  const _ErrorView({
+    required this.error,
+    required this.onRetry,
+    required this.onOpenPipeline,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -943,6 +962,14 @@ class _ErrorView extends StatelessWidget {
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
               label: Text(context.l10n.commonRetry),
+            ),
+            const SizedBox(height: 8),
+            // The board stays reachable when the active list fails to load.
+            OutlinedButton.icon(
+              key: const Key('b2b_active_error_pipeline_button'),
+              onPressed: onOpenPipeline,
+              icon: const Icon(Icons.view_kanban_outlined),
+              label: Text(context.l10n.b2bActivePipelineBoard),
             ),
           ],
         ),

@@ -364,6 +364,89 @@ void main() {
       expect(find.text('PIPELINE BOARD'), findsOneWidget);
     });
 
+    testWidgets('a change that rounds to 0% renders as unchanged', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360 * 3, 1600 * 3);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
+      final payload = Map<String, dynamic>.from(_payload)
+        ..['summary'] = {
+          ...(_payload['summary'] as Map<String, dynamic>),
+          'period_change_pct': 0.3,
+        };
+      await tester.pumpWidget(
+        _wrapWith(
+          home: const B2bActiveAccountsScreen(),
+          data: B2bActiveAccounts.fromJson(payload),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final kpi = find.byKey(const Key('b2b_active_kpi_billed'));
+      expect(find.descendant(of: kpi, matching: find.text('0%')), findsOneWidget);
+      expect(
+        find.descendant(of: kpi, matching: find.byIcon(Icons.remove)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: kpi, matching: find.byIcon(Icons.arrow_drop_up)),
+        findsNothing,
+      );
+    });
+
+    testWidgets('the error view still offers the pipeline board', (
+      tester,
+    ) async {
+      final router = GoRouter(
+        initialLocation: AppRoutes.b2b,
+        routes: [
+          GoRoute(
+            path: AppRoutes.b2b,
+            builder: (_, _) => const B2bActiveAccountsScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.b2bPipeline,
+            builder: (_, _) => const Scaffold(body: Text('PIPELINE BOARD')),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            b2bRepositoryProvider.overrideWithValue(_FakeB2bRepository()),
+            b2bActiveAccountsProvider.overrideWith(
+              (ref) async => throw Exception('boom'),
+            ),
+            userRolesFutureProvider.overrideWith(
+              (ref) async => const UserRoles(user: 'rep@x.com', roles: []),
+            ),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const Key('b2b_active_error_pipeline_button')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('PIPELINE BOARD'), findsOneWidget);
+    });
+
     testWidgets('renders in Arabic (RTL) at phone width without overflow', (
       tester,
     ) async {
