@@ -3873,7 +3873,7 @@
   "b2bSwitchMode": "غيّر الوضع",
   "b2bGoToPos": "روح لنقطة البيع (تجزئة)",
   "b2bGoToKanban": "روح لبورد التوصيل",
-  "b2bActiveTitle": "عملائي",
+  "b2bActiveTitle": "العملاء النشطون",
   "b2bActivePipelineBoard": "لوحة المسار",
   "b2bActiveSearchHint": "ابحث باسم العميل أو المنطقة",
   "b2bActiveKpiAccounts": "العملاء النشطين",

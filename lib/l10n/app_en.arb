@@ -5244,7 +5244,7 @@
   "b2bSwitchMode": "Switch mode",
   "b2bGoToPos": "Go to POS (B2C)",
   "b2bGoToKanban": "Go to Dispatch Kanban",
-  "b2bActiveTitle": "My customers",
+  "b2bActiveTitle": "Active customers",
   "b2bActivePipelineBoard": "Pipeline board",
   "b2bActiveSearchHint": "Search customer or area",
   "b2bActiveKpiAccounts": "Active accounts",

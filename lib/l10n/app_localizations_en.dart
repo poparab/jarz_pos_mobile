@@ -9230,7 +9230,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get b2bGoToKanban => 'Go to Dispatch Kanban';
 
   @override
-  String get b2bActiveTitle => 'My customers';
+  String get b2bActiveTitle => 'Active customers';
 
   @override
   String get b2bActivePipelineBoard => 'Pipeline board';

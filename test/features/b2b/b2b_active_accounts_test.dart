@@ -1,4 +1,4 @@
-// "My customers": the default B2B landing screen (Active-stage accounts only).
+// "Active customers": the default B2B landing screen (Active-stage accounts only).
 library;
 
 import 'package:dio/dio.dart';
@@ -211,7 +211,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('My customers'), findsOneWidget);
+      expect(find.text('Active customers'), findsOneWidget);
       // Summary tiles.
       expect(find.text('Active accounts'), findsOneWidget);
       expect(find.text('Billed, last 30 days'), findsOneWidget);
@@ -380,7 +380,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('عملائي'), findsOneWidget);
+      expect(find.text('العملاء النشطون'), findsOneWidget);
       expect(find.text('Acme Bakery'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });

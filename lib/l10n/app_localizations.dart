@@ -15264,7 +15264,7 @@ abstract class AppLocalizations {
   /// No description provided for @b2bActiveTitle.
   ///
   /// In en, this message translates to:
-  /// **'My customers'**
+  /// **'Active customers'**
   String get b2bActiveTitle;
 
   /// No description provided for @b2bActivePipelineBoard.

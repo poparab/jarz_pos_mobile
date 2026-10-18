@@ -9186,7 +9186,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get b2bGoToKanban => 'روح لبورد التوصيل';
 
   @override
-  String get b2bActiveTitle => 'عملائي';
+  String get b2bActiveTitle => 'العملاء النشطون';
 
   @override
   String get b2bActivePipelineBoard => 'لوحة المسار';

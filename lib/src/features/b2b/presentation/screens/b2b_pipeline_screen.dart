@@ -59,7 +59,7 @@ class _B2bPipelineScreenState extends ConsumerState<B2bPipelineScreen> {
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
-        // Reached by a push from "My customers": with a drawer present Flutter
+        // Reached by a push from "Active customers": with a drawer present Flutter
         // would show the hamburger instead of a back arrow, so ask for one
         // whenever there is a page underneath. The drawer still opens by swipe.
         leading: Navigator.of(context).canPop() ? const BackButton() : null,
