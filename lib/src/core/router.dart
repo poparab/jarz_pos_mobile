@@ -44,6 +44,7 @@ import '../features/chat_inbox/presentation/screens/chat_metrics_screen.dart';
 import '../features/chat_inbox/presentation/screens/chat_thread_screen.dart';
 import '../features/reports/presentation/screens/warehouse_alignment_screen.dart';
 import '../features/reports/presentation/screens/profit_and_loss_screen.dart';
+import '../features/reports/presentation/screens/revenue_dashboard_screen.dart';
 import '../features/woo_sync/presentation/screens/woo_duplicates_screen.dart';
 import '../features/woo_sync/presentation/screens/woo_sync_screen.dart';
 import '../features/expenses/presentation/expenses_screen.dart';
@@ -739,6 +740,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'reports-profit-loss',
         builder: (context, state) =>
             const PhoneLandscapeScope(child: ProfitAndLossScreen()),
+      ),
+      // Manager-only through the report gate's `canViewAllReports` fallback.
+      GoRoute(
+        path: AppRoutes.reportsRevenueDashboard,
+        name: 'reports-revenue',
+        builder: (context, state) =>
+            const PhoneLandscapeScope(child: RevenueDashboardScreen()),
       ),
       GoRoute(
         path: AppRoutes.reportsUnitEconomics,

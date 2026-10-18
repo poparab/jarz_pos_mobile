@@ -42,6 +42,14 @@ class ReportsScreen extends ConsumerWidget {
     final sections = <_HubSection>[
       _HubSection(l10n.rptHubOverview, [
         _ReportDestination(
+          icon: Icons.insights,
+          color: Colors.blue.shade800,
+          title: l10n.rptRevenueDashboardTitle,
+          subtitle: l10n.rptRevenueDashboardSubtitle,
+          onTap: () => go(AppRoutes.reportsRevenueDashboard),
+          visible: all,
+        ),
+        _ReportDestination(
           icon: Icons.account_balance_outlined,
           color: Colors.green.shade800,
           title: l10n.rptBusinessOverviewTitle,

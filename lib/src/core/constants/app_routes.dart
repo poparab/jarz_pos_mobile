@@ -82,6 +82,10 @@ abstract final class AppRoutes {
   static const reportsB2b = '/reports/b2b';
   static const reportsProfitLoss = '/reports/profit-loss';
 
+  /// Daily revenue dashboard. Manager-only: not listed in
+  /// `canOpenReportsLocation`, so it falls through to `canViewAllReports`.
+  static const reportsRevenueDashboard = '/reports/revenue';
+
   // ── Reports overhaul: new reports + single-report stock routes ────────
   static const reportsUnitEconomics = '/reports/unit-economics';
   static const reportsDailyClose = '/reports/daily-close';

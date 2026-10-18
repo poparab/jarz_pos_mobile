@@ -13,6 +13,9 @@ class KpiCard extends StatelessWidget {
   /// When set, tints the delta chip; otherwise a neutral tone is used.
   final Color? deltaColor;
 
+  /// Optional muted line under the delta chip (e.g. "12 new", a split).
+  final String? caption;
+
   final IconData? icon;
 
   /// Accent colour for the icon + value. Falls back to the theme primary.
@@ -29,6 +32,7 @@ class KpiCard extends StatelessWidget {
     required this.value,
     this.delta,
     this.deltaColor,
+    this.caption,
     this.icon,
     this.color,
     this.width,
@@ -98,6 +102,17 @@ class KpiCard extends StatelessWidget {
                       color: deltaColor ?? theme.colorScheme.secondary,
                     ),
                   ),
+                ),
+              ],
+              if (caption != null && caption!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  caption!,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ],

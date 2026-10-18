@@ -13,6 +13,7 @@ import '../data/models/ops_reports.dart';
 import '../data/models/business_reports.dart';
 import '../data/models/report_envelopes.dart';
 import '../data/models/report_json.dart';
+import '../data/models/revenue_dashboard.dart';
 
 // ── Shared date range for the analytics dashboards ────────────────────────
 
@@ -326,6 +327,13 @@ final profitAndLossReportProvider = FutureProvider.autoDispose
     .family<ProfitAndLossReport, ReportQuery>((ref, q) async {
   final repo = ref.watch(reportsRepositoryProvider);
   return repo.fetchProfitAndLossReport(q);
+});
+
+/// The daily revenue dashboard for the shared range + branch.
+final revenueDashboardProvider = FutureProvider.autoDispose
+    .family<RevenueDashboard, ReportQuery>((ref, q) async {
+  final repo = ref.watch(reportsRepositoryProvider);
+  return repo.fetchRevenueDashboard(q);
 });
 
 // ── Operations reports (ops_reports.py) ───────────────────────────────────

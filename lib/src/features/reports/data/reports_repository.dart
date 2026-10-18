@@ -14,6 +14,7 @@ import 'models/profit_and_loss.dart';
 import 'models/ops_reports.dart';
 import 'models/business_reports.dart';
 import 'models/report_envelopes.dart';
+import 'models/revenue_dashboard.dart';
 
 final reportsRepositoryProvider = Provider<ReportsRepository>((ref) {
   final dio = ref.watch(dioProvider);
@@ -192,6 +193,16 @@ class ReportsRepository {
       data: _params(q),
     );
     return ProfitAndLossReport.fromJson(_asMap(response));
+  }
+
+  /// `revenue_dashboard.get_revenue_dashboard`. The snapshot in the payload
+  /// ignores the dates (it is always today-relative) but follows the branch.
+  Future<RevenueDashboard> fetchRevenueDashboard(ReportQuery q) async {
+    final response = await _dio.post(
+      ApiEndpoints.getRevenueDashboard,
+      data: _params(q),
+    );
+    return RevenueDashboard.fromJson(_asMap(response));
   }
 
   Future<ProfitAndLoss> fetchProfitAndLoss({

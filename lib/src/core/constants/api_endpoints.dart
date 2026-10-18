@@ -574,6 +574,11 @@ abstract final class ApiEndpoints {
   static const getProfitAndLoss =
       '/api/method/jarz_pos.api.financial_report.get_profit_and_loss';
 
+  /// Daily revenue dashboard: `date_from` / `date_to` / optional `branch`.
+  /// JARZ Manager or Administrator only, like [getProfitAndLoss].
+  static const getRevenueDashboard =
+      '/api/method/jarz_pos.api.revenue_dashboard.get_revenue_dashboard';
+
   // ── Reports · Operations (reports overhaul) ───────────────────────────
   // Branch = POS Profile. Every one takes `date_from` / `date_to` and an
   // optional `branch`; daily close, cash over/short and SLA also admit the

@@ -627,6 +627,17 @@ final canAccessReportsHubProvider = Provider<bool>((ref) {
   );
 });
 
+/// Whether the current user may open the manager-only analytics dashboards
+/// (P&L, revenue dashboard, ...). See [UserRoles.canViewAllReports]; false
+/// while the roles are loading or failed.
+final canViewAllReportsProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canViewAllReports,
+    orElse: () => false,
+  );
+});
+
 /// Whether the current user may start and finish production batches.
 final canExecuteProductionProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);

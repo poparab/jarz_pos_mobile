@@ -18682,4 +18682,236 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMetricsModEdited => 'Edited';
+
+  @override
+  String get rptRevenueDashboardTitle => 'Revenue Dashboard';
+
+  @override
+  String get rptRevenueDashboardSubtitle =>
+      'Today, yesterday, last 7 days and month to date, B2B vs B2C';
+
+  @override
+  String get rptRevAtAGlance => 'At a glance';
+
+  @override
+  String get rptRevSnapshotNote =>
+      'Always up to today, whatever dates are picked below';
+
+  @override
+  String get rptRevToday => 'Today';
+
+  @override
+  String get rptRevYesterday => 'Yesterday';
+
+  @override
+  String get rptRevLast7Days => 'Last 7 days';
+
+  @override
+  String get rptRevMonthToDate => 'Month to date';
+
+  @override
+  String get rptRevVsSameDayLastWeek => 'vs same day last week';
+
+  @override
+  String get rptRevVsPrevious7Days => 'vs previous 7 days';
+
+  @override
+  String get rptRevVsSameDaysLastMonth => 'vs same days last month';
+
+  @override
+  String get rptRevVsPreviousPeriod => 'vs previous period';
+
+  @override
+  String get rptRevB2c => 'B2C';
+
+  @override
+  String get rptRevB2b => 'B2B';
+
+  @override
+  String get rptRevOther => 'Other (staff, samples)';
+
+  @override
+  String get rptRevColB2c => 'B2C';
+
+  @override
+  String get rptRevColB2b => 'B2B';
+
+  @override
+  String get rptRevPeriodTitle => 'Selected period';
+
+  @override
+  String rptRevRange(String from, String to) {
+    return '$from – $to';
+  }
+
+  @override
+  String rptRevPreviousRange(String from, String to) {
+    return 'Previous: $from – $to';
+  }
+
+  @override
+  String get rptRevNetSales => 'Net sales';
+
+  @override
+  String rptRevShareOfSales(String pct) {
+    return '$pct% of net sales';
+  }
+
+  @override
+  String rptRevOrdersSplit(String b2c, String b2b, String other) {
+    return 'B2C $b2c · B2B $b2b · other $other';
+  }
+
+  @override
+  String rptRevAovSplit(String b2c, String b2b) {
+    return 'B2C $b2c · B2B $b2b';
+  }
+
+  @override
+  String get rptRevDeliveryFees => 'Delivery fees';
+
+  @override
+  String rptRevInclFees(String amount) {
+    return 'Incl. fees: $amount';
+  }
+
+  @override
+  String get rptRevDailyAverage => 'Daily average';
+
+  @override
+  String rptRevDaysCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rptRevNewCustomers(String count) {
+    return '$count new';
+  }
+
+  @override
+  String get rptRevReturns => 'Returns';
+
+  @override
+  String rptRevReturnsCount(String count) {
+    return '$count return invoices';
+  }
+
+  @override
+  String get rptRevCancelled => 'Cancelled';
+
+  @override
+  String rptRevCancelledCount(String count) {
+    return '$count orders cancelled';
+  }
+
+  @override
+  String get rptRevDiscounts => 'Discounts';
+
+  @override
+  String get rptRevTrendTitle => 'B2B vs B2C trend';
+
+  @override
+  String get rptRevPerDay => 'Per day';
+
+  @override
+  String get rptRevPerWeek => 'Per week';
+
+  @override
+  String get rptRevPerMonth => 'Per month';
+
+  @override
+  String get rptRevSplitTitle => 'B2B vs B2C';
+
+  @override
+  String get rptRevBestWorstTitle => 'Best and worst day';
+
+  @override
+  String get rptRevBestDay => 'Best day';
+
+  @override
+  String get rptRevWorstDay => 'Worst day';
+
+  @override
+  String get rptRevBySourceTitle => 'Sales by source';
+
+  @override
+  String get rptRevSourcePos => 'POS / phone';
+
+  @override
+  String get rptRevSourceWoo => 'Website';
+
+  @override
+  String get rptRevSourceTalabat => 'Talabat';
+
+  @override
+  String get rptRevSourcePartner => 'Partner';
+
+  @override
+  String get rptRevSourceStaff => 'Staff';
+
+  @override
+  String get rptRevSourceSamples => 'Samples';
+
+  @override
+  String get rptRevByPaymentTitle => 'By payment method';
+
+  @override
+  String get rptRevByBranchTitle => 'By branch';
+
+  @override
+  String get rptRevNoProfile => 'No branch';
+
+  @override
+  String get rptRevColNet => 'Net';
+
+  @override
+  String get rptRevColShare => 'Share';
+
+  @override
+  String rptRevAmountsIn(String currency) {
+    return 'Amounts in $currency';
+  }
+
+  @override
+  String get rptRevByHourTitle => 'Orders by hour';
+
+  @override
+  String rptRevHourTooltip(String hour, String orders, String amount) {
+    return '$hour:00 · $orders orders · $amount';
+  }
+
+  @override
+  String get rptRevFulfilmentTitle => 'Delivery vs pickup';
+
+  @override
+  String get rptRevDelivery => 'Delivery';
+
+  @override
+  String get rptRevPickup => 'Pickup';
+
+  @override
+  String get rptRevTopProductsTitle => 'Top 10 products';
+
+  @override
+  String get rptRevTopB2bTitle => 'Top 10 B2B customers';
+
+  @override
+  String get rptRevColProduct => 'Product';
+
+  @override
+  String get rptRevColQty => 'Qty';
+
+  @override
+  String get rptRevColCustomer => 'Customer';
+
+  @override
+  String rptRevUpdatedAt(String time) {
+    return 'Updated $time';
+  }
 }

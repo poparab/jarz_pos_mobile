@@ -81,6 +81,9 @@ class AppDrawer extends ConsumerWidget {
     final canAccessPurchaseInvoice =
         ref.watch(canAccessPurchaseInvoiceProvider);
     final canAccessReportsHub = ref.watch(canAccessReportsHubProvider);
+    // The revenue dashboard's endpoint takes JARZ Manager / Administrator
+    // only, the same set as every analytics report on the hub.
+    final canViewAllReports = ref.watch(canViewAllReportsProvider);
     // Mirrors `api/monthly_expenses.py`'s own gate (JARZ Manager,
     // Administrator, System Manager, Accounts Manager) — NOT the wider
     // manager-dashboard gate, and not the `ROLES.MANAGER` set behind Cash
@@ -622,6 +625,17 @@ class AppDrawer extends ConsumerWidget {
               children: [_DrawerHeaderTitle()],
             ),
           ),
+          // One tap from the menu to the day's revenue: top level, above every
+          // collapsible group, so it is never hidden inside a closed one.
+          if (canViewAllReports)
+            ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              leading: const Icon(Icons.insights),
+              title: Text(l10n.rptRevenueDashboardTitle),
+              selected: currentLocation == AppRoutes.reportsRevenueDashboard,
+              onTap: () => navigate(AppRoutes.reportsRevenueDashboard),
+            ),
           // Everything awaiting this user's approval, above the groups so it
           // is never hidden inside a collapsed one. Renders nothing when there
           // is nothing to do or the user approves nothing.

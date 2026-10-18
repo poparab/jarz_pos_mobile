@@ -26,6 +26,8 @@ const _base = {
 };
 
 const _allGated = {
+  // Top-level, above the groups; JARZ Manager / Administrator only.
+  'Revenue Dashboard',
   'Master Orders',
   'Live courier map',
   'B2B Mode',

@@ -18665,4 +18665,240 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatMetricsModEdited => 'متعدّل';
+
+  @override
+  String get rptRevenueDashboardTitle => 'لوحة الإيرادات';
+
+  @override
+  String get rptRevenueDashboardSubtitle =>
+      'اليوم وأمس وآخر ٧ أيام ومنذ بداية الشهر، قطاع الأعمال مقابل الأفراد';
+
+  @override
+  String get rptRevAtAGlance => 'نظرة سريعة';
+
+  @override
+  String get rptRevSnapshotNote =>
+      'دائمًا حتى اليوم، أيًّا كانت التواريخ المختارة بالأسفل';
+
+  @override
+  String get rptRevToday => 'اليوم';
+
+  @override
+  String get rptRevYesterday => 'أمس';
+
+  @override
+  String get rptRevLast7Days => 'آخر ٧ أيام';
+
+  @override
+  String get rptRevMonthToDate => 'منذ بداية الشهر';
+
+  @override
+  String get rptRevVsSameDayLastWeek => 'مقارنة بنفس اليوم الأسبوع الماضي';
+
+  @override
+  String get rptRevVsPrevious7Days => 'مقارنة بالـ ٧ أيام السابقة';
+
+  @override
+  String get rptRevVsSameDaysLastMonth => 'مقارنة بنفس الأيام الشهر الماضي';
+
+  @override
+  String get rptRevVsPreviousPeriod => 'مقارنة بالفترة السابقة';
+
+  @override
+  String get rptRevB2c => 'الأفراد (B2C)';
+
+  @override
+  String get rptRevB2b => 'قطاع الأعمال (B2B)';
+
+  @override
+  String get rptRevOther => 'أخرى (موظفين، عينات)';
+
+  @override
+  String get rptRevColB2c => 'أفراد';
+
+  @override
+  String get rptRevColB2b => 'أعمال';
+
+  @override
+  String get rptRevPeriodTitle => 'الفترة المختارة';
+
+  @override
+  String rptRevRange(String from, String to) {
+    return '$from – $to';
+  }
+
+  @override
+  String rptRevPreviousRange(String from, String to) {
+    return 'الفترة السابقة: $from – $to';
+  }
+
+  @override
+  String get rptRevNetSales => 'صافي المبيعات';
+
+  @override
+  String rptRevShareOfSales(String pct) {
+    return '$pct% من صافي المبيعات';
+  }
+
+  @override
+  String rptRevOrdersSplit(String b2c, String b2b, String other) {
+    return 'أفراد $b2c · أعمال $b2b · أخرى $other';
+  }
+
+  @override
+  String rptRevAovSplit(String b2c, String b2b) {
+    return 'أفراد $b2c · أعمال $b2b';
+  }
+
+  @override
+  String get rptRevDeliveryFees => 'رسوم التوصيل';
+
+  @override
+  String rptRevInclFees(String amount) {
+    return 'شامل الرسوم: $amount';
+  }
+
+  @override
+  String get rptRevDailyAverage => 'المتوسط اليومي';
+
+  @override
+  String rptRevDaysCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      many: '$count يومًا',
+      few: '$count أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+      zero: 'لا أيام',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rptRevNewCustomers(String count) {
+    return '$count جديد';
+  }
+
+  @override
+  String get rptRevReturns => 'المرتجعات';
+
+  @override
+  String rptRevReturnsCount(String count) {
+    return '$count فاتورة مرتجع';
+  }
+
+  @override
+  String get rptRevCancelled => 'الملغاة';
+
+  @override
+  String rptRevCancelledCount(String count) {
+    return '$count طلب ملغي';
+  }
+
+  @override
+  String get rptRevDiscounts => 'الخصومات';
+
+  @override
+  String get rptRevTrendTitle => 'اتجاه قطاع الأعمال مقابل الأفراد';
+
+  @override
+  String get rptRevPerDay => 'يوميًا';
+
+  @override
+  String get rptRevPerWeek => 'أسبوعيًا';
+
+  @override
+  String get rptRevPerMonth => 'شهريًا';
+
+  @override
+  String get rptRevSplitTitle => 'قطاع الأعمال مقابل الأفراد';
+
+  @override
+  String get rptRevBestWorstTitle => 'أفضل وأضعف يوم';
+
+  @override
+  String get rptRevBestDay => 'أفضل يوم';
+
+  @override
+  String get rptRevWorstDay => 'أضعف يوم';
+
+  @override
+  String get rptRevBySourceTitle => 'المبيعات حسب المصدر';
+
+  @override
+  String get rptRevSourcePos => 'نقطة البيع / الهاتف';
+
+  @override
+  String get rptRevSourceWoo => 'الموقع الإلكتروني';
+
+  @override
+  String get rptRevSourceTalabat => 'طلبات';
+
+  @override
+  String get rptRevSourcePartner => 'شريك';
+
+  @override
+  String get rptRevSourceStaff => 'الموظفين';
+
+  @override
+  String get rptRevSourceSamples => 'العينات';
+
+  @override
+  String get rptRevByPaymentTitle => 'حسب طريقة الدفع';
+
+  @override
+  String get rptRevByBranchTitle => 'حسب الفرع';
+
+  @override
+  String get rptRevNoProfile => 'بدون فرع';
+
+  @override
+  String get rptRevColNet => 'الصافي';
+
+  @override
+  String get rptRevColShare => 'النسبة';
+
+  @override
+  String rptRevAmountsIn(String currency) {
+    return 'المبالغ بـ$currency';
+  }
+
+  @override
+  String get rptRevByHourTitle => 'الطلبات حسب الساعة';
+
+  @override
+  String rptRevHourTooltip(String hour, String orders, String amount) {
+    return 'الساعة $hour:00 · $orders طلب · $amount';
+  }
+
+  @override
+  String get rptRevFulfilmentTitle => 'توصيل مقابل استلام';
+
+  @override
+  String get rptRevDelivery => 'توصيل';
+
+  @override
+  String get rptRevPickup => 'استلام من الفرع';
+
+  @override
+  String get rptRevTopProductsTitle => 'أفضل ١٠ منتجات';
+
+  @override
+  String get rptRevTopB2bTitle => 'أفضل ١٠ عملاء من قطاع الأعمال';
+
+  @override
+  String get rptRevColProduct => 'المنتج';
+
+  @override
+  String get rptRevColQty => 'الكمية';
+
+  @override
+  String get rptRevColCustomer => 'العميل';
+
+  @override
+  String rptRevUpdatedAt(String time) {
+    return 'آخر تحديث $time';
+  }
 }
