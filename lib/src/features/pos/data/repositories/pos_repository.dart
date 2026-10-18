@@ -11,6 +11,12 @@ import '../../../../core/utils/territory_label.dart';
 import '../../domain/models/delivery_slot.dart';
 import '../models/pos_models.dart';
 
+/// Set on an amendment cart line built from a draft whose server reply carried
+/// `amendment_line_rates`: that line already holds the source's custom price, or
+/// was reset to list on purpose. Never sent as an item field; it only decides
+/// whether the request says `keep_source_line_pricing: 0`.
+const amendmentPricingCarriedKey = 'amendment_pricing_carried';
+
 /// The server refused an order edit.
 ///
 /// `submit_invoice_amendment` refuses with HTTP 200 and
@@ -1220,6 +1226,13 @@ class PosRepository {
         employeePayment: amendmentEmployeePayment,
       );
       requestData['invoice_id'] = sourceInvoiceId;
+      // The cart carries the source's custom line prices itself, so a line with no
+      // override was reset to list by the operator: the server must not put the
+      // old price back. A cart with no such line (an older draft, or a reply
+      // without `amendment_line_rates`) leaves the server to inject them.
+      if (items.any((item) => item[amendmentPricingCarriedKey] == true)) {
+        requestData['keep_source_line_pricing'] = 0;
+      }
       // Propagate free-shipping suppression so the backend doesn't re-add
       // the territory shipping tax row on the replacement invoice.
       if (customer?['was_free_shipping'] == true) {

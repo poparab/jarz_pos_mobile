@@ -3853,6 +3853,7 @@ class PosNotifier extends StateNotifier<PosState> {
         if (customRate != null) 'custom_rate_override': customRate,
         if (customRate != null && catalogRate != null)
           'original_catalog_rate': catalogRate,
+        if (lineRates is Map) amendmentPricingCarriedKey: true,
         ...amendmentLineDiscounts(item),
       });
     }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jarz_pos/src/features/pos/data/repositories/pos_repository.dart';
 import '../../../helpers/mock_services.dart';
@@ -181,6 +183,51 @@ void main() {
         expect(request['data']['suppress_shipping_income'], equals(1));
         expect(request['data']['suppress_legacy_delivery_charges'], equals(1));
         expect(request['data'].containsKey('delivery_charges_json'), isFalse);
+      });
+
+      // Order 19041 (2026-10-18): a cart built from `amendment_line_rates` carries
+      // the source's custom prices itself, so the server must not re-inject them
+      // over a line the operator reset to list.
+      test('submitInvoiceAmendment - a line-rate-aware cart opts out of the server carry', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manager.submit_invoice_amendment',
+          createSuccessResponse(data: {'replacement_invoice_id': 'INV-AMD-19041'}),
+        );
+
+        await repository.submitInvoiceAmendment(
+          sourceInvoiceId: 'INV-ORIG-19041',
+          posProfile: 'Main POS',
+          items: [
+            {
+              'item_code': 'ITEM-001',
+              'quantity': 1,
+              'rate': 160.0,
+              amendmentPricingCarriedKey: true,
+            },
+          ],
+        );
+
+        final data = mockDio.requestLog.last['data'];
+        expect(data['keep_source_line_pricing'], equals(0));
+        final sent = jsonDecode(data['cart_json'] as String) as List;
+        expect((sent.first as Map).containsKey(amendmentPricingCarriedKey), isFalse);
+      });
+
+      test('submitInvoiceAmendment - an older cart leaves the carry to the server', () async {
+        mockDio.setResponse(
+          '/api/method/jarz_pos.api.manager.submit_invoice_amendment',
+          createSuccessResponse(data: {'replacement_invoice_id': 'INV-AMD-OLD'}),
+        );
+
+        await repository.submitInvoiceAmendment(
+          sourceInvoiceId: 'INV-ORIG-OLD',
+          posProfile: 'Main POS',
+          items: [
+            {'item_code': 'ITEM-001', 'quantity': 1, 'rate': 160.0},
+          ],
+        );
+
+        expect(mockDio.requestLog.last['data'].containsKey('keep_source_line_pricing'), isFalse);
       });
 
       // Woo #17862 (2026-10-06): the server refused the edit with HTTP 200 and
