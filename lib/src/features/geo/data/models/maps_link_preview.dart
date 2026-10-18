@@ -110,6 +110,12 @@ class MapsLinkPreview {
 
   bool get isOutsideServiceArea => reason == outsideServiceArea;
 
+  /// Backend reason for a link that names a Maps place (a shop shared from
+  /// Maps) but carries no point: only a dropped-pin share can be read.
+  static const String placeLinkNoPin = 'place_link_no_pin';
+
+  bool get isPlaceLink => reason == placeLinkNoPin;
+
   factory MapsLinkPreview.fromJson(Map<String, dynamic> json) {
     return MapsLinkPreview(
       success: _parseBool(json['success']),

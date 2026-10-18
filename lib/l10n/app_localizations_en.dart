@@ -6155,6 +6155,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This location is outside Egypt, so it cannot be a delivery address. Check the link.';
 
   @override
+  String get locationLinkErrorPlaceLink =>
+      'This link is a shop or place, not a pin. In Maps, long-press the customer’s exact spot to drop a pin, share that pin, and paste the new link.';
+
+  @override
   String locationLinkErrorTooFar(Object distance) {
     return 'This point is $distance — too far to be a delivery address. Check the link.';
   }

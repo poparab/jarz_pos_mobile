@@ -10187,6 +10187,12 @@ abstract class AppLocalizations {
   /// **'This location is outside Egypt, so it cannot be a delivery address. Check the link.'**
   String get locationLinkErrorOutsideArea;
 
+  /// Location link field: the pasted Maps link names a place (business) and has no coordinates; staff must share a dropped pin instead.
+  ///
+  /// In en, this message translates to:
+  /// **'This link is a shop or place, not a pin. In Maps, long-press the customer’s exact spot to drop a pin, share that pin, and paste the new link.'**
+  String get locationLinkErrorPlaceLink;
+
   /// No description provided for @locationLinkErrorTooFar.
   ///
   /// In en, this message translates to:

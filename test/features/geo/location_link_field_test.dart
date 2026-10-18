@@ -397,6 +397,38 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a shop shared from Maps asks for a dropped pin instead', (
+    tester,
+  ) async {
+    // What a `maps.app.goo.gl/...?g_st=ac` place share answers once expanded:
+    // a place name and Google's id, no point.
+    final repo = _FakeGeoRepository(
+      (_) => MapsLinkPreview.fromJson(const {
+        'success': true,
+        'resolved': false,
+        'pending': false,
+        'short_link': true,
+        'reason': 'place_link_no_pin',
+        'expanded_url':
+            'https://www.google.com/maps/place/Some+Cafe/data=!4m2!3m1!1s0x1:0x2',
+      }),
+    );
+    LocationLinkValue? emitted;
+
+    await _pumpField(
+      tester,
+      repository: repo,
+      onChanged: (value) => emitted = value,
+    );
+    await _paste(tester, 'https://maps.app.goo.gl/tdjgBvin5QKk8LKz7?g_st=ac');
+
+    expect(find.textContaining('not a pin'), findsOneWidget);
+    expect(find.textContaining('Could not read a location'), findsNothing);
+    expect(find.textContaining('Location confirmed'), findsNothing);
+    expect(emitted!.isConfirmed, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('surfaces a server failure as an inline error', (tester) async {
     final repo = _FakeGeoRepository(
       (_) => const MapsLinkPreview.failure('could not follow redirect'),

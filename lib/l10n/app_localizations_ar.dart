@@ -6127,6 +6127,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'الموقع ده برة مصر، فمينفعش يكون عنوان توصيل. راجع الرابط.';
 
   @override
+  String get locationLinkErrorPlaceLink =>
+      'الرابط ده لمحل أو مكان، مش دبوس. افتح الخرائط، دوس مطوّل على مكان العميل بالظبط لحد ما يظهر دبوس، شير الدبوس ده والصق الرابط الجديد.';
+
+  @override
   String locationLinkErrorTooFar(Object distance) {
     return 'النقطة دي $distance — بعيدة أوي على إنها عنوان توصيل. راجع الرابط.';
   }

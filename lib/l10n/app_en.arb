@@ -3101,6 +3101,8 @@
   "locationLinkErrorUnrecognized": "That does not look like a Maps link. Paste a Google Maps link or coordinates like 30.0444, 31.2357.",
   "locationLinkErrorUnresolved": "Could not read a location from this link. Open it in Maps, share it again, and paste the new link.",
   "locationLinkErrorOutsideArea": "This location is outside Egypt, so it cannot be a delivery address. Check the link.",
+  "locationLinkErrorPlaceLink": "This link is a shop or place, not a pin. In Maps, long-press the customer’s exact spot to drop a pin, share that pin, and paste the new link.",
+  "@locationLinkErrorPlaceLink": {"description": "Location link field: the pasted Maps link names a place (business) and has no coordinates; staff must share a dropped pin instead."},
   "locationLinkErrorTooFar": "This point is {distance} — too far to be a delivery address. Check the link.",
   "@locationLinkErrorTooFar": {
     "placeholders": {

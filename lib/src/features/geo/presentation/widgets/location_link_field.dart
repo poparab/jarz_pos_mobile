@@ -78,7 +78,14 @@ typedef LocationPreviewBuilder =
 
 enum _FieldState { empty, pending, checking, confirmed, error }
 
-enum _FieldError { unrecognized, unresolved, outsideArea, tooFar, network }
+enum _FieldError {
+  unrecognized,
+  unresolved,
+  placeLink,
+  outsideArea,
+  tooFar,
+  network,
+}
 
 /// Paste-a-Maps-link field with inline validation and a map preview.
 ///
@@ -337,9 +344,13 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
         // A point read correctly but outside Egypt gets its own wording:
         // "could not read" would send staff re-sharing a link that is fine
         // as a link and wrong as an address.
+        // A shop shared from Maps names a place, not a point; re-sharing it
+        // gives the same link, so tell staff to share a dropped pin instead.
         _error = preview.isOutsideServiceArea
             ? _FieldError.outsideArea
-            : _FieldError.unresolved;
+            : preview.isPlaceLink
+                ? _FieldError.placeLink
+                : _FieldError.unresolved;
       });
       _emit();
       return;
@@ -389,6 +400,8 @@ class _LocationLinkFieldState extends ConsumerState<LocationLinkField> {
         return l10n.locationLinkErrorUnrecognized;
       case _FieldError.unresolved:
         return l10n.locationLinkErrorUnresolved;
+      case _FieldError.placeLink:
+        return l10n.locationLinkErrorPlaceLink;
       case _FieldError.outsideArea:
         return l10n.locationLinkErrorOutsideArea;
       case _FieldError.tooFar:
