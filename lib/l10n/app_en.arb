@@ -10714,6 +10714,8 @@
   "@rptRevBranchCashError": {"description": "Revenue dashboard: the branch cash card failed to load."},
   "managerBarOrders": "Orders",
   "@managerBarOrders": {"description": "Manager bottom bar tab that opens the orders Kanban."},
+  "managerBarProducts": "Products",
+  "@managerBarProducts": {"description": "Manager bottom bar tab that opens the Final Products report; kept short to fit the bar."},
   "managerBarMore": "More",
   "@managerBarMore": {"description": "Manager bottom bar tab that opens the full side menu."}
 }

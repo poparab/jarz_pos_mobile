@@ -19110,5 +19110,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get managerBarOrders => 'Orders';
 
   @override
+  String get managerBarProducts => 'Products';
+
+  @override
   String get managerBarMore => 'More';
 }

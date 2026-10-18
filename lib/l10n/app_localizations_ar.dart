@@ -19106,5 +19106,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get managerBarOrders => 'الطلبات';
 
   @override
+  String get managerBarProducts => 'المنتجات';
+
+  @override
   String get managerBarMore => 'المزيد';
 }

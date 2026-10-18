@@ -293,7 +293,7 @@ class ManagerBottomBar extends StatelessWidget {
         const ValueKey('manager-bar-final-products'),
         Icons.inventory_2_outlined,
         Icons.inventory_2,
-        l10n.reportsFinalProducts,
+        l10n.managerBarProducts,
         () => onSelect(AppRoutes.reportsFinalProducts),
       ),
       _BarItem(

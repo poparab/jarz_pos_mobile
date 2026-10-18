@@ -263,7 +263,7 @@ void main() {
       expect(find.text('Today'), findsOneWidget);
       expect(find.text('Orders'), findsOneWidget);
       expect(find.text('Reports'), findsOneWidget);
-      expect(find.text('Final Products'), findsOneWidget);
+      expect(find.text('Products'), findsOneWidget);
       expect(find.text('More'), findsOneWidget);
 
       for (final k in [

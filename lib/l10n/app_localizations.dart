@@ -31719,6 +31719,12 @@ abstract class AppLocalizations {
   /// **'Orders'**
   String get managerBarOrders;
 
+  /// Manager bottom bar tab that opens the Final Products report; kept short to fit the bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get managerBarProducts;
+
   /// Manager bottom bar tab that opens the full side menu.
   ///
   /// In en, this message translates to:
