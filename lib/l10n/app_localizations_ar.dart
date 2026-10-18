@@ -9182,6 +9182,155 @@ class AppLocalizationsAr extends AppLocalizations {
   String get b2bGoToKanban => 'روح لبورد التوصيل';
 
   @override
+  String get b2bActiveTitle => 'عملائي';
+
+  @override
+  String get b2bActivePipelineBoard => 'لوحة المسار';
+
+  @override
+  String get b2bActiveSearchHint => 'ابحث باسم العميل أو المنطقة';
+
+  @override
+  String get b2bActiveKpiAccounts => 'العملاء النشطين';
+
+  @override
+  String b2bActiveKpiBilled(int days) {
+    return 'المبيعات آخر $days يوم';
+  }
+
+  @override
+  String b2bActiveKpiOrders(int days) {
+    return 'الطلبات آخر $days يوم';
+  }
+
+  @override
+  String get b2bActiveKpiOutstanding => 'المتبقي للتحصيل';
+
+  @override
+  String get b2bActiveKpiReorderDue => 'موعد إعادة الطلب';
+
+  @override
+  String get b2bActiveKpiNeedsAttention => 'يحتاج متابعة';
+
+  @override
+  String b2bActiveVsPrevious(int days) {
+    return 'مقارنة بالـ $days يوم السابقة';
+  }
+
+  @override
+  String get b2bActiveReorderOverdue => 'تأخر في إعادة الطلب';
+
+  @override
+  String get b2bActiveReorderDueSoon => 'قرب موعد الطلب';
+
+  @override
+  String b2bActiveReorderOk(String date) {
+    return 'الطلب القادم تقريبًا $date';
+  }
+
+  @override
+  String b2bActiveLastOrder(String date, String ago) {
+    return 'آخر طلب: $date ($ago)';
+  }
+
+  @override
+  String b2bActiveDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'من $count يوم',
+      one: 'امبارح',
+      zero: 'النهارده',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get b2bActiveNoOrders => 'لا توجد طلبات بعد';
+
+  @override
+  String b2bActiveFigPeriod(int days) {
+    return 'آخر $days يوم';
+  }
+
+  @override
+  String b2bActiveFigOrders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طلب',
+      few: '$count طلبات',
+      two: 'طلبان',
+      one: 'طلب واحد',
+      zero: 'لا طلبات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get b2bActiveFigLifetime => 'الإجمالي';
+
+  @override
+  String get b2bActiveFigAvgOrder => 'متوسط الطلب';
+
+  @override
+  String get b2bActiveFigOutstanding => 'المتبقي';
+
+  @override
+  String b2bActiveOldestUnpaid(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أقدم فاتورة غير مدفوعة من $count يوم',
+      few: 'أقدم فاتورة غير مدفوعة من $count أيام',
+      two: 'أقدم فاتورة غير مدفوعة من يومين',
+      one: 'أقدم فاتورة غير مدفوعة من يوم',
+      zero: 'أقدم فاتورة غير مدفوعة اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String b2bActiveNextAction(String action) {
+    return 'الخطوة الجاية: $action';
+  }
+
+  @override
+  String b2bActiveNextActionOn(String action, String date) {
+    return 'الخطوة الجاية: $action يوم $date';
+  }
+
+  @override
+  String b2bActiveLastNote(String note) {
+    return 'آخر ملاحظة: $note';
+  }
+
+  @override
+  String get b2bActiveAlertOldUnpaid => 'فاتورة قديمة غير مدفوعة';
+
+  @override
+  String get b2bActiveAlertLabels => 'تنبيه الليبلات';
+
+  @override
+  String get b2bActiveAlertNoCustomer => 'غير مربوط بعميل';
+
+  @override
+  String get b2bActiveCall => 'اتصال';
+
+  @override
+  String get b2bActiveEmptyTitle => 'لا يوجد عملاء نشطين بعد';
+
+  @override
+  String get b2bActiveEmptyBody =>
+      'العملاء اللي بتنقلهم لمرحلة \"نشط\" في لوحة المسار هيظهروا هنا.';
+
+  @override
+  String get b2bActiveNoMatches => 'لا يوجد عملاء مطابقون للبحث';
+
+  @override
+  String get b2bActiveClearFilters => 'مسح التصفية';
+
+  @override
   String get b2bNewLead => 'عميل محتمل جديد';
 
   @override
@@ -18671,14 +18820,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rptRevenueDashboardSubtitle =>
-      'اليوم وأمس وآخر ٧ أيام ومنذ بداية الشهر، قطاع الأعمال مقابل الأفراد';
+      'اليوم مقابل نفس اليوم الأسبوع الماضي، وما يحتاج متابعة';
 
   @override
   String get rptRevAtAGlance => 'نظرة سريعة';
-
-  @override
-  String get rptRevSnapshotNote =>
-      'دائمًا حتى اليوم، أيًّا كانت التواريخ المختارة بالأسفل';
 
   @override
   String get rptRevToday => 'اليوم';
@@ -18693,16 +18838,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rptRevMonthToDate => 'منذ بداية الشهر';
 
   @override
-  String get rptRevVsSameDayLastWeek => 'مقارنة بنفس اليوم الأسبوع الماضي';
-
-  @override
-  String get rptRevVsPrevious7Days => 'مقارنة بالـ ٧ أيام السابقة';
-
-  @override
-  String get rptRevVsSameDaysLastMonth => 'مقارنة بنفس الأيام الشهر الماضي';
-
-  @override
-  String get rptRevVsPreviousPeriod => 'مقارنة بالفترة السابقة';
+  String get rptRevCustom => 'فترة مخصصة';
 
   @override
   String get rptRevB2c => 'الأفراد (B2C)';
@@ -18720,112 +18856,177 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rptRevColB2b => 'أعمال';
 
   @override
-  String get rptRevPeriodTitle => 'الفترة المختارة';
-
-  @override
-  String rptRevRange(String from, String to) {
-    return '$from – $to';
-  }
-
-  @override
-  String rptRevPreviousRange(String from, String to) {
-    return 'الفترة السابقة: $from – $to';
-  }
+  String get rptRevColNet => 'الصافي';
 
   @override
   String get rptRevNetSales => 'صافي المبيعات';
 
   @override
-  String rptRevShareOfSales(String pct) {
-    return '$pct% من صافي المبيعات';
+  String get rptRevAverageOrder => 'متوسط الطلب';
+
+  @override
+  String rptRevVsPeriod(String period) {
+    return 'مقابل $period';
   }
 
   @override
-  String rptRevOrdersSplit(String b2c, String b2b, String other) {
-    return 'أفراد $b2c · أعمال $b2b · أخرى $other';
+  String rptRevVsPeriodUpTo(String period, String time) {
+    return 'مقابل $period حتى الساعة $time';
   }
 
   @override
-  String rptRevAovSplit(String b2c, String b2b) {
-    return 'أفراد $b2c · أعمال $b2b';
+  String rptRevCaptionB2c(String amount) {
+    return 'أفراد $amount';
+  }
+
+  @override
+  String rptRevCaptionB2b(String amount) {
+    return 'أعمال $amount';
+  }
+
+  @override
+  String rptRevNewCustomersCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString عميل جديد',
+      few: '$countString عملاء جدد',
+      two: 'عميلان جديدان',
+      one: 'عميل جديد واحد',
+      zero: 'لا عملاء جدد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rptRevDeliveryPickup(String delivery, String pickup) {
+    return '$delivery توصيل / $pickup استلام';
+  }
+
+  @override
+  String rptRevDiscountsAmount(String amount) {
+    return 'خصومات $amount';
+  }
+
+  @override
+  String rptRevReturnsAmount(String amount) {
+    return 'مرتجعات $amount';
+  }
+
+  @override
+  String rptRevCancelledShort(String count) {
+    return 'ملغي $count';
+  }
+
+  @override
+  String rptRevTotalInclShipping(String amount) {
+    return 'الإجمالي شامل الشحن $amount';
+  }
+
+  @override
+  String rptRevDailyAverageAmount(String amount) {
+    return 'المتوسط اليومي $amount';
+  }
+
+  @override
+  String rptRevBestDayOn(String day, String amount) {
+    return 'الأفضل $day $amount';
+  }
+
+  @override
+  String rptRevWorstDayOn(String day, String amount) {
+    return 'الأضعف $day $amount';
   }
 
   @override
   String get rptRevDeliveryFees => 'رسوم التوصيل';
 
   @override
-  String rptRevInclFees(String amount) {
-    return 'شامل الرسوم: $amount';
-  }
-
-  @override
   String get rptRevDailyAverage => 'المتوسط اليومي';
-
-  @override
-  String rptRevDaysCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count يوم',
-      many: '$count يومًا',
-      few: '$count أيام',
-      two: 'يومان',
-      one: 'يوم واحد',
-      zero: 'لا أيام',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String rptRevNewCustomers(String count) {
-    return '$count جديد';
-  }
 
   @override
   String get rptRevReturns => 'المرتجعات';
 
   @override
-  String rptRevReturnsCount(String count) {
-    return '$count فاتورة مرتجع';
-  }
-
-  @override
   String get rptRevCancelled => 'الملغاة';
-
-  @override
-  String rptRevCancelledCount(String count) {
-    return '$count طلب ملغي';
-  }
 
   @override
   String get rptRevDiscounts => 'الخصومات';
 
   @override
-  String get rptRevTrendTitle => 'اتجاه قطاع الأعمال مقابل الأفراد';
+  String get rptRevNeedsAttention => 'يحتاج متابعة';
 
   @override
-  String get rptRevPerDay => 'يوميًا';
+  String get rptRevNothingNeedsAttention => 'لا يوجد ما يحتاج متابعة';
 
   @override
-  String get rptRevPerWeek => 'أسبوعيًا';
+  String rptRevAttnCancelled(int count, String amount) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString طلب ملغي',
+      few: '$countString طلبات ملغاة',
+      two: 'طلبان ملغيان',
+      one: 'طلب ملغي واحد',
+    );
+    return '$_temp0 · $amount';
+  }
 
   @override
-  String get rptRevPerMonth => 'شهريًا';
+  String rptRevAttnReturns(int count, String amount) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString مرتجع',
+      few: '$countString مرتجعات',
+      two: 'مرتجعان',
+      one: 'مرتجع واحد',
+    );
+    return '$_temp0 · $amount';
+  }
 
   @override
-  String get rptRevSplitTitle => 'قطاع الأعمال مقابل الأفراد';
+  String rptRevAttnBranchDrop(
+    String name,
+    String pct,
+    String amount,
+    String compare,
+  ) {
+    return 'مبيعات الأفراد في $name أقل بـ $pct% ($amount مقابل $compare)';
+  }
 
   @override
-  String get rptRevBestWorstTitle => 'أفضل وأضعف يوم';
+  String rptRevAttnSourceDrop(
+    String name,
+    String pct,
+    String amount,
+    String compare,
+  ) {
+    return '$name أقل بـ $pct% ($amount مقابل $compare)';
+  }
 
   @override
-  String get rptRevBestDay => 'أفضل يوم';
+  String rptRevAttnDiscountHigh(String amount, String pct, String compare) {
+    return 'الخصومات $amount = $pct% من المبيعات (مقابل $compare%)';
+  }
 
   @override
-  String get rptRevWorstDay => 'أضعف يوم';
+  String get rptRevWhereFrom => 'مصادر المبيعات';
 
   @override
-  String get rptRevBySourceTitle => 'المبيعات حسب المصدر';
+  String get rptRevBySourceTitle => 'حسب المصدر';
 
   @override
   String get rptRevSourcePos => 'نقطة البيع / الهاتف';
@@ -18855,18 +19056,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rptRevNoProfile => 'بدون فرع';
 
   @override
-  String get rptRevColNet => 'الصافي';
+  String get rptRevByHour => 'حسب الساعة';
 
   @override
-  String get rptRevColShare => 'النسبة';
-
-  @override
-  String rptRevAmountsIn(String currency) {
-    return 'المبالغ بـ$currency';
-  }
-
-  @override
-  String get rptRevByHourTitle => 'الطلبات حسب الساعة';
+  String get rptRevByHourSubtitle => 'صافي المبيعات لكل ساعة';
 
   @override
   String rptRevHourTooltip(String hour, String orders, String amount) {
@@ -18874,28 +19067,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get rptRevFulfilmentTitle => 'توصيل مقابل استلام';
+  String get rptRevLinkProducts => 'المنتجات';
 
   @override
-  String get rptRevDelivery => 'توصيل';
-
-  @override
-  String get rptRevPickup => 'استلام من الفرع';
-
-  @override
-  String get rptRevTopProductsTitle => 'أفضل ١٠ منتجات';
-
-  @override
-  String get rptRevTopB2bTitle => 'أفضل ١٠ عملاء من قطاع الأعمال';
-
-  @override
-  String get rptRevColProduct => 'المنتج';
-
-  @override
-  String get rptRevColQty => 'الكمية';
-
-  @override
-  String get rptRevColCustomer => 'العميل';
+  String get rptRevLinkB2b => 'عملاء قطاع الأعمال';
 
   @override
   String rptRevUpdatedAt(String time) {

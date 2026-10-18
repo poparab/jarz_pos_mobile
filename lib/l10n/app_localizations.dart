@@ -15255,6 +15255,204 @@ abstract class AppLocalizations {
   /// **'Go to Dispatch Kanban'**
   String get b2bGoToKanban;
 
+  /// No description provided for @b2bActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My customers'**
+  String get b2bActiveTitle;
+
+  /// No description provided for @b2bActivePipelineBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Pipeline board'**
+  String get b2bActivePipelineBoard;
+
+  /// No description provided for @b2bActiveSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search customer or area'**
+  String get b2bActiveSearchHint;
+
+  /// No description provided for @b2bActiveKpiAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Active accounts'**
+  String get b2bActiveKpiAccounts;
+
+  /// No description provided for @b2bActiveKpiBilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed, last {days} days'**
+  String b2bActiveKpiBilled(int days);
+
+  /// No description provided for @b2bActiveKpiOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders, last {days} days'**
+  String b2bActiveKpiOrders(int days);
+
+  /// No description provided for @b2bActiveKpiOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get b2bActiveKpiOutstanding;
+
+  /// No description provided for @b2bActiveKpiReorderDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder due'**
+  String get b2bActiveKpiReorderDue;
+
+  /// No description provided for @b2bActiveKpiNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get b2bActiveKpiNeedsAttention;
+
+  /// No description provided for @b2bActiveVsPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'vs previous {days} days'**
+  String b2bActiveVsPrevious(int days);
+
+  /// No description provided for @b2bActiveReorderOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder overdue'**
+  String get b2bActiveReorderOverdue;
+
+  /// No description provided for @b2bActiveReorderDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get b2bActiveReorderDueSoon;
+
+  /// No description provided for @b2bActiveReorderOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Next order about {date}'**
+  String b2bActiveReorderOk(String date);
+
+  /// No description provided for @b2bActiveLastOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Last order: {date} ({ago})'**
+  String b2bActiveLastOrder(String date, String ago);
+
+  /// No description provided for @b2bActiveDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{today} =1{yesterday} other{{count} days ago}}'**
+  String b2bActiveDaysAgo(int count);
+
+  /// No description provided for @b2bActiveNoOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders yet'**
+  String get b2bActiveNoOrders;
+
+  /// No description provided for @b2bActiveFigPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {days} days'**
+  String b2bActiveFigPeriod(int days);
+
+  /// No description provided for @b2bActiveFigOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 order} other{{count} orders}}'**
+  String b2bActiveFigOrders(int count);
+
+  /// No description provided for @b2bActiveFigLifetime.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifetime'**
+  String get b2bActiveFigLifetime;
+
+  /// No description provided for @b2bActiveFigAvgOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg order'**
+  String get b2bActiveFigAvgOrder;
+
+  /// No description provided for @b2bActiveFigOutstanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding'**
+  String get b2bActiveFigOutstanding;
+
+  /// No description provided for @b2bActiveOldestUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{oldest unpaid 1 day} other{oldest unpaid {count} days}}'**
+  String b2bActiveOldestUnpaid(int count);
+
+  /// No description provided for @b2bActiveNextAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {action}'**
+  String b2bActiveNextAction(String action);
+
+  /// No description provided for @b2bActiveNextActionOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {action} on {date}'**
+  String b2bActiveNextActionOn(String action, String date);
+
+  /// No description provided for @b2bActiveLastNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Last note: {note}'**
+  String b2bActiveLastNote(String note);
+
+  /// No description provided for @b2bActiveAlertOldUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Old unpaid invoice'**
+  String get b2bActiveAlertOldUnpaid;
+
+  /// No description provided for @b2bActiveAlertLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels alert'**
+  String get b2bActiveAlertLabels;
+
+  /// No description provided for @b2bActiveAlertNoCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'No customer linked'**
+  String get b2bActiveAlertNoCustomer;
+
+  /// No description provided for @b2bActiveCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get b2bActiveCall;
+
+  /// No description provided for @b2bActiveEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No active customers yet'**
+  String get b2bActiveEmptyTitle;
+
+  /// No description provided for @b2bActiveEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts you move to the Active stage on the pipeline board show up here.'**
+  String get b2bActiveEmptyBody;
+
+  /// No description provided for @b2bActiveNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers match your search'**
+  String get b2bActiveNoMatches;
+
+  /// No description provided for @b2bActiveClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get b2bActiveClearFilters;
+
   /// No description provided for @b2bNewLead.
   ///
   /// In en, this message translates to:
@@ -31130,7 +31328,7 @@ abstract class AppLocalizations {
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Today, yesterday, last 7 days and month to date, B2B vs B2C'**
+  /// **'Today vs the same day last week, and what needs attention'**
   String get rptRevenueDashboardSubtitle;
 
   /// Revenue dashboard report.
@@ -31138,12 +31336,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'At a glance'**
   String get rptRevAtAGlance;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'Always up to today, whatever dates are picked below'**
-  String get rptRevSnapshotNote;
 
   /// Revenue dashboard report.
   ///
@@ -31172,26 +31364,8 @@ abstract class AppLocalizations {
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'vs same day last week'**
-  String get rptRevVsSameDayLastWeek;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'vs previous 7 days'**
-  String get rptRevVsPrevious7Days;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'vs same days last month'**
-  String get rptRevVsSameDaysLastMonth;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'vs previous period'**
-  String get rptRevVsPreviousPeriod;
+  /// **'Custom'**
+  String get rptRevCustom;
 
   /// Revenue dashboard report.
   ///
@@ -31226,20 +31400,8 @@ abstract class AppLocalizations {
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Selected period'**
-  String get rptRevPeriodTitle;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'{from} – {to}'**
-  String rptRevRange(String from, String to);
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'Previous: {from} – {to}'**
-  String rptRevPreviousRange(String from, String to);
+  /// **'Net'**
+  String get rptRevColNet;
 
   /// Revenue dashboard report.
   ///
@@ -31250,20 +31412,86 @@ abstract class AppLocalizations {
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'{pct}% of net sales'**
-  String rptRevShareOfSales(String pct);
+  /// **'Average order'**
+  String get rptRevAverageOrder;
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'B2C {b2c} · B2B {b2b} · other {other}'**
-  String rptRevOrdersSplit(String b2c, String b2b, String other);
+  /// **'vs {period}'**
+  String rptRevVsPeriod(String period);
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'B2C {b2c} · B2B {b2b}'**
-  String rptRevAovSplit(String b2c, String b2b);
+  /// **'vs {period} up to {time}'**
+  String rptRevVsPeriodUpTo(String period, String time);
+
+  /// Revenue dashboard report.
+  ///
+  /// In en, this message translates to:
+  /// **'B2C {amount}'**
+  String rptRevCaptionB2c(String amount);
+
+  /// Revenue dashboard report.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B {amount}'**
+  String rptRevCaptionB2b(String amount);
+
+  /// Revenue dashboard report.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 new customer} other{{count} new customers}}'**
+  String rptRevNewCustomersCount(int count);
+
+  /// Revenue dashboard report.
+  ///
+  /// In en, this message translates to:
+  /// **'{delivery} delivery / {pickup} pickup'**
+  String rptRevDeliveryPickup(String delivery, String pickup);
+
+  /// Revenue dashboard report.
+  ///
+  /// In en, this message translates to:
+  /// **'Discounts {amount}'**
+  String rptRevDiscountsAmount(String amount);
+
+  /// Revenue dashboard report.
+  ///
+  /// In en, this message translates to:
+  /// **'Returns {amount}'**
+  String rptRevReturnsAmount(String amount);
+
+  /// Revenue dashboard report.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled {count}'**
+  String rptRevCancelledShort(String count);
+
+  /// Revenue dashboard report.
+  ///
+  /// In en, this message translates to:
+  /// **'Total incl. shipping {amount}'**
+  String rptRevTotalInclShipping(String amount);
+
+  /// Revenue dashboard report.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily average {amount}'**
+  String rptRevDailyAverageAmount(String amount);
+
+  /// Revenue dashboard report.
+  ///
+  /// In en, this message translates to:
+  /// **'Best {day} {amount}'**
+  String rptRevBestDayOn(String day, String amount);
+
+  /// Revenue dashboard report.
+  ///
+  /// In en, this message translates to:
+  /// **'Worst {day} {amount}'**
+  String rptRevWorstDayOn(String day, String amount);
 
   /// Revenue dashboard report.
   ///
@@ -31274,26 +31502,8 @@ abstract class AppLocalizations {
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Incl. fees: {amount}'**
-  String rptRevInclFees(String amount);
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
   /// **'Daily average'**
   String get rptRevDailyAverage;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 day} other{{count} days}}'**
-  String rptRevDaysCount(int count);
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} new'**
-  String rptRevNewCustomers(String count);
 
   /// Revenue dashboard report.
   ///
@@ -31304,20 +31514,8 @@ abstract class AppLocalizations {
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'{count} return invoices'**
-  String rptRevReturnsCount(String count);
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
   /// **'Cancelled'**
   String get rptRevCancelled;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} orders cancelled'**
-  String rptRevCancelledCount(String count);
 
   /// Revenue dashboard report.
   ///
@@ -31328,55 +31526,65 @@ abstract class AppLocalizations {
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'B2B vs B2C trend'**
-  String get rptRevTrendTitle;
+  /// **'Needs attention'**
+  String get rptRevNeedsAttention;
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Per day'**
-  String get rptRevPerDay;
+  /// **'Nothing needs attention'**
+  String get rptRevNothingNeedsAttention;
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Per week'**
-  String get rptRevPerWeek;
+  /// **'{count, plural, =1{1 cancelled order} other{{count} cancelled orders}} · {amount}'**
+  String rptRevAttnCancelled(int count, String amount);
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Per month'**
-  String get rptRevPerMonth;
+  /// **'{count, plural, =1{1 return} other{{count} returns}} · {amount}'**
+  String rptRevAttnReturns(int count, String amount);
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'B2B vs B2C'**
-  String get rptRevSplitTitle;
+  /// **'{name} B2C down {pct}% ({amount} vs {compare})'**
+  String rptRevAttnBranchDrop(
+    String name,
+    String pct,
+    String amount,
+    String compare,
+  );
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Best and worst day'**
-  String get rptRevBestWorstTitle;
+  /// **'{name} down {pct}% ({amount} vs {compare})'**
+  String rptRevAttnSourceDrop(
+    String name,
+    String pct,
+    String amount,
+    String compare,
+  );
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Best day'**
-  String get rptRevBestDay;
+  /// **'Discounts {amount} = {pct}% of sales (vs {compare}%)'**
+  String rptRevAttnDiscountHigh(String amount, String pct, String compare);
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Worst day'**
-  String get rptRevWorstDay;
+  /// **'Where it came from'**
+  String get rptRevWhereFrom;
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Sales by source'**
+  /// **'By source'**
   String get rptRevBySourceTitle;
 
   /// Revenue dashboard report.
@@ -31436,26 +31644,14 @@ abstract class AppLocalizations {
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Net'**
-  String get rptRevColNet;
+  /// **'By hour'**
+  String get rptRevByHour;
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Share'**
-  String get rptRevColShare;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'Amounts in {currency}'**
-  String rptRevAmountsIn(String currency);
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'Orders by hour'**
-  String get rptRevByHourTitle;
+  /// **'Net sales per hour'**
+  String get rptRevByHourSubtitle;
 
   /// Revenue dashboard report.
   ///
@@ -31466,50 +31662,14 @@ abstract class AppLocalizations {
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Delivery vs pickup'**
-  String get rptRevFulfilmentTitle;
+  /// **'Products'**
+  String get rptRevLinkProducts;
 
   /// Revenue dashboard report.
   ///
   /// In en, this message translates to:
-  /// **'Delivery'**
-  String get rptRevDelivery;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'Pickup'**
-  String get rptRevPickup;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'Top 10 products'**
-  String get rptRevTopProductsTitle;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'Top 10 B2B customers'**
-  String get rptRevTopB2bTitle;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'Product'**
-  String get rptRevColProduct;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'Qty'**
-  String get rptRevColQty;
-
-  /// Revenue dashboard report.
-  ///
-  /// In en, this message translates to:
-  /// **'Customer'**
-  String get rptRevColCustomer;
+  /// **'B2B clients'**
+  String get rptRevLinkB2b;
 
   /// Revenue dashboard report.
   ///

@@ -2,7 +2,7 @@
   "generated_at": "2026-10-18 14:05:11",
   "today": "2026-10-18",
   "filters": {
-    "date_from": "2026-10-12",
+    "date_from": "2026-10-18",
     "date_to": "2026-10-18",
     "branch": null
   },
@@ -10,271 +10,305 @@
     "today": {
       "label_from": "2026-10-18",
       "label_to": "2026-10-18",
-      "net_sales": 12500.0,
-      "b2c": 9800.0,
-      "b2b": 2500.0,
-      "other": 200.0,
-      "orders": 31,
-      "b2c_orders": 27,
-      "b2b_orders": 3,
-      "aov": 403.23,
-      "compare_net_sales": 11000.0,
-      "compare_orders": 28,
-      "change_pct": 13.6,
+      "net_sales": 4682.5,
+      "b2c": 4562.5,
+      "b2b": 0.0,
+      "other": 120.0,
+      "orders": 18,
+      "b2c_orders": 17,
+      "b2b_orders": 0,
+      "aov": 279.58,
+      "compare_net_sales": 7319.52,
+      "compare_orders": 20,
+      "change_pct": -36.0,
       "compare_from": "2026-10-11",
-      "compare_to": "2026-10-11"
+      "compare_to": "2026-10-11",
+      "compare_aov": 365.98,
+      "orders_change_pct": -10.0,
+      "aov_change_pct": -23.6,
+      "compare_cut_at": "14:05"
     },
     "yesterday": {
       "label_from": "2026-10-17",
       "label_to": "2026-10-17",
-      "net_sales": 9600.0,
-      "b2c": 8100.0,
-      "b2b": 1500.0,
-      "other": 0.0,
-      "orders": 24,
-      "b2c_orders": 22,
-      "b2b_orders": 2,
-      "aov": 400.0,
-      "compare_net_sales": 10400.0,
-      "compare_orders": 26,
-      "change_pct": -7.7,
+      "net_sales": 12243.38,
+      "b2c": 12123.38,
+      "b2b": 0.0,
+      "other": 120.0,
+      "orders": 37,
+      "b2c_orders": 36,
+      "b2b_orders": 0,
+      "aov": 330.9,
+      "compare_net_sales": 12330.92,
+      "compare_orders": 36,
+      "change_pct": -0.7,
       "compare_from": "2026-10-10",
-      "compare_to": "2026-10-10"
+      "compare_to": "2026-10-10",
+      "compare_aov": 342.53,
+      "orders_change_pct": 2.8,
+      "aov_change_pct": -3.4,
+      "compare_cut_at": null
     },
     "last_7_days": {
       "label_from": "2026-10-12",
       "label_to": "2026-10-18",
-      "net_sales": 78250.0,
-      "b2c": 61250.0,
-      "b2b": 16000.0,
-      "other": 1000.0,
-      "orders": 192,
-      "b2c_orders": 170,
-      "b2b_orders": 18,
-      "aov": 407.55,
-      "compare_net_sales": 70100.0,
-      "compare_orders": 180,
-      "change_pct": 11.6,
+      "net_sales": 84781.18,
+      "b2c": 79440.15,
+      "b2b": 4501.03,
+      "other": 840.0,
+      "orders": 241,
+      "b2c_orders": 232,
+      "b2b_orders": 2,
+      "aov": 353.24,
+      "compare_net_sales": 88829.39,
+      "compare_orders": 245,
+      "change_pct": -4.6,
       "compare_from": "2026-10-05",
-      "compare_to": "2026-10-11"
+      "compare_to": "2026-10-11",
+      "compare_aov": 362.57,
+      "orders_change_pct": -1.6,
+      "aov_change_pct": -2.6,
+      "compare_cut_at": "14:05"
     },
     "month_to_date": {
       "label_from": "2026-10-01",
       "label_to": "2026-10-18",
-      "net_sales": 201400.0,
-      "b2c": 158400.0,
-      "b2b": 41000.0,
-      "other": 2000.0,
-      "orders": 498,
-      "b2c_orders": 445,
-      "b2b_orders": 45,
-      "aov": 404.42,
-      "compare_net_sales": 0.0,
-      "compare_orders": 0,
-      "change_pct": null,
+      "net_sales": 232751.71,
+      "b2c": 219580.43,
+      "b2b": 11011.28,
+      "other": 2160.0,
+      "orders": 655,
+      "b2c_orders": 632,
+      "b2b_orders": 5,
+      "aov": 355.88,
+      "compare_net_sales": 237585.75,
+      "compare_orders": 663,
+      "change_pct": -2.0,
       "compare_from": "2026-09-01",
-      "compare_to": "2026-09-18"
+      "compare_to": "2026-09-18",
+      "compare_aov": 358.35,
+      "orders_change_pct": -1.2,
+      "aov_change_pct": -0.7,
+      "compare_cut_at": "14:05"
     }
   },
   "summary": {
-    "net_sales": 78250.0,
-    "b2c": 61250.0,
-    "b2b": 16000.0,
-    "staff": 650.0,
-    "samples": 350.0,
-    "shipping_income": 5420.0,
-    "total_revenue": 83670.0,
-    "orders": 192,
-    "b2c_orders": 170,
-    "b2b_orders": 18,
-    "other_orders": 4,
-    "aov": 407.55,
-    "b2c_aov": 360.29,
-    "b2b_aov": 888.89,
-    "b2b_share_pct": 20.4,
-    "returns": 2,
-    "returns_value": 740.0,
-    "cancelled": 3,
-    "cancelled_value": 1210.0,
-    "discount_total": 2315.5,
-    "customers": 161,
-    "new_customers": 47,
-    "days": 7,
-    "daily_average": 11178.57,
+    "net_sales": 4682.5,
+    "b2c": 4562.5,
+    "b2b": 0.0,
+    "staff": 120.0,
+    "samples": 0.0,
+    "shipping_income": 405.0,
+    "total_revenue": 5087.5,
+    "orders": 18,
+    "b2c_orders": 17,
+    "b2b_orders": 0,
+    "other_orders": 1,
+    "aov": 279.58,
+    "b2c_aov": 288.97,
+    "b2b_aov": null,
+    "b2b_share_pct": 0.0,
+    "returns": 1,
+    "returns_value": 350.0,
+    "cancelled": 2,
+    "cancelled_value": 780.0,
+    "discount_total": 147.37,
+    "customers": 58,
+    "new_customers": 9,
+    "days": 1,
+    "daily_average": 4682.5,
     "best_day": {
-      "date": "2026-10-16",
-      "net_sales": 14900.0
+      "date": "2026-10-18",
+      "net_sales": 4682.5
     },
     "worst_day": {
-      "date": "2026-10-13",
-      "net_sales": 7650.0
+      "date": "2026-10-18",
+      "net_sales": 4682.5
     },
     "previous": {
-      "date_from": "2026-10-05",
+      "date_from": "2026-10-11",
       "date_to": "2026-10-11",
-      "net_sales": 70100.0,
-      "b2c": 57100.0,
-      "b2b": 12200.0,
-      "orders": 180,
-      "change_pct": 11.6,
-      "b2c_change_pct": 7.3,
-      "b2b_change_pct": 31.1,
-      "orders_change_pct": -2.5
+      "net_sales": 7319.52,
+      "b2c": 7199.52,
+      "b2b": 0.0,
+      "orders": 20,
+      "change_pct": -36.0,
+      "b2c_change_pct": -36.6,
+      "b2b_change_pct": null,
+      "orders_change_pct": -10.0,
+      "aov": 365.98,
+      "aov_change_pct": -23.6,
+      "discount_total": 215.99,
+      "cut_at": "14:05"
     }
   },
+  "attention": [
+    {
+      "kind": "cancelled",
+      "severity": "medium",
+      "count": 2,
+      "value": 780.0
+    },
+    {
+      "kind": "returns",
+      "severity": "medium",
+      "count": 1,
+      "value": 350.0
+    },
+    {
+      "kind": "branch_drop",
+      "severity": "high",
+      "name": "Zamalek",
+      "net_sales": 808.49,
+      "compare_net_sales": 2422.73,
+      "change_pct": -66.6
+    },
+    {
+      "kind": "branch_drop",
+      "severity": "medium",
+      "name": "Dokki",
+      "net_sales": 1696.58,
+      "compare_net_sales": 2452.79,
+      "change_pct": -30.8
+    },
+    {
+      "kind": "source_drop",
+      "severity": "high",
+      "name": "talabat",
+      "net_sales": 316.58,
+      "compare_net_sales": 1352.16,
+      "change_pct": -76.6
+    },
+    {
+      "kind": "source_drop",
+      "severity": "medium",
+      "name": "woo",
+      "net_sales": 1765.49,
+      "compare_net_sales": 2748.96,
+      "change_pct": -35.8
+    }
+  ],
   "granularity": "day",
   "trend": [
     {
-      "date": "2026-10-12",
-      "b2c": 8200.0,
-      "b2b": 1800.0,
-      "other": 0.0,
-      "net_sales": 10000.0,
-      "orders": 26
-    },
-    {
-      "date": "2026-10-13",
-      "b2c": 6650.0,
-      "b2b": 1000.0,
-      "other": 0.0,
-      "net_sales": 7650.0,
-      "orders": 20
-    },
-    {
-      "date": "2026-10-14",
-      "b2c": 8900.0,
-      "b2b": 2600.0,
-      "other": 300.0,
-      "net_sales": 11800.0,
-      "orders": 29
-    },
-    {
-      "date": "2026-10-15",
-      "b2c": 8400.0,
-      "b2b": 2100.0,
-      "other": 0.0,
-      "net_sales": 10500.0,
-      "orders": 27
-    },
-    {
-      "date": "2026-10-16",
-      "b2c": 11200.0,
-      "b2b": 3200.0,
-      "other": 500.0,
-      "net_sales": 14900.0,
-      "orders": 35
-    },
-    {
-      "date": "2026-10-17",
-      "b2c": 8100.0,
-      "b2b": 1500.0,
-      "other": 0.0,
-      "net_sales": 9600.0,
-      "orders": 24
-    },
-    {
       "date": "2026-10-18",
-      "b2c": 9800.0,
-      "b2b": 3800.0,
-      "other": 200.0,
-      "net_sales": 13800.0,
-      "orders": 31
+      "b2c": 4562.5,
+      "b2b": 0.0,
+      "other": 120.0,
+      "net_sales": 4682.5,
+      "orders": 18
     }
   ],
   "by_source": [
     {
       "source": "pos",
-      "net_sales": 33200.0,
-      "orders": 88,
-      "share_pct": 42.4
+      "net_sales": 1894.03,
+      "orders": 5,
+      "share_pct": 40.4,
+      "compare_net_sales": 2347.61,
+      "change_pct": -19.3
     },
     {
       "source": "woo",
-      "net_sales": 21400.0,
-      "orders": 61,
-      "share_pct": 27.3
+      "net_sales": 1765.49,
+      "orders": 6,
+      "share_pct": 37.7,
+      "compare_net_sales": 2748.96,
+      "change_pct": -35.8
     },
     {
       "source": "talabat",
-      "net_sales": 4650.0,
-      "orders": 15,
-      "share_pct": 5.9
+      "net_sales": 316.58,
+      "orders": 3,
+      "share_pct": 6.8,
+      "compare_net_sales": 1352.16,
+      "change_pct": -76.6
     },
     {
       "source": "partner",
-      "net_sales": 2000.0,
-      "orders": 6,
-      "share_pct": 2.6
-    },
-    {
-      "source": "b2b",
-      "net_sales": 16000.0,
-      "orders": 18,
-      "share_pct": 20.4
+      "net_sales": 586.4,
+      "orders": 3,
+      "share_pct": 12.5,
+      "compare_net_sales": 750.79,
+      "change_pct": -21.9
     },
     {
       "source": "staff",
-      "net_sales": 650.0,
-      "orders": 3,
-      "share_pct": 0.8
-    },
-    {
-      "source": "samples",
-      "net_sales": 350.0,
+      "net_sales": 120.0,
       "orders": 1,
-      "share_pct": 0.4
+      "share_pct": 2.6,
+      "compare_net_sales": 120.0,
+      "change_pct": 0.0
     }
   ],
   "by_payment": [
     {
-      "method": "Cash",
-      "net_sales": 39100.0,
-      "orders": 101,
-      "share_pct": 50.0
+      "method": "Instapay",
+      "net_sales": 1610.21,
+      "orders": 6,
+      "share_pct": 32.0
     },
     {
-      "method": "Instapay",
-      "net_sales": 18200.0,
-      "orders": 42,
-      "share_pct": 23.3
+      "method": "Cash",
+      "net_sales": 1201.46,
+      "orders": 4,
+      "share_pct": 23.9
+    },
+    {
+      "method": "Card",
+      "net_sales": 1051.95,
+      "orders": 3,
+      "share_pct": 20.9
     },
     {
       "method": "Kashier",
-      "net_sales": 11950.0,
-      "orders": 31,
-      "share_pct": 15.3
+      "net_sales": 852.29,
+      "orders": 2,
+      "share_pct": 16.9
     },
     {
-      "method": "Unspecified",
-      "net_sales": 9000.0,
-      "orders": 18,
-      "share_pct": 11.5
+      "method": "Talabat",
+      "net_sales": 316.58,
+      "orders": 3,
+      "share_pct": 6.3
     }
   ],
   "by_branch": [
     {
-      "branch": "Heliopolis",
-      "net_sales": 41200.0,
-      "b2c": 33000.0,
-      "b2b": 8200.0,
-      "orders": 101,
-      "share_pct": 52.7
-    },
-    {
       "branch": "Nasr City",
-      "net_sales": 29050.0,
-      "b2c": 21250.0,
-      "b2b": 7800.0,
-      "orders": 73,
-      "share_pct": 37.1
+      "net_sales": 2177.43,
+      "b2c": 2057.43,
+      "b2b": 0.0,
+      "orders": 7,
+      "share_pct": 46.5,
+      "compare_net_sales": 2444.0,
+      "change_pct": -10.9,
+      "compare_b2c": 2324.0,
+      "b2c_change_pct": -11.5
     },
     {
-      "branch": "(No Profile)",
-      "net_sales": 8000.0,
-      "b2c": 7000.0,
+      "branch": "Dokki",
+      "net_sales": 1696.58,
+      "b2c": 1696.58,
       "b2b": 0.0,
-      "orders": 18,
-      "share_pct": 10.2
+      "orders": 7,
+      "share_pct": 36.2,
+      "compare_net_sales": 2452.79,
+      "change_pct": -30.8,
+      "compare_b2c": 2452.79,
+      "b2c_change_pct": -30.8
+    },
+    {
+      "branch": "Zamalek",
+      "net_sales": 808.49,
+      "b2c": 808.49,
+      "b2b": 0.0,
+      "orders": 4,
+      "share_pct": 17.3,
+      "compare_net_sales": 2422.73,
+      "change_pct": -66.6,
+      "compare_b2c": 2422.73,
+      "b2c_change_pct": -66.6
     }
   ],
   "by_hour": [
@@ -325,73 +359,73 @@
     },
     {
       "hour": 9,
-      "orders": 2,
-      "net_sales": 825.0
+      "orders": 0,
+      "net_sales": 0.0
     },
     {
       "hour": 10,
-      "orders": 4,
-      "net_sales": 1650.0
+      "orders": 6,
+      "net_sales": 1325.61
     },
     {
       "hour": 11,
-      "orders": 6,
-      "net_sales": 2475.0
+      "orders": 3,
+      "net_sales": 953.04
     },
     {
       "hour": 12,
-      "orders": 9,
-      "net_sales": 3712.5
+      "orders": 4,
+      "net_sales": 993.99
     },
     {
       "hour": 13,
-      "orders": 11,
-      "net_sales": 4537.5
+      "orders": 5,
+      "net_sales": 1759.86
     },
     {
       "hour": 14,
-      "orders": 8,
-      "net_sales": 3300.0
+      "orders": 0,
+      "net_sales": 0.0
     },
     {
       "hour": 15,
-      "orders": 7,
-      "net_sales": 2887.5
+      "orders": 0,
+      "net_sales": 0.0
     },
     {
       "hour": 16,
-      "orders": 9,
-      "net_sales": 3712.5
+      "orders": 0,
+      "net_sales": 0.0
     },
     {
       "hour": 17,
-      "orders": 12,
-      "net_sales": 4950.0
+      "orders": 0,
+      "net_sales": 0.0
     },
     {
       "hour": 18,
-      "orders": 14,
-      "net_sales": 5775.0
+      "orders": 0,
+      "net_sales": 0.0
     },
     {
       "hour": 19,
-      "orders": 10,
-      "net_sales": 4125.0
+      "orders": 0,
+      "net_sales": 0.0
     },
     {
       "hour": 20,
-      "orders": 6,
-      "net_sales": 2475.0
+      "orders": 0,
+      "net_sales": 0.0
     },
     {
       "hour": 21,
-      "orders": 3,
-      "net_sales": 1237.5
+      "orders": 0,
+      "net_sales": 0.0
     },
     {
       "hour": 22,
-      "orders": 1,
-      "net_sales": 412.5
+      "orders": 0,
+      "net_sales": 0.0
     },
     {
       "hour": 23,
@@ -400,89 +434,77 @@
     }
   ],
   "fulfilment": {
-    "delivery_orders": 141,
-    "pickup_orders": 51
+    "delivery_orders": 15,
+    "pickup_orders": 3
   },
   "top_products": [
     {
-      "item_code": "JAR-001",
-      "item_name": "Lotus Jar",
-      "qty": 96.0,
-      "net_sales": 11520.0
+      "item_code": "JAR-0",
+      "item_name": "Jar 0",
+      "qty": 40.0,
+      "net_sales": 5800.0
     },
     {
-      "item_code": "JAR-002",
-      "item_name": "Nutella Jar",
-      "qty": 81.0,
-      "net_sales": 9720.0
+      "item_code": "JAR-1",
+      "item_name": "Jar 1",
+      "qty": 37.0,
+      "net_sales": 5365.0
     },
     {
-      "item_code": "JAR-003",
-      "item_name": "Red Velvet Jar",
-      "qty": 64.0,
-      "net_sales": 7680.0
+      "item_code": "JAR-2",
+      "item_name": "Jar 2",
+      "qty": 34.0,
+      "net_sales": 4930.0
     },
     {
-      "item_code": "JAR-004",
-      "item_name": "Mango Jar",
-      "qty": 52.0,
-      "net_sales": 6240.0
+      "item_code": "JAR-3",
+      "item_name": "Jar 3",
+      "qty": 31.0,
+      "net_sales": 4495.0
     },
     {
-      "item_code": "JAR-005",
-      "item_name": "Tiramisu Jar",
-      "qty": 47.0,
-      "net_sales": 6110.0
-    },
-    {
-      "item_code": "JAR-006",
-      "item_name": "Pistachio Jar",
-      "qty": 39.0,
-      "net_sales": 5460.0
-    },
-    {
-      "item_code": "JAR-007",
-      "item_name": "Oreo Jar",
-      "qty": 41.0,
-      "net_sales": 4920.0
-    },
-    {
-      "item_code": "JAR-008",
-      "item_name": "Strawberry Jar",
-      "qty": 33.0,
-      "net_sales": 3960.0
-    },
-    {
-      "item_code": "JAR-009",
-      "item_name": "Small Jar Box",
+      "item_code": "JAR-4",
+      "item_name": "Jar 4",
       "qty": 28.0,
-      "net_sales": 3360.0
+      "net_sales": 4060.0
     },
     {
-      "item_code": "JAR-010",
-      "item_name": "",
-      "qty": 12.0,
-      "net_sales": 1440.0
+      "item_code": "JAR-5",
+      "item_name": "Jar 5",
+      "qty": 25.0,
+      "net_sales": 3625.0
+    },
+    {
+      "item_code": "JAR-6",
+      "item_name": "Jar 6",
+      "qty": 22.0,
+      "net_sales": 3190.0
+    },
+    {
+      "item_code": "JAR-7",
+      "item_name": "Jar 7",
+      "qty": 19.0,
+      "net_sales": 2755.0
+    },
+    {
+      "item_code": "JAR-8",
+      "item_name": "Jar 8",
+      "qty": 16.0,
+      "net_sales": 2320.0
+    },
+    {
+      "item_code": "JAR-9",
+      "item_name": "Jar 9",
+      "qty": 13.0,
+      "net_sales": 1885.0
     }
   ],
   "top_b2b_customers": [
     {
-      "customer": "CUST-B2B-0007",
-      "customer_name": "Cafe Roma",
-      "net_sales": 7200.0,
-      "orders": 6
-    },
-    {
-      "customer": "CUST-B2B-0012",
-      "customer_name": "Bean Bar",
-      "net_sales": 5600.0,
-      "orders": 7
-    },
-    {
-      "customer": "CUST-B2B-0003",
-      "customer_name": "",
-      "net_sales": 3200.0,
-      "orders": 5
+      "customer": "C-1",
+      "customer_name": "Cafe One",
+      "net_sales": 2400.0,
+      "orders": 1
     }
   ]
 }

@@ -26,16 +26,20 @@ class RevenueDashboard {
   /// Figures for the selected range.
   final RevenueSummary summary;
 
-  /// `day`, `week` or `month`: the width of each [trend] bucket.
-  final String granularity;
-  final List<RevenueTrendPoint> trend;
+  /// What needs the owner's attention in the selected range, in the order
+  /// the backend ranked it. Items of an unknown `kind` are dropped at parse
+  /// time, so a newer backend never shows a blank row on an older build.
+  final List<RevenueAttentionItem> attention;
+
+  /// False when the payload had no `attention` list at all (a backend older
+  /// than contract v2): the screen then hides the section rather than
+  /// claiming that nothing needs attention.
+  final bool hasAttention;
   final List<RevenueSourceRow> bySource;
   final List<RevenuePaymentRow> byPayment;
   final List<RevenueBranchRow> byBranch;
   final List<RevenueHourRow> byHour;
   final RevenueFulfilment fulfilment;
-  final List<RevenueProductRow> topProducts;
-  final List<RevenueB2bCustomerRow> topB2bCustomers;
 
   /// True when the payload carried no keys at all.
   final bool isEmpty;
@@ -46,15 +50,13 @@ class RevenueDashboard {
     this.filters = const RevenueFilters(),
     this.snapshot = const RevenueSnapshot(),
     this.summary = const RevenueSummary(),
-    this.granularity = 'day',
-    this.trend = const [],
+    this.attention = const [],
+    this.hasAttention = false,
     this.bySource = const [],
     this.byPayment = const [],
     this.byBranch = const [],
     this.byHour = const [],
     this.fulfilment = const RevenueFulfilment(),
-    this.topProducts = const [],
-    this.topB2bCustomers = const [],
     this.isEmpty = false,
   });
 
@@ -64,21 +66,16 @@ class RevenueDashboard {
     filters: RevenueFilters.fromJson(ReportJson.map(j['filters'])),
     snapshot: RevenueSnapshot.fromJson(ReportJson.map(j['snapshot'])),
     summary: RevenueSummary.fromJson(ReportJson.map(j['summary'])),
-    granularity: ReportJson.str(j['granularity'], 'day'),
-    trend: ReportJson.listOf(j['trend'], RevenueTrendPoint.fromJson),
+    attention: ReportJson.listOf(
+      j['attention'],
+      RevenueAttentionItem.fromJson,
+    ).where((a) => a.isKnown).toList(growable: false),
+    hasAttention: j['attention'] is List,
     bySource: ReportJson.listOf(j['by_source'], RevenueSourceRow.fromJson),
     byPayment: ReportJson.listOf(j['by_payment'], RevenuePaymentRow.fromJson),
     byBranch: ReportJson.listOf(j['by_branch'], RevenueBranchRow.fromJson),
     byHour: ReportJson.listOf(j['by_hour'], RevenueHourRow.fromJson),
     fulfilment: RevenueFulfilment.fromJson(ReportJson.map(j['fulfilment'])),
-    topProducts: ReportJson.listOf(
-      j['top_products'],
-      RevenueProductRow.fromJson,
-    ),
-    topB2bCustomers: ReportJson.listOf(
-      j['top_b2b_customers'],
-      RevenueB2bCustomerRow.fromJson,
-    ),
     isEmpty: j.isEmpty,
   );
 
@@ -173,6 +170,15 @@ class RevenueSnapshotPeriod {
   final String compareFrom;
   final String compareTo;
 
+  /// AOV of the comparison window; null with no orders there.
+  final double? compareAov;
+  final double? ordersChangePct;
+  final double? aovChangePct;
+
+  /// `HH:MM` when the comparison's last day was cut at the request time
+  /// (the period ends today), else null.
+  final String? compareCutAt;
+
   const RevenueSnapshotPeriod({
     this.labelFrom = '',
     this.labelTo = '',
@@ -189,6 +195,10 @@ class RevenueSnapshotPeriod {
     this.changePct,
     this.compareFrom = '',
     this.compareTo = '',
+    this.compareAov,
+    this.ordersChangePct,
+    this.aovChangePct,
+    this.compareCutAt,
   });
 
   factory RevenueSnapshotPeriod.fromJson(JsonMap j) => RevenueSnapshotPeriod(
@@ -207,6 +217,10 @@ class RevenueSnapshotPeriod {
     changePct: ReportJson.dblOrNull(j['change_pct']),
     compareFrom: ReportJson.str(j['compare_from']),
     compareTo: ReportJson.str(j['compare_to']),
+    compareAov: ReportJson.dblOrNull(j['compare_aov']),
+    ordersChangePct: ReportJson.dblOrNull(j['orders_change_pct']),
+    aovChangePct: ReportJson.dblOrNull(j['aov_change_pct']),
+    compareCutAt: ReportJson.strOrNull(j['compare_cut_at']),
   );
 }
 
@@ -341,7 +355,8 @@ class RevenueDay {
   }
 }
 
-/// The same-length window ending the day before `date_from`.
+/// The comparison window: for a range under 7 days the same weekdays one
+/// week earlier, for 7+ days the same-length window just before.
 class RevenuePrevious {
   final String dateFrom;
   final String dateTo;
@@ -354,6 +369,15 @@ class RevenuePrevious {
   final double? b2bChangePct;
   final double? ordersChangePct;
 
+  /// Null with no orders in the comparison window.
+  final double? aov;
+  final double? aovChangePct;
+  final double discountTotal;
+
+  /// `HH:MM` when the comparison's last day only counts invoices up to the
+  /// request time (the range ends today), else null.
+  final String? cutAt;
+
   const RevenuePrevious({
     this.dateFrom = '',
     this.dateTo = '',
@@ -365,6 +389,10 @@ class RevenuePrevious {
     this.b2cChangePct,
     this.b2bChangePct,
     this.ordersChangePct,
+    this.aov,
+    this.aovChangePct,
+    this.discountTotal = 0,
+    this.cutAt,
   });
 
   factory RevenuePrevious.fromJson(JsonMap j) => RevenuePrevious(
@@ -378,40 +406,81 @@ class RevenuePrevious {
     b2cChangePct: ReportJson.dblOrNull(j['b2c_change_pct']),
     b2bChangePct: ReportJson.dblOrNull(j['b2b_change_pct']),
     ordersChangePct: ReportJson.dblOrNull(j['orders_change_pct']),
+    aov: ReportJson.dblOrNull(j['aov']),
+    aovChangePct: ReportJson.dblOrNull(j['aov_change_pct']),
+    discountTotal: ReportJson.dbl(j['discount_total']),
+    cutAt: ReportJson.strOrNull(j['cut_at']),
+  );
+}
+
+// ── Needs attention ───────────────────────────────────────────────────────
+
+/// One `attention` item. Which of the nullable fields are set depends on
+/// [kind]:
+/// * `cancelled`, `returns`: [count], [value];
+/// * `branch_drop` (B2C sales of a branch), `source_drop` ([name] is a
+///   source key such as `talabat`): [name], [netSales], [compareNetSales],
+///   [changePct];
+/// * `discount_high`: [value], [discountPct], [compareDiscountPct].
+class RevenueAttentionItem {
+  static const kindCancelled = 'cancelled';
+  static const kindReturns = 'returns';
+  static const kindBranchDrop = 'branch_drop';
+  static const kindSourceDrop = 'source_drop';
+  static const kindDiscountHigh = 'discount_high';
+
+  static const knownKinds = {
+    kindCancelled,
+    kindReturns,
+    kindBranchDrop,
+    kindSourceDrop,
+    kindDiscountHigh,
+  };
+
+  final String kind;
+
+  /// `high` or `medium` (anything else reads as medium).
+  final String severity;
+  final int? count;
+  final double? value;
+  final String? name;
+  final double? netSales;
+  final double? compareNetSales;
+  final double? changePct;
+  final double? discountPct;
+  final double? compareDiscountPct;
+
+  const RevenueAttentionItem({
+    required this.kind,
+    this.severity = 'medium',
+    this.count,
+    this.value,
+    this.name,
+    this.netSales,
+    this.compareNetSales,
+    this.changePct,
+    this.discountPct,
+    this.compareDiscountPct,
+  });
+
+  bool get isKnown => knownKinds.contains(kind);
+  bool get isHigh => severity == 'high';
+
+  factory RevenueAttentionItem.fromJson(JsonMap j) => RevenueAttentionItem(
+    kind: ReportJson.str(j['kind']).trim(),
+    severity: ReportJson.str(j['severity'], 'medium').trim().toLowerCase(),
+    count: ReportJson.intOrNull(j['count']),
+    value: ReportJson.dblOrNull(j['value']),
+    name: ReportJson.strOrNull(j['name']),
+    netSales: ReportJson.dblOrNull(j['net_sales']),
+    compareNetSales: ReportJson.dblOrNull(j['compare_net_sales']),
+    changePct: ReportJson.dblOrNull(j['change_pct']),
+    discountPct: ReportJson.dblOrNull(j['discount_pct']),
+    compareDiscountPct: ReportJson.dblOrNull(j['compare_discount_pct']),
   );
 }
 
 // ── Breakdowns ────────────────────────────────────────────────────────────
-
-/// One bucket of `trend` (day, week start, or month start).
-class RevenueTrendPoint {
-  final String date;
-  final double b2c;
-  final double b2b;
-
-  /// Staff + samples.
-  final double other;
-  final double netSales;
-  final int orders;
-
-  const RevenueTrendPoint({
-    this.date = '',
-    this.b2c = 0,
-    this.b2b = 0,
-    this.other = 0,
-    this.netSales = 0,
-    this.orders = 0,
-  });
-
-  factory RevenueTrendPoint.fromJson(JsonMap j) => RevenueTrendPoint(
-    date: ReportJson.str(j['date']),
-    b2c: ReportJson.dbl(j['b2c']),
-    b2b: ReportJson.dbl(j['b2b']),
-    other: ReportJson.dbl(j['other']),
-    netSales: ReportJson.dbl(j['net_sales']),
-    orders: ReportJson.integer(j['orders']),
-  );
-}
 
 /// `by_source`: [source] is `pos`, `woo`, `talabat`, `partner`, `b2b`,
 /// `staff` or `samples` (unknown keys pass through).
@@ -421,11 +490,18 @@ class RevenueSourceRow {
   final int orders;
   final double? sharePct;
 
+  /// Net sales of this source in the comparison window. A source that sold
+  /// only there comes back with `netSales: 0` (a lost channel, -100%).
+  final double compareNetSales;
+  final double? changePct;
+
   const RevenueSourceRow({
     required this.source,
     this.netSales = 0,
     this.orders = 0,
     this.sharePct,
+    this.compareNetSales = 0,
+    this.changePct,
   });
 
   factory RevenueSourceRow.fromJson(JsonMap j) => RevenueSourceRow(
@@ -433,6 +509,8 @@ class RevenueSourceRow {
     netSales: ReportJson.dbl(j['net_sales']),
     orders: ReportJson.integer(j['orders']),
     sharePct: ReportJson.dblOrNull(j['share_pct']),
+    compareNetSales: ReportJson.dbl(j['compare_net_sales']),
+    changePct: ReportJson.dblOrNull(j['change_pct']),
   );
 }
 
@@ -468,6 +546,12 @@ class RevenueBranchRow {
   final int orders;
   final double? sharePct;
 
+  /// Comparison-window figures; same "kept at zero" rule as by_source.
+  final double compareNetSales;
+  final double? changePct;
+  final double compareB2c;
+  final double? b2cChangePct;
+
   const RevenueBranchRow({
     required this.branch,
     this.netSales = 0,
@@ -475,6 +559,10 @@ class RevenueBranchRow {
     this.b2b = 0,
     this.orders = 0,
     this.sharePct,
+    this.compareNetSales = 0,
+    this.changePct,
+    this.compareB2c = 0,
+    this.b2cChangePct,
   });
 
   factory RevenueBranchRow.fromJson(JsonMap j) => RevenueBranchRow(
@@ -484,6 +572,10 @@ class RevenueBranchRow {
     b2b: ReportJson.dbl(j['b2b']),
     orders: ReportJson.integer(j['orders']),
     sharePct: ReportJson.dblOrNull(j['share_pct']),
+    compareNetSales: ReportJson.dbl(j['compare_net_sales']),
+    changePct: ReportJson.dblOrNull(j['change_pct']),
+    compareB2c: ReportJson.dbl(j['compare_b2c']),
+    b2cChangePct: ReportJson.dblOrNull(j['b2c_change_pct']),
   );
 }
 
@@ -513,51 +605,5 @@ class RevenueFulfilment {
   factory RevenueFulfilment.fromJson(JsonMap j) => RevenueFulfilment(
     deliveryOrders: ReportJson.integer(j['delivery_orders']),
     pickupOrders: ReportJson.integer(j['pickup_orders']),
-  );
-}
-
-class RevenueProductRow {
-  final String itemCode;
-  final String itemName;
-  final double qty;
-  final double netSales;
-
-  const RevenueProductRow({
-    this.itemCode = '',
-    this.itemName = '',
-    this.qty = 0,
-    this.netSales = 0,
-  });
-
-  String get displayName => itemName.isNotEmpty ? itemName : itemCode;
-
-  factory RevenueProductRow.fromJson(JsonMap j) => RevenueProductRow(
-    itemCode: ReportJson.str(j['item_code']),
-    itemName: ReportJson.str(j['item_name']),
-    qty: ReportJson.dbl(j['qty']),
-    netSales: ReportJson.dbl(j['net_sales']),
-  );
-}
-
-class RevenueB2bCustomerRow {
-  final String customer;
-  final String customerName;
-  final double netSales;
-  final int orders;
-
-  const RevenueB2bCustomerRow({
-    this.customer = '',
-    this.customerName = '',
-    this.netSales = 0,
-    this.orders = 0,
-  });
-
-  String get displayName => customerName.isNotEmpty ? customerName : customer;
-
-  factory RevenueB2bCustomerRow.fromJson(JsonMap j) => RevenueB2bCustomerRow(
-    customer: ReportJson.str(j['customer']),
-    customerName: ReportJson.str(j['customer_name']),
-    netSales: ReportJson.dbl(j['net_sales']),
-    orders: ReportJson.integer(j['orders']),
   );
 }

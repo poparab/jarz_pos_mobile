@@ -1,8 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
@@ -10,22 +12,21 @@ import '../../../../core/widgets/app_drawer.dart';
 import '../../data/models/report_json.dart';
 import '../../data/models/revenue_dashboard.dart';
 import '../../state/reports_providers.dart';
-import '../widgets/kpi_card.dart';
+import '../widgets/report_branch_selector.dart';
 import '../widgets/report_chart_card.dart';
 import '../widgets/report_export_button.dart';
-import '../widgets/report_filter_bar.dart';
 import '../widgets/report_states.dart';
-import '../widgets/report_table.dart';
 
 /// The owner's daily revenue dashboard
-/// (`revenue_dashboard.get_revenue_dashboard`).
+/// (`revenue_dashboard.get_revenue_dashboard`, contract v2), daily-first.
 ///
-/// Top to bottom: a today-relative snapshot (today, yesterday, last 7 days,
-/// month to date, each against its own comparison window) that ignores the
-/// picked dates, then the standard filter bar, then the selected period: the
-/// KPIs, the B2B vs B2C trend and split, best/worst day, and the breakdowns by
-/// source, payment, branch, hour and fulfilment, then the top products and
-/// B2B customers. Every figure is the backend's; the screen only lays it out.
+/// Top to bottom: the period buttons (Today, Yesterday, Last 7 days, Month to
+/// date, each with its net sales and change, plus Custom) and the branch
+/// filter; the "at a glance" hero for the selected range against its
+/// like-for-like comparison; what needs attention; where the sales came from
+/// (source, payment, branch); sales by hour; links to the product and B2B
+/// reports; and when the figures were built. Every figure is the backend's;
+/// the screen only lays it out.
 ///
 /// Reached from the side menu with `context.go`, so it carries the drawer.
 class RevenueDashboardScreen extends ConsumerStatefulWidget {
@@ -39,14 +40,15 @@ class RevenueDashboardScreen extends ConsumerStatefulWidget {
 class _RevenueDashboardScreenState
     extends ConsumerState<RevenueDashboardScreen> {
   // The snapshot does not depend on the dates, so while a new range loads the
-  // last one stays on screen (for the same branch) instead of a blank page.
+  // period buttons keep their amounts (for the same branch) instead of
+  // flashing back to bare labels.
   RevenueSnapshot? _lastSnapshot;
   String? _lastSnapshotBranch;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final q = ref.watch(reportQueryProvider);
+    final q = ref.watch(revenueQueryProvider);
     final async = ref.watch(revenueDashboardProvider(q));
     final loaded = async.valueOrNull;
     if (loaded != null && !loaded.isEmpty) {
@@ -66,6 +68,13 @@ class _RevenueDashboardScreenState
       }
     }
 
+    // The period buttons and the branch filter stay on screen in every state,
+    // so an empty or failed range can be changed without leaving the page.
+    Widget filters() => Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 0),
+      child: _Filters(snapshot: cachedSnapshot),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.rptRevenueDashboardTitle),
@@ -80,13 +89,8 @@ class _RevenueDashboardScreenState
       body: async.when(
         loading: () => ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsetsDirectional.all(12),
           children: [
-            if (cachedSnapshot != null) ...[
-              _SnapshotSection(snapshot: cachedSnapshot),
-              const SizedBox(height: 4),
-            ],
-            const ReportFilterBar(),
+            filters(),
             const Padding(
               padding: EdgeInsetsDirectional.all(32),
               child: Center(child: CircularProgressIndicator()),
@@ -95,7 +99,7 @@ class _RevenueDashboardScreenState
         ),
         error: (e, _) => Column(
           children: [
-            const ReportFilterBar(),
+            filters(),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: refresh,
@@ -110,7 +114,7 @@ class _RevenueDashboardScreenState
         data: (data) => data.isEmpty
             ? Column(
                 children: [
-                  const ReportFilterBar(),
+                  filters(),
                   Expanded(
                     child: RefreshIndicator(
                       onRefresh: refresh,
@@ -143,8 +147,8 @@ class _RevenueDashboardScreenState
 class RevenueDashboardContent extends StatelessWidget {
   final RevenueDashboard data;
 
-  /// The query the data was loaded for; the period header falls back to it
-  /// when the payload carries no `filters`.
+  /// The query the data was loaded for; the hero falls back to it when the
+  /// payload carries no `filters`.
   final ReportQuery? query;
   final String? selectedBranch;
   final ValueChanged<String>? onBranchTap;
@@ -166,65 +170,30 @@ class RevenueDashboardContent extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsetsDirectional.all(12),
       children: [
-        _SnapshotSection(snapshot: data.snapshot),
-        const SizedBox(height: 4),
-        const ReportFilterBar(),
-        const SizedBox(height: 4),
-        _PeriodHeader(data: data, query: query),
-        const SizedBox(height: 8),
-        _PeriodKpis(summary: data.summary),
+        _Filters(snapshot: data.snapshot),
         const SizedBox(height: 12),
-        _TrendCard(data: data),
+        _HeroCard(data: data, query: query),
+        if (data.hasAttention) ...[
+          const SizedBox(height: 12),
+          _AttentionSection(items: data.attention),
+        ],
         const SizedBox(height: 12),
-        _SplitCard(summary: data.summary),
-        const SizedBox(height: 12),
-        _BestWorstCard(summary: data.summary),
-        const SizedBox(height: 12),
-        _BarListCard(
-          title: l10n.rptRevBySourceTitle,
-          rows: [
-            for (final r in data.bySource)
-              _BarRowData(
-                label: _sourceLabel(context, r.source),
-                value: r.netSales,
-                sharePct: r.sharePct,
-                orders: r.orders,
-                color: _sourceColor(r.source),
-              ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _BarListCard(
-          title: l10n.rptRevByPaymentTitle,
-          rows: [
-            for (final r in data.byPayment)
-              _BarRowData(
-                label: _paymentLabel(context, r.method),
-                value: r.netSales,
-                sharePct: r.sharePct,
-                orders: r.orders,
-                color: theme.colorScheme.primary,
-              ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _ByBranchCard(
-          rows: data.byBranch,
-          selected: selectedBranch,
-          onTap: onBranchTap,
+        _WhereFromCard(
+          data: data,
+          selectedBranch: selectedBranch,
+          onBranchTap: onBranchTap,
         ),
         const SizedBox(height: 12),
         _ByHourCard(rows: data.hourly),
         const SizedBox(height: 12),
-        _FulfilmentCard(fulfilment: data.fulfilment),
-        const SizedBox(height: 12),
-        _TopProductsCard(rows: data.topProducts),
-        const SizedBox(height: 12),
-        _TopB2bCard(rows: data.topB2bCustomers),
+        const _FooterLinks(),
         if (updated != null) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
-            l10n.rptRevUpdatedAt(formatDateTime(context, updated)),
+            l10n.rptRevUpdatedAt(
+              DateFormat.Hm(l10n.localeName).format(updated),
+            ),
+            key: const ValueKey('revenue-updated-at'),
             textAlign: TextAlign.center,
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
@@ -238,580 +207,526 @@ class RevenueDashboardContent extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Snapshot strip (independent of the picked dates)
+// 1. Period buttons + branch filter
 // ─────────────────────────────────────────────────────────────────────────
 
-class _SnapshotSection extends StatelessWidget {
-  final RevenueSnapshot snapshot;
-  const _SnapshotSection({required this.snapshot});
+class _Filters extends StatelessWidget {
+  /// Null before the first load: the buttons then show bare labels.
+  final RevenueSnapshot? snapshot;
+  const _Filters({this.snapshot});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      _PeriodBar(snapshot: snapshot),
+      const SizedBox(height: 10),
+      const ReportBranchSelector(),
+    ],
+  );
+}
+
+class _Preset {
+  final Key key;
+  final String title;
+  final RevenueSnapshotPeriod? period;
+  final ReportRange range;
+  const _Preset(this.key, this.title, this.period, this.range);
+}
+
+/// The snapshot cards as selectable buttons. Selecting one sets the range to
+/// that card's `label_from`/`label_to` (the server's days), falling back to
+/// the device's calendar before the first load. A range matching no preset
+/// highlights Custom, which opens the date-range picker.
+class _PeriodBar extends ConsumerWidget {
+  final RevenueSnapshot? snapshot;
+  const _PeriodBar({this.snapshot});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final cards = <Widget>[
-      _SnapshotCard(
-        key: const ValueKey('revenue-snapshot-today'),
-        title: l10n.rptRevToday,
-        caption: l10n.rptRevVsSameDayLastWeek,
-        period: snapshot.today,
+    final range = ref.watch(revenueRangeProvider);
+    final s = snapshot;
+    final presets = <_Preset>[
+      _Preset(
+        const ValueKey('revenue-period-today'),
+        l10n.rptRevToday,
+        s?.today,
+        _periodRange(s?.today) ?? ReportRange.today(),
       ),
-      _SnapshotCard(
-        key: const ValueKey('revenue-snapshot-yesterday'),
-        title: l10n.rptRevYesterday,
-        caption: l10n.rptRevVsSameDayLastWeek,
-        period: snapshot.yesterday,
+      _Preset(
+        const ValueKey('revenue-period-yesterday'),
+        l10n.rptRevYesterday,
+        s?.yesterday,
+        _periodRange(s?.yesterday) ?? ReportRange.yesterday(),
       ),
-      _SnapshotCard(
-        key: const ValueKey('revenue-snapshot-last-7-days'),
-        title: l10n.rptRevLast7Days,
-        caption: l10n.rptRevVsPrevious7Days,
-        period: snapshot.last7Days,
+      _Preset(
+        const ValueKey('revenue-period-last-7-days'),
+        l10n.rptRevLast7Days,
+        s?.last7Days,
+        _periodRange(s?.last7Days) ?? ReportRange.lastDays(7),
       ),
-      _SnapshotCard(
-        key: const ValueKey('revenue-snapshot-month-to-date'),
-        title: l10n.rptRevMonthToDate,
-        caption: l10n.rptRevVsSameDaysLastMonth,
-        period: snapshot.monthToDate,
+      _Preset(
+        const ValueKey('revenue-period-month-to-date'),
+        l10n.rptRevMonthToDate,
+        s?.monthToDate,
+        _periodRange(s?.monthToDate) ?? ReportRange.thisMonth(),
       ),
     ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _SectionHeader(
-          title: l10n.rptRevAtAGlance,
-          subtitle: l10n.rptRevSnapshotNote,
+    final selected = presets.indexWhere((p) => p.range == range);
+
+    void select(ReportRange r) =>
+        ref.read(revenueRangeProvider.notifier).state = r;
+
+    Future<void> pickCustom() async {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final first = DateTime(2018);
+      DateTime clamp(DateTime d) =>
+          d.isBefore(first) ? first : (d.isAfter(today) ? today : d);
+      final start = clamp(range.from);
+      final end = clamp(range.to);
+      final picked = await showDateRangePicker(
+        context: context,
+        firstDate: first,
+        lastDate: today,
+        initialDateRange: DateTimeRange(
+          start: start,
+          end: end.isBefore(start) ? start : end,
         ),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            // 2x2 on a phone, one row of four on a tablet.
-            final perRow = constraints.maxWidth >= 600 ? 4 : 2;
-            const gap = 8.0;
-            return Column(
-              children: [
-                for (var start = 0; start < cards.length; start += perRow) ...[
-                  if (start > 0) const SizedBox(height: gap),
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (var i = start; i < start + perRow; i++) ...[
-                          if (i > start) const SizedBox(width: gap),
-                          Expanded(
-                            child: i < cards.length
-                                ? cards[i]
-                                : const SizedBox.shrink(),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            );
-          },
+      );
+      if (picked == null || !context.mounted) return;
+      select(ReportRange(from: picked.start, to: picked.end));
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < presets.length; i++)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 8),
+                child: _PeriodButton(
+                  key: presets[i].key,
+                  title: presets[i].title,
+                  amount: presets[i].period == null
+                      ? null
+                      : formatCompactCurrency(
+                          context,
+                          presets[i].period!.netSales,
+                        ),
+                  showChange: presets[i].period != null,
+                  changePct: presets[i].period?.changePct,
+                  selected: i == selected,
+                  onTap: () => select(presets[i].range),
+                ),
+              ),
+            _PeriodButton(
+              key: const ValueKey('revenue-period-custom'),
+              title: l10n.rptRevCustom,
+              icon: Icons.date_range_outlined,
+              amount: selected < 0
+                  ? _rangeLabel(context, range.fromIso, range.toIso)
+                  : null,
+              selected: selected < 0,
+              onTap: pickCustom,
+            ),
+          ],
         ),
-        if (theme.brightness == Brightness.dark) const SizedBox(height: 2),
-      ],
+      ),
     );
   }
 }
 
-class _SnapshotCard extends StatelessWidget {
-  final String title;
-  final String caption;
-  final RevenueSnapshotPeriod period;
+/// A snapshot period's own dates, or null when the payload had none.
+ReportRange? _periodRange(RevenueSnapshotPeriod? p) {
+  if (p == null) return null;
+  final from = DateTime.tryParse(p.labelFrom);
+  final to = DateTime.tryParse(p.labelTo);
+  if (from == null || to == null) return null;
+  return ReportRange(from: from, to: to);
+}
 
-  const _SnapshotCard({
+class _PeriodButton extends StatelessWidget {
+  final String title;
+  final String? amount;
+  final bool showChange;
+  final double? changePct;
+  final IconData? icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PeriodButton({
     super.key,
     required this.title,
-    required this.caption,
-    required this.period,
+    required this.selected,
+    required this.onTap,
+    this.amount,
+    this.showChange = false,
+    this.changePct,
+    this.icon,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final fg = selected ? scheme.onPrimaryContainer : scheme.onSurface;
+    final amountText = amount;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: selected ? scheme.primaryContainer : scheme.surfaceContainerLow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+            color: selected ? scheme.primary : scheme.outlineVariant,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 92, maxWidth: 136),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.symmetric(
+                horizontal: 10,
+                vertical: 8,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (icon != null) ...[
+                        Icon(icon, size: 14, color: fg),
+                        const SizedBox(width: 4),
+                      ],
+                      Flexible(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: fg,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (amountText != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      amountText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: fg,
+                      ),
+                    ),
+                  ],
+                  if (showChange) _ChangeText(pct: changePct, small: true),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// 2. Hero: the selected range at a glance
+// ─────────────────────────────────────────────────────────────────────────
+
+class _HeroCard extends StatelessWidget {
+  final RevenueDashboard data;
+  final ReportQuery? query;
+  const _HeroCard({required this.data, this.query});
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsetsDirectional.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: muted,
-              ),
-            ),
-            const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: AlignmentDirectional.centerStart,
-              child: Text(
-                formatCompactCurrency(context, period.netSales),
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            _SplitLine(
-              color: _b2cColor,
-              label: l10n.rptRevColB2c,
-              value: formatCompactCurrency(context, period.b2c),
-            ),
-            _SplitLine(
-              color: _b2bColor,
-              label: l10n.rptRevColB2b,
-              value: formatCompactCurrency(context, period.b2b),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.pnlOrdersCount(period.orders),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall,
-            ),
-            const Spacer(),
-            const SizedBox(height: 4),
-            _ChangeText(pct: period.changePct),
-            Text(
-              caption,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall?.copyWith(color: muted),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+    final s = data.summary;
+    final p = s.previous;
+    final f = data.fulfilment;
+    String money(double v) => formatCompactCurrency(context, v);
+    String count(int v) => formatCount(context, v);
 
-class _SplitLine extends StatelessWidget {
-  final Color color;
-  final String label;
-  final String value;
-  const _SplitLine({
-    required this.color,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.labelSmall;
-    return Padding(
-      padding: const EdgeInsetsDirectional.symmetric(vertical: 1),
-      child: Row(
-        children: [
-          _Swatch(color: color),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: style,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Flexible(
-            flex: 2,
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-              style: style?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// "▲ 12.5%" in green, "▼ 3.0%" in red, "—" when there is nothing to compare.
-class _ChangeText extends StatelessWidget {
-  final double? pct;
-  const _ChangeText({required this.pct});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Text(
-      _changeLabel(pct),
-      maxLines: 1,
-      style: theme.textTheme.labelMedium?.copyWith(
-        fontWeight: FontWeight.bold,
-        color: _changeColor(context, pct),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// Selected period: header + KPIs
-// ─────────────────────────────────────────────────────────────────────────
-
-class _PeriodHeader extends StatelessWidget {
-  final RevenueDashboard data;
-  final ReportQuery? query;
-  const _PeriodHeader({required this.data, this.query});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final from = data.filters.dateFrom.isNotEmpty
         ? data.filters.dateFrom
         : (query?.fromIso ?? '');
     final to = data.filters.dateTo.isNotEmpty
         ? data.filters.dateTo
         : (query?.toIso ?? '');
-    final prev = data.summary.previous;
-    final range = from.isEmpty
-        ? null
-        : l10n.rptRevRange(_day(context, from), _day(context, to));
-    final previous = prev.dateFrom.isEmpty
-        ? null
-        : l10n.rptRevPreviousRange(
-            _day(context, prev.dateFrom),
-            _day(context, prev.dateTo),
-          );
-    return _SectionHeader(
-      title: range == null
-          ? l10n.rptRevPeriodTitle
-          : '${l10n.rptRevPeriodTitle} · $range',
-      subtitle: previous,
+    final compare = _comparisonLabel(context, p);
+
+    final caption = [
+      l10n.rptRevCaptionB2c(money(s.b2c)),
+      l10n.rptRevCaptionB2b(money(s.b2b)),
+      l10n.rptRevNewCustomersCount(s.newCustomers),
+      l10n.rptRevDeliveryPickup(
+        count(f.deliveryOrders),
+        count(f.pickupOrders),
+      ),
+    ].join(' · ');
+    final leakage = [
+      l10n.rptRevDiscountsAmount(money(s.discountTotal)),
+      l10n.rptRevReturnsAmount(money(s.returnsValue)),
+      l10n.rptRevCancelledShort(count(s.cancelled)),
+      l10n.rptRevTotalInclShipping(money(s.totalRevenue)),
+    ].join(' · ');
+    final best = s.bestDay;
+    final worst = s.worstDay;
+    final days = s.days > 1
+        ? [
+            l10n.rptRevDailyAverageAmount(money(s.dailyAverage)),
+            if (best != null)
+              l10n.rptRevBestDayOn(
+                _dayLabel(context, best.date),
+                money(best.netSales),
+              ),
+            if (worst != null)
+              l10n.rptRevWorstDayOn(
+                _dayLabel(context, worst.date),
+                money(worst.netSales),
+              ),
+          ].join(' · ')
+        : null;
+
+    return Card(
+      key: const ValueKey('revenue-hero'),
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(child: _CardTitle(l10n.rptRevAtAGlance)),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    from.isEmpty ? '' : _rangeLabel(context, from, to),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: theme.textTheme.labelMedium?.copyWith(color: muted),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              l10n.rptRevNetSales,
+              style: theme.textTheme.labelMedium?.copyWith(color: muted),
+            ),
+            Row(
+              children: [
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      formatCurrency(context, s.netSales),
+                      key: const ValueKey('revenue-hero-net-sales'),
+                      maxLines: 1,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _ChangePill(pct: p.changePct),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _HeroStat(
+                    label: l10n.reportKpiOrders,
+                    value: count(s.orders),
+                    pct: p.ordersChangePct,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _HeroStat(
+                    label: l10n.rptRevAverageOrder,
+                    value: s.aov == null ? _dash : formatCurrency(context, s.aov!),
+                    pct: p.aovChangePct,
+                  ),
+                ),
+              ],
+            ),
+            if (compare != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                compare,
+                key: const ValueKey('revenue-hero-compare'),
+                style: theme.textTheme.labelSmall?.copyWith(color: muted),
+              ),
+            ],
+            const Divider(height: 20),
+            Text(caption, style: theme.textTheme.bodySmall),
+            const SizedBox(height: 4),
+            Text(
+              leakage,
+              style: theme.textTheme.labelSmall?.copyWith(color: muted),
+            ),
+            if (days != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                days,
+                key: const ValueKey('revenue-hero-days'),
+                style: theme.textTheme.labelSmall?.copyWith(color: muted),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _PeriodKpis extends StatelessWidget {
-  final RevenueSummary summary;
-  const _PeriodKpis({required this.summary});
+class _HeroStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final double? pct;
+  const _HeroStat({required this.label, required this.value, this.pct});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(
+            value,
+            maxLines: 1,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        _ChangeText(pct: pct, small: true),
+      ],
+    );
+  }
+}
+
+/// "vs Sun 11 Oct up to 14:05" when the comparison's last day was cut at the
+/// request time, "vs Sun 11 Oct" / "vs 5–11 Oct" otherwise; null when the
+/// payload names no comparison window.
+String? _comparisonLabel(BuildContext context, RevenuePrevious p) {
+  if (p.dateFrom.isEmpty) return null;
+  final l10n = context.l10n;
+  final period = _rangeLabel(context, p.dateFrom, p.dateTo);
+  final cut = p.cutAt?.trim() ?? '';
+  return cut.isEmpty
+      ? l10n.rptRevVsPeriod(period)
+      : l10n.rptRevVsPeriodUpTo(period, cut);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// 3. Needs attention
+// ─────────────────────────────────────────────────────────────────────────
+
+class _AttentionSection extends StatelessWidget {
+  final List<RevenueAttentionItem> items;
+  const _AttentionSection({required this.items});
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final s = summary;
-    final p = s.previous;
-    String money(double v) => formatCompactCurrency(context, v);
-    String moneyOrDash(double? v) => v == null ? _dash : money(v);
-
-    final cards = <Widget Function(double)>[
-      (w) => KpiCard(
-        width: w,
-        label: l10n.rptRevNetSales,
-        value: money(s.netSales),
-        icon: Icons.payments_outlined,
-        color: theme.colorScheme.primary,
-        delta: _changeLabel(p.changePct),
-        deltaColor: _changeColor(context, p.changePct),
-        caption: l10n.rptRevVsPreviousPeriod,
-      ),
-      (w) => KpiCard(
-        width: w,
-        label: l10n.rptRevB2c,
-        value: money(s.b2c),
-        icon: Icons.person_outline,
-        color: _b2cColor,
-        delta: _changeLabel(p.b2cChangePct),
-        deltaColor: _changeColor(context, p.b2cChangePct),
-        caption: l10n.pnlOrdersCount(s.b2cOrders),
-      ),
-      (w) => KpiCard(
-        width: w,
-        label: l10n.rptRevB2b,
-        value: money(s.b2b),
-        icon: Icons.business_outlined,
-        color: _b2bColor,
-        delta: _changeLabel(p.b2bChangePct),
-        deltaColor: _changeColor(context, p.b2bChangePct),
-        caption: l10n.rptRevShareOfSales(_pctOrDash(s.b2bSharePct)),
-      ),
-      (w) => KpiCard(
-        width: w,
-        label: l10n.reportKpiOrders,
-        value: formatCount(context, s.orders),
-        icon: Icons.receipt_long_outlined,
-        color: theme.colorScheme.tertiary,
-        delta: _changeLabel(p.ordersChangePct),
-        deltaColor: _changeColor(context, p.ordersChangePct),
-        caption: l10n.rptRevOrdersSplit(
-          formatCount(context, s.b2cOrders),
-          formatCount(context, s.b2bOrders),
-          formatCount(context, s.otherOrders),
-        ),
-      ),
-      (w) => KpiCard(
-        width: w,
-        label: l10n.reportKpiAov,
-        value: moneyOrDash(s.aov),
-        icon: Icons.shopping_cart_outlined,
-        color: theme.colorScheme.secondary,
-        caption: l10n.rptRevAovSplit(
-          moneyOrDash(s.b2cAov),
-          moneyOrDash(s.b2bAov),
-        ),
-      ),
-      (w) => KpiCard(
-        width: w,
-        label: l10n.rptRevDeliveryFees,
-        value: money(s.shippingIncome),
-        icon: Icons.local_shipping_outlined,
-        color: _shippingColor,
-        caption: l10n.rptRevInclFees(money(s.totalRevenue)),
-      ),
-      (w) => KpiCard(
-        width: w,
-        label: l10n.rptRevDailyAverage,
-        value: money(s.dailyAverage),
-        icon: Icons.calendar_today_outlined,
-        color: Colors.indigo.shade600,
-        caption: l10n.rptRevDaysCount(s.days),
-      ),
-      (w) => KpiCard(
-        width: w,
-        label: l10n.reportKpiCustomers,
-        value: formatCount(context, s.customers),
-        icon: Icons.groups_outlined,
-        color: Colors.teal.shade700,
-        caption: l10n.rptRevNewCustomers(formatCount(context, s.newCustomers)),
-      ),
-      (w) => KpiCard(
-        width: w,
-        label: l10n.rptRevReturns,
-        value: money(s.returnsValue),
-        icon: Icons.assignment_return_outlined,
-        color: s.returns > 0 ? _negative : theme.colorScheme.outline,
-        caption: l10n.rptRevReturnsCount(formatCount(context, s.returns)),
-      ),
-      (w) => KpiCard(
-        width: w,
-        label: l10n.rptRevCancelled,
-        value: money(s.cancelledValue),
-        icon: Icons.cancel_outlined,
-        color: s.cancelled > 0 ? _negative : theme.colorScheme.outline,
-        caption: l10n.rptRevCancelledCount(formatCount(context, s.cancelled)),
-      ),
-      (w) => KpiCard(
-        width: w,
-        label: l10n.rptRevDiscounts,
-        value: money(s.discountTotal),
-        icon: Icons.local_offer_outlined,
-        color: Colors.pink.shade600,
-      ),
-    ];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cols = constraints.maxWidth >= 900
-            ? 4
-            : constraints.maxWidth >= 600
-            ? 3
-            : 2;
-        const spacing = 8.0;
-        final cardWidth = (constraints.maxWidth - (cols - 1) * spacing) / cols;
-        return Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
-          children: [for (final b in cards) b(cardWidth)],
-        );
-      },
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// B2B vs B2C: stacked trend, donut, best / worst day
-// ─────────────────────────────────────────────────────────────────────────
-
-class _TrendCard extends StatelessWidget {
-  final RevenueDashboard data;
-  const _TrendCard({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final points = data.trend;
-    final labels = [
-      for (final p in points) _bucketLabel(context, p.date, data.granularity),
-    ];
-
-    var maxY = 0.0;
-    final groups = <BarChartGroupData>[];
-    for (var i = 0; i < points.length; i++) {
-      final p = points[i];
-      final parts = <(double, Color)>[
-        (_pos(p.b2c), _b2cColor),
-        (_pos(p.b2b), _b2bColor),
-        (_pos(p.other), _otherColor),
-      ];
-      var running = 0.0;
-      final stack = <BarChartRodStackItem>[];
-      for (final (v, c) in parts) {
-        if (v <= 0) continue;
-        stack.add(BarChartRodStackItem(running, running + v, c));
-        running += v;
-      }
-      if (running > maxY) maxY = running;
-      groups.add(
-        BarChartGroupData(
-          x: i,
-          barRods: [
-            BarChartRodData(
-              toY: running,
-              rodStackItems: stack,
-              color: Colors.transparent,
-              width: points.length > 20 ? 6 : 12,
-              borderRadius: BorderRadius.circular(2),
+    if (items.isEmpty) {
+      return Padding(
+        key: const ValueKey('revenue-attention-empty'),
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 4),
+        child: Row(
+          children: [
+            Icon(Icons.check_circle_outline, size: 16, color: _positive),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                l10n.rptRevNothingNeedsAttention,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
           ],
         ),
       );
     }
-
-    return ReportChartCard(
-      title: l10n.rptRevTrendTitle,
-      subtitle: switch (data.granularity) {
-        'month' => l10n.rptRevPerMonth,
-        'week' => l10n.rptRevPerWeek,
-        _ => l10n.rptRevPerDay,
-      },
-      height: 240,
-      isEmpty: points.isEmpty || maxY <= 0,
-      emptyText: l10n.reportNoData,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _Legend(
-            items: [
-              _LegendItem(color: _b2cColor, label: l10n.rptRevB2c),
-              _LegendItem(color: _b2bColor, label: l10n.rptRevB2b),
-              _LegendItem(color: _otherColor, label: l10n.rptRevOther),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: BarChart(
-              BarChartData(
-                maxY: maxY <= 0 ? 1 : maxY * 1.15,
-                alignment: BarChartAlignment.spaceAround,
-                gridData: const FlGridData(show: true, drawVerticalLine: false),
-                borderData: FlBorderData(show: false),
-                barGroups: groups,
-                barTouchData: BarTouchData(
-                  touchTooltipData: BarTouchTooltipData(
-                    getTooltipItem: (group, _, rod, _) => BarTooltipItem(
-                      '${labels[group.x]}\n${formatCompactCurrency(context, rod.toY)}',
-                      theme.textTheme.labelSmall!.copyWith(color: Colors.white),
-                    ),
-                  ),
-                ),
-                titlesData: _titles(context, labels),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SplitCard extends StatelessWidget {
-  final RevenueSummary summary;
-  const _SplitCard({required this.summary});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final slices = [
-      _Slice(l10n.rptRevB2c, summary.b2c, _b2cColor),
-      _Slice(l10n.rptRevB2b, summary.b2b, _b2bColor),
-      _Slice(l10n.rptRevOther, summary.other, _otherColor),
-    ].where((s) => s.value > 0).toList();
-    return ReportChartCard(
-      title: l10n.rptRevSplitTitle,
-      height: 180,
-      isEmpty: slices.isEmpty,
-      emptyText: l10n.reportNoData,
-      child: _DonutWithLegend(slices: slices),
-    );
-  }
-}
-
-class _BestWorstCard extends StatelessWidget {
-  final RevenueSummary summary;
-  const _BestWorstCard({required this.summary});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-
-    Widget line(IconData icon, Color color, String label, RevenueDay? day) =>
-        Padding(
-          padding: const EdgeInsetsDirectional.symmetric(vertical: 4),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: color),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label, style: theme.textTheme.bodyMedium),
-                    Text(
-                      day == null
-                          ? _dash
-                          : _day(context, day.date, pattern: 'EEE d MMM yyyy'),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  day == null ? _dash : formatCurrency(context, day.netSales),
-                  textAlign: TextAlign.end,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-
     return Card(
+      key: const ValueKey('revenue-attention'),
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsetsDirectional.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _CardTitle(l10n.rptRevBestWorstTitle),
+            _CardTitle(l10n.rptRevNeedsAttention),
             const SizedBox(height: 4),
-            line(Icons.trending_up, _positive, l10n.rptRevBestDay,
-                summary.bestDay),
-            line(Icons.trending_down, _negative, l10n.rptRevWorstDay,
-                summary.worstDay),
+            for (var i = 0; i < items.length; i++)
+              Padding(
+                key: ValueKey('revenue-attention-$i'),
+                padding: const EdgeInsetsDirectional.symmetric(vertical: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(top: 5),
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: items[i].isHigh ? _negative : _amber,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _attentionText(context, items[i]),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -819,167 +734,240 @@ class _BestWorstCard extends StatelessWidget {
   }
 }
 
+String _attentionText(BuildContext context, RevenueAttentionItem a) {
+  final l10n = context.l10n;
+  String money(double? v) => formatCompactCurrency(context, v ?? 0);
+  String drop(double? v) => _pct((v ?? 0).abs());
+  return switch (a.kind) {
+    RevenueAttentionItem.kindCancelled => l10n.rptRevAttnCancelled(
+      a.count ?? 0,
+      money(a.value),
+    ),
+    RevenueAttentionItem.kindReturns => l10n.rptRevAttnReturns(
+      a.count ?? 0,
+      money(a.value),
+    ),
+    RevenueAttentionItem.kindBranchDrop => l10n.rptRevAttnBranchDrop(
+      _branchLabel(context, a.name ?? ''),
+      drop(a.changePct),
+      money(a.netSales),
+      money(a.compareNetSales),
+    ),
+    RevenueAttentionItem.kindSourceDrop => l10n.rptRevAttnSourceDrop(
+      _sourceLabel(context, a.name ?? ''),
+      drop(a.changePct),
+      money(a.netSales),
+      money(a.compareNetSales),
+    ),
+    _ => l10n.rptRevAttnDiscountHigh(
+      money(a.value),
+      _pct(a.discountPct ?? 0),
+      _pct(a.compareDiscountPct ?? 0),
+    ),
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────
-// Breakdowns: source, payment (bars), branch (table)
+// 4. Where it came from: source, payment, branch
 // ─────────────────────────────────────────────────────────────────────────
 
-class _BarRowData {
+class _MixRowData {
   final String label;
-  final double value;
-  final double? sharePct;
+  final double amount;
   final int orders;
-  final Color color;
-  const _BarRowData({
+  final double? sharePct;
+  final bool showChange;
+  final double? changePct;
+
+  /// Extra text for the second line (a branch's B2C change).
+  final String? extra;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  const _MixRowData({
     required this.label,
-    required this.value,
-    required this.sharePct,
+    required this.amount,
     required this.orders,
-    required this.color,
+    required this.sharePct,
+    this.showChange = false,
+    this.changePct,
+    this.extra,
+    this.selected = false,
+    this.onTap,
   });
 }
 
-/// Horizontal bars, one per row: label, amount and share above, a bar scaled
-/// to the largest row below. Stacked rather than side by side so a long
-/// Arabic label never squeezes the numbers off a 360dp phone.
-class _BarListCard extends StatelessWidget {
-  final String title;
-  final List<_BarRowData> rows;
-  const _BarListCard({required this.title, required this.rows});
+class _WhereFromCard extends StatelessWidget {
+  final RevenueDashboard data;
+  final String? selectedBranch;
+  final ValueChanged<String>? onBranchTap;
+  const _WhereFromCard({
+    required this.data,
+    this.selectedBranch,
+    this.onBranchTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final max = rows.fold<double>(
-      0,
-      (m, r) => r.value.abs() > m ? r.value.abs() : m,
-    );
+    final tap = onBranchTap;
     return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsetsDirectional.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _CardTitle(title),
-            const SizedBox(height: 8),
-            if (rows.isEmpty)
-              Text(l10n.reportNoData, style: theme.textTheme.bodySmall),
-            for (final r in rows)
-              Padding(
-                padding: const EdgeInsetsDirectional.symmetric(vertical: 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                r.label,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                              Text(
-                                l10n.pnlOrdersCount(r.orders),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            '${formatCompactCurrency(context, r.value)} · ${_pctOrDash(r.sharePct)}%',
-                            textAlign: TextAlign.end,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: LinearProgressIndicator(
-                        minHeight: 8,
-                        value: max > 0
-                            ? (_pos(r.value) / max).clamp(0.0, 1.0)
-                            : 0,
-                        color: r.color,
-                        backgroundColor:
-                            theme.colorScheme.surfaceContainerHighest,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ByBranchCard extends StatelessWidget {
-  final List<RevenueBranchRow> rows;
-  final String? selected;
-  final ValueChanged<String>? onTap;
-  const _ByBranchCard({required this.rows, this.selected, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final selectedIndex = rows.indexWhere((r) => r.branch == selected);
-    final tap = onTap;
-    String n(double v) => _compact(context, v);
-    return Card(
+      key: const ValueKey('revenue-where-from'),
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsetsDirectional.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _CardTitle(l10n.rptRevByBranchTitle),
-            Text(
-              l10n.rptRevAmountsIn(currencySymbol(context)),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            _CardTitle(l10n.rptRevWhereFrom),
+            const SizedBox(height: 6),
+            _MixGroup(
+              title: l10n.rptRevBySourceTitle,
+              rows: [
+                for (final r in data.bySource)
+                  _MixRowData(
+                    label: _sourceLabel(context, r.source),
+                    amount: r.netSales,
+                    orders: r.orders,
+                    sharePct: r.sharePct,
+                    showChange: true,
+                    changePct: r.changePct,
+                  ),
+              ],
+            ),
+            const Divider(height: 16),
+            _MixGroup(
+              title: l10n.rptRevByPaymentTitle,
+              rows: [
+                for (final r in data.byPayment)
+                  _MixRowData(
+                    label: _paymentLabel(context, r.method),
+                    amount: r.netSales,
+                    orders: r.orders,
+                    sharePct: r.sharePct,
+                  ),
+              ],
+            ),
+            const Divider(height: 16),
+            _MixGroup(
+              title: l10n.rptRevByBranchTitle,
+              rows: [
+                for (final r in data.byBranch)
+                  _MixRowData(
+                    label: _branchLabel(context, r.branch),
+                    amount: r.netSales,
+                    orders: r.orders,
+                    sharePct: r.sharePct,
+                    showChange: true,
+                    changePct: r.changePct,
+                    // Only worth a mention when B2C moved differently from
+                    // the branch total (i.e. the branch also sold B2B).
+                    extra:
+                        r.b2cChangePct != null &&
+                            r.b2cChangePct != r.changePct
+                        ? l10n.rptRevCaptionB2c(_changeLabel(r.b2cChangePct))
+                        : null,
+                    selected: r.branch == selectedBranch,
+                    onTap: tap == null ? null : () => tap(r.branch),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MixGroup extends StatelessWidget {
+  final String title;
+  final List<_MixRowData> rows;
+  const _MixGroup({required this.title, required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          title,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: muted,
+          ),
+        ),
+        if (rows.isEmpty)
+          Padding(
+            padding: const EdgeInsetsDirectional.symmetric(vertical: 4),
+            child: Text(l10n.reportNoData, style: theme.textTheme.bodySmall),
+          ),
+        for (final r in rows) _MixRow(row: r),
+      ],
+    );
+  }
+}
+
+class _MixRow extends StatelessWidget {
+  final _MixRowData row;
+  const _MixRow({required this.row});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final r = row;
+    final sub = [
+      l10n.pnlOrdersCount(r.orders),
+      '${_pctOrDash(r.sharePct)}%',
+      ?r.extra,
+    ].join(' · ');
+    return InkWell(
+      onTap: r.onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsetsDirectional.symmetric(vertical: 5),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    r.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: r.selected ? FontWeight.bold : null,
+                      color: r.selected ? theme.colorScheme.primary : null,
+                    ),
+                  ),
+                  Text(
+                    sub,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            ReportTable(
-              columns: [
-                ReportColumn(l10n.rptBranchLabel, flex: 4),
-                ReportColumn(l10n.rptRevColNet, numeric: true, flex: 3),
-                ReportColumn(l10n.rptRevColB2c, numeric: true, flex: 3),
-                ReportColumn(l10n.rptRevColB2b, numeric: true, flex: 3),
-                ReportColumn(l10n.reportKpiOrders, numeric: true, flex: 3),
-                ReportColumn(l10n.rptRevColShare, numeric: true, flex: 3),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  formatCompactCurrency(context, r.amount),
+                  maxLines: 1,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (r.showChange) _ChangeText(pct: r.changePct, small: true),
               ],
-              rows: [
-                for (final r in rows)
-                  [
-                    r.branch == _noProfile ? l10n.rptRevNoProfile : r.branch,
-                    n(r.netSales),
-                    n(r.b2c),
-                    n(r.b2b),
-                    formatCount(context, r.orders),
-                    '${_pctOrDash(r.sharePct)}%',
-                  ],
-              ],
-              cellColor: (row, col) =>
-                  row == selectedIndex ? theme.colorScheme.primary : null,
-              onRowTap: tap == null ? null : (i) => tap(rows[i].branch),
             ),
           ],
         ),
@@ -989,7 +977,7 @@ class _ByBranchCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Orders by hour, delivery vs pickup
+// 5. By hour
 // ─────────────────────────────────────────────────────────────────────────
 
 class _ByHourCard extends StatelessWidget {
@@ -1001,28 +989,41 @@ class _ByHourCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final maxY = rows.fold<int>(0, (m, r) => r.orders > m ? r.orders : m);
+    // Quiet hours at either edge are trimmed; gaps inside the day stay.
+    bool active(RevenueHourRow r) => r.orders > 0 || r.netSales != 0;
+    final first = rows.indexWhere(active);
+    final last = rows.lastIndexWhere(active);
+    final shown = first < 0 ? const <RevenueHourRow>[] : rows.sublist(first, last + 1);
+    final maxY = shown.fold<double>(
+      0,
+      (m, r) => r.netSales > m ? r.netSales : m,
+    );
+    final step = shown.length <= 8 ? 1 : (shown.length <= 16 ? 2 : 3);
     final color = theme.colorScheme.primary;
+    final firstHour = shown.isEmpty ? 0 : shown.first.hour;
+
     return ReportChartCard(
-      title: l10n.rptRevByHourTitle,
-      height: 200,
-      isEmpty: maxY <= 0,
+      key: const ValueKey('revenue-by-hour'),
+      title: l10n.rptRevByHour,
+      subtitle: l10n.rptRevByHourSubtitle,
+      height: 150,
+      isEmpty: shown.isEmpty || maxY <= 0,
       emptyText: l10n.reportNoData,
       child: BarChart(
         BarChartData(
-          maxY: maxY <= 0 ? 1 : maxY * 1.2,
+          maxY: maxY <= 0 ? 1 : maxY * 1.15,
           alignment: BarChartAlignment.spaceAround,
           gridData: const FlGridData(show: true, drawVerticalLine: false),
           borderData: FlBorderData(show: false),
           barGroups: [
-            for (final r in rows)
+            for (final r in shown)
               BarChartGroupData(
                 x: r.hour,
                 barRods: [
                   BarChartRodData(
-                    toY: r.orders.toDouble(),
+                    toY: _pos(r.netSales),
                     color: color,
-                    width: 6,
+                    width: shown.length > 16 ? 6 : 10,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ],
@@ -1031,7 +1032,7 @@ class _ByHourCard extends StatelessWidget {
           barTouchData: BarTouchData(
             touchTooltipData: BarTouchTooltipData(
               getTooltipItem: (group, _, rod, _) {
-                final r = rows.firstWhere(
+                final r = shown.firstWhere(
                   (e) => e.hour == group.x,
                   orElse: () => RevenueHourRow(hour: group.x),
                 );
@@ -1056,19 +1057,14 @@ class _ByHourCard extends StatelessWidget {
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 32,
-                getTitlesWidget: (value, meta) {
-                  if (value != value.roundToDouble()) {
-                    return const SizedBox.shrink();
-                  }
-                  return SideTitleWidget(
-                    axisSide: meta.axisSide,
-                    child: Text(
-                      _compact(context, value),
-                      style: theme.textTheme.labelSmall,
-                    ),
-                  );
-                },
+                reservedSize: 36,
+                getTitlesWidget: (value, meta) => SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  child: Text(
+                    _compact(context, value),
+                    style: theme.textTheme.labelSmall,
+                  ),
+                ),
               ),
             ),
             bottomTitles: AxisTitles(
@@ -1077,8 +1073,7 @@ class _ByHourCard extends StatelessWidget {
                 reservedSize: 22,
                 getTitlesWidget: (value, meta) {
                   final h = value.round();
-                  // Every third hour: 24 labels do not fit a phone.
-                  if (value != h.toDouble() || h % 3 != 0) {
+                  if (value != h.toDouble() || (h - firstHour) % step != 0) {
                     return const SizedBox.shrink();
                   }
                   return SideTitleWidget(
@@ -1095,222 +1090,73 @@ class _ByHourCard extends StatelessWidget {
   }
 }
 
-class _FulfilmentCard extends StatelessWidget {
-  final RevenueFulfilment fulfilment;
-  const _FulfilmentCard({required this.fulfilment});
+// ─────────────────────────────────────────────────────────────────────────
+// 6. Footer links
+// ─────────────────────────────────────────────────────────────────────────
+
+class _FooterLinks extends ConsumerWidget {
+  const _FooterLinks();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final total = fulfilment.total;
-    const deliveryColor = _shippingColor;
-    final pickupColor = Colors.teal.shade600;
 
-    Widget figure(IconData icon, Color color, String label, int count) =>
+    void open(String route) {
+      // The linked reports read the shared range: carry this period over so
+      // "Products" shows the products behind the figures above.
+      ref.read(reportRangeProvider.notifier).state = ref.read(
+        revenueRangeProvider,
+      );
+      context.push(route);
+    }
+
+    return Row(
+      children: [
         Expanded(
-          child: Row(
-            children: [
-              Icon(icon, color: color),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      formatCount(context, count),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                      ),
-                    ),
-                    Text(
-                      total > 0
-                          ? '$label · ${_pct(count * 100 / total)}%'
-                          : label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          child: _LinkButton(
+            key: const ValueKey('revenue-link-products'),
+            label: l10n.rptRevLinkProducts,
+            onPressed: () => open(AppRoutes.reportsProduct),
           ),
-        );
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsetsDirectional.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _CardTitle(l10n.rptRevFulfilmentTitle),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                figure(
-                  Icons.delivery_dining_outlined,
-                  deliveryColor,
-                  l10n.rptRevDelivery,
-                  fulfilment.deliveryOrders,
-                ),
-                const SizedBox(width: 8),
-                figure(
-                  Icons.storefront_outlined,
-                  pickupColor,
-                  l10n.rptRevPickup,
-                  fulfilment.pickupOrders,
-                ),
-              ],
-            ),
-            if (total > 0) ...[
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: SizedBox(
-                  height: 10,
-                  child: Row(
-                    children: [
-                      if (fulfilment.deliveryOrders > 0)
-                        Expanded(
-                          flex: fulfilment.deliveryOrders,
-                          child: const ColoredBox(color: deliveryColor),
-                        ),
-                      if (fulfilment.pickupOrders > 0)
-                        Expanded(
-                          flex: fulfilment.pickupOrders,
-                          child: ColoredBox(color: pickupColor),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ],
         ),
-      ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _LinkButton(
+            key: const ValueKey('revenue-link-b2b'),
+            label: l10n.rptRevLinkB2b,
+            onPressed: () => open(AppRoutes.reportsB2b),
+          ),
+        ),
+      ],
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// Top 10 tables
-// ─────────────────────────────────────────────────────────────────────────
-
-class _TopProductsCard extends StatelessWidget {
-  final List<RevenueProductRow> rows;
-  const _TopProductsCard({required this.rows});
+class _LinkButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+  const _LinkButton({super.key, required this.label, required this.onPressed});
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsetsDirectional.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _CardTitle(l10n.rptRevTopProductsTitle),
-            const SizedBox(height: 4),
-            ReportTable(
-              columns: [
-                ReportColumn(l10n.rptRevColProduct, flex: 5),
-                ReportColumn(l10n.rptRevColQty, numeric: true, flex: 2),
-                ReportColumn(l10n.rptRevColNet, numeric: true, flex: 3),
-              ],
-              rows: [
-                for (final r in rows.take(10))
-                  [
-                    r.displayName,
-                    formatCount(context, r.qty),
-                    formatCompactCurrency(context, r.netSales),
-                  ],
-              ],
-            ),
-          ],
+  Widget build(BuildContext context) => OutlinedButton(
+    onPressed: onPressed,
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
-      ),
-    );
-  }
-}
-
-class _TopB2bCard extends StatelessWidget {
-  final List<RevenueB2bCustomerRow> rows;
-  const _TopB2bCard({required this.rows});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsetsDirectional.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _CardTitle(l10n.rptRevTopB2bTitle),
-            const SizedBox(height: 4),
-            ReportTable(
-              columns: [
-                ReportColumn(l10n.rptRevColCustomer, flex: 5),
-                ReportColumn(l10n.reportKpiOrders, numeric: true, flex: 2),
-                ReportColumn(l10n.rptRevColNet, numeric: true, flex: 3),
-              ],
-              rows: [
-                for (final r in rows.take(10))
-                  [
-                    r.displayName,
-                    formatCount(context, r.orders),
-                    formatCompactCurrency(context, r.netSales),
-                  ],
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+        const SizedBox(width: 4),
+        // arrow_forward mirrors itself in RTL.
+        const Icon(Icons.arrow_forward, size: 16),
+      ],
+    ),
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────
 // Shared small pieces
 // ─────────────────────────────────────────────────────────────────────────
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  const _SectionHeader({required this.title, this.subtitle});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final sub = subtitle;
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(start: 4, bottom: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          if (sub != null && sub.isNotEmpty)
-            Text(
-              sub,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
 
 class _CardTitle extends StatelessWidget {
   final String text;
@@ -1325,170 +1171,66 @@ class _CardTitle extends StatelessWidget {
   );
 }
 
-class _Slice {
-  final String label;
-  final double value;
-  final Color color;
-  const _Slice(this.label, this.value, this.color);
-}
-
-/// Donut on the start side, and per slice its label, value and percentage.
-class _DonutWithLegend extends StatelessWidget {
-  final List<_Slice> slices;
-  const _DonutWithLegend({required this.slices});
+/// "▲ 12.5%" in green, "▼ 3.0%" in red, "—" when there is nothing to compare.
+class _ChangeText extends StatelessWidget {
+  final double? pct;
+  final bool small;
+  const _ChangeText({required this.pct, this.small = false});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final total = slices.fold<double>(0, (s, e) => s + e.value);
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: LayoutBuilder(
-            builder: (context, c) {
-              final d = c.maxWidth < c.maxHeight ? c.maxWidth : c.maxHeight;
-              final outer = (d / 2) - 2;
-              return PieChart(
-                PieChartData(
-                  sectionsSpace: 2,
-                  centerSpaceRadius: (outer * 0.4).clamp(12.0, 42.0),
-                  sections: [
-                    for (final s in slices)
-                      PieChartSectionData(
-                        value: s.value,
-                        color: s.color,
-                        radius: (outer * 0.6).clamp(22.0, 55.0),
-                        title: total > 0 && s.value / total >= 0.06
-                            ? '${(s.value / total * 100).toStringAsFixed(0)}%'
-                            : '',
-                        titleStyle: theme.textTheme.labelSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          flex: 4,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final s in slices)
-                Padding(
-                  padding: const EdgeInsetsDirectional.symmetric(vertical: 3),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(top: 3),
-                        child: _Swatch(color: s.color),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              s.label,
-                              style: theme.textTheme.labelSmall,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              '${formatCompactCurrency(context, s.value)} · '
-                              '${total > 0 ? _pct(s.value / total * 100) : _dash}%',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
+    final base = small ? theme.textTheme.labelSmall : theme.textTheme.labelMedium;
+    return Text(
+      _changeLabel(pct),
+      maxLines: 1,
+      style: base?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: _changeColor(context, pct),
+      ),
     );
   }
 }
 
-class _Swatch extends StatelessWidget {
-  final Color color;
-  const _Swatch({required this.color});
+/// The hero's net-sales change, on a tinted pill.
+class _ChangePill extends StatelessWidget {
+  final double? pct;
+  const _ChangePill({required this.pct});
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: 10,
-    height: 10,
-    decoration: BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(2),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = _changeColor(context, pct);
+    return Container(
+      key: const ValueKey('revenue-hero-change'),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        _changeLabel(pct),
+        maxLines: 1,
+        style: theme.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+      ),
+    );
+  }
 }
 
-class _Legend extends StatelessWidget {
-  final List<_LegendItem> items;
-  const _Legend({required this.items});
+// ── colours ───────────────────────────────────────────────────────────────
 
-  @override
-  Widget build(BuildContext context) =>
-      Wrap(spacing: 10, runSpacing: 2, children: items);
-}
-
-class _LegendItem extends StatelessWidget {
-  final Color color;
-  final String label;
-  const _LegendItem({required this.color, required this.label});
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      _Swatch(color: color),
-      const SizedBox(width: 4),
-      Text(label, style: Theme.of(context).textTheme.labelSmall),
-    ],
-  );
-}
-
-// ── colours: B2C / B2B match the P&L report, so a channel reads the same ──
-
-const _b2cColor = Color(0xFF1E88E5);
-const _b2bColor = Color(0xFF8E24AA);
-const _otherColor = Color(0xFF90A4AE);
-const _shippingColor = Color(0xFFFB8C00);
 final _positive = Colors.green.shade700;
 const _negative = Color(0xFFD32F2F);
+const _amber = Color(0xFFF9A825);
 
 /// The backend's label for invoices with no POS Profile.
 const _noProfile = '(No Profile)';
 
 /// Shown where the backend sends null (nothing to compare, no orders).
 const _dash = '—';
-
-Color _sourceColor(String source) => switch (source) {
-  'pos' => const Color(0xFF1E88E5),
-  'woo' => const Color(0xFF43A047),
-  'talabat' => const Color(0xFFFF6D00),
-  'partner' => const Color(0xFF00897B),
-  'b2b' => _b2bColor,
-  'staff' => _otherColor,
-  'samples' => const Color(0xFFA1887F),
-  _ => const Color(0xFF78909C),
-};
 
 String _sourceLabel(BuildContext context, String source) {
   final l10n = context.l10n;
@@ -1503,6 +1245,9 @@ String _sourceLabel(BuildContext context, String source) {
     _ => source.isEmpty ? l10n.commonNotSpecified : source,
   };
 }
+
+String _branchLabel(BuildContext context, String branch) =>
+    branch == _noProfile ? context.l10n.rptRevNoProfile : branch;
 
 String _paymentLabel(BuildContext context, String method) =>
     method.trim().toLowerCase() == 'unspecified'
@@ -1535,66 +1280,28 @@ Color _changeColor(BuildContext context, double? pct) {
 String _compact(BuildContext context, num value) =>
     NumberFormat.compact(locale: context.l10n.localeName).format(value);
 
-/// An ISO date as e.g. "18 Oct 2026"; the raw text when it does not parse.
-String _day(BuildContext context, String raw, {String pattern = 'd MMM yyyy'}) {
+/// A single ISO day as "Sun 11 Oct"; the raw text when it does not parse.
+String _dayLabel(BuildContext context, String raw) {
   final d = DateTime.tryParse(raw);
   if (d == null) return raw.isEmpty ? _dash : raw;
-  return DateFormat(pattern, context.l10n.localeName).format(d);
+  return DateFormat('EEE d MMM', context.l10n.localeName).format(d);
 }
 
-String _bucketLabel(BuildContext context, String raw, String granularity) {
-  final d = DateTime.tryParse(raw);
-  if (d == null) return raw;
+/// An ISO range as "Sun 11 Oct" (one day), "5–11 Oct" (one month),
+/// "28 Sep – 4 Oct" (one year) or with years otherwise.
+String _rangeLabel(BuildContext context, String from, String to) {
+  final f = DateTime.tryParse(from);
+  final t = DateTime.tryParse(to);
+  if (f == null) return from.isEmpty ? _dash : from;
+  if (t == null || DateUtils.isSameDay(f, t)) return _dayLabel(context, from);
   final locale = context.l10n.localeName;
-  return granularity == 'month'
-      ? DateFormat('MMM yy', locale).format(d)
-      : DateFormat('M/d', locale).format(d);
-}
-
-FlTitlesData _titles(BuildContext context, List<String> labels) {
-  final theme = Theme.of(context);
-  // At most ~6 labels. BarChart asks for a title per group and ignores
-  // `interval`, so the step is also enforced inside getTitlesWidget.
-  final step = labels.isEmpty
-      ? 1
-      : (labels.length / 6).ceil().clamp(1, 1 << 20);
-  return FlTitlesData(
-    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-    leftTitles: AxisTitles(
-      sideTitles: SideTitles(
-        showTitles: true,
-        reservedSize: 50,
-        getTitlesWidget: (value, meta) => SideTitleWidget(
-          axisSide: meta.axisSide,
-          child: Text(
-            _compact(context, value),
-            style: theme.textTheme.labelSmall,
-          ),
-        ),
-      ),
-    ),
-    bottomTitles: AxisTitles(
-      sideTitles: SideTitles(
-        showTitles: true,
-        interval: step.toDouble(),
-        reservedSize: 26,
-        getTitlesWidget: (value, meta) {
-          final i = value.round();
-          if (i < 0 ||
-              i >= labels.length ||
-              value != i.toDouble() ||
-              i % step != 0) {
-            return const SizedBox.shrink();
-          }
-          return SideTitleWidget(
-            axisSide: meta.axisSide,
-            child: Text(labels[i], style: theme.textTheme.labelSmall),
-          );
-        },
-      ),
-    ),
-  );
+  String fmt(String pattern, DateTime d) =>
+      DateFormat(pattern, locale).format(d);
+  if (f.year == t.year && f.month == t.month) {
+    return '${fmt('d', f)}–${fmt('d MMM', t)}';
+  }
+  if (f.year == t.year) return '${fmt('d MMM', f)} – ${fmt('d MMM', t)}';
+  return '${fmt('d MMM yyyy', f)} – ${fmt('d MMM yyyy', t)}';
 }
 
 // ── CSV export ────────────────────────────────────────────────────────────

@@ -329,7 +329,25 @@ final profitAndLossReportProvider = FutureProvider.autoDispose
   return repo.fetchProfitAndLossReport(q);
 });
 
-/// The daily revenue dashboard for the shared range + branch.
+/// The revenue dashboard's own date range. It is daily-first, so it opens on
+/// Today rather than on the shared [reportRangeProvider] (month to date by
+/// default), and picking a period there never moves the other reports'
+/// dates. Auto-disposed: opening the screen the next morning starts on that
+/// day, not on a stale "today".
+final revenueRangeProvider = StateProvider.autoDispose<ReportRange>(
+  (ref) => ReportRange.today(),
+);
+
+/// The revenue dashboard's [ReportQuery]: its own range + the shared branch.
+final revenueQueryProvider = Provider.autoDispose<ReportQuery>((ref) {
+  return ReportQuery(
+    range: ref.watch(revenueRangeProvider),
+    branch: ref.watch(reportBranchProvider),
+  );
+});
+
+/// The daily revenue dashboard for a range + branch
+/// (keyed by [revenueQueryProvider] on the dashboard screen).
 final revenueDashboardProvider = FutureProvider.autoDispose
     .family<RevenueDashboard, ReportQuery>((ref, q) async {
   final repo = ref.watch(reportsRepositoryProvider);

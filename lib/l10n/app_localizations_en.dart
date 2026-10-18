@@ -9226,6 +9226,149 @@ class AppLocalizationsEn extends AppLocalizations {
   String get b2bGoToKanban => 'Go to Dispatch Kanban';
 
   @override
+  String get b2bActiveTitle => 'My customers';
+
+  @override
+  String get b2bActivePipelineBoard => 'Pipeline board';
+
+  @override
+  String get b2bActiveSearchHint => 'Search customer or area';
+
+  @override
+  String get b2bActiveKpiAccounts => 'Active accounts';
+
+  @override
+  String b2bActiveKpiBilled(int days) {
+    return 'Billed, last $days days';
+  }
+
+  @override
+  String b2bActiveKpiOrders(int days) {
+    return 'Orders, last $days days';
+  }
+
+  @override
+  String get b2bActiveKpiOutstanding => 'Outstanding';
+
+  @override
+  String get b2bActiveKpiReorderDue => 'Reorder due';
+
+  @override
+  String get b2bActiveKpiNeedsAttention => 'Needs attention';
+
+  @override
+  String b2bActiveVsPrevious(int days) {
+    return 'vs previous $days days';
+  }
+
+  @override
+  String get b2bActiveReorderOverdue => 'Reorder overdue';
+
+  @override
+  String get b2bActiveReorderDueSoon => 'Due soon';
+
+  @override
+  String b2bActiveReorderOk(String date) {
+    return 'Next order about $date';
+  }
+
+  @override
+  String b2bActiveLastOrder(String date, String ago) {
+    return 'Last order: $date ($ago)';
+  }
+
+  @override
+  String b2bActiveDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: 'yesterday',
+      zero: 'today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get b2bActiveNoOrders => 'No orders yet';
+
+  @override
+  String b2bActiveFigPeriod(int days) {
+    return 'Last $days days';
+  }
+
+  @override
+  String b2bActiveFigOrders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count orders',
+      one: '1 order',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get b2bActiveFigLifetime => 'Lifetime';
+
+  @override
+  String get b2bActiveFigAvgOrder => 'Avg order';
+
+  @override
+  String get b2bActiveFigOutstanding => 'Outstanding';
+
+  @override
+  String b2bActiveOldestUnpaid(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'oldest unpaid $count days',
+      one: 'oldest unpaid 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String b2bActiveNextAction(String action) {
+    return 'Next: $action';
+  }
+
+  @override
+  String b2bActiveNextActionOn(String action, String date) {
+    return 'Next: $action on $date';
+  }
+
+  @override
+  String b2bActiveLastNote(String note) {
+    return 'Last note: $note';
+  }
+
+  @override
+  String get b2bActiveAlertOldUnpaid => 'Old unpaid invoice';
+
+  @override
+  String get b2bActiveAlertLabels => 'Labels alert';
+
+  @override
+  String get b2bActiveAlertNoCustomer => 'No customer linked';
+
+  @override
+  String get b2bActiveCall => 'Call';
+
+  @override
+  String get b2bActiveEmptyTitle => 'No active customers yet';
+
+  @override
+  String get b2bActiveEmptyBody =>
+      'Accounts you move to the Active stage on the pipeline board show up here.';
+
+  @override
+  String get b2bActiveNoMatches => 'No customers match your search';
+
+  @override
+  String get b2bActiveClearFilters => 'Clear filters';
+
+  @override
   String get b2bNewLead => 'New lead';
 
   @override
@@ -18688,14 +18831,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rptRevenueDashboardSubtitle =>
-      'Today, yesterday, last 7 days and month to date, B2B vs B2C';
+      'Today vs the same day last week, and what needs attention';
 
   @override
   String get rptRevAtAGlance => 'At a glance';
-
-  @override
-  String get rptRevSnapshotNote =>
-      'Always up to today, whatever dates are picked below';
 
   @override
   String get rptRevToday => 'Today';
@@ -18710,16 +18849,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rptRevMonthToDate => 'Month to date';
 
   @override
-  String get rptRevVsSameDayLastWeek => 'vs same day last week';
-
-  @override
-  String get rptRevVsPrevious7Days => 'vs previous 7 days';
-
-  @override
-  String get rptRevVsSameDaysLastMonth => 'vs same days last month';
-
-  @override
-  String get rptRevVsPreviousPeriod => 'vs previous period';
+  String get rptRevCustom => 'Custom';
 
   @override
   String get rptRevB2c => 'B2C';
@@ -18737,108 +18867,170 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rptRevColB2b => 'B2B';
 
   @override
-  String get rptRevPeriodTitle => 'Selected period';
-
-  @override
-  String rptRevRange(String from, String to) {
-    return '$from – $to';
-  }
-
-  @override
-  String rptRevPreviousRange(String from, String to) {
-    return 'Previous: $from – $to';
-  }
+  String get rptRevColNet => 'Net';
 
   @override
   String get rptRevNetSales => 'Net sales';
 
   @override
-  String rptRevShareOfSales(String pct) {
-    return '$pct% of net sales';
+  String get rptRevAverageOrder => 'Average order';
+
+  @override
+  String rptRevVsPeriod(String period) {
+    return 'vs $period';
   }
 
   @override
-  String rptRevOrdersSplit(String b2c, String b2b, String other) {
-    return 'B2C $b2c · B2B $b2b · other $other';
+  String rptRevVsPeriodUpTo(String period, String time) {
+    return 'vs $period up to $time';
   }
 
   @override
-  String rptRevAovSplit(String b2c, String b2b) {
-    return 'B2C $b2c · B2B $b2b';
+  String rptRevCaptionB2c(String amount) {
+    return 'B2C $amount';
+  }
+
+  @override
+  String rptRevCaptionB2b(String amount) {
+    return 'B2B $amount';
+  }
+
+  @override
+  String rptRevNewCustomersCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString new customers',
+      one: '1 new customer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rptRevDeliveryPickup(String delivery, String pickup) {
+    return '$delivery delivery / $pickup pickup';
+  }
+
+  @override
+  String rptRevDiscountsAmount(String amount) {
+    return 'Discounts $amount';
+  }
+
+  @override
+  String rptRevReturnsAmount(String amount) {
+    return 'Returns $amount';
+  }
+
+  @override
+  String rptRevCancelledShort(String count) {
+    return 'Cancelled $count';
+  }
+
+  @override
+  String rptRevTotalInclShipping(String amount) {
+    return 'Total incl. shipping $amount';
+  }
+
+  @override
+  String rptRevDailyAverageAmount(String amount) {
+    return 'Daily average $amount';
+  }
+
+  @override
+  String rptRevBestDayOn(String day, String amount) {
+    return 'Best $day $amount';
+  }
+
+  @override
+  String rptRevWorstDayOn(String day, String amount) {
+    return 'Worst $day $amount';
   }
 
   @override
   String get rptRevDeliveryFees => 'Delivery fees';
 
   @override
-  String rptRevInclFees(String amount) {
-    return 'Incl. fees: $amount';
-  }
-
-  @override
   String get rptRevDailyAverage => 'Daily average';
-
-  @override
-  String rptRevDaysCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count days',
-      one: '1 day',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String rptRevNewCustomers(String count) {
-    return '$count new';
-  }
 
   @override
   String get rptRevReturns => 'Returns';
 
   @override
-  String rptRevReturnsCount(String count) {
-    return '$count return invoices';
-  }
-
-  @override
   String get rptRevCancelled => 'Cancelled';
-
-  @override
-  String rptRevCancelledCount(String count) {
-    return '$count orders cancelled';
-  }
 
   @override
   String get rptRevDiscounts => 'Discounts';
 
   @override
-  String get rptRevTrendTitle => 'B2B vs B2C trend';
+  String get rptRevNeedsAttention => 'Needs attention';
 
   @override
-  String get rptRevPerDay => 'Per day';
+  String get rptRevNothingNeedsAttention => 'Nothing needs attention';
 
   @override
-  String get rptRevPerWeek => 'Per week';
+  String rptRevAttnCancelled(int count, String amount) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString cancelled orders',
+      one: '1 cancelled order',
+    );
+    return '$_temp0 · $amount';
+  }
 
   @override
-  String get rptRevPerMonth => 'Per month';
+  String rptRevAttnReturns(int count, String amount) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString returns',
+      one: '1 return',
+    );
+    return '$_temp0 · $amount';
+  }
 
   @override
-  String get rptRevSplitTitle => 'B2B vs B2C';
+  String rptRevAttnBranchDrop(
+    String name,
+    String pct,
+    String amount,
+    String compare,
+  ) {
+    return '$name B2C down $pct% ($amount vs $compare)';
+  }
 
   @override
-  String get rptRevBestWorstTitle => 'Best and worst day';
+  String rptRevAttnSourceDrop(
+    String name,
+    String pct,
+    String amount,
+    String compare,
+  ) {
+    return '$name down $pct% ($amount vs $compare)';
+  }
 
   @override
-  String get rptRevBestDay => 'Best day';
+  String rptRevAttnDiscountHigh(String amount, String pct, String compare) {
+    return 'Discounts $amount = $pct% of sales (vs $compare%)';
+  }
 
   @override
-  String get rptRevWorstDay => 'Worst day';
+  String get rptRevWhereFrom => 'Where it came from';
 
   @override
-  String get rptRevBySourceTitle => 'Sales by source';
+  String get rptRevBySourceTitle => 'By source';
 
   @override
   String get rptRevSourcePos => 'POS / phone';
@@ -18868,18 +19060,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rptRevNoProfile => 'No branch';
 
   @override
-  String get rptRevColNet => 'Net';
+  String get rptRevByHour => 'By hour';
 
   @override
-  String get rptRevColShare => 'Share';
-
-  @override
-  String rptRevAmountsIn(String currency) {
-    return 'Amounts in $currency';
-  }
-
-  @override
-  String get rptRevByHourTitle => 'Orders by hour';
+  String get rptRevByHourSubtitle => 'Net sales per hour';
 
   @override
   String rptRevHourTooltip(String hour, String orders, String amount) {
@@ -18887,28 +19071,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get rptRevFulfilmentTitle => 'Delivery vs pickup';
+  String get rptRevLinkProducts => 'Products';
 
   @override
-  String get rptRevDelivery => 'Delivery';
-
-  @override
-  String get rptRevPickup => 'Pickup';
-
-  @override
-  String get rptRevTopProductsTitle => 'Top 10 products';
-
-  @override
-  String get rptRevTopB2bTitle => 'Top 10 B2B customers';
-
-  @override
-  String get rptRevColProduct => 'Product';
-
-  @override
-  String get rptRevColQty => 'Qty';
-
-  @override
-  String get rptRevColCustomer => 'Customer';
+  String get rptRevLinkB2b => 'B2B clients';
 
   @override
   String rptRevUpdatedAt(String time) {
