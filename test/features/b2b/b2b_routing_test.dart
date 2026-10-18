@@ -98,6 +98,23 @@ void main() {
       );
     });
 
+    test('B2B rep can open the pipeline board under /b2b/pipeline', () {
+      final r = _roles([RoleNames.b2bSalesRep], isB2bSalesRep: true);
+      expect(AppRoutes.b2bPipeline, startsWith(AppRoutes.b2b));
+      expect(
+        resolveB2bRedirect(roles: r, location: AppRoutes.b2bPipeline),
+        isNull,
+      );
+    });
+
+    test('cashier cannot reach the pipeline board either', () {
+      final r = _roles([RoleNames.jarzPosStaff]);
+      expect(
+        resolveB2bRedirect(roles: r, location: AppRoutes.b2bPipeline),
+        AppRoutes.kanban,
+      );
+    });
+
     test('cashier cannot reach /b2b and is sent to their home', () {
       final r = _roles([RoleNames.jarzPosStaff]);
       expect(

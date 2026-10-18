@@ -255,6 +255,12 @@ class AppDrawer extends ConsumerWidget {
         ),
       if (canAccessB2b)
         navTile(
+          icon: Icons.view_kanban_outlined,
+          title: l10n.b2bActivePipelineBoard,
+          onTap: () => navigate(AppRoutes.b2bPipeline),
+        ),
+      if (canAccessB2b)
+        navTile(
           icon: Icons.travel_explore,
           title: l10n.menuLeads,
           onTap: () => navigate(AppRoutes.leads),
@@ -518,6 +524,7 @@ class AppDrawer extends ConsumerWidget {
         children: b2bChildren,
         routes: const [
           AppRoutes.b2b,
+          AppRoutes.b2bPipeline,
           AppRoutes.leads,
           AppRoutes.labels,
           AppRoutes.pricing,

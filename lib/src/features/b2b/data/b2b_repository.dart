@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/constants/api_endpoints.dart';
 import 'models/b2b_account_labels.dart';
+import 'models/b2b_active_accounts.dart';
 import 'models/b2b_models.dart';
 
 final b2bRepositoryProvider = Provider<B2bRepository>((ref) {
@@ -37,6 +38,16 @@ class B2bRepository {
   Future<B2bPipeline> getPipeline() async {
     final response = await _dio.post(ApiEndpoints.getB2bPipeline, data: {});
     return B2bPipeline.fromJson(_asMap(_unwrap(response)));
+  }
+
+  /// The accounts at the "Active" stage with per-account ordering numbers and
+  /// a summary, for the default B2B landing screen.
+  Future<B2bActiveAccounts> getActiveAccounts({int periodDays = 30}) async {
+    final response = await _dio.post(
+      ApiEndpoints.getB2bActiveAccounts,
+      data: {'period_days': periodDays},
+    );
+    return B2bActiveAccounts.fromJson(_asMap(_unwrap(response)));
   }
 
   Future<B2bAccountDetail> getAccount({

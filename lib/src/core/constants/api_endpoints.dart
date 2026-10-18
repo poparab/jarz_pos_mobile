@@ -629,6 +629,8 @@ abstract final class ApiEndpoints {
   // ── B2B CRM ───────────────────────────────────────────────────────────
   static const getB2bPipeline = '/api/method/jarz_pos.api.crm.get_b2b_pipeline';
   static const getB2bAccount = '/api/method/jarz_pos.api.crm.get_account';
+  static const getB2bActiveAccounts =
+      '/api/method/jarz_pos.api.crm.get_active_accounts';
   static const b2bAdvanceStage = '/api/method/jarz_pos.api.crm.advance_stage';
   static const b2bCreateLead = '/api/method/jarz_pos.api.crm.create_lead';
   static const b2bLogActivity = '/api/method/jarz_pos.api.crm.log_activity';

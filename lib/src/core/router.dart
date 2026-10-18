@@ -73,6 +73,7 @@ import '../features/master_orders/presentation/master_orders_screen.dart';
 import '../features/instapay_reconciliation/presentation/instapay_reconciliation_screen.dart';
 import 'network/user_service.dart';
 import '../features/about/presentation/screens/about_screen.dart';
+import '../features/b2b/presentation/screens/b2b_active_accounts_screen.dart';
 import '../features/b2b/presentation/screens/b2b_pipeline_screen.dart';
 import '../features/labels/presentation/screens/labels_screen.dart';
 import '../features/labels/presentation/screens/label_detail_screen.dart';
@@ -824,6 +825,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.b2b,
         name: 'b2b',
+        builder: (context, state) => const B2bActiveAccountsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.b2bPipeline,
+        name: 'b2b-pipeline',
         builder: (context, state) => const B2bPipelineScreen(),
       ),
       GoRoute(

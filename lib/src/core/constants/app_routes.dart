@@ -104,7 +104,10 @@ abstract final class AppRoutes {
   static const root = '/';
 
   // ── B2B Mode ──────────────────────────────────────────────────────────
+  // B2B mode's landing: the Active-stage customer list ("My customers").
   static const b2b = '/b2b';
+  // The sales pipeline Kanban board, one tap from the landing list.
+  static const b2bPipeline = '/b2b/pipeline';
   static const b2bToday = '/b2b/today';
   static const b2bAccount = '/b2b/account';
   // Everything due, on a month grid — the cross-account view of the same next

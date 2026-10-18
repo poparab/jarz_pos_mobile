@@ -17,6 +17,8 @@ import '../../../credit/presentation/widgets/credit_settings_section.dart';
 import '../../../pricing/presentation/widgets/customer_deals_section.dart';
 import '../../../credit/presentation/widgets/settlement_terms_section.dart';
 import '../../../journey/presentation/widgets/journey_notes_section.dart';
+import '../../../journey/state/journey_notes_notifier.dart'
+    show JourneyRef, journeyNotesProvider;
 import '../../../labels/models/label_models.dart' show LabelStatus;
 import '../../../labels/presentation/widgets/label_status_chip.dart';
 import '../../../leads/data/leads_repository.dart';
@@ -87,6 +89,14 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
   /// returns the new branch list, so there is no need to refetch everything).
   /// Cleared on every reload.
   B2bAccountDetail? _current;
+
+  /// Expand / collapse state of the collapsible sections. Held here, not in
+  /// [_AccountBody], because a reload swaps the body for a spinner and would
+  /// otherwise reset the choice. `null` = the rep has not chosen yet, so the
+  /// default applies (Journey: collapsed for an Active account, expanded for
+  /// every other stage; Open to-dos: always collapsed).
+  bool? _journeyExpanded;
+  bool _todosExpanded = false;
 
   @override
   void initState() {
@@ -167,6 +177,14 @@ class _B2bAccountScreenState extends ConsumerState<B2bAccountScreen> {
             account: account,
             labels: detail.labels,
             busy: _busy,
+            journeyExpanded: _journeyExpanded ?? account.stage != 'Active',
+            onToggleJourney: () => setState(
+              () => _journeyExpanded =
+                  !(_journeyExpanded ?? account.stage != 'Active'),
+            ),
+            todosExpanded: _todosExpanded,
+            onToggleTodos: () =>
+                setState(() => _todosExpanded = !_todosExpanded),
             onSendSample: () => _bindAndOrder(account, isSample: true),
             onPlaceOrder: () => _bindAndOrder(account, isSample: false),
             onLogCall: isCustomerAccount ? null : () => _logCall(account),
@@ -1007,6 +1025,10 @@ class _AccountBody extends StatelessWidget {
   final B2bAccount account;
   final B2bAccountLabels? labels;
   final bool busy;
+  final bool journeyExpanded;
+  final VoidCallback onToggleJourney;
+  final bool todosExpanded;
+  final VoidCallback onToggleTodos;
   final VoidCallback onSendSample;
   final VoidCallback onPlaceOrder;
   final VoidCallback? onLogCall;
@@ -1038,6 +1060,10 @@ class _AccountBody extends StatelessWidget {
     required this.account,
     required this.labels,
     required this.busy,
+    required this.journeyExpanded,
+    required this.onToggleJourney,
+    required this.todosExpanded,
+    required this.onToggleTodos,
     required this.onSendSample,
     required this.onPlaceOrder,
     this.onLogCall,
@@ -1166,12 +1192,19 @@ class _AccountBody extends StatelessWidget {
             // one per screen. `onJourneyChanged` reloads the account because a
             // dated next action restamps its follow-up server-side.
             if (onJourneyChanged != null)
-              JourneyNotesSection(
+              _CollapsibleJourney(
+                key: const ValueKey('b2b-journey-section'),
                 referenceDoctype: account.doctype,
                 referenceName: account.name,
-                defaultContactPhone:
-                    account.contact.mobileNo ?? account.contact.phone,
-                onChanged: onJourneyChanged!,
+                expanded: journeyExpanded,
+                onToggle: onToggleJourney,
+                section: JourneyNotesSection(
+                  referenceDoctype: account.doctype,
+                  referenceName: account.name,
+                  defaultContactPhone:
+                      account.contact.mobileNo ?? account.contact.phone,
+                  onChanged: onJourneyChanged!,
+                ),
               ),
             _section(context, context.l10n.b2bSectionInsights, [
               if (account.predictedNextOrder != null)
@@ -1226,25 +1259,30 @@ class _AccountBody extends StatelessWidget {
                   ),
                 ),
             ]),
-            _section(
-              context,
-              context.l10n.b2bSectionOpenTodos,
-              account.openTodos.isEmpty
-                  ? [Text(context.l10n.b2bNone)]
-                  : account.openTodos
-                        .map(
-                          (todo) => ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            dense: true,
-                            leading: const Icon(Icons.check_box_outline_blank),
-                            title: Text(todo.description ?? todo.name),
-                            subtitle: todo.date != null
-                                ? Text(todo.date!)
-                                : null,
-                          ),
-                        )
-                        .toList(),
+            // Collapsed by default for every account: reps do not log to it,
+            // so it only takes space unless they ask for it.
+            const SizedBox(height: 16),
+            _CollapsibleHeader(
+              key: const ValueKey('b2b-open-todos-header'),
+              title:
+                  '${context.l10n.b2bSectionOpenTodos} '
+                  '(${account.openTodos.length})',
+              expanded: todosExpanded,
+              onToggle: onToggleTodos,
             ),
+            if (todosExpanded)
+              if (account.openTodos.isEmpty)
+                Text(context.l10n.b2bNone)
+              else
+                ...account.openTodos.map(
+                  (todo) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: const Icon(Icons.check_box_outline_blank),
+                    title: Text(todo.description ?? todo.name),
+                    subtitle: todo.date != null ? Text(todo.date!) : null,
+                  ),
+                ),
             SizedBox(height: trailingSpacer),
           ],
         ),
@@ -1340,6 +1378,143 @@ class _AccountBody extends StatelessWidget {
           Expanded(child: Text(value)),
         ],
       ),
+    );
+  }
+}
+
+/// Disclosure toggle used by the collapsible sections: a leading chevron plus
+/// the title. The caller owns the expanded flag (kept in the screen state so it
+/// survives a reload).
+class _CollapsibleToggle extends StatelessWidget {
+  final String title;
+  final TextStyle? style;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  const _CollapsibleToggle({
+    super.key,
+    required this.title,
+    required this.expanded,
+    required this.onToggle,
+    this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final materialL10n = MaterialLocalizations.of(context);
+    return Semantics(
+      button: true,
+      expanded: expanded,
+      child: Tooltip(
+        message: expanded
+            ? materialL10n.expandedIconTapHint
+            : materialL10n.collapsedIconTapHint,
+        child: InkWell(
+          onTap: onToggle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                Icon(expanded ? Icons.expand_more : Icons.chevron_right),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: style ?? Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A [_CollapsibleToggle] followed by a divider, matching the plain `_section`
+/// header look.
+class _CollapsibleHeader extends StatelessWidget {
+  final String title;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  const _CollapsibleHeader({
+    super.key,
+    required this.title,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _CollapsibleToggle(
+          title: title,
+          expanded: expanded,
+          onToggle: onToggle,
+        ),
+        const Divider(height: 1),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+}
+
+/// The journey diary behind a disclosure. Collapsed it shows only
+/// "Journey (N)"; expanded it shows the shared [JourneyNotesSection] (with its
+/// own "Log visit" button) beside a collapse chevron. The count comes from the
+/// same provider the section reads, so it costs no extra request and the notes
+/// are already loaded when the rep expands.
+class _CollapsibleJourney extends ConsumerWidget {
+  final String referenceDoctype;
+  final String referenceName;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final Widget section;
+
+  const _CollapsibleJourney({
+    super.key,
+    required this.referenceDoctype,
+    required this.referenceName,
+    required this.expanded,
+    required this.onToggle,
+    required this.section,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (expanded) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          IconButton(
+            key: const ValueKey('b2b-journey-collapse'),
+            tooltip: MaterialLocalizations.of(context).expandedIconTapHint,
+            visualDensity: VisualDensity.compact,
+            onPressed: onToggle,
+            icon: const Icon(Icons.expand_more),
+          ),
+          Expanded(child: section),
+        ],
+      );
+    }
+    final count = ref
+        .watch(
+          journeyNotesProvider(
+            JourneyRef(doctype: referenceDoctype, name: referenceName),
+          ),
+        )
+        .maybeWhen(data: (notes) => notes.length, orElse: () => null);
+    final title = context.l10n.journeySectionTitle;
+    return _CollapsibleToggle(
+      key: const ValueKey('b2b-journey-expand'),
+      title: count == null ? title : '$title ($count)',
+      style: LeadsTheme.heading,
+      expanded: false,
+      onToggle: onToggle,
     );
   }
 }
