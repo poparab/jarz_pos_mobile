@@ -3656,10 +3656,36 @@ class PosNotifier extends StateNotifier<PosState> {
     return Duration(hours: hours, minutes: minutes, seconds: seconds);
   }
 
+  /// The custom price an amendment cart line must keep, or null for list price.
+  ///
+  /// `lineRates` is the server's `amendment_line_rates` ({item_code: unit price}),
+  /// sent only for an order audited with manager-approved custom line pricing.
+  /// Without it the edit cart re-priced every kept line at the catalog rate and
+  /// the replacement lost its prices (order 19041: free cakes came back at 160).
+  /// Equal to the catalog rate means no override, same rule as
+  /// [applyCartItemPricing].
+  @visibleForTesting
+  static double? amendmentCustomRate(
+    String itemCode,
+    dynamic lineRates, {
+    double? catalogRate,
+  }) {
+    if (lineRates is! Map || !lineRates.containsKey(itemCode)) return null;
+    final raw = lineRates[itemCode];
+    final rate = raw is num ? raw.toDouble() : double.tryParse('${raw ?? ''}');
+    if (rate == null) return null;
+    if (catalogRate != null && (rate - catalogRate).abs() <= 0.0001) {
+      return null;
+    }
+    return rate;
+  }
+
   List<Map<String, dynamic>> _buildAmendmentCartItems(
     dynamic rawItems,
-    List<Map<String, dynamic>> bundles,
-  ) {
+    List<Map<String, dynamic>> bundles, {
+    dynamic lineRates,
+    List<Map<String, dynamic>> catalogItems = const [],
+  }) {
     if (rawItems is! List) return const [];
 
     final invoiceItems = rawItems
@@ -3805,6 +3831,17 @@ class PosNotifier extends StateNotifier<PosState> {
         continue;
       }
       final quantity = _coerceInt(item['qty'], fallback: 1);
+      final catalogItem = _catalogItemForCartItem(item, catalogItems);
+      final catalogRate = catalogItem == null
+          ? null
+          : _coerceDouble(
+              catalogItem['price_list_rate'] ?? catalogItem['price'],
+            );
+      final customRate = amendmentCustomRate(
+        itemCode,
+        lineRates,
+        catalogRate: catalogRate,
+      );
       cartItems.add({
         'item_code': itemCode,
         'item_name': item['item_name']?.toString() ?? itemCode,
@@ -3813,6 +3850,9 @@ class PosNotifier extends StateNotifier<PosState> {
         'type': 'item',
         if (item.containsKey('price_list_rate'))
           'price_list_rate': _coerceDouble(item['price_list_rate']),
+        if (customRate != null) 'custom_rate_override': customRate,
+        if (customRate != null && catalogRate != null)
+          'original_catalog_rate': catalogRate,
         ...amendmentLineDiscounts(item),
       });
     }
@@ -4034,6 +4074,8 @@ class PosNotifier extends StateNotifier<PosState> {
       final builtCartItems = _buildAmendmentCartItems(
         invoiceData['items'],
         bundleCatalog,
+        lineRates: invoiceData['amendment_line_rates'],
+        catalogItems: catalogItems,
       );
 
       // B4: Guard against empty or badly loaded amendment cart.

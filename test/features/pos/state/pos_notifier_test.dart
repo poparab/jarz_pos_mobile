@@ -362,6 +362,41 @@ void main() {
     });
   });
 
+  group('PosNotifier.amendmentCustomRate', () {
+    test('keeps a manager-approved free line instead of the catalog price', () {
+      // Order 19041: six cakes at 0 came back from the edit at 160 each.
+      expect(
+        PosNotifier.amendmentCustomRate(
+          'Pistachio Large',
+          {'Pistachio Large': 0},
+          catalogRate: 160,
+        ),
+        0.0,
+      );
+      expect(
+        PosNotifier.amendmentCustomRate('Lotus Large', {'Lotus Large': '95.5'}),
+        95.5,
+      );
+    });
+
+    test('no override for list-priced lines or orders without custom pricing', () {
+      expect(
+        PosNotifier.amendmentCustomRate(
+          'Lotus Large',
+          {'Lotus Large': 160},
+          catalogRate: 160,
+        ),
+        isNull,
+      );
+      expect(
+        PosNotifier.amendmentCustomRate('Lotus Large', {'Other': 0}),
+        isNull,
+      );
+      expect(PosNotifier.amendmentCustomRate('Lotus Large', null), isNull);
+      expect(PosNotifier.amendmentCustomRate('Lotus Large', const []), isNull);
+    });
+  });
+
   group('PosState computed getters', () {
     test('cartTotal sums rate * quantity across items', () {
       final state = PosState(
