@@ -19080,4 +19080,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String rptRevUpdatedAt(String time) {
     return 'آخر تحديث $time';
   }
+
+  @override
+  String get rptRevBranchCashTitle => 'النقدية في الفروع الآن';
+
+  @override
+  String get rptRevBranchCashError => 'تعذر تحميل نقدية الفروع';
+
+  @override
+  String get managerBarOrders => 'الطلبات';
+
+  @override
+  String get managerBarMore => 'المزيد';
 }

@@ -19084,4 +19084,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String rptRevUpdatedAt(String time) {
     return 'Updated $time';
   }
+
+  @override
+  String get rptRevBranchCashTitle => 'Cash in branches now';
+
+  @override
+  String get rptRevBranchCashError => 'Could not load branch cash';
+
+  @override
+  String get managerBarOrders => 'Orders';
+
+  @override
+  String get managerBarMore => 'More';
 }

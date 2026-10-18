@@ -6887,5 +6887,9 @@
   "rptRevHourTooltip": "الساعة {hour}:00 · {orders} طلب · {amount}",
   "rptRevLinkProducts": "المنتجات",
   "rptRevLinkB2b": "عملاء قطاع الأعمال",
-  "rptRevUpdatedAt": "آخر تحديث {time}"
+  "rptRevUpdatedAt": "آخر تحديث {time}",
+  "rptRevBranchCashTitle": "النقدية في الفروع الآن",
+  "rptRevBranchCashError": "تعذر تحميل نقدية الفروع",
+  "managerBarOrders": "الطلبات",
+  "managerBarMore": "المزيد"
 }

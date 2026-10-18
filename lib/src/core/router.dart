@@ -97,6 +97,7 @@ import '../features/shift/state/shift_notifier.dart';
 import '../features/shift/models/shift_models.dart';
 import '../features/pos/state/pos_notifier.dart';
 import 'widgets/global_orientation_enforcer.dart';
+import 'widgets/manager_bottom_bar.dart';
 
 // Global RouteObserver for navigation lifecycle (used by Kanban to refresh on return)
 final RouteObserver<PageRoute<dynamic>> routeObserver =
@@ -237,10 +238,13 @@ String? resolveRouterRedirect({
 }
 
 /// The home route for a user based on their roles:
+///  - a user with the manager home switched on (and the reports it needs)
+///    lands on the revenue dashboard,
 ///  - dedicated B2B sales reps (non-managers) land in B2B mode,
 ///  - Jarz POS Staff (non-managers) land on the dispatch Kanban,
 ///  - everyone else (incl. managers) lands on POS.
 String homeRouteFor(UserRoles roles) {
+  if (roles.usesManagerHome) return AppRoutes.reportsRevenueDashboard;
   if (roles.landsOnB2b) return AppRoutes.b2b;
   if (roles.landsOnKanban) return AppRoutes.kanban;
   return AppRoutes.pos;
@@ -401,7 +405,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     // SentryNavigatorObserver records a breadcrumb per navigation, so events
     // show the screen the user was on when they crashed.
-    observers: [routeObserver, SentryNavigatorObserver()],
+    observers: [
+      routeObserver,
+      SentryNavigatorObserver(),
+      managerBarRouteObserver,
+    ],
     routes: [
       GoRoute(
         path: AppRoutes.login,

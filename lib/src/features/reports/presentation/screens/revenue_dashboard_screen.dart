@@ -8,7 +8,9 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
+import '../../../../core/network/user_service.dart';
 import '../../../../core/widgets/app_drawer.dart';
+import '../../../manager/state/manager_providers.dart';
 import '../../data/models/report_json.dart';
 import '../../data/models/revenue_dashboard.dart';
 import '../../state/reports_providers.dart';
@@ -50,6 +52,7 @@ class _RevenueDashboardScreenState
     final l10n = context.l10n;
     final q = ref.watch(revenueQueryProvider);
     final async = ref.watch(revenueDashboardProvider(q));
+    final showBranchCash = ref.watch(managerHomeProvider);
     final loaded = async.valueOrNull;
     if (loaded != null && !loaded.isEmpty) {
       _lastSnapshot = loaded.snapshot;
@@ -61,6 +64,7 @@ class _RevenueDashboardScreenState
 
     Future<void> refresh() async {
       ref.invalidate(revenueDashboardProvider(q));
+      if (showBranchCash) ref.invalidate(dashboardSummaryProvider);
       try {
         await ref.read(revenueDashboardProvider(q).future);
       } catch (_) {
@@ -115,6 +119,13 @@ class _RevenueDashboardScreenState
             ? Column(
                 children: [
                   filters(),
+                  // Drawer cash is "now", so it shows before the day's first
+                  // sale too.
+                  if (showBranchCash)
+                    const Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(12, 12, 12, 0),
+                      child: BranchCashCard(),
+                    ),
                   Expanded(
                     child: RefreshIndicator(
                       onRefresh: refresh,
@@ -128,6 +139,7 @@ class _RevenueDashboardScreenState
                 child: RevenueDashboardContent(
                   data: data,
                   query: q,
+                  showBranchCash: showBranchCash,
                   selectedBranch: q.branchOrNull,
                   onBranchTap: (branch) {
                     // The server's bucket for invoices with no POS Profile is
@@ -153,10 +165,14 @@ class RevenueDashboardContent extends StatelessWidget {
   final String? selectedBranch;
   final ValueChanged<String>? onBranchTap;
 
+  /// Adds [BranchCashCard] under the hero (the manager home only).
+  final bool showBranchCash;
+
   const RevenueDashboardContent({
     super.key,
     required this.data,
     this.query,
+    this.showBranchCash = false,
     this.selectedBranch,
     this.onBranchTap,
   });
@@ -173,6 +189,10 @@ class RevenueDashboardContent extends StatelessWidget {
         _Filters(snapshot: data.snapshot),
         const SizedBox(height: 12),
         _HeroCard(data: data, query: query),
+        if (showBranchCash) ...[
+          const SizedBox(height: 12),
+          const BranchCashCard(),
+        ],
         if (data.hasAttention) ...[
           const SizedBox(height: 12),
           _AttentionSection(items: data.attention),
@@ -1157,6 +1177,130 @@ class _LinkButton extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────
 // Shared small pieces
 // ─────────────────────────────────────────────────────────────────────────
+
+/// The cash sitting in each branch's drawer account right now, under the
+/// hero, for a user with the manager home switched on. Read from the
+/// Manager Dashboard summary (`get_manager_dashboard_summary`), so it is the
+/// same figure that screen shows; it ignores the date range and the branch
+/// filter, because a drawer balance is "now", not a period. A failure stays
+/// inside the card and never takes the revenue figures down with it.
+class BranchCashCard extends ConsumerWidget {
+  const BranchCashCard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
+    final async = ref.watch(dashboardSummaryProvider);
+    String money(double v) => formatCurrency(context, v);
+
+    Widget body;
+    final summary = async.valueOrNull;
+    if (summary != null) {
+      final branches = [...summary.branches]
+        ..sort((a, b) => b.balance.compareTo(a.balance));
+      body = Column(
+        children: [
+          for (final b in branches)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(top: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      b.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    money(b.balance),
+                    style: TextStyle(
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: b.balance < 0 ? theme.colorScheme.error : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const Divider(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.managerTotalCash,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Text(
+                money(summary.totalBalance),
+                key: const ValueKey('branch-cash-total'),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    } else if (async.hasError) {
+      body = Padding(
+        padding: const EdgeInsetsDirectional.only(top: 6),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.rptRevBranchCashError,
+                style: TextStyle(color: muted),
+              ),
+            ),
+            TextButton(
+              onPressed: () => ref.invalidate(dashboardSummaryProvider),
+              child: Text(l10n.commonRetry),
+            ),
+          ],
+        ),
+      );
+    } else {
+      body = const Padding(
+        padding: EdgeInsetsDirectional.symmetric(vertical: 12),
+        child: Center(
+          child: SizedBox.square(
+            dimension: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      key: const ValueKey('branch-cash-card'),
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: () => context.go(AppRoutes.manager),
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: _CardTitle(l10n.rptRevBranchCashTitle)),
+                  Icon(Icons.chevron_right, size: 18, color: muted),
+                ],
+              ),
+              body,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _CardTitle extends StatelessWidget {
   final String text;

@@ -31682,6 +31682,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Updated {time}'**
   String rptRevUpdatedAt(String time);
+
+  /// Revenue dashboard: title of the card listing each branch's current drawer cash (manager home only).
+  ///
+  /// In en, this message translates to:
+  /// **'Cash in branches now'**
+  String get rptRevBranchCashTitle;
+
+  /// Revenue dashboard: the branch cash card failed to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load branch cash'**
+  String get rptRevBranchCashError;
+
+  /// Manager bottom bar tab that opens the orders Kanban.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get managerBarOrders;
+
+  /// Manager bottom bar tab that opens the full side menu.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get managerBarMore;
 }
 
 class _AppLocalizationsDelegate

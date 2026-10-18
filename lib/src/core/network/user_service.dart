@@ -16,6 +16,10 @@ class UserRoles {
   final bool isB2bSalesRep;
   final bool canAccessB2b;
 
+  /// `User.custom_manager_home`: open on the revenue dashboard and show the
+  /// manager bottom bar. A per-user switch, off for everyone by default.
+  final bool managerHome;
+
   const UserRoles({
     required this.user,
     this.fullName,
@@ -26,6 +30,7 @@ class UserRoles {
     this.requirePosShift = false,
     this.isB2bSalesRep = false,
     this.canAccessB2b = false,
+    this.managerHome = false,
   });
 
   bool get isJarzManager => roles.contains(RoleNames.jarzManager);
@@ -188,6 +193,11 @@ class UserRoles {
   /// else. Note that System Manager and POS Manager are NOT in it.
   bool get canViewAllReports =>
       isJarzManager || roles.contains(RoleNames.administrator);
+
+  /// Whether the manager home applies: the per-user switch AND the reports it
+  /// lands on. The switch alone must never route a user to a screen whose
+  /// guard would bounce them back home, which would loop.
+  bool get usesManagerHome => managerHome && canViewAllReports;
 
   /// Whether this user may open the Materials & Consumables report — the one
   /// report a line manager can actually read. Mirrors
@@ -390,6 +400,7 @@ class UserRoles {
           json['is_b2b_sales_rep'] == true || json['is_b2b_sales_rep'] == 1,
       canAccessB2b:
           json['can_access_b2b'] == true || json['can_access_b2b'] == 1,
+      managerHome: json['manager_home'] == true || json['manager_home'] == 1,
     );
   }
 }
@@ -791,3 +802,10 @@ final requirePosShiftProvider = Provider<bool>((ref) {
   return roles.requirePosShift;
 });
 
+/// Whether the current user gets the manager home (revenue dashboard landing
+/// and the bottom bar). False until the roles load and on any roles error, so
+/// nobody sees the bar by accident.
+final managerHomeProvider = Provider<bool>((ref) {
+  final roles = ref.watch(userRolesFutureProvider).valueOrNull;
+  return roles?.usesManagerHome ?? false;
+});

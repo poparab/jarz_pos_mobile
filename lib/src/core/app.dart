@@ -10,6 +10,7 @@ import 'localization/locale_notifier.dart';
 import 'router.dart';
 import 'ui/loading_overlay.dart';
 import 'widgets/global_orientation_enforcer.dart';
+import 'widgets/manager_bottom_bar.dart';
 import 'websocket/websocket_service.dart';
 import 'sync/offline_sync_service.dart';
 import '../features/pos/state/courier_ws_bridge.dart';
@@ -88,7 +89,11 @@ class JarzPosApp extends ConsumerWidget {
       builder: (context, child) {
         final routed = isAuthenticated
             ? _AuthenticatedServiceBootstrap(
-                child: child ?? const SizedBox.shrink(),
+                // Renders the child untouched unless this user has the
+                // manager bottom bar switched on.
+                child: ManagerBottomBarHost(
+                  child: child ?? const SizedBox.shrink(),
+                ),
               )
             : child ?? const SizedBox.shrink();
         return GlobalOrientationEnforcer(

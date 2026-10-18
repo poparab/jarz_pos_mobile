@@ -10701,5 +10701,13 @@
   "rptRevLinkB2b": "B2B clients",
   "@rptRevLinkB2b": {"description": "Revenue dashboard report."},
   "rptRevUpdatedAt": "Updated {time}",
-  "@rptRevUpdatedAt": {"description": "Revenue dashboard report.", "placeholders": {"time": {"type": "String"}}}
+  "@rptRevUpdatedAt": {"description": "Revenue dashboard report.", "placeholders": {"time": {"type": "String"}}},
+  "rptRevBranchCashTitle": "Cash in branches now",
+  "@rptRevBranchCashTitle": {"description": "Revenue dashboard: title of the card listing each branch's current drawer cash (manager home only)."},
+  "rptRevBranchCashError": "Could not load branch cash",
+  "@rptRevBranchCashError": {"description": "Revenue dashboard: the branch cash card failed to load."},
+  "managerBarOrders": "Orders",
+  "@managerBarOrders": {"description": "Manager bottom bar tab that opens the orders Kanban."},
+  "managerBarMore": "More",
+  "@managerBarMore": {"description": "Manager bottom bar tab that opens the full side menu."}
 }
