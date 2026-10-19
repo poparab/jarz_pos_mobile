@@ -99,10 +99,12 @@ void main() {
     test('converts a stock quantity that is whole in the unit', () {
       expect(qtyInUnit(9.6, 4.8), 2);
       expect(qtyInUnit(20, 10), 2);
-      expect(qtyInUnit(15, 10), 1.5);
     });
 
-    test('refuses a quantity that would need rounding', () {
+    test('refuses a fraction of a unit', () {
+      // 0.7 or 1.5 of a carton is refused by ERPNext for whole-only units.
+      expect(qtyInUnit(15, 10), isNull);
+      expect(qtyInUnit(7, 10), isNull);
       expect(qtyInUnit(7, 3), isNull);
     });
 

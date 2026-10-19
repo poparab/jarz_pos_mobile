@@ -1519,8 +1519,8 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     setState(() {
       for (final selection in selections) {
         final demand = selection.demand;
-        // Demand is expressed in stock UOM, so allocation and the invoice line
-        // agree without a conversion step.
+        // Demand and the request links are in stock units, whatever unit the
+        // line ends up in; _expandLineForSubmit converts at submit.
         var remaining = selection.qty;
         final links = <Map<String, dynamic>>[];
         for (final source in demand.sources) {
@@ -1549,7 +1549,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
         };
         // Start in the unit the team asked in when they all asked in one,
         // else the unit it was last bought in — but only where the quantity
-        // comes out whole in it; 7 Kg never becomes 2.333 boxes.
+        // is a whole count of it; 15 Kg never becomes 1.5 cartons.
         final requestUoms = demand.sources.map((s) => s.uom).toSet();
         final candidates = [
           if (requestUoms.length == 1) requestUoms.first,
@@ -1605,15 +1605,18 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   ///
   /// Request links are counted in stock units while the line may be in boxes,
   /// so the quantity is allocated in stock units and each row converted back.
-  /// A row that does not come out whole in the line's unit goes in the stock
-  /// unit at the matching per-unit price, which keeps the total unchanged.
+  /// A row that is not a whole count of the line's unit (2 cartons split 7 Kg /
+  /// 13 Kg) goes in the stock unit at the matching per-unit price, which keeps
+  /// the total unchanged.
   List<Map<String, dynamic>> _expandLineForSubmit(Map<String, dynamic> line) {
     final qty = (line['qty'] as num).toDouble();
     final rate = (line['rate'] as num).toDouble();
     final uom = (line['uom'] ?? '').toString();
     final stockUom = (line['stock_uom'] ?? uom).toString();
     final uoms = (line['uoms'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-    final conv = uom == stockUom ? 1.0 : _convForUom(uoms, uom);
+    final rawConv = uom == stockUom ? 1.0 : _convForUom(uoms, uom);
+    // A missing factor must not zero the allocation and drop the line.
+    final conv = rawConv > 0 ? rawConv : 1.0;
     final base = {
       'item_code': line['item_code'],
       // Always sent, even when empty. The empty string is how the buyer says
