@@ -215,6 +215,31 @@ void main() {
       expect(line.sources, hasLength(2));
     });
 
+    test('carries every unit and the last purchase unit and price', () {
+      final line = RequestDemandLine.fromJson({
+        ...json,
+        'last_purchase_rate': 550,
+        'last_purchase_uom': 'Carton 10 Kg',
+        'last_purchase_uom_rate': 5500,
+        'uoms': [
+          {'uom': 'Kg', 'conversion_factor': 1},
+          {'uom': 'Carton 10 Kg', 'conversion_factor': 10},
+          {'uom': '', 'conversion_factor': 3},
+        ],
+      });
+      expect(line.lastPurchaseRate, 550);
+      expect(line.lastPurchaseUom, 'Carton 10 Kg');
+      expect(line.lastPurchaseUomRate, 5500);
+      expect(line.uoms.map((u) => u['uom']), ['Kg', 'Carton 10 Kg']);
+    });
+
+    test('an old server without units still parses', () {
+      final line = RequestDemandLine.fromJson(json);
+      expect(line.uoms, isEmpty);
+      expect(line.lastPurchaseUom, isNull);
+      expect(line.lastPurchaseUomRate, 0);
+    });
+
     test('carries the item tax template so a bought line keeps its VAT', () {
       final line = RequestDemandLine.fromJson({
         ...json,

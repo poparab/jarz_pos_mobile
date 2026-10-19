@@ -656,9 +656,11 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                 final prices = (line['prices'] as List?)?.cast<Map<String, dynamic>>() ?? [];
                 final priceForSelected = prices.firstWhere((p) => (p['uom'] == v), orElse: () => {});
                 final priceForStock = prices.firstWhere((p) => (p['uom'] == stockUom), orElse: () => {});
-                double? newRate;
+                double? newRate = _lastPaidRateFor(line, v, conv);
                 final selRate = priceForSelected['rate'];
-                if (selRate != null) {
+                if (newRate != null) {
+                  // Last paid price wins over the price list.
+                } else if (selRate != null) {
                   newRate = (selRate as num).toDouble();
                 } else if (priceForStock['rate'] != null) {
                   newRate = ((priceForStock['rate'] as num).toDouble()) * conv;
@@ -842,14 +844,21 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     final requested = _num(line['requested_qty']);
     if (requested <= 0) return const SizedBox.shrink();
     final theme = Theme.of(context);
-    final deviates = (qty - requested).abs() > 0.0001;
+    // The request is counted in stock units; the line may be in boxes.
+    final uom = (line['uom'] ?? '').toString();
+    final stockUom = (line['stock_uom'] ?? uom).toString();
+    final uoms = (line['uoms'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final inOtherUnit = uom.isNotEmpty && uom != stockUom;
+    final buying = inOtherUnit ? qty * _convForUom(uoms, uom) : qty;
+    String show(double v) =>
+        inOtherUnit ? '${_fmtQty(v)} $stockUom' : _fmtQty(v);
+    final deviates = (buying - requested).abs() > 0.0001;
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Text(
         deviates
-            ? context.l10n
-                .purchaseBuyingLess(_fmtQty(requested), _fmtQty(qty))
-            : context.l10n.purchaseRequestedQty(_fmtQty(requested)),
+            ? context.l10n.purchaseBuyingLess(show(requested), show(buying))
+            : context.l10n.purchaseRequestedQty(show(requested)),
         style: theme.textTheme.bodySmall?.copyWith(
           color: deviates ? theme.colorScheme.tertiary : theme.colorScheme.outline,
           fontWeight: deviates ? FontWeight.w600 : null,
@@ -1299,7 +1308,11 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                 const SizedBox(width: 10),
                 Flexible(
                   child: Text(
-                    itemL10n.purchaseLastPaid(lastPaid.toStringAsFixed(2)),
+                    itemL10n.purchaseLastPaid(_lastPaidLabel(
+                        lastPaid,
+                        stockUom,
+                        (it['last_purchase_uom'] ?? '').toString(),
+                        _num(it['last_purchase_uom_rate']))),
                     style: theme.textTheme.bodySmall
                         ?.copyWith(color: theme.colorScheme.outline),
                     overflow: TextOverflow.ellipsis,
@@ -1410,14 +1423,55 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
     return double.tryParse(value?.toString() ?? '') ?? 0;
   }
 
+  /// "5500.00 / Carton 10 Kg" — the price as last paid, in the unit paid in,
+  /// so a per-carton price is never read as a per-Kg one.
+  static String _lastPaidLabel(
+      double perStock, String stockUom, String lastUom, double lastUomRate) {
+    if (lastUom.isNotEmpty && lastUomRate > 0) {
+      return '${lastUomRate.toStringAsFixed(2)} / $lastUom';
+    }
+    return stockUom.isEmpty
+        ? perStock.toStringAsFixed(2)
+        : '${perStock.toStringAsFixed(2)} / $stockUom';
+  }
+
   static String _fmtQty(double value) => value == value.roundToDouble()
       ? value.toStringAsFixed(0)
       : value.toStringAsFixed(2);
 
+  /// The price a unit change should land on when the item has been bought
+  /// before, or null to fall back to the price list.
+  ///
+  /// The server sends last paid per STOCK unit (`last_purchase_rate`) plus the
+  /// unit and exact price of that last purchase. Back in that same unit the
+  /// exact price is used, so 5500 per carton stays 5500 rather than drifting
+  /// through a rounded per-Kg figure.
+  static double? _lastPaidRateFor(
+      Map<String, dynamic> line, String uom, double conv) {
+    final perStock = _num(line['last_purchase_rate']);
+    if (perStock <= 0) return null;
+    final lastUom = (line['last_purchase_uom'] ?? '').toString();
+    final lastUomRate = _num(line['last_purchase_uom_rate']);
+    if (lastUom.isNotEmpty && lastUom == uom && lastUomRate > 0) {
+      return lastUomRate;
+    }
+    return perStock * (conv > 0 ? conv : 1);
+  }
+
+  /// The unit a new line starts in: the one it was last bought in when the
+  /// item still offers it, otherwise the stock unit.
+  static String _startingUom(
+      String stockUom, List<Map<String, dynamic>> uoms, String lastUom) {
+    if (lastUom.isNotEmpty && uoms.any((u) => u['uom'] == lastUom)) {
+      return lastUom;
+    }
+    return stockUom;
+  }
+
   void _addToCart(Map<String, dynamic> it) {
     final code = it['item_code'];
     final name = it['item_name'] ?? code;
-    final stockUom = it['stock_uom'];
+    final String stockUom = (it['stock_uom'] ?? '').toString();
     final uoms = (it['uoms'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final prices = (it['prices'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final priceForStock = prices.firstWhere(
@@ -1425,16 +1479,18 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       orElse: () => {'uom': stockUom, 'rate': 0},
     );
     final lastPaid = _num(it['last_purchase_rate']);
-    // Prefer the price list, but fall back to what was actually last paid so a
-    // brand-new item does not land in the cart at zero.
-    final rate = _num(priceForStock['rate']) > 0
-        ? _num(priceForStock['rate'])
-        : lastPaid;
+    final lastUom = (it['last_purchase_uom'] ?? '').toString();
+    // What was actually last paid is the price, in the unit it was bought in.
+    // The price list is only the fallback for an item never bought before.
+    final uom = lastPaid > 0 ? _startingUom(stockUom, uoms, lastUom) : stockUom;
+    final rate = lastPaid > 0
+        ? _lastPaidRateFor(it, uom, _convForUom(uoms, uom))!
+        : _num(priceForStock['rate']);
     setState(() {
       cart.add({
         'item_code': code,
         'item_name': name,
-        'uom': stockUom,
+        'uom': uom,
         'qty': 1.0,
         // controller for qty two-way binding (supports steppers)
         'qtyCtrl': TextEditingController(text: 1.0.toStringAsFixed(2)),
@@ -1442,6 +1498,9 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
         'stock_uom': stockUom,
         'uoms': uoms,
         'prices': prices,
+        'last_purchase_rate': lastPaid,
+        'last_purchase_uom': lastUom,
+        'last_purchase_uom_rate': _num(it['last_purchase_uom_rate']),
         // Starts at "no VAT" whatever the Item master declares: most of what
         // this team buys is untaxed, and an unnoticed default silently added
         // tax the supplier never charged. The buyer picks the rate on the
@@ -1477,18 +1536,52 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
           remaining -= take;
         }
 
+        // Every unit the item is bought in, not just the stock unit — the
+        // buyer picks cartons or boxes here exactly as on a searched item.
+        final uoms = [...demand.uoms];
+        if (!uoms.any((u) => u['uom'] == demand.stockUom)) {
+          uoms.insert(0, {'uom': demand.stockUom, 'conversion_factor': 1});
+        }
+        final lastPaid = <String, dynamic>{
+          'last_purchase_rate': demand.lastPurchaseRate,
+          'last_purchase_uom': demand.lastPurchaseUom ?? '',
+          'last_purchase_uom_rate': demand.lastPurchaseUomRate,
+        };
+        // Start in the unit the team asked in when they all asked in one,
+        // else the unit it was last bought in — but only where the quantity
+        // comes out whole in it; 7 Kg never becomes 2.333 boxes.
+        final requestUoms = demand.sources.map((s) => s.uom).toSet();
+        final candidates = [
+          if (requestUoms.length == 1) requestUoms.first,
+          if (demand.lastPurchaseRate > 0) demand.lastPurchaseUom ?? '',
+        ];
+        var uom = demand.stockUom;
+        var qty = selection.qty;
+        for (final candidate in candidates) {
+          if (candidate.isEmpty || !uoms.any((u) => u['uom'] == candidate)) {
+            continue;
+          }
+          final inUnit = qtyInUnit(selection.qty, _convForUom(uoms, candidate));
+          if (inUnit == null || inUnit <= 0) continue;
+          uom = candidate;
+          qty = inUnit;
+          break;
+        }
+
         cart.add({
           'item_code': demand.itemCode,
           'item_name': demand.itemName,
-          'uom': demand.stockUom,
+          'uom': uom,
           'stock_uom': demand.stockUom,
-          'qty': selection.qty,
-          'qtyCtrl':
-              TextEditingController(text: selection.qty.toStringAsFixed(2)),
-          'rate': demand.lastPurchaseRate,
-          'uoms': [
-            {'uom': demand.stockUom, 'conversion_factor': 1}
-          ],
+          'qty': qty,
+          'qtyCtrl': TextEditingController(text: qty.toStringAsFixed(2)),
+          // Last paid is per STOCK unit; it used to be the raw invoice rate of
+          // whatever unit was billed, so a 5500 carton was charged per Kg and
+          // the cart came to ~8x its real total — more than any custody held,
+          // which is why the purchase could not be submitted (2026-10-19).
+          'rate': _lastPaidRateFor(lastPaid, uom, _convForUom(uoms, uom)) ?? 0.0,
+          ...lastPaid,
+          'uoms': uoms,
           'prices': const <Map<String, dynamic>>[],
           // Same "no VAT by default" rule as _addToCart — the demand carries
           // the item master's template, but the buyer opts in to it.
@@ -1509,12 +1602,20 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   /// request line — because ERPNext credits `received_qty` per link. The
   /// distribution itself lives in [allocateAcrossRequests] so it can be tested
   /// without a widget.
+  ///
+  /// Request links are counted in stock units while the line may be in boxes,
+  /// so the quantity is allocated in stock units and each row converted back.
+  /// A row that does not come out whole in the line's unit goes in the stock
+  /// unit at the matching per-unit price, which keeps the total unchanged.
   List<Map<String, dynamic>> _expandLineForSubmit(Map<String, dynamic> line) {
     final qty = (line['qty'] as num).toDouble();
+    final rate = (line['rate'] as num).toDouble();
+    final uom = (line['uom'] ?? '').toString();
+    final stockUom = (line['stock_uom'] ?? uom).toString();
+    final uoms = (line['uoms'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final conv = uom == stockUom ? 1.0 : _convForUom(uoms, uom);
     final base = {
       'item_code': line['item_code'],
-      'uom': line['uom'],
-      'rate': (line['rate'] as num).toDouble(),
       // Always sent, even when empty. The empty string is how the buyer says
       // "not taxed" for an item whose master declares VAT — omitting the key
       // would let the server fall back to that default and silently re-add it.
@@ -1531,15 +1632,25 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
             ))
         .toList();
 
-    return [
-      for (final row in allocateAcrossRequests(qty, targets))
-        {
-          ...base,
-          'qty': row.qty,
-          if (row.isLinked) 'material_request': row.materialRequest,
-          if (row.isLinked) 'material_request_item': row.materialRequestItem,
-        },
-    ];
+    if (qty <= 0) return const [];
+    if (targets.isEmpty) {
+      return [
+        {...base, 'uom': uom, 'rate': rate, 'qty': qty},
+      ];
+    }
+
+    final rows = <Map<String, dynamic>>[];
+    for (final row in allocateAcrossRequests(qty * conv, targets)) {
+      final inUnit = qtyInUnit(row.qty, conv);
+      rows.add({
+        ...base,
+        if (inUnit != null) ...{'uom': uom, 'rate': rate, 'qty': inUnit}
+        else ...{'uom': stockUom, 'rate': rate / conv, 'qty': row.qty},
+        if (row.isLinked) 'material_request': row.materialRequest,
+        if (row.isLinked) 'material_request_item': row.materialRequestItem,
+      });
+    }
+    return rows;
   }
 
   Widget _buildCartList() {
@@ -1592,9 +1703,11 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                       orElse: () => {},
                     );
 
-                    double? newRate;
+                    double? newRate = _lastPaidRateFor(line, v, conv);
                     final selRate = priceForSelected['rate'];
-                    if (selRate != null) {
+                    if (newRate != null) {
+                      // Last paid price wins over the price list.
+                    } else if (selRate != null) {
                       newRate = (selRate as num).toDouble();
                     } else if (priceForStock['rate'] != null) {
                       newRate = ((priceForStock['rate'] as num).toDouble()) * conv;

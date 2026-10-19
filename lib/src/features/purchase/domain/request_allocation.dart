@@ -77,3 +77,20 @@ List<AllocatedRow> allocateAcrossRequests(
   }
   return rows;
 }
+
+/// [stockQty] expressed in a unit of [conversionFactor] stock units, or null
+/// when that is not a clean quantity of them (to 3 decimals, ERPNext's qty
+/// precision).
+///
+/// Requests and their allocation are counted in stock units, while the buyer
+/// may buy in boxes or cartons. A row goes out in the buyer's unit only when
+/// it converts exactly — 9.6 Kg is 2 boxes of 4.8 — and otherwise in the stock
+/// unit, so no rounding ever moves stock between requests.
+double? qtyInUnit(double stockQty, double conversionFactor) {
+  if (conversionFactor <= 0) return null;
+  if ((conversionFactor - 1).abs() < _epsilon) return stockQty;
+  final inUnit = stockQty / conversionFactor;
+  final rounded = (inUnit * 1000).roundToDouble() / 1000;
+  if ((rounded * conversionFactor - stockQty).abs() > _epsilon) return null;
+  return rounded;
+}

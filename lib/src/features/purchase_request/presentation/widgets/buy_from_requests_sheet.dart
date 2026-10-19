@@ -290,8 +290,13 @@ class _BuyFromRequestsSheetState extends ConsumerState<BuyFromRequestsSheet> {
                         ),
                         if (line.lastPurchaseRate > 0)
                           Text(
+                            // In the unit it was paid in: "5500.00 / Carton"
+                            // must not read as 5500 per Kg.
                             l10n.purchaseLastPaid(
-                                line.lastPurchaseRate.toStringAsFixed(2)),
+                                (line.lastPurchaseUom ?? '').isNotEmpty &&
+                                        line.lastPurchaseUomRate > 0
+                                    ? '${line.lastPurchaseUomRate.toStringAsFixed(2)} / ${line.lastPurchaseUom}'
+                                    : '${line.lastPurchaseRate.toStringAsFixed(2)} / ${line.stockUom}'),
                             style: theme.textTheme.bodySmall
                                 ?.copyWith(color: theme.colorScheme.outline),
                           ),

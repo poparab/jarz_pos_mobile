@@ -94,4 +94,21 @@ void main() {
       expect(rows.single.materialRequest, 'MAT-MR-0001');
     });
   });
+
+  group('qtyInUnit', () {
+    test('converts a stock quantity that is whole in the unit', () {
+      expect(qtyInUnit(9.6, 4.8), 2);
+      expect(qtyInUnit(20, 10), 2);
+      expect(qtyInUnit(15, 10), 1.5);
+    });
+
+    test('refuses a quantity that would need rounding', () {
+      expect(qtyInUnit(7, 3), isNull);
+    });
+
+    test('stock unit and bad factors', () {
+      expect(qtyInUnit(7.25, 1), 7.25);
+      expect(qtyInUnit(7, 0), isNull);
+    });
+  });
 }

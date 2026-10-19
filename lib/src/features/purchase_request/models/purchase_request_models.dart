@@ -273,7 +273,17 @@ class RequestDemandLine {
   final double requestedQty;
   final double receivedQty;
   final double onHandQty;
+  /// Last price paid, per STOCK unit, whatever unit it was billed in.
   final double lastPurchaseRate;
+
+  /// The unit the item was last bought in and the exact price paid per that
+  /// unit — so a line can start where the buyer last bought it (a carton at
+  /// 5500, not a Kg at 550).
+  final String? lastPurchaseUom;
+  final double lastPurchaseUomRate;
+
+  /// Every unit the item can be bought in, `{uom, conversion_factor}`.
+  final List<Map<String, dynamic>> uoms;
 
   /// The item's own Item Tax Template, so a line bought straight off this list
   /// carries the same VAT it would if the buyer had searched for it by hand.
@@ -290,6 +300,9 @@ class RequestDemandLine {
     required this.receivedQty,
     required this.onHandQty,
     required this.lastPurchaseRate,
+    this.lastPurchaseUom,
+    this.lastPurchaseUomRate = 0,
+    this.uoms = const [],
     this.itemTaxTemplate,
     required this.earliestNeededBy,
     required this.sources,
@@ -324,6 +337,13 @@ class RequestDemandLine {
       receivedQty: _toDouble(json['received_qty']),
       onHandQty: _toDouble(json['on_hand_qty']),
       lastPurchaseRate: _toDouble(json['last_purchase_rate']),
+      lastPurchaseUom: _toNullableStr(json['last_purchase_uom']),
+      lastPurchaseUomRate: _toDouble(json['last_purchase_uom_rate']),
+      uoms: ((json['uoms'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .where((e) => _toStr(e['uom']).isNotEmpty)
+          .toList(),
       itemTaxTemplate: _toStr(json['item_tax_template']).isEmpty
           ? null
           : _toStr(json['item_tax_template']),
