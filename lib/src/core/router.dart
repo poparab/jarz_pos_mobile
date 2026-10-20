@@ -96,6 +96,9 @@ import '../features/leads/data/models/lead.dart';
 import '../features/shift/state/shift_notifier.dart';
 import '../features/shift/models/shift_models.dart';
 import '../features/pos/state/pos_notifier.dart';
+import '../features/weekly_count/presentation/weekly_count_approvals_screen.dart';
+import '../features/weekly_count/presentation/weekly_count_detail_screen.dart';
+import '../features/weekly_count/presentation/weekly_count_screen.dart';
 import 'widgets/global_orientation_enforcer.dart';
 import 'widgets/manager_bottom_bar.dart';
 
@@ -626,6 +629,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.inventoryCount,
         name: 'inventory-count',
         builder: (context, state) => const InventoryCountScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.weeklyCount,
+        name: 'weekly-count',
+        builder: (context, state) => const WeeklyCountScreen(),
+      ),
+      // Static segment before `:name`, or "approvals" would open as a count.
+      GoRoute(
+        path: AppRoutes.weeklyCountApprovals,
+        name: 'weekly-count-approvals',
+        builder: (context, state) => const WeeklyCountApprovalsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.weeklyCountDetail,
+        name: 'weekly-count-detail',
+        builder: (context, state) {
+          final name = state.pathParameters['name'] ?? '';
+          return WeeklyCountDetailScreen(countName: Uri.decodeComponent(name));
+        },
       ),
       GoRoute(
         path: AppRoutes.expenses,

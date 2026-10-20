@@ -55,6 +55,16 @@ function notificationUrlFor(data) {
   if (data.type === 'stock_handover') {
     return `${appBasePath}#/stock-transfer?tab=handovers`;
   }
+  // Branch weekly count: an approver opens the count to review, a counter
+  // whose count was rejected opens the count screen to recount.
+  if (data.type === 'branch_count_approval') {
+    return data.count_name
+      ? `${appBasePath}#/weekly-count/${encodeURIComponent(data.count_name)}`
+      : `${appBasePath}#/weekly-count/approvals`;
+  }
+  if (data.type === 'branch_count_rejected') {
+    return `${appBasePath}#/weekly-count`;
+  }
   if (data.type === 'task_notification') {
     return data.task_id
       ? `${appBasePath}#/tasks/${encodeURIComponent(data.task_id)}`

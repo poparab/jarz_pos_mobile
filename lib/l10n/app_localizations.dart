@@ -32095,6 +32095,486 @@ abstract class AppLocalizations {
     String name,
     String handover,
   );
+
+  /// Side menu: the branch weekly stock count.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly count'**
+  String get menuWeeklyCount;
+
+  /// Side menu: weekly counts waiting for a line manager.
+  ///
+  /// In en, this message translates to:
+  /// **'Count approvals'**
+  String get menuWeeklyCountApprovals;
+
+  /// Pending approvals queue: branch weekly counts.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly counts to approve'**
+  String get approvalsQueueBranchCounts;
+
+  /// Weekly count screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly count'**
+  String get weeklyCountTitle;
+
+  /// Weekly count approvals screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Count approvals'**
+  String get weeklyCountApprovalsTitle;
+
+  /// Weekly count detail screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Count review'**
+  String get weeklyCountDetailTitle;
+
+  /// Weekly count: load failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the weekly count'**
+  String get weeklyCountLoadError;
+
+  /// Weekly count: the user has no branch.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no branch to count'**
+  String get weeklyCountNoBranches;
+
+  /// Weekly count: branch picker heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the branch'**
+  String get weeklyCountPickBranch;
+
+  /// Weekly count: non-member branches heading for a global user.
+  ///
+  /// In en, this message translates to:
+  /// **'Other branches'**
+  String get weeklyCountOtherBranches;
+
+  /// Weekly count: app bar action back to the branch list.
+  ///
+  /// In en, this message translates to:
+  /// **'Change branch'**
+  String get weeklyCountChangeBranch;
+
+  /// Weekly count: Saturday to Friday range.
+  ///
+  /// In en, this message translates to:
+  /// **'Week {start} – {end}'**
+  String weeklyCountWeekRange(String start, String end);
+
+  /// Weekly count branch state.
+  ///
+  /// In en, this message translates to:
+  /// **'Count due'**
+  String get weeklyCountStateDue;
+
+  /// Weekly count branch state.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for manager approval'**
+  String get weeklyCountStatePending;
+
+  /// Weekly count branch state.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted this week ✓'**
+  String get weeklyCountStateDone;
+
+  /// Weekly count branch state.
+  ///
+  /// In en, this message translates to:
+  /// **'Count rejected — count again'**
+  String get weeklyCountStateRejected;
+
+  /// Weekly count: who counted and when.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted by {name} · {time}'**
+  String weeklyCountCountedBy(String name, String time);
+
+  /// Weekly count: approver.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved by {name}'**
+  String weeklyCountApprovedBy(String name);
+
+  /// Weekly count: rejection reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {reason}'**
+  String weeklyCountRejectionReason(String reason);
+
+  /// Weekly count: recount after a rejection.
+  ///
+  /// In en, this message translates to:
+  /// **'Count again'**
+  String get weeklyCountRecount;
+
+  /// Weekly count: approver opens a pending count.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the count'**
+  String get weeklyCountReviewButton;
+
+  /// Weekly count sheet progress.
+  ///
+  /// In en, this message translates to:
+  /// **'{counted} / {total} counted'**
+  String weeklyCountProgress(int counted, int total);
+
+  /// Weekly count section: Large jars.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get weeklyCountSectionLarge;
+
+  /// Weekly count section: Medium jars.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get weeklyCountSectionMedium;
+
+  /// Weekly count section: Small jars.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get weeklyCountSectionSmall;
+
+  /// Weekly count: set the uncounted items of a section to 0.
+  ///
+  /// In en, this message translates to:
+  /// **'All zero'**
+  String get weeklyCountAllZero;
+
+  /// Weekly count: all-zero confirm title.
+  ///
+  /// In en, this message translates to:
+  /// **'Set to zero?'**
+  String get weeklyCountAllZeroTitle;
+
+  /// Weekly count: all-zero confirm body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items not counted yet in {section} will be set to 0. Items you already counted stay as they are.'**
+  String weeklyCountAllZeroBody(int count, String section);
+
+  /// Weekly count: all-zero with nothing to fill.
+  ///
+  /// In en, this message translates to:
+  /// **'Every item in this section is already counted'**
+  String get weeklyCountAllZeroNothing;
+
+  /// Weekly count: an item with no count yet (semantics).
+  ///
+  /// In en, this message translates to:
+  /// **'Not counted'**
+  String get weeklyCountUncounted;
+
+  /// Weekly count: submit button.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit count'**
+  String get weeklyCountSubmit;
+
+  /// Weekly count: submit tapped early.
+  ///
+  /// In en, this message translates to:
+  /// **'Count every item first — {count} left'**
+  String weeklyCountFinishFirst(int count);
+
+  /// Weekly count: empty sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no items to count in this branch'**
+  String get weeklyCountEmptySheet;
+
+  /// Weekly count keypad: clear the number.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get weeklyCountKeypadClear;
+
+  /// Weekly count keypad: back to not counted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not counted'**
+  String get weeklyCountKeypadUncount;
+
+  /// Weekly count: submit confirm title.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit the count?'**
+  String get weeklyCountSubmitConfirmTitle;
+
+  /// Weekly count: submit confirm summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{branch} · {count} items counted'**
+  String weeklyCountSubmitConfirmSummary(String branch, int count);
+
+  /// Weekly count: submit confirm, approver.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock will be updated immediately'**
+  String get weeklyCountSubmitConfirmApprover;
+
+  /// Weekly count: submit confirm, staff.
+  ///
+  /// In en, this message translates to:
+  /// **'It will be sent to the manager for approval'**
+  String get weeklyCountSubmitConfirmStaff;
+
+  /// Weekly count: submit confirm button.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get weeklyCountSubmitConfirmButton;
+
+  /// Weekly count: done screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Count sent'**
+  String get weeklyCountDoneTitle;
+
+  /// Weekly count: done, stock posted.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock updated'**
+  String get weeklyCountDonePosted;
+
+  /// Weekly count: done screen button.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to home'**
+  String get weeklyCountBackHome;
+
+  /// Home banner: weekly count due.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly count due — {days, plural, =1{1 day left} other{{days} days left}}'**
+  String weeklyCountBannerDue(int days);
+
+  /// Home banner: last day.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly count due — today is the last day'**
+  String get weeklyCountBannerLastDay;
+
+  /// Home banner: rejected count.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly count rejected — count again'**
+  String get weeklyCountBannerRejected;
+
+  /// Weekly count refusal: missing_items.
+  ///
+  /// In en, this message translates to:
+  /// **'Not every item was counted. The list was refreshed; count the missing items.'**
+  String get weeklyCountErrMissingItems;
+
+  /// Weekly count refusal: unknown_items.
+  ///
+  /// In en, this message translates to:
+  /// **'Some items are no longer on this branch list. The list was refreshed.'**
+  String get weeklyCountErrUnknownItems;
+
+  /// Weekly count refusal: invalid_qty.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid quantity. Use whole numbers from 0 up.'**
+  String get weeklyCountErrInvalidQty;
+
+  /// Weekly count refusal: already_pending.
+  ///
+  /// In en, this message translates to:
+  /// **'A count for this branch is already waiting for manager approval.'**
+  String get weeklyCountErrAlreadyPending;
+
+  /// Weekly count refusal: already_done.
+  ///
+  /// In en, this message translates to:
+  /// **'This branch is already counted this week.'**
+  String get weeklyCountErrAlreadyDone;
+
+  /// Weekly count refusal: no_access.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have access to this branch.'**
+  String get weeklyCountErrNoAccess;
+
+  /// Weekly count refusal: no_warehouse.
+  ///
+  /// In en, this message translates to:
+  /// **'This branch has no warehouse. Contact the manager.'**
+  String get weeklyCountErrNoWarehouse;
+
+  /// Weekly count refusal: reason_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the reason for rejecting.'**
+  String get weeklyCountErrReasonRequired;
+
+  /// Approvals list: pending heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for approval'**
+  String get weeklyCountApprovalsPending;
+
+  /// Approvals list: nothing pending.
+  ///
+  /// In en, this message translates to:
+  /// **'No count is waiting for approval'**
+  String get weeklyCountApprovalsNonePending;
+
+  /// Approvals list: history heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent counts'**
+  String get weeklyCountApprovalsHistory;
+
+  /// Approvals list: empty history.
+  ///
+  /// In en, this message translates to:
+  /// **'No earlier counts'**
+  String get weeklyCountApprovalsNoHistory;
+
+  /// Approvals screen: not an approver.
+  ///
+  /// In en, this message translates to:
+  /// **'Only line managers and above approve weekly counts'**
+  String get weeklyCountApproverOnly;
+
+  /// Weekly count: number of lines with a difference.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No differences} =1{1 difference} other{{count} differences}}'**
+  String weeklyCountDifferences(int count);
+
+  /// Weekly count: number of items.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String weeklyCountItemsCount(int count);
+
+  /// Weekly count document status.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approval'**
+  String get weeklyCountStatusPendingApproval;
+
+  /// Weekly count document status.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get weeklyCountStatusApproved;
+
+  /// Weekly count document status.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get weeklyCountStatusRejected;
+
+  /// Weekly count document status.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get weeklyCountStatusCancelled;
+
+  /// Weekly count detail column.
+  ///
+  /// In en, this message translates to:
+  /// **'Counted'**
+  String get weeklyCountColCounted;
+
+  /// Weekly count detail column.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get weeklyCountColSystem;
+
+  /// Weekly count detail column.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference'**
+  String get weeklyCountColDifference;
+
+  /// Weekly count detail: collapsed unchanged lines.
+  ///
+  /// In en, this message translates to:
+  /// **'No difference ({count})'**
+  String weeklyCountNoDifference(int count);
+
+  /// Weekly count detail: approve.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get weeklyCountApprove;
+
+  /// Weekly count detail: reject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get weeklyCountReject;
+
+  /// Weekly count: approve confirm title.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve the count?'**
+  String get weeklyCountApproveTitle;
+
+  /// Weekly count: approve confirm body.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock will be adjusted by the differences'**
+  String get weeklyCountApproveBody;
+
+  /// Weekly count: reject dialog title.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject the count'**
+  String get weeklyCountRejectTitle;
+
+  /// Weekly count: reject reason field.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (required)'**
+  String get weeklyCountRejectHint;
+
+  /// Weekly count: quick reject reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Count again carefully'**
+  String get weeklyCountRejectQuickCareful;
+
+  /// Weekly count: quick reject reason.
+  ///
+  /// In en, this message translates to:
+  /// **'The numbers do not make sense'**
+  String get weeklyCountRejectQuickUnreasonable;
+
+  /// Weekly count: quick reject reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the sizes (large / medium / small)'**
+  String get weeklyCountRejectQuickSizes;
+
+  /// Weekly count: approved snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Count approved'**
+  String get weeklyCountApprovedToast;
+
+  /// Weekly count: rejected snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Count rejected'**
+  String get weeklyCountRejectedToast;
 }
 
 class _AppLocalizationsDelegate

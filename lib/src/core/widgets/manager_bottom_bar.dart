@@ -83,6 +83,7 @@ bool managerBarHiddenOn(String path) {
   }
   bool under(String route) => path == route || path.startsWith('$route/');
   return under(AppRoutes.inventoryCount) ||
+      under(AppRoutes.weeklyCount) ||
       path.startsWith('/users/') ||
       under(AppRoutes.b2bVisitBuilder) ||
       under(AppRoutes.b2bVisitPlan);

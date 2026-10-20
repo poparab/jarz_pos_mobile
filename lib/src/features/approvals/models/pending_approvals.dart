@@ -17,6 +17,9 @@ class PendingApprovalKeys {
   /// today. A reminder to collect, not an approval — nothing is blocked.
   static const creditCollections = 'credit_collections';
 
+  /// Branch weekly stock counts waiting for a line manager's approval.
+  static const branchCounts = 'branch_counts';
+
   static const known = {
     expenses,
     employeeAdvances,
@@ -26,6 +29,7 @@ class PendingApprovalKeys {
     tasksAssigned,
     tasksReview,
     creditCollections,
+    branchCounts,
   };
 }
 

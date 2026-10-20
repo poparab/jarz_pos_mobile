@@ -90,6 +90,39 @@ void main() {
       expect(parsed.queues.first.oldestMonth, '2026-08');
       expect(parsed.queues[1].oldestMonth, isNull);
     });
+
+    test('keeps the weekly branch count queue', () {
+      final parsed = PendingApprovals.fromJson({
+        'eligible': true,
+        'total': 2,
+        'queues': [
+          {'key': 'branch_counts', 'count': 2},
+        ],
+      });
+      expect(parsed.waiting.map((q) => q.key), ['branch_counts']);
+      expect(parsed.total, 2);
+    });
+  });
+
+  testWidgets('side menu names the weekly branch count queue', (
+    tester,
+  ) async {
+    await _pump(tester, {
+      'eligible': true,
+      'total': 2,
+      'queues': [
+        {'key': 'branch_counts', 'count': 2},
+      ],
+    });
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        lookupAppLocalizations(const Locale('en')).approvalsQueueBranchCounts,
+      ),
+      findsOneWidget,
+    );
+    await _dispose(tester);
   });
 
   testWidgets('menu button carries the total on any screen', (tester) async {

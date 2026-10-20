@@ -19358,4 +19358,291 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0 · $totalQty قطعة · مستني $name يأكد ($handover)';
   }
+
+  @override
+  String get menuWeeklyCount => 'الجرد الأسبوعي';
+
+  @override
+  String get menuWeeklyCountApprovals => 'موافقات الجرد';
+
+  @override
+  String get approvalsQueueBranchCounts => 'الجرد الأسبوعي';
+
+  @override
+  String get weeklyCountTitle => 'الجرد الأسبوعي';
+
+  @override
+  String get weeklyCountApprovalsTitle => 'موافقات الجرد';
+
+  @override
+  String get weeklyCountDetailTitle => 'مراجعة الجرد';
+
+  @override
+  String get weeklyCountLoadError => 'تعذر تحميل الجرد الأسبوعي';
+
+  @override
+  String get weeklyCountNoBranches => 'لا يوجد فرع مطلوب منك جرده';
+
+  @override
+  String get weeklyCountPickBranch => 'اختر الفرع';
+
+  @override
+  String get weeklyCountOtherBranches => 'فروع أخرى';
+
+  @override
+  String get weeklyCountChangeBranch => 'تغيير الفرع';
+
+  @override
+  String weeklyCountWeekRange(String start, String end) {
+    return 'أسبوع $start – $end';
+  }
+
+  @override
+  String get weeklyCountStateDue => 'مطلوب الجرد';
+
+  @override
+  String get weeklyCountStatePending => 'بانتظار موافقة المدير';
+
+  @override
+  String get weeklyCountStateDone => 'تم جرد هذا الأسبوع ✓';
+
+  @override
+  String get weeklyCountStateRejected => 'الجرد مرفوض — أعد العد';
+
+  @override
+  String weeklyCountCountedBy(String name, String time) {
+    return 'عدّه $name · $time';
+  }
+
+  @override
+  String weeklyCountApprovedBy(String name) {
+    return 'اعتمده $name';
+  }
+
+  @override
+  String weeklyCountRejectionReason(String reason) {
+    return 'السبب: $reason';
+  }
+
+  @override
+  String get weeklyCountRecount => 'إعادة العد';
+
+  @override
+  String get weeklyCountReviewButton => 'مراجعة الجرد';
+
+  @override
+  String weeklyCountProgress(int counted, int total) {
+    return '$counted / $total تم عدّه';
+  }
+
+  @override
+  String get weeklyCountSectionLarge => 'كبير';
+
+  @override
+  String get weeklyCountSectionMedium => 'وسط';
+
+  @override
+  String get weeklyCountSectionSmall => 'صغير';
+
+  @override
+  String get weeklyCountAllZero => 'الكل صفر';
+
+  @override
+  String get weeklyCountAllZeroTitle => 'تعيين صفر؟';
+
+  @override
+  String weeklyCountAllZeroBody(int count, String section) {
+    return 'سيتم وضع صفر لـ $count صنف لم يُعدّ بعد في قسم $section. الأصناف التي عددتها لن تتغير.';
+  }
+
+  @override
+  String get weeklyCountAllZeroNothing => 'كل أصناف هذا القسم معدودة بالفعل';
+
+  @override
+  String get weeklyCountUncounted => 'لم يُعدّ';
+
+  @override
+  String get weeklyCountSubmit => 'إرسال الجرد';
+
+  @override
+  String weeklyCountFinishFirst(int count) {
+    return 'يجب عدّ كل الأصناف أولاً — باقي $count';
+  }
+
+  @override
+  String get weeklyCountEmptySheet => 'لا توجد أصناف للجرد في هذا الفرع';
+
+  @override
+  String get weeklyCountKeypadClear => 'مسح';
+
+  @override
+  String get weeklyCountKeypadUncount => 'إلغاء العد';
+
+  @override
+  String get weeklyCountSubmitConfirmTitle => 'إرسال الجرد؟';
+
+  @override
+  String weeklyCountSubmitConfirmSummary(String branch, int count) {
+    return '$branch · تم عدّ $count صنف';
+  }
+
+  @override
+  String get weeklyCountSubmitConfirmApprover => 'سيتم تحديث المخزون فوراً';
+
+  @override
+  String get weeklyCountSubmitConfirmStaff => 'سيُرسل للمدير للموافقة';
+
+  @override
+  String get weeklyCountSubmitConfirmButton => 'إرسال';
+
+  @override
+  String get weeklyCountDoneTitle => 'تم إرسال الجرد';
+
+  @override
+  String get weeklyCountDonePosted => 'تم تحديث المخزون';
+
+  @override
+  String get weeklyCountBackHome => 'العودة للرئيسية';
+
+  @override
+  String weeklyCountBannerDue(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      few: '$days أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+    );
+    return 'الجرد الأسبوعي مطلوب — باقي $_temp0';
+  }
+
+  @override
+  String get weeklyCountBannerLastDay => 'الجرد الأسبوعي مطلوب — اليوم آخر يوم';
+
+  @override
+  String get weeklyCountBannerRejected => 'الجرد الأسبوعي مرفوض — أعد العد';
+
+  @override
+  String get weeklyCountErrMissingItems =>
+      'لم يتم عدّ كل الأصناف. تم تحديث القائمة، عدّ الأصناف الناقصة.';
+
+  @override
+  String get weeklyCountErrUnknownItems =>
+      'بعض الأصناف لم تعد ضمن جرد هذا الفرع. تم تحديث القائمة.';
+
+  @override
+  String get weeklyCountErrInvalidQty =>
+      'كمية غير صحيحة. استخدم أرقاماً صحيحة من صفر فأكثر.';
+
+  @override
+  String get weeklyCountErrAlreadyPending =>
+      'يوجد جرد لهذا الفرع بانتظار موافقة المدير.';
+
+  @override
+  String get weeklyCountErrAlreadyDone =>
+      'تم جرد هذا الفرع بالفعل هذا الأسبوع.';
+
+  @override
+  String get weeklyCountErrNoAccess => 'ليس لديك صلاحية على هذا الفرع.';
+
+  @override
+  String get weeklyCountErrNoWarehouse =>
+      'هذا الفرع ليس له مخزن. تواصل مع المدير.';
+
+  @override
+  String get weeklyCountErrReasonRequired => 'اكتب سبب الرفض.';
+
+  @override
+  String get weeklyCountApprovalsPending => 'بانتظار الموافقة';
+
+  @override
+  String get weeklyCountApprovalsNonePending => 'لا يوجد جرد بانتظار الموافقة';
+
+  @override
+  String get weeklyCountApprovalsHistory => 'آخر الجرد';
+
+  @override
+  String get weeklyCountApprovalsNoHistory => 'لا يوجد جرد سابق';
+
+  @override
+  String get weeklyCountApproverOnly => 'موافقة الجرد للمديرين فقط';
+
+  @override
+  String weeklyCountDifferences(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count اختلاف',
+      few: '$count اختلافات',
+      two: 'اختلافان',
+      one: 'اختلاف واحد',
+      zero: 'بدون اختلاف',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String weeklyCountItemsCount(int count) {
+    return '$count صنف';
+  }
+
+  @override
+  String get weeklyCountStatusPendingApproval => 'بانتظار الموافقة';
+
+  @override
+  String get weeklyCountStatusApproved => 'معتمد';
+
+  @override
+  String get weeklyCountStatusRejected => 'مرفوض';
+
+  @override
+  String get weeklyCountStatusCancelled => 'ملغي';
+
+  @override
+  String get weeklyCountColCounted => 'المعدود';
+
+  @override
+  String get weeklyCountColSystem => 'النظام';
+
+  @override
+  String get weeklyCountColDifference => 'الفرق';
+
+  @override
+  String weeklyCountNoDifference(int count) {
+    return 'بدون اختلاف ($count)';
+  }
+
+  @override
+  String get weeklyCountApprove => 'اعتماد';
+
+  @override
+  String get weeklyCountReject => 'رفض';
+
+  @override
+  String get weeklyCountApproveTitle => 'اعتماد الجرد؟';
+
+  @override
+  String get weeklyCountApproveBody => 'سيتم تعديل المخزون بالفرق';
+
+  @override
+  String get weeklyCountRejectTitle => 'رفض الجرد';
+
+  @override
+  String get weeklyCountRejectHint => 'سبب الرفض (مطلوب)';
+
+  @override
+  String get weeklyCountRejectQuickCareful => 'أعد العد بعناية';
+
+  @override
+  String get weeklyCountRejectQuickUnreasonable => 'عدد غير منطقي';
+
+  @override
+  String get weeklyCountRejectQuickSizes => 'راجع الأحجام (كبير / وسط / صغير)';
+
+  @override
+  String get weeklyCountApprovedToast => 'تم اعتماد الجرد';
+
+  @override
+  String get weeklyCountRejectedToast => 'تم رفض الجرد';
 }

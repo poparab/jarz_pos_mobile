@@ -17,6 +17,7 @@ import '../../features/purchase_request/state/purchase_request_notifier.dart';
 import '../../features/approvals/presentation/pending_approvals_widgets.dart';
 import '../../features/cash_custody/state/cash_custody_notifier.dart';
 import '../../features/chat_inbox/state/chat_providers.dart';
+import '../../features/weekly_count/presentation/widgets/weekly_count_drawer_tiles.dart';
 import '../../features/stock_transfer/state/stock_handover_providers.dart';
 
 class AppDrawer extends ConsumerWidget {
@@ -83,6 +84,10 @@ class AppDrawer extends ConsumerWidget {
     // branch's open shift take part in. Replenishment keeps the narrow gate.
     final canOpenStockTransfer = ref.watch(canOpenStockTransferProvider);
     final canAccessInventoryCount = ref.watch(canAccessInventoryCountProvider);
+    // Branch weekly count: gated on the server's own answer (the branches the
+    // user may count, and `is_approver`), not on a role, because who counts
+    // is decided by POS Profile membership.
+    final weeklyCount = ref.watch(weeklyCountDrawerStateProvider);
     final canAccessPurchaseInvoice =
         ref.watch(canAccessPurchaseInvoiceProvider);
     final canAccessReportsHub = ref.watch(canAccessReportsHubProvider);
@@ -374,6 +379,12 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.menuInventoryCount,
           onTap: () => navigate(AppRoutes.inventoryCount),
         ),
+      if (weeklyCount.canCount)
+        WeeklyCountNavTile(onTap: () => navigate(AppRoutes.weeklyCount)),
+      if (weeklyCount.isApprover)
+        WeeklyCountApprovalsNavTile(
+          onTap: () => navigate(AppRoutes.weeklyCountApprovals),
+        ),
     ];
 
     // Gated on its own role set rather than the general manager one: the
@@ -562,12 +573,16 @@ class AppDrawer extends ConsumerWidget {
           AppRoutes.replenishment,
           AppRoutes.stockTransfer,
           AppRoutes.inventoryCount,
+          AppRoutes.weeklyCount,
         ],
         // The group starts collapsed, so without this the open-request count
         // on its child tile is invisible until someone thinks to expand it.
         // Null when there is nothing open, so the header is the plain one.
+        // A weekly count still owed gets the same dot when no request does.
         badge: openItemRequests > 0
             ? const _ItemRequestsBadge(dotOnly: true)
+            : weeklyCount.due
+            ? WeeklyCountDueDot(urgent: weeklyCount.urgent)
             : null,
       ),
       _DrawerGroupSpec(

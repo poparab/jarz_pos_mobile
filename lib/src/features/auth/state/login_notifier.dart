@@ -22,6 +22,7 @@ import '../../pos/state/pos_notifier.dart';
 import '../../pos/data/repositories/draft_cart_repository.dart';
 import '../../reports/state/reports_providers.dart';
 import '../../cash_custody/state/cash_custody_notifier.dart';
+import '../../weekly_count/presentation/weekly_count_providers.dart';
 
 class LoginNotifier extends AsyncNotifier<bool> {
   @override
@@ -195,6 +196,10 @@ class LoginNotifier extends AsyncNotifier<bool> {
     // holder / a manager" -- a previous user's answer would show or hide the
     // side-menu entry and offer their custody in Expenses and Purchase.
     ref.invalidate(custodyOverviewProvider);
+    // Branch weekly count status: keep-alive, and it lists the branches THIS
+    // user counts and whether they approve -- the banner and the drawer read
+    // it, so a previous user's branches must not survive a switch.
+    ref.invalidate(weeklyCountStatusProvider);
     // Per-user Hive caches (async; non-fatal on failure).
     unawaited(_clearUserScopedCaches());
   }
@@ -214,6 +219,7 @@ class LoginNotifier extends AsyncNotifier<bool> {
     for (final boxName in const [
       HiveBoxes.leadsCache,
       HiveBoxes.inventoryCount,
+      HiveBoxes.weeklyCount,
     ]) {
       try {
         if (Hive.isBoxOpen(boxName)) {

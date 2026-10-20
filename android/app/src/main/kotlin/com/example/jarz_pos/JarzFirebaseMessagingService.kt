@@ -65,6 +65,13 @@ class JarzFirebaseMessagingService : FlutterFirebaseMessagingService() {
                 "chat_waiting" -> {
                     OrderAlertNative.showApprovalNotification(applicationContext, data)
                 }
+                // Branch weekly count: a count waiting on a line manager, or a
+                // rejected count the counter must redo. Same foreground gap,
+                // same quiet approvals channel. The tap carries count_name so
+                // _handleLaunchPayload opens that count.
+                "branch_count_approval", "branch_count_rejected" -> {
+                    OrderAlertNative.showApprovalNotification(applicationContext, data)
+                }
             }
         }
         super.onMessageReceived(remoteMessage)

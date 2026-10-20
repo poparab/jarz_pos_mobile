@@ -35,6 +35,7 @@ import '../../credit/state/credit_providers.dart';
 import '../../followups/state/followups_providers.dart';
 import '../../courier_alerts/state/courier_alerts_providers.dart';
 import '../../chat_inbox/state/chat_providers.dart';
+import '../../weekly_count/presentation/weekly_count_providers.dart';
 import '../../stock_transfer/state/stock_handover_providers.dart';
 
 /// Ceiling for the alert poll's backoff.
@@ -532,6 +533,20 @@ class OrderAlertBridge {
           _navigateTo(AppRoutes.labels);
         }
         break;
+      case 'branch_count_approval':
+      case 'branch_count_rejected':
+        _logger.info(
+          'FCM branch weekly count: $type ${data['count_name'] ?? ''}',
+        );
+        // A staff count waiting for this approver, or this counter's count
+        // sent back. The tray entry is drawn by the SDK; here the home banner,
+        // the drawer and the approvals badge catch up, and a tap lands on the
+        // count (approval) or on the recount (rejection).
+        _refreshWeeklyCount();
+        if (openedApp) {
+          _navigateToWeeklyCount(type, data['count_name']?.toString());
+        }
+        break;
       case 'task_notification':
         _logger.info(
           'FCM task notification: ${data['event']} on ${data['task_id']}',
@@ -717,6 +732,30 @@ class OrderAlertBridge {
     }
   }
 
+  /// Banner, drawer and approvals badge after a weekly-count push. The status
+  /// provider is one small call; the list/detail are autoDispose, so
+  /// invalidating them never starts a fetch for a closed screen.
+  void _refreshWeeklyCount() {
+    try {
+      _ref.invalidate(weeklyCountStatusProvider);
+      _ref.invalidate(weeklyCountListProvider);
+      _ref.invalidate(pendingApprovalsProvider);
+    } catch (error, stackTrace) {
+      _logger.error('Failed to refresh weekly count after push', error, stackTrace);
+    }
+  }
+
+  /// Approval -> that count's review; rejection (or no name) -> the count
+  /// screen, where the rejected branch offers the recount.
+  void _navigateToWeeklyCount(String? type, String? countName) {
+    final name = countName?.trim() ?? '';
+    _navigateTo(
+      type == 'branch_count_approval' && name.isNotEmpty
+          ? AppRoutes.weeklyCountDetailFor(name)
+          : AppRoutes.weeklyCount,
+    );
+  }
+
   /// The push carries the thread's route; anything else lands on the inbox.
   void _navigateToChat(String? route) {
     final target = route?.trim() ?? '';
@@ -772,6 +811,10 @@ class OrderAlertBridge {
     } else if (type == 'label_stock_alert') {
       unawaited(_refreshLabels());
       _navigateTo(AppRoutes.labels);
+    } else if (type == 'branch_count_approval' ||
+        type == 'branch_count_rejected') {
+      _refreshWeeklyCount();
+      _navigateToWeeklyCount(type, payload['count_name']);
     } else if (type == 'task_notification') {
       _refreshTasks(payload['task_id']);
       _navigateToTask(payload['task_id']);

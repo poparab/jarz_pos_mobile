@@ -31,6 +31,7 @@ import '../../../core/localization/user_error_message.dart';
 import '../../../core/localization/localized_display_mappers.dart';
 import '../../../core/utils/territory_label.dart';
 import '../../approvals/state/pending_approvals_provider.dart';
+import '../../weekly_count/presentation/widgets/weekly_count_banner.dart';
 
 class KanbanBoardScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
@@ -218,6 +219,9 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> with Rout
           : null,
         body: Column(
           children: [
+            // Branch staff land here, so the weekly-count reminder does too.
+            // Renders nothing unless a member branch still owes the count.
+            const WeeklyCountBanner(),
             // Removed full-width branch chips to maximize kanban space; filter now in header
             if (_showFilters && !isPhone)
               Container(

@@ -36,6 +36,7 @@ import '../../../../core/widgets/app_drawer.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../shift/state/shift_notifier.dart';
 import '../../../shift/presentation/widgets/shift_status_banner.dart';
+import '../../../weekly_count/presentation/widgets/weekly_count_banner.dart';
 // Removed branch filter from POS; filter lives in Kanban header
 // Removed unused direct service import (service accessed through provider)
 
@@ -716,6 +717,8 @@ class _PosScreenState extends ConsumerState<PosScreen>
                             ),
                           ),
                           // Main content
+                          // Weekly count reminder: nothing unless owed.
+                          const WeeklyCountBanner(),
                           if (matchedActiveShift != null)
                             ShiftStatusBanner(shift: matchedActiveShift),
                           if (state.isAmendmentDraft)
@@ -791,6 +794,8 @@ class _PosScreenState extends ConsumerState<PosScreen>
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
           child: Column(
             children: [
+              // Weekly count reminder: nothing unless owed.
+              const WeeklyCountBanner(),
               if (matchedActiveShift != null)
                 ShiftStatusBanner(shift: matchedActiveShift),
               if (state.isAmendmentDraft)

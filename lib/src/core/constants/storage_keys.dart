@@ -18,6 +18,9 @@ abstract final class HiveBoxes {
   static const draftCarts = 'draft_carts';
   static const leadsCache = 'leads_cache';
   static const productionBasket = 'production_basket';
+
+  /// Branch weekly count drafts, one per branch and week (`draft:<pos>:<week>`).
+  static const weeklyCount = 'weekly_count';
 }
 
 // ── Hive keys (within their boxes) ──────────────────────────────────────

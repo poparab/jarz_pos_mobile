@@ -422,6 +422,8 @@ object OrderAlertNative {
             "settlement:${data["kind"] ?: ""}:${data["customer"] ?: ""}"
         } else if (data["type"] == "chat_waiting") {
             "chat:${data["conversation"] ?: ""}"
+        } else if (data["type"] == "branch_count_approval" || data["type"] == "branch_count_rejected") {
+            "count:${data["count_name"] ?: ""}"
         } else {
             data["notification_id"] ?: data["expense_id"] ?: ""
         }
@@ -449,6 +451,8 @@ object OrderAlertNative {
             // chat_waiting: which conversation to open, and its in-app route.
             putExtra("conversation", data["conversation"] ?: "")
             putExtra("route", data["route"] ?: "")
+            // branch_count_*: which weekly count to open on tap.
+            putExtra("count_name", data["count_name"] ?: "")
         }
 
         val pendingIntent = PendingIntent.getActivity(

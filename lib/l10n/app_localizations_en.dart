@@ -19358,4 +19358,297 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0 · $totalQty units · waiting for $name to confirm ($handover)';
   }
+
+  @override
+  String get menuWeeklyCount => 'Weekly count';
+
+  @override
+  String get menuWeeklyCountApprovals => 'Count approvals';
+
+  @override
+  String get approvalsQueueBranchCounts => 'Weekly counts to approve';
+
+  @override
+  String get weeklyCountTitle => 'Weekly count';
+
+  @override
+  String get weeklyCountApprovalsTitle => 'Count approvals';
+
+  @override
+  String get weeklyCountDetailTitle => 'Count review';
+
+  @override
+  String get weeklyCountLoadError => 'Could not load the weekly count';
+
+  @override
+  String get weeklyCountNoBranches => 'You have no branch to count';
+
+  @override
+  String get weeklyCountPickBranch => 'Choose the branch';
+
+  @override
+  String get weeklyCountOtherBranches => 'Other branches';
+
+  @override
+  String get weeklyCountChangeBranch => 'Change branch';
+
+  @override
+  String weeklyCountWeekRange(String start, String end) {
+    return 'Week $start – $end';
+  }
+
+  @override
+  String get weeklyCountStateDue => 'Count due';
+
+  @override
+  String get weeklyCountStatePending => 'Waiting for manager approval';
+
+  @override
+  String get weeklyCountStateDone => 'Counted this week ✓';
+
+  @override
+  String get weeklyCountStateRejected => 'Count rejected — count again';
+
+  @override
+  String weeklyCountCountedBy(String name, String time) {
+    return 'Counted by $name · $time';
+  }
+
+  @override
+  String weeklyCountApprovedBy(String name) {
+    return 'Approved by $name';
+  }
+
+  @override
+  String weeklyCountRejectionReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String get weeklyCountRecount => 'Count again';
+
+  @override
+  String get weeklyCountReviewButton => 'Review the count';
+
+  @override
+  String weeklyCountProgress(int counted, int total) {
+    return '$counted / $total counted';
+  }
+
+  @override
+  String get weeklyCountSectionLarge => 'Large';
+
+  @override
+  String get weeklyCountSectionMedium => 'Medium';
+
+  @override
+  String get weeklyCountSectionSmall => 'Small';
+
+  @override
+  String get weeklyCountAllZero => 'All zero';
+
+  @override
+  String get weeklyCountAllZeroTitle => 'Set to zero?';
+
+  @override
+  String weeklyCountAllZeroBody(int count, String section) {
+    return '$count items not counted yet in $section will be set to 0. Items you already counted stay as they are.';
+  }
+
+  @override
+  String get weeklyCountAllZeroNothing =>
+      'Every item in this section is already counted';
+
+  @override
+  String get weeklyCountUncounted => 'Not counted';
+
+  @override
+  String get weeklyCountSubmit => 'Submit count';
+
+  @override
+  String weeklyCountFinishFirst(int count) {
+    return 'Count every item first — $count left';
+  }
+
+  @override
+  String get weeklyCountEmptySheet =>
+      'There are no items to count in this branch';
+
+  @override
+  String get weeklyCountKeypadClear => 'Clear';
+
+  @override
+  String get weeklyCountKeypadUncount => 'Not counted';
+
+  @override
+  String get weeklyCountSubmitConfirmTitle => 'Submit the count?';
+
+  @override
+  String weeklyCountSubmitConfirmSummary(String branch, int count) {
+    return '$branch · $count items counted';
+  }
+
+  @override
+  String get weeklyCountSubmitConfirmApprover =>
+      'Stock will be updated immediately';
+
+  @override
+  String get weeklyCountSubmitConfirmStaff =>
+      'It will be sent to the manager for approval';
+
+  @override
+  String get weeklyCountSubmitConfirmButton => 'Send';
+
+  @override
+  String get weeklyCountDoneTitle => 'Count sent';
+
+  @override
+  String get weeklyCountDonePosted => 'Stock updated';
+
+  @override
+  String get weeklyCountBackHome => 'Back to home';
+
+  @override
+  String weeklyCountBannerDue(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days left',
+      one: '1 day left',
+    );
+    return 'Weekly count due — $_temp0';
+  }
+
+  @override
+  String get weeklyCountBannerLastDay =>
+      'Weekly count due — today is the last day';
+
+  @override
+  String get weeklyCountBannerRejected => 'Weekly count rejected — count again';
+
+  @override
+  String get weeklyCountErrMissingItems =>
+      'Not every item was counted. The list was refreshed; count the missing items.';
+
+  @override
+  String get weeklyCountErrUnknownItems =>
+      'Some items are no longer on this branch list. The list was refreshed.';
+
+  @override
+  String get weeklyCountErrInvalidQty =>
+      'Invalid quantity. Use whole numbers from 0 up.';
+
+  @override
+  String get weeklyCountErrAlreadyPending =>
+      'A count for this branch is already waiting for manager approval.';
+
+  @override
+  String get weeklyCountErrAlreadyDone =>
+      'This branch is already counted this week.';
+
+  @override
+  String get weeklyCountErrNoAccess => 'You do not have access to this branch.';
+
+  @override
+  String get weeklyCountErrNoWarehouse =>
+      'This branch has no warehouse. Contact the manager.';
+
+  @override
+  String get weeklyCountErrReasonRequired => 'Write the reason for rejecting.';
+
+  @override
+  String get weeklyCountApprovalsPending => 'Waiting for approval';
+
+  @override
+  String get weeklyCountApprovalsNonePending =>
+      'No count is waiting for approval';
+
+  @override
+  String get weeklyCountApprovalsHistory => 'Recent counts';
+
+  @override
+  String get weeklyCountApprovalsNoHistory => 'No earlier counts';
+
+  @override
+  String get weeklyCountApproverOnly =>
+      'Only line managers and above approve weekly counts';
+
+  @override
+  String weeklyCountDifferences(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count differences',
+      one: '1 difference',
+      zero: 'No differences',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String weeklyCountItemsCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get weeklyCountStatusPendingApproval => 'Pending approval';
+
+  @override
+  String get weeklyCountStatusApproved => 'Approved';
+
+  @override
+  String get weeklyCountStatusRejected => 'Rejected';
+
+  @override
+  String get weeklyCountStatusCancelled => 'Cancelled';
+
+  @override
+  String get weeklyCountColCounted => 'Counted';
+
+  @override
+  String get weeklyCountColSystem => 'System';
+
+  @override
+  String get weeklyCountColDifference => 'Difference';
+
+  @override
+  String weeklyCountNoDifference(int count) {
+    return 'No difference ($count)';
+  }
+
+  @override
+  String get weeklyCountApprove => 'Approve';
+
+  @override
+  String get weeklyCountReject => 'Reject';
+
+  @override
+  String get weeklyCountApproveTitle => 'Approve the count?';
+
+  @override
+  String get weeklyCountApproveBody =>
+      'Stock will be adjusted by the differences';
+
+  @override
+  String get weeklyCountRejectTitle => 'Reject the count';
+
+  @override
+  String get weeklyCountRejectHint => 'Reason (required)';
+
+  @override
+  String get weeklyCountRejectQuickCareful => 'Count again carefully';
+
+  @override
+  String get weeklyCountRejectQuickUnreasonable =>
+      'The numbers do not make sense';
+
+  @override
+  String get weeklyCountRejectQuickSizes =>
+      'Check the sizes (large / medium / small)';
+
+  @override
+  String get weeklyCountApprovedToast => 'Count approved';
+
+  @override
+  String get weeklyCountRejectedToast => 'Count rejected';
 }

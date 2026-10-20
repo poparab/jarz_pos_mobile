@@ -62,6 +62,15 @@ abstract final class AppRoutes {
   /// Company cash held by named employees (العُهد).
   static const cashCustody = '/cash-custody';
   static const inventoryCount = '/inventory-count';
+
+  /// Branch weekly stock count (Saturday to Friday): the count flow, the
+  /// approver list, and one count's review. `approvals` is a static segment
+  /// and must be registered before `:name`.
+  static const weeklyCount = '/weekly-count';
+  static const weeklyCountApprovals = '/weekly-count/approvals';
+  static const weeklyCountDetail = '/weekly-count/:name';
+  static String weeklyCountDetailFor(String name) =>
+      '$weeklyCount/${Uri.encodeComponent(name)}';
   static const expenses = '/expenses';
 
   /// The company's monthly bill — the recurring-expense registry plus payroll
