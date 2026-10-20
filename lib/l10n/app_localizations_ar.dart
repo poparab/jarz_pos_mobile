@@ -19771,4 +19771,105 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get weeklyCountRejectedToast => 'تم رفض الجرد';
+
+  @override
+  String get rosterFilterAll => 'الكل';
+
+  @override
+  String get rosterFilterTooltip => 'تصفية حسب الفرع أو الشخص';
+
+  @override
+  String get rosterFilterTitle => 'المعروض في الجدول';
+
+  @override
+  String get rosterFilterHelp =>
+      'بدون اختيار يظهر الجميع. يظهر الشخص إذا اخترته هو أو أحد فروعه.';
+
+  @override
+  String get rosterFilterBranches => 'الفروع';
+
+  @override
+  String get rosterFilterPeople => 'الأشخاص';
+
+  @override
+  String get rosterFilterSelectAll => 'تحديد الكل';
+
+  @override
+  String get rosterFilterSearchHint => 'ابحث عن شخص';
+
+  @override
+  String get rosterFilterNoPeople => 'لا يوجد أحد مطابق';
+
+  @override
+  String get rosterFilterApply => 'تطبيق';
+
+  @override
+  String rosterFilterBranchCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فروع',
+      two: 'فرعان',
+      one: 'فرع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rosterFilterPeopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أشخاص',
+      two: 'شخصان',
+      one: 'شخص واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rosterFilterPeopleAndBranches(String people, String branches) {
+    return '$people + $branches';
+  }
+
+  @override
+  String get rosterFilterNoMatch => 'لا يوجد أحد في الجدول يطابق هذه التصفية';
+
+  @override
+  String get attendanceCheckoutCorrected =>
+      'ضغط تسجيل انصراف عند الوصول — احتُسب تسجيل حضور';
+
+  @override
+  String get attendanceMissedCheckout => 'لم يسجّل انصراف';
+
+  @override
+  String attendanceLogTypeNote(String note) {
+    return 'ملاحظة: $note';
+  }
+
+  @override
+  String attendanceOriginalLogType(String original) {
+    return 'ضغط $original، واحتُسب بشكل مختلف';
+  }
+
+  @override
+  String get attendanceApproveDevice => 'اعتماد هذا الهاتف';
+
+  @override
+  String get attendanceApproveDeviceConfirmTitle => 'اعتماد هذا الهاتف؟';
+
+  @override
+  String attendanceApproveDeviceConfirmBody(String name) {
+    return 'سيصبح هذا الهاتف جهاز $name المعتمد وسيُزال تنبيه الجهاز الجديد.';
+  }
+
+  @override
+  String attendanceApproveDeviceDone(String name) {
+    return 'تم اعتماد الهاتف لـ $name';
+  }
+
+  @override
+  String attendanceApproveDeviceFailed(String error) {
+    return 'تعذّر اعتماد الهاتف: $error';
+  }
 }

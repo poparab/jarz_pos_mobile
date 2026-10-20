@@ -11,10 +11,10 @@ final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
 
 /// HTTP repository for attendance (`jarz_pos.api.attendance.*`).
 ///
-/// Read-only by design: attendance is derived server-side from Employee
-/// Checkin, Shift Assignment and Day Off rows. Nothing in this app may write
-/// it, so there is deliberately no write half here to mirror
-/// `roster_repository.dart`'s.
+/// Read-only for attendance itself: it is derived server-side from Employee
+/// Checkin, Shift Assignment and Day Off rows, and nothing in this app may
+/// write it. The ONE write is [approveDevice], which trusts a phone (device
+/// state, not attendance); the server checks the caller may do it.
 ///
 /// All endpoints are POST and return Frappe's `{ "message": ... }` envelope,
 /// unwrapped by [_unwrap] exactly like the roster, visits and leads
@@ -36,7 +36,10 @@ class AttendanceRepository {
   /// Branches, scope and the grace window — one call so the screen does not
   /// open on four separate spinners.
   Future<AttendanceBootstrap> getBootstrap() async {
-    final response = await _dio.post(ApiEndpoints.attendanceBootstrap, data: {});
+    final response = await _dio.post(
+      ApiEndpoints.attendanceBootstrap,
+      data: {},
+    );
     return AttendanceBootstrap.fromJson(_asMap(_unwrap(response)));
   }
 
@@ -45,7 +48,10 @@ class AttendanceRepository {
   /// [month] is `YYYY-MM`; omitting it asks the server for the current month,
   /// so the client never has to decide what "this month" means in the site's
   /// timezone.
-  Future<AttendanceMonth> getMonth({String? month, String? shiftLocation}) async {
+  Future<AttendanceMonth> getMonth({
+    String? month,
+    String? shiftLocation,
+  }) async {
     final response = await _dio.post(
       ApiEndpoints.attendanceMonth,
       data: {
@@ -108,5 +114,24 @@ class AttendanceRepository {
       },
     );
     return AttendanceSummary.fromJson(_asMap(_unwrap(response)));
+  }
+
+  /// Approve the phone [employee] checked in with on [date] (`YYYY-MM-DD`)
+  /// as their own, clearing its "New Device" flag.
+  ///
+  /// A refusal (not allowed, nothing to approve) arrives as a Frappe
+  /// exception, i.e. a [DioException]; the caller shows the server's words.
+  Future<AttendanceDeviceApproval> approveDevice({
+    required String employee,
+    required String date,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.attendanceApproveDevice,
+      data: {'employee': employee, 'date': date},
+    );
+    final body = _unwrap(response);
+    return AttendanceDeviceApproval.fromJson(
+      body is Map ? _asMap(body) : {'employee': employee},
+    );
   }
 }

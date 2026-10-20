@@ -6,6 +6,7 @@ import '../../models/attendance_models.dart';
 import '../../state/attendance_providers.dart';
 import '../attendance_format.dart';
 import 'attendance_controls.dart';
+import 'attendance_checkout_badge.dart';
 import 'attendance_day_sheet.dart';
 import 'attendance_device_flag.dart';
 import 'attendance_states.dart';
@@ -306,6 +307,7 @@ class AttendanceDayRowTile extends StatelessWidget {
       onTap: () => showAttendanceDaySheet(
         context,
         employeeName: row.employeeName,
+        employee: row.employee,
         designation: row.designation,
         cell: cell,
         graceMinutes: graceMinutes,
@@ -379,6 +381,10 @@ class AttendanceDayRowTile extends StatelessWidget {
                       theme.textTheme.labelSmall,
                     )?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
+                  if (cell.hasCheckoutIssue) ...[
+                    const SizedBox(height: 4),
+                    AttendanceCheckoutBadges(cell: cell, dense: true),
+                  ],
                   if (cell.hasDeviceFlag) ...[
                     const SizedBox(height: 4),
                     AttendanceDeviceFlagChips(

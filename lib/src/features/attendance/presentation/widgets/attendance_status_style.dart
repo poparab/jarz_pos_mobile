@@ -5,6 +5,7 @@ import '../../models/attendance_models.dart';
 import '../attendance_format.dart';
 import 'attendance_grid_metrics.dart';
 import 'attendance_status_visual.dart';
+import 'attendance_checkout_badge.dart';
 import 'attendance_device_flag.dart';
 
 export 'attendance_status_visual.dart';
@@ -178,6 +179,7 @@ class AttendanceStatusSquare extends StatelessWidget {
     this.height = AttendanceGridMetrics.rowHeight,
     this.isCover = false,
     this.deviceFlags = const [],
+    this.checkoutIssue = false,
   });
 
   final AttendanceStatus status;
@@ -191,6 +193,10 @@ class AttendanceStatusSquare extends StatelessWidget {
 
   /// Buddy-punching flags; draws a corner dot, never changes the colours.
   final List<String> deviceFlags;
+
+  /// A check-out problem on the day (corrected or missing check-out); draws
+  /// a small square in the opposite corner, never changes the colours.
+  final bool checkoutIssue;
 
   @override
   Widget build(BuildContext context) {
@@ -260,6 +266,12 @@ class AttendanceStatusSquare extends StatelessWidget {
                 top: 2,
                 end: 2,
                 child: AttendanceDeviceFlagDot(flags: deviceFlags),
+              ),
+            if (checkoutIssue)
+              const PositionedDirectional(
+                bottom: 2,
+                end: 2,
+                child: AttendanceCheckoutMarker(),
               ),
           ],
         ),

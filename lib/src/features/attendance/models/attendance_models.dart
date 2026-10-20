@@ -171,6 +171,7 @@ class AttendanceBootstrap {
     required this.statuses,
     required this.checkinEnforced,
     this.notice,
+    this.canApproveDevice = false,
   });
 
   final bool hrmsAvailable;
@@ -186,6 +187,10 @@ class AttendanceBootstrap {
   final List<String> statuses;
   final bool checkinEnforced;
   final String? notice;
+
+  /// Whether this user may approve a new phone for someone (`approve_device`).
+  /// False on an older server that does not send the key.
+  final bool canApproveDevice;
 
   factory AttendanceBootstrap.fromJson(Map<String, dynamic> json) =>
       AttendanceBootstrap(
@@ -207,6 +212,7 @@ class AttendanceBootstrap {
             .toList(),
         checkinEnforced: json['checkin_enforced'] == true,
         notice: _nullIfBlank(json['notice']),
+        canApproveDevice: _toBool(json['can_approve_device']),
       );
 }
 
@@ -258,6 +264,9 @@ class AttendanceCell {
     this.isCover = false,
     this.deviceFlags = const [],
     this.deviceFlagDetail,
+    this.checkoutCorrected = false,
+    this.missedCheckout = false,
+    this.logTypeNote,
   });
 
   final String date;
@@ -296,6 +305,19 @@ class AttendanceCell {
   final String? deviceFlagDetail;
 
   bool get hasDeviceFlag => deviceFlags.isNotEmpty;
+
+  /// The person pressed Check Out when they arrived, and the server counted
+  /// that punch as a Check In. False on an older server.
+  final bool checkoutCorrected;
+
+  /// Checked in but never checked out. False on an older server.
+  final bool missedCheckout;
+
+  /// Server-written explanation of a log-type correction; shown as is.
+  final String? logTypeNote;
+
+  /// Either check-out problem, for the compact markers.
+  bool get hasCheckoutIssue => checkoutCorrected || missedCheckout;
 
   /// Did this person clock in at all on this day?
   ///
@@ -355,6 +377,9 @@ class AttendanceCell {
       isCover: json['is_cover'] == true || json['is_cover'] == 1,
       deviceFlags: _toStringList(json['device_flags']),
       deviceFlagDetail: _nullIfBlank(json['device_flag_detail']),
+      checkoutCorrected: _toBool(json['checkout_corrected']),
+      missedCheckout: _toBool(json['missed_checkout']),
+      logTypeNote: _nullIfBlank(json['log_type_note']),
     );
   }
 }
@@ -854,9 +879,25 @@ class AttendanceCheckin {
     this.geoOk,
     this.deviceFlag,
     this.deviceFlagDetail,
+    this.originalLogType,
+    this.logTypeNote,
   });
 
   final String name;
+
+  /// What the person actually pressed ("OUT"), when the server corrected the
+  /// punch to [logType]. Null when nothing was corrected or on an older
+  /// server.
+  final String? originalLogType;
+
+  /// Server-written explanation of that correction; shown as is.
+  final String? logTypeNote;
+
+  /// The server changed this punch's direction.
+  bool get logTypeCorrected =>
+      originalLogType != null &&
+      logType != null &&
+      originalLogType!.toUpperCase() != logType!.toUpperCase();
 
   /// "Shared Device" / "New Device" / "No Device", or null when clean (or
   /// when an older server does not send the key).
@@ -886,7 +927,48 @@ class AttendanceCheckin {
         geoOk: _toBoolOrNull(json['geo_ok']),
         deviceFlag: _nullIfBlank(json['device_flag']),
         deviceFlagDetail: _nullIfBlank(json['device_flag_detail']),
+        originalLogType: _nullIfBlank(json['original_log_type']),
+        logTypeNote: _nullIfBlank(json['log_type_note']),
       );
+}
+
+/// `jarz_pos.api.attendance.approve_device`: the phone now trusted for
+/// [employee], and who trusted it.
+class AttendanceDeviceApproval {
+  const AttendanceDeviceApproval({
+    required this.employee,
+    this.employeeName,
+    this.device,
+    this.approvedBy,
+    this.approvedOn,
+    this.cleared = 0,
+  });
+
+  final String employee;
+  final String? employeeName;
+  final String? device;
+  final String? approvedBy;
+  final String? approvedOn;
+
+  /// How many "New Device" flags the approval cleared. The contract does not
+  /// pin the type, so a bool true reads as 1.
+  final int cleared;
+
+  factory AttendanceDeviceApproval.fromJson(Map<String, dynamic> json) {
+    final rawCleared = json['cleared'];
+    return AttendanceDeviceApproval(
+      employee: (json['employee'] ?? '').toString(),
+      employeeName: _nullIfBlank(json['employee_name']),
+      device: _nullIfBlank(json['device']),
+      approvedBy: _nullIfBlank(json['approved_by']),
+      approvedOn: _nullIfBlank(json['approved_on']),
+      cleared: rawCleared is bool
+          ? (rawCleared ? 1 : 0)
+          : rawCleared is List
+          ? rawCleared.length
+          : _toInt(rawCleared),
+    );
+  }
 }
 
 /// `jarz_pos.api.attendance.get_employee`.
@@ -1179,6 +1261,10 @@ bool? _toBoolOrNull(dynamic value) {
   if (text == 'false' || text == '0') return false;
   return null;
 }
+
+/// A strict flag: true, 1, "1" or "true". Anything else, including a missing
+/// key from an older server, is false.
+bool _toBool(dynamic value) => _toBoolOrNull(value) ?? false;
 
 List<String> _toStringList(dynamic value) {
   if (value is! List) return const [];

@@ -1068,6 +1068,10 @@ abstract final class ApiEndpoints {
   static const attendanceSummary =
       '/api/method/jarz_pos.api.attendance.get_summary';
 
+  /// Trust the phone behind a "New Device" check-in (POST employee, date).
+  static const attendanceApproveDevice =
+      '/api/method/jarz_pos.api.attendance.approve_device';
+
   // ── Task Board ────────────────────────────────────────────────────────
   // The line-manager tier's task cards. Every mutation answers with the
   // whole `get_task` shape, so the detail screen never re-fetches after one.

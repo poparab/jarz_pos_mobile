@@ -14,28 +14,130 @@ final rosterMonthProvider = StateProvider<String>((ref) {
       '${now.month.toString().padLeft(2, '0')}';
 });
 
-/// Branch filter. Null means "every branch I can see".
-final rosterLocationFilterProvider = StateProvider<String?>((ref) => null);
-
 final rosterBootstrapProvider = FutureProvider<RosterBootstrap>((ref) async {
   return ref.watch(rosterRepositoryProvider).getBootstrap();
 });
 
-final rosterMonthDataProvider = FutureProvider<RosterMonth>((ref) async {
+/// The months the grid needs loaded, as `primary,other` (`YYYY-MM` each).
+///
+/// Month view: just [rosterMonthProvider]. Week view: every month the visible
+/// Saturday-to-Friday week touches, the week's majority month first (see
+/// [rosterWeekMonth]), so a week that straddles a month end still draws all
+/// seven days.
+///
+/// A plain string on purpose: stepping to another week inside the same months
+/// yields an EQUAL string, Riverpod does not notify, and nothing is refetched.
+final rosterLoadedMonthsProvider = Provider<String>((ref) {
   final month = ref.watch(rosterMonthProvider);
-  final location = ref.watch(rosterLocationFilterProvider);
-  return ref
-      .watch(rosterRepositoryProvider)
-      .getMonth(month: month, shiftLocation: location);
+  if (ref.watch(rosterViewModeProvider) != RosterViewMode.week) return month;
+  final week = rosterWeekDates(
+    month: month,
+    focus: ref.watch(rosterWeekFocusProvider),
+    today: DateTime.now(),
+  );
+  final primary = rosterWeekMonth(week);
+  final others = {for (final d in week) d.substring(0, 7)}.toList()
+    ..remove(primary)
+    ..sort();
+  return [primary, ...others].join(',');
 });
 
+/// The roster for every month in [rosterLoadedMonthsProvider], merged into
+/// one [RosterMonth] (see [rosterMergeMonths]).
+///
+/// Always fetched UNFILTERED: the people/branch filter is applied on the
+/// client (`rosterVisibleMonthProvider` in `roster_filter.dart`), so changing
+/// it costs no request and a list of branches never has to be sent.
+final rosterMonthDataProvider = FutureProvider<RosterMonth>((ref) async {
+  final months = ref.watch(rosterLoadedMonthsProvider).split(',');
+  final repository = ref.watch(rosterRepositoryProvider);
+  final loaded = await Future.wait([
+    for (final month in months) repository.getMonth(month: month),
+  ]);
+  return rosterMergeMonths(loaded);
+});
+
+/// Hours for [rosterMonthProvider], unfiltered. The filtered view the hours
+/// sheet draws is `rosterVisibleHoursProvider` in `roster_filter.dart`.
 final rosterHoursProvider = FutureProvider<RosterHours>((ref) async {
   final month = ref.watch(rosterMonthProvider);
-  final location = ref.watch(rosterLocationFilterProvider);
-  return ref
-      .watch(rosterRepositoryProvider)
-      .getMonthHours(month: month, shiftLocation: location);
+  return ref.watch(rosterRepositoryProvider).getMonthHours(month: month);
 });
+
+/// Several months' rosters as one: employees merged by id (first appearance
+/// sets the order and the person's details, later months only add days),
+/// gaps de-duplicated, branches and shifts unioned. The first month is the
+/// primary one; its month string, scope and notice win.
+RosterMonth rosterMergeMonths(List<RosterMonth> months) {
+  if (months.isEmpty) {
+    throw ArgumentError.value(months, 'months', 'must not be empty');
+  }
+  if (months.length == 1) return months.first;
+  final primary = months.first;
+
+  final order = <String>[];
+  final byId = <String, RosterEmployee>{};
+  for (final month in months) {
+    for (final employee in month.employees) {
+      final existing = byId[employee.employee];
+      if (existing == null) {
+        order.add(employee.employee);
+        byId[employee.employee] = employee;
+        continue;
+      }
+      byId[employee.employee] = RosterEmployee(
+        employee: existing.employee,
+        employeeName: existing.employeeName,
+        designation: existing.designation,
+        department: existing.department,
+        shiftLocations: existing.shiftLocations,
+        scheduleLocation: existing.scheduleLocation,
+        standardHours: existing.standardHours,
+        isCourier: existing.isCourier,
+        overtimeMultiplier: existing.overtimeMultiplier,
+        days: {...existing.days, ...employee.days},
+      );
+    }
+  }
+
+  final gapKeys = <String>{};
+  final gaps = <RosterGap>[
+    for (final month in months)
+      for (final gap in month.gaps)
+        if (gapKeys.add('${gap.employee}|${gap.date}')) gap,
+  ];
+  final locationKeys = <String>{};
+  final locations = <RosterLocation>[
+    for (final month in months)
+      for (final location in month.shiftLocations)
+        if (locationKeys.add(location.shiftLocation)) location,
+  ];
+  final shiftKeys = <String>{};
+  final catalog = <RosterShift>[
+    for (final month in months)
+      for (final shift in month.shiftCatalog)
+        if (shiftKeys.add(shift.shiftType)) shift,
+  ];
+  final starts = months.map((m) => m.monthStart).where((d) => d.isNotEmpty);
+  final ends = months.map((m) => m.monthEnd).where((d) => d.isNotEmpty);
+
+  return RosterMonth(
+    month: primary.month,
+    monthStart: starts.isEmpty
+        ? primary.monthStart
+        : starts.reduce((a, b) => a.compareTo(b) <= 0 ? a : b),
+    monthEnd: ends.isEmpty
+        ? primary.monthEnd
+        : ends.reduce((a, b) => a.compareTo(b) >= 0 ? a : b),
+    employees: [for (final id in order) byId[id]!],
+    shiftCatalog: catalog,
+    shiftLocations: locations,
+    gaps: gaps,
+    scope: primary.scope,
+    hrmsAvailable: months.every((m) => m.hrmsAvailable),
+    notice: months.map((m) => m.notice).whereType<String>().firstOrNull,
+  );
+}
 
 /// A run of days selected on ONE employee's row, waiting for a bulk action.
 ///
@@ -91,8 +193,8 @@ String shiftMonth(String month, int delta) {
       '${shifted.month.toString().padLeft(2, '0')}';
 }
 
-/// Week or month. The grid always FETCHES a month (the backend serves months);
-/// this only decides how much of it is drawn at once.
+/// Week or month. The backend serves months; week view loads every month the
+/// week touches (see [rosterLoadedMonthsProvider]) and draws seven days.
 enum RosterViewMode { week, month }
 
 /// Week by default: a line manager plans the coming days, and a 31-column grid
@@ -102,10 +204,8 @@ final rosterViewModeProvider = StateProvider<RosterViewMode>(
 );
 
 /// Any ISO date inside the week being shown, or null for "the default week"
-/// (today's week in the current month, otherwise the month's first week).
-///
-/// Stored as a date rather than a week index so it survives a month change:
-/// a date from another month simply stops matching and the default applies.
+/// (today's week when [rosterMonthProvider] is the current month, otherwise
+/// the week holding the month's 1st). See [rosterWeekDates].
 final rosterWeekFocusProvider = StateProvider<String?>((ref) => null);
 
 /// Whether a tap selects days (true) or opens the day sheet (false).
@@ -120,13 +220,20 @@ String rosterIsoDate(DateTime date) =>
     '${date.month.toString().padLeft(2, '0')}-'
     '${date.day.toString().padLeft(2, '0')}';
 
+/// [iso] as a UTC midnight, or null when it is not a date.
+DateTime? _isoDay(String iso) {
+  final parsed = DateTime.tryParse(iso);
+  if (parsed == null) return null;
+  return DateTime.utc(parsed.year, parsed.month, parsed.day);
+}
+
 /// The month's weeks, Saturday to Friday, clipped to the month.
 ///
 /// Saturday-first because the Egyptian working week starts on Saturday (the
 /// weekend is Friday AND Saturday, see `isRosterWeekend`; a Saturday-first week
-/// keeps the Friday at its end). Clipping means the first and last weeks can be
-/// short: the grid only has this month's data, so a week never borrows days
-/// from the neighbouring month.
+/// keeps the Friday at its end). The grid's week view does NOT clip any more
+/// (see [rosterWeekDates]); this stays for the layout tests and anything that
+/// needs a month cut into weeks.
 ///
 /// Calendar arithmetic is done in UTC: Egypt observes daylight saving, and a
 /// local-time `add(Duration(days: 1))` across the change lands an hour off and
@@ -152,53 +259,72 @@ List<List<String>> rosterWeeksOfMonth(String month) {
   return weeks;
 }
 
-/// The index into [rosterWeeksOfMonth] the grid opens on: the week holding
-/// [today] when [month] is the current month, else the first week.
-int rosterDefaultWeekIndex(String month, DateTime today) {
-  final weeks = rosterWeeksOfMonth(month);
-  final iso = rosterIsoDate(today);
-  for (var i = 0; i < weeks.length; i++) {
-    if (weeks[i].contains(iso)) return i;
-  }
-  return 0;
+/// The full Saturday-to-Friday week holding [day]: always seven ISO dates,
+/// crossing a month (or year) boundary when the week does.
+List<String> rosterFullWeek(DateTime day) {
+  final utc = DateTime.utc(day.year, day.month, day.day);
+  // Dart's % is non-negative for a positive divisor: Sat 0, Sun 1 ... Fri 6.
+  final back = (utc.weekday - DateTime.saturday) % 7;
+  final start = utc.subtract(Duration(days: back));
+  return [
+    for (var i = 0; i < 7; i++) rosterIsoDate(start.add(Duration(days: i))),
+  ];
 }
 
-/// The week to draw: the one containing [focus] if it is in [month], else the
-/// default week.
-int rosterVisibleWeekIndex(String month, String? focus, DateTime today) {
-  final weeks = rosterWeeksOfMonth(month);
-  if (focus != null) {
-    for (var i = 0; i < weeks.length; i++) {
-      if (weeks[i].contains(focus)) return i;
-    }
-  }
-  return rosterDefaultWeekIndex(month, today);
+/// The month a week belongs to: its Tuesday's. Tuesday is the 4th day of a
+/// Saturday-first week, so its month always holds at least four of the seven
+/// days, i.e. the majority.
+String rosterWeekMonth(List<String> week) {
+  if (week.isEmpty) return '';
+  final pick = week.length > 3 ? week[3] : week.first;
+  return pick.length >= 7 ? pick.substring(0, 7) : pick;
 }
 
-/// Where the ‹ › arrows go in week mode.
+/// The seven days week view draws.
 ///
-/// One week at a time; stepping past the month's first or last week moves to
-/// the neighbouring month's LAST or FIRST week, so walking backwards from the
-/// 1st lands on the end of the previous month rather than its start.
+/// The week holding [focus] when that week touches [month]; otherwise the
+/// default: today's week when [month] holds today, else the week holding the
+/// month's 1st. A stale focus (a week nowhere near [month]) falls back rather
+/// than showing a week the arrows did not lead to.
+List<String> rosterWeekDates({
+  required String month,
+  required String? focus,
+  required DateTime today,
+}) {
+  final focusDay = focus == null ? null : _isoDay(focus);
+  if (focusDay != null) {
+    final week = rosterFullWeek(focusDay);
+    if (week.any((d) => d.startsWith('$month-'))) return week;
+  }
+  if (rosterIsoDate(today).startsWith('$month-')) return rosterFullWeek(today);
+  return rosterFullWeek(_isoDay('$month-01') ?? today);
+}
+
+/// Where the arrows go in week mode: exactly seven days back or forward,
+/// straight across month ends, with the month set to the new week's majority
+/// month ([rosterWeekMonth]) so the hours sheet and a switch to month view
+/// follow the week.
 ({String month, String focus}) rosterStepWeek({
   required String month,
   required String? focus,
   required int delta,
   required DateTime today,
 }) {
-  final weeks = rosterWeeksOfMonth(month);
-  final index = rosterVisibleWeekIndex(month, focus, today);
-  final target = index + delta;
-  if (target >= 0 && target < weeks.length) {
-    return (month: month, focus: weeks[target].first);
-  }
-  final nextMonth = shiftMonth(month, delta < 0 ? -1 : 1);
-  final nextWeeks = rosterWeeksOfMonth(nextMonth);
-  if (nextWeeks.isEmpty) return (month: nextMonth, focus: '');
-  return (
-    month: nextMonth,
-    focus: delta < 0 ? nextWeeks.last.first : nextWeeks.first.first,
+  final week = rosterWeekDates(month: month, focus: focus, today: today);
+  final start = _isoDay(week.first)!;
+  final next = rosterFullWeek(start.add(Duration(days: 7 * delta)));
+  return (month: rosterWeekMonth(next), focus: next.first);
+}
+
+/// Point week view at the week holding [date] (a gap picked from the list,
+/// say), moving [rosterMonthProvider] with it so the focus is never stale.
+void rosterFocusWeekOn(WidgetRef ref, String date) {
+  final day = _isoDay(date);
+  if (day == null) return;
+  ref.read(rosterMonthProvider.notifier).state = rosterWeekMonth(
+    rosterFullWeek(day),
   );
+  ref.read(rosterWeekFocusProvider.notifier).state = date;
 }
 
 /// The shift a person most often works across [dates], or null when none of
@@ -206,7 +332,10 @@ int rosterVisibleWeekIndex(String month, String? focus, DateTime today) {
 ///
 /// Used as the cover-shift default for a bulk day off: whoever covers normally
 /// steps onto the absent person's own shift.
-String? rosterMostCommonShift(RosterEmployee? employee, Iterable<String> dates) {
+String? rosterMostCommonShift(
+  RosterEmployee? employee,
+  Iterable<String> dates,
+) {
   if (employee == null) return null;
   final counts = <String, int>{};
   final firstSeen = <String, String>{};

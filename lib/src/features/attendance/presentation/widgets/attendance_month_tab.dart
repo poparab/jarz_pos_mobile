@@ -446,6 +446,7 @@ class _MonthCell extends StatelessWidget {
       onTap: () => showAttendanceDaySheet(
         context,
         employeeName: employee.employeeName,
+        employee: employee.employee,
         designation: employee.designation,
         cell: data,
         graceMinutes: graceMinutes,
@@ -458,6 +459,7 @@ class _MonthCell extends StatelessWidget {
         height: AttendanceGridMetrics.slot.height,
         isCover: data.isCover,
         deviceFlags: data.deviceFlags,
+        checkoutIssue: data.hasCheckoutIssue,
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'package:jarz_pos/src/features/roster/models/roster_models.dart';
 import 'package:jarz_pos/src/features/roster/presentation/roster_screen.dart';
 import 'package:jarz_pos/src/features/roster/presentation/widgets/roster_day_off_form.dart';
 import 'package:jarz_pos/src/features/roster/presentation/widgets/roster_day_sheet.dart';
+import 'package:jarz_pos/src/features/roster/state/roster_filter.dart';
 import 'package:jarz_pos/src/features/roster/state/roster_providers.dart';
 
 /// The simplified Shift Distribution screen: week windowing, the cover-shift
@@ -102,6 +103,10 @@ Future<ProviderContainer> _pumpScreen(WidgetTester tester) async {
     _app(
       overrides: [
         canActAsLineManagerProvider.overrideWithValue(true),
+        // No signed-in user and an in-memory store: the saved filter is
+        // covered by roster_filter_test.dart.
+        rosterFilterKeyProvider.overrideWith((ref) async => null),
+        rosterFilterStoreProvider.overrideWithValue(MemoryRosterFilterStore()),
         rosterMonthDataProvider.overrideWith((ref) async => month),
         rosterBootstrapProvider.overrideWith(
           (ref) async => RosterBootstrap.fromJson({
@@ -146,18 +151,63 @@ void main() {
       ]);
     });
 
-    test('the default week holds today in the current month, else the '
-        'first week', () {
-      expect(rosterDefaultWeekIndex('2026-10', DateTime(2026, 10, 12)), 2);
-      expect(rosterDefaultWeekIndex('2026-11', DateTime(2026, 10, 12)), 0);
-      // A focus inside the month wins over the default; a stale one does not.
+    test('a full week is always seven days, Saturday to Friday, across a '
+        'month or year end', () {
+      expect(rosterFullWeek(DateTime(2026, 10, 1)), [
+        '2026-09-26',
+        '2026-09-27',
+        '2026-09-28',
+        '2026-09-29',
+        '2026-09-30',
+        _oct(1),
+        _oct(2),
+      ]);
+      expect(rosterFullWeek(DateTime(2026, 10, 3)), [
+        for (var d = 3; d <= 9; d++) _oct(d),
+      ]);
+      expect(rosterFullWeek(DateTime(2026, 12, 31)).first, '2026-12-26');
+      expect(rosterFullWeek(DateTime(2026, 12, 31)).last, '2027-01-01');
+      // The week belongs to its Tuesday's month: the majority of its days.
+      expect(rosterWeekMonth(rosterFullWeek(DateTime(2026, 10, 1))), '2026-09');
       expect(
-        rosterVisibleWeekIndex('2026-10', _gapDay, DateTime(2026, 10, 12)),
-        3,
+        rosterWeekMonth(rosterFullWeek(DateTime(2026, 10, 31))),
+        '2026-11',
+      );
+    });
+
+    test('the default week holds today in the current month, else the '
+        'month\'s 1st; a focus touching the month wins', () {
+      final today = DateTime(2026, 10, 12);
+      expect(
+        rosterWeekDates(month: '2026-10', focus: null, today: today).first,
+        _oct(10),
+      );
+      // Not the current month: the week holding the 1st, unclipped.
+      expect(
+        rosterWeekDates(month: '2026-11', focus: null, today: today),
+        rosterFullWeek(DateTime(2026, 11, 1)),
       );
       expect(
-        rosterVisibleWeekIndex('2026-10', '2026-09-30', DateTime(2026, 10, 12)),
-        2,
+        rosterWeekDates(month: '2026-10', focus: _gapDay, today: today).first,
+        '2026-10-17',
+      );
+      // 30 Sep's week reaches into October, so it is still a valid focus.
+      expect(
+        rosterWeekDates(
+          month: '2026-10',
+          focus: '2026-09-30',
+          today: today,
+        ).first,
+        '2026-09-26',
+      );
+      // A focus nowhere near the month is stale: back to the default.
+      expect(
+        rosterWeekDates(
+          month: '2026-10',
+          focus: '2026-08-05',
+          today: today,
+        ).first,
+        _oct(10),
       );
     });
 
@@ -173,7 +223,8 @@ void main() {
         ),
         (month: '2026-10', focus: _oct(10)),
       );
-      // Back from the first week lands on September's LAST week (Sat 26–30).
+      // Exactly seven days: Oct 1's week is Sat 26 Sep – Fri 2 Oct, so one
+      // back is Sat 19 – Fri 25 Sep.
       expect(
         rosterStepWeek(
           month: '2026-10',
@@ -181,9 +232,9 @@ void main() {
           delta: -1,
           today: today,
         ),
-        (month: '2026-09', focus: '2026-09-26'),
+        (month: '2026-09', focus: '2026-09-19'),
       );
-      // Forward from the last week lands on November's FIRST week.
+      // Oct 31's week is Sat 31 Oct – Fri 6 Nov; the next one is Nov 7.
       expect(
         rosterStepWeek(
           month: '2026-10',
@@ -191,7 +242,7 @@ void main() {
           delta: 1,
           today: today,
         ),
-        (month: '2026-11', focus: '2026-11-01'),
+        (month: '2026-11', focus: '2026-11-07'),
       );
       // December → January rolls the year.
       expect(
@@ -221,15 +272,22 @@ void main() {
         findsNothing,
       );
 
+      // Back one week: all seven days of the week that straddles the month
+      // end, under September (its majority month), titled across both.
       await tester.tap(find.byKey(rosterPreviousKey));
       await tester.pumpAndSettle();
-      expect(container.read(rosterWeekFocusProvider), _oct(1));
-      expect(find.text('1–2 Oct 2026'), findsOneWidget);
+      expect(container.read(rosterWeekFocusProvider), '2026-09-26');
+      expect(container.read(rosterMonthProvider), '2026-09');
+      expect(container.read(rosterLoadedMonthsProvider), '2026-09,2026-10');
+      expect(find.text('26 Sep – 2 Oct 2026'), findsOneWidget);
+      expect(find.byKey(rosterGridHeaderKey('2026-09-26')), findsOneWidget);
+      expect(find.byKey(rosterGridHeaderKey(_oct(2))), findsOneWidget);
 
       await tester.tap(find.byKey(rosterPreviousKey));
       await tester.pumpAndSettle();
       expect(container.read(rosterMonthProvider), '2026-09');
-      expect(container.read(rosterWeekFocusProvider), '2026-09-26');
+      expect(container.read(rosterWeekFocusProvider), '2026-09-19');
+      expect(container.read(rosterLoadedMonthsProvider), '2026-09');
     });
 
     testWidgets('changing the week, the view or leaving select mode clears '

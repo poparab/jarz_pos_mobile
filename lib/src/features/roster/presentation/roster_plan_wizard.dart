@@ -7,6 +7,7 @@ import '../../../core/localization/user_error_message.dart';
 import '../data/roster_repository.dart';
 import '../models/roster_models.dart';
 import '../models/roster_plan_models.dart';
+import '../state/roster_filter.dart';
 import '../state/roster_plan_draft.dart';
 import '../state/roster_providers.dart';
 import 'roster_formats.dart';
@@ -91,9 +92,18 @@ class _RosterPlanWizardState extends ConsumerState<RosterPlanWizard> {
       _loadError = null;
     });
     try {
+      // The grid's filter narrows the plan only when it is exactly one
+      // branch and nobody picked by name: the backend takes ONE location, and
+      // any other selection has no single-branch equivalent, so it plans
+      // everyone in scope as before.
+      final filter = ref.read(rosterFilterProvider);
+      final singleBranch =
+          filter.locations.length == 1 && filter.employees.isEmpty
+          ? filter.locations.first
+          : null;
       final defaults = await ref
           .read(rosterRepositoryProvider)
-          .getPlanDefaults();
+          .getPlanDefaults(shiftLocation: singleBranch);
       if (!mounted) return;
       setState(() {
         _defaults = defaults;

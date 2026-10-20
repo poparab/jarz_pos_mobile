@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../models/roster_models.dart';
-import '../../state/roster_providers.dart';
+import '../../state/roster_filter.dart';
 import '../roster_cell_style.dart';
 import '../roster_formats.dart';
 
@@ -25,7 +25,8 @@ class RosterHoursSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final hoursAsync = ref.watch(rosterHoursProvider);
+    // Narrowed to the people the grid's filter shows, totals re-added.
+    final hoursAsync = ref.watch(rosterVisibleHoursProvider);
 
     return DraggableScrollableSheet(
       expand: false,
@@ -35,9 +36,8 @@ class RosterHoursSheet extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: hoursAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Text(context.userErrorMessage(error)),
-          ),
+          error: (error, _) =>
+              Center(child: Text(context.userErrorMessage(error))),
           data: (hours) => ListView(
             controller: controller,
             children: [

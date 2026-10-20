@@ -46,6 +46,11 @@ abstract final class PrefKeys {
   /// rebuild, a hot restart or an app relaunch cannot resurrect an alarm the
   /// user already silenced.
   static const orderAlertMutedInvoices = 'order_alert_muted_invoices';
+
+  /// Shift Distribution's people/branch filter. A PREFIX: the full key is
+  /// `roster_filter_v1:<site host>:<user>` (see `rosterFilterPrefsKey`), so
+  /// each user on each site keeps their own.
+  static const rosterFilterPrefix = 'roster_filter_v1';
 }
 
 // ── MethodChannel names ─────────────────────────────────────────────────

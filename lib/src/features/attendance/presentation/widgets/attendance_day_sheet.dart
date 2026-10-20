@@ -1,30 +1,124 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../branch_access/presentation/server_error_text.dart';
+import '../../data/attendance_repository.dart';
 import '../../models/attendance_models.dart';
+import '../../state/attendance_providers.dart';
 import '../attendance_format.dart';
+import 'attendance_checkout_badge.dart';
 import 'attendance_device_flag.dart';
 import 'attendance_states.dart';
 import 'attendance_status_style.dart';
+
+/// Stable keys so the tests can drive the approve flow.
+const Key attendanceApproveDeviceKey = ValueKey<String>(
+  'attendance-approve-device',
+);
+const Key attendanceLogTypeNoteKey = ValueKey<String>(
+  'attendance-log-type-note',
+);
 
 /// One employee, one day: scheduled against actual.
 ///
 /// The sheet exists because the grid cell can only carry a status. The
 /// question a manager actually asks — "they are amber, how late, and were they
 /// even at the branch?" — is answered here.
-class AttendanceDaySheet extends StatelessWidget {
+///
+/// With [employee] given, a "New Device" day offers "Approve this phone" to a
+/// user the bootstrap says may approve (`can_approve_device`).
+class AttendanceDaySheet extends ConsumerStatefulWidget {
   const AttendanceDaySheet({
     super.key,
     required this.employeeName,
     required this.cell,
+    this.employee,
     this.designation,
     this.graceMinutes = 15,
   });
 
   final String employeeName;
+
+  /// The Employee id (`HR-EMP-00001`). Without it there is nothing to
+  /// approve the phone for, so the button never shows.
+  final String? employee;
   final String? designation;
   final AttendanceCell cell;
   final int graceMinutes;
+
+  @override
+  ConsumerState<AttendanceDaySheet> createState() => _AttendanceDaySheetState();
+}
+
+class _AttendanceDaySheetState extends ConsumerState<AttendanceDaySheet> {
+  bool _approving = false;
+  String? _approveError;
+
+  AttendanceCell get cell => widget.cell;
+  String get employeeName => widget.employeeName;
+  String? get designation => widget.designation;
+  int get graceMinutes => widget.graceMinutes;
+
+  bool get _canOfferApproval {
+    final employee = (widget.employee ?? '').trim();
+    if (employee.isEmpty || cell.date.isEmpty) return false;
+    if (!cell.deviceFlags.contains(kDeviceFlagNew)) return false;
+    final bootstrap = ref.watch(attendanceBootstrapProvider).valueOrNull;
+    return bootstrap?.canApproveDevice ?? false;
+  }
+
+  Future<void> _approve() async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.attendanceApproveDeviceConfirmTitle),
+        content: Text(l10n.attendanceApproveDeviceConfirmBody(employeeName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.attendanceApproveDevice),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() {
+      _approving = true;
+      _approveError = null;
+    });
+    try {
+      await ref
+          .read(attendanceRepositoryProvider)
+          .approveDevice(employee: widget.employee!.trim(), date: cell.date);
+      if (!mounted) return;
+      // The flag is gone server-side; everything that drew it reloads.
+      ref.invalidate(attendanceMonthDataProvider);
+      ref.invalidate(attendanceDayDataProvider);
+      ref.invalidate(attendanceEmployeeDataProvider);
+      ref.invalidate(attendanceSummaryDataProvider);
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      Navigator.of(context).pop();
+      messenger?.showSnackBar(
+        SnackBar(content: Text(l10n.attendanceApproveDeviceDone(employeeName))),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      // Shown inside the sheet: a snackbar would sit behind it.
+      setState(() {
+        _approving = false;
+        _approveError = l10n.attendanceApproveDeviceFailed(
+          serverErrorText(context, error),
+        );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -186,6 +280,18 @@ class AttendanceDaySheet extends StatelessWidget {
                   ? attendanceBranchLabel(context, null)
                   : cell.shiftLocation!,
             ),
+            if (cell.hasCheckoutIssue) AttendanceCheckoutBadges(cell: cell),
+            if ((cell.logTypeNote ?? '').isNotEmpty)
+              Padding(
+                key: attendanceLogTypeNoteKey,
+                padding: const EdgeInsetsDirectional.only(bottom: 8),
+                child: Text(
+                  l10n.attendanceLogTypeNote(cell.logTypeNote!),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
             if (cell.hasDeviceFlag)
               Padding(
                 padding: const EdgeInsetsDirectional.only(bottom: 8),
@@ -194,6 +300,34 @@ class AttendanceDaySheet extends StatelessWidget {
                   detail: cell.deviceFlagDetail,
                 ),
               ),
+            if (_canOfferApproval) ...[
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: FilledButton.tonalIcon(
+                  key: attendanceApproveDeviceKey,
+                  onPressed: _approving ? null : _approve,
+                  icon: _approving
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.verified_user_outlined),
+                  label: Text(l10n.attendanceApproveDevice),
+                ),
+              ),
+              if (_approveError != null)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(top: 6),
+                  child: Text(
+                    _approveError!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+            ],
             if (cell.isCover)
               _DetailRow(
                 icon: Icons.swap_horiz,
@@ -317,6 +451,7 @@ Future<void> showAttendanceDaySheet(
   BuildContext context, {
   required String employeeName,
   required AttendanceCell cell,
+  String? employee,
   String? designation,
   int graceMinutes = 15,
 }) {
@@ -327,6 +462,7 @@ Future<void> showAttendanceDaySheet(
     builder: (_) => SingleChildScrollView(
       child: AttendanceDaySheet(
         employeeName: employeeName,
+        employee: employee,
         cell: cell,
         designation: designation,
         graceMinutes: graceMinutes,

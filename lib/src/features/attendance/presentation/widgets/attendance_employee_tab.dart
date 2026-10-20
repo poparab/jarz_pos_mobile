@@ -254,6 +254,7 @@ class _EmployeeDetailView extends StatelessWidget {
           for (final day in detail.days)
             _TimelineTile(
               day: day,
+              employee: detail.employee,
               employeeName: detail.employeeName,
               designation: detail.designation,
               graceMinutes: detail.graceMinutes,
@@ -482,12 +483,14 @@ class _MiniStat extends StatelessWidget {
 class _TimelineTile extends StatelessWidget {
   const _TimelineTile({
     required this.day,
+    required this.employee,
     required this.employeeName,
     required this.designation,
     required this.graceMinutes,
   });
 
   final AttendanceCell day;
+  final String employee;
   final String employeeName;
   final String? designation;
   final int graceMinutes;
@@ -506,6 +509,7 @@ class _TimelineTile extends StatelessWidget {
       onTap: () => showAttendanceDaySheet(
         context,
         employeeName: employeeName,
+        employee: employee,
         designation: designation,
         cell: day,
         graceMinutes: graceMinutes,
@@ -629,6 +633,30 @@ class _CheckinTile extends StatelessWidget {
               ),
             ],
           ),
+          if (checkin.logTypeCorrected)
+            Padding(
+              key: ValueKey<String>(
+                'attendance-original-log-type-${checkin.time}',
+              ),
+              padding: const EdgeInsetsDirectional.only(start: 24, top: 2),
+              child: Text(
+                l10n.attendanceOriginalLogType(checkin.originalLogType!),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.tertiary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          if ((checkin.logTypeNote ?? '').isNotEmpty)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 24, top: 2),
+              child: Text(
+                l10n.attendanceLogTypeNote(checkin.logTypeNote!),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
           if (checkin.deviceFlag != null)
             Padding(
               padding: const EdgeInsetsDirectional.only(start: 24, top: 2),

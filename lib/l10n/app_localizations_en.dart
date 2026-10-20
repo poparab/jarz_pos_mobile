@@ -19779,4 +19779,103 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weeklyCountRejectedToast => 'Count rejected';
+
+  @override
+  String get rosterFilterAll => 'All';
+
+  @override
+  String get rosterFilterTooltip => 'Filter by branch or person';
+
+  @override
+  String get rosterFilterTitle => 'Show on the roster';
+
+  @override
+  String get rosterFilterHelp =>
+      'Nothing selected shows everyone. A person shows if you picked them or one of their branches.';
+
+  @override
+  String get rosterFilterBranches => 'Branches';
+
+  @override
+  String get rosterFilterPeople => 'People';
+
+  @override
+  String get rosterFilterSelectAll => 'Select all';
+
+  @override
+  String get rosterFilterSearchHint => 'Search people';
+
+  @override
+  String get rosterFilterNoPeople => 'No one matches';
+
+  @override
+  String get rosterFilterApply => 'Apply';
+
+  @override
+  String rosterFilterBranchCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count branches',
+      one: '1 branch',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rosterFilterPeopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '1 person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rosterFilterPeopleAndBranches(String people, String branches) {
+    return '$people + $branches';
+  }
+
+  @override
+  String get rosterFilterNoMatch => 'No one on the roster matches this filter';
+
+  @override
+  String get attendanceCheckoutCorrected =>
+      'Pressed Check Out on arrival — counted as Check In';
+
+  @override
+  String get attendanceMissedCheckout => 'No check-out';
+
+  @override
+  String attendanceLogTypeNote(String note) {
+    return 'Note: $note';
+  }
+
+  @override
+  String attendanceOriginalLogType(String original) {
+    return 'Pressed $original, counted differently';
+  }
+
+  @override
+  String get attendanceApproveDevice => 'Approve this phone';
+
+  @override
+  String get attendanceApproveDeviceConfirmTitle => 'Approve this phone?';
+
+  @override
+  String attendanceApproveDeviceConfirmBody(String name) {
+    return 'This phone becomes $name’s own device and the New Device warning is cleared.';
+  }
+
+  @override
+  String attendanceApproveDeviceDone(String name) {
+    return 'Phone approved for $name';
+  }
+
+  @override
+  String attendanceApproveDeviceFailed(String error) {
+    return 'Could not approve the phone: $error';
+  }
 }

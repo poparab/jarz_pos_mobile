@@ -9,12 +9,14 @@ import '../../../core/localization/localized_formatters.dart';
 import '../../../core/network/user_service.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../models/roster_models.dart';
+import '../state/roster_filter.dart';
 import '../state/roster_providers.dart';
 import 'roster_cell_style.dart';
 import 'roster_formats.dart';
 import 'roster_grid_metrics.dart';
 import 'roster_plan_wizard.dart';
 import 'widgets/roster_bulk_bar.dart';
+import 'widgets/roster_filter_sheet.dart';
 import 'widgets/roster_day_off_form.dart' show rosterOffTypeLabel;
 import 'widgets/roster_day_sheet.dart';
 import 'widgets/roster_hours_sheet.dart';
@@ -41,9 +43,11 @@ Key rosterGapTileKey(String employee, String date) =>
 /// because the one thing a manager must never lose track of while scanning
 /// across the days is whose row they are on.
 ///
-/// The backend serves a whole month at a time; week mode only narrows what is
-/// drawn (see [rosterWeeksOfMonth]), so stepping weeks inside a month costs no
-/// request.
+/// The backend serves a whole month at a time; week mode draws a full
+/// Saturday-to-Friday week (see [rosterWeekDates]) and loads both months when
+/// the week straddles a month end, so stepping weeks inside already-loaded
+/// months costs no request. The people/branch filter is applied on the
+/// client ([rosterVisibleMonthProvider]).
 ///
 /// Every colour on this screen comes from [RosterStyleResolver]; nothing here
 /// picks its own. Colour means "needs fixing" and nothing else — see
@@ -59,20 +63,22 @@ class RosterScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final canManage = ref.watch(canActAsLineManagerProvider);
-    final monthAsync = ref.watch(rosterMonthDataProvider);
+    // Restores the saved people/branch filter once the user is known.
+    ref.watch(rosterFilterRestoreProvider);
+    final monthAsync = ref.watch(rosterVisibleMonthProvider);
     final selection = ref.watch(rosterSelectionProvider);
     final selectMode = ref.watch(rosterSelectModeProvider);
 
     // A selection names dates in a SPECIFIC month and row set; switching the
-    // month, the week, the view or the branch filter must not leave it
-    // pointing at days the manager can no longer see, where a bulk action
-    // would look like it targets nothing.
+    // month, the week, the view or the filter must not leave it pointing at
+    // days the manager can no longer see, where a bulk action would look like
+    // it targets nothing.
     void clearSelection() =>
         ref.read(rosterSelectionProvider.notifier).state = null;
     ref.listen(rosterMonthProvider, (previous, next) {
       if (previous != next) clearSelection();
     });
-    ref.listen(rosterLocationFilterProvider, (previous, next) {
+    ref.listen(rosterEffectiveFilterProvider, (previous, next) {
       if (previous != next) clearSelection();
     });
     ref.listen(rosterViewModeProvider, (previous, next) {
@@ -196,27 +202,39 @@ class _RosterControlBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final month = ref.watch(rosterMonthProvider);
-    final location = ref.watch(rosterLocationFilterProvider);
-    final bootstrap = ref.watch(rosterBootstrapProvider);
     final mode = ref.watch(rosterViewModeProvider);
     final focus = ref.watch(rosterWeekFocusProvider);
     final selectMode = ref.watch(rosterSelectModeProvider);
     final theme = Theme.of(context);
     final isWeek = mode == RosterViewMode.week;
 
-    final branches =
-        bootstrap.asData?.value.shiftLocations
-            .map((l) => l.shiftLocation)
-            .toList() ??
-        const <String>[];
-
-    final weeks = rosterWeeksOfMonth(month);
-    final title = isWeek && weeks.isNotEmpty
+    final title = isWeek
         ? _weekLabel(
             context,
-            weeks[rosterVisibleWeekIndex(month, focus, DateTime.now())],
+            rosterWeekDates(month: month, focus: focus, today: DateTime.now()),
           )
         : _monthLabel(context, month);
+
+    void switchMode(RosterViewMode next) {
+      if (next == mode) return;
+      if (next == RosterViewMode.week) {
+        // Month -> week: today's week when this month holds today, else the
+        // week of the 1st (the null focus default).
+        ref.read(rosterWeekFocusProvider.notifier).state = null;
+      } else {
+        // Week -> month: the month holding most of the week. The arrows keep
+        // rosterMonthProvider on it already; this covers a stale value.
+        final week = rosterWeekDates(
+          month: month,
+          focus: focus,
+          today: DateTime.now(),
+        );
+        if (!week.any((d) => d.startsWith('$month-'))) {
+          ref.read(rosterMonthProvider.notifier).state = rosterWeekMonth(week);
+        }
+      }
+      ref.read(rosterViewModeProvider.notifier).state = next;
+    }
 
     void step(int delta) {
       if (isWeek) {
@@ -226,10 +244,8 @@ class _RosterControlBar extends ConsumerWidget {
           delta: delta,
           today: DateTime.now(),
         );
-        ref.read(rosterWeekFocusProvider.notifier).state = next.focus.isEmpty
-            ? null
-            : next.focus;
         ref.read(rosterMonthProvider.notifier).state = next.month;
+        ref.read(rosterWeekFocusProvider.notifier).state = next.focus;
       } else {
         ref.read(rosterMonthProvider.notifier).state = shiftMonth(month, delta);
       }
@@ -296,9 +312,7 @@ class _RosterControlBar extends ConsumerWidget {
                     ),
                   ],
                   selected: {mode},
-                  onSelectionChanged: (value) =>
-                      ref.read(rosterViewModeProvider.notifier).state =
-                          value.first,
+                  onSelectionChanged: (value) => switchMode(value.first),
                 ),
                 FilterChip(
                   key: rosterSelectDaysKey,
@@ -315,30 +329,7 @@ class _RosterControlBar extends ConsumerWidget {
                     }
                   },
                 ),
-                if (branches.length > 1)
-                  DropdownButtonHideUnderline(
-                    child: DropdownButton<String?>(
-                      value: location,
-                      hint: Text(l10n.rosterAllBranches),
-                      items: <DropdownMenuItem<String?>>[
-                        DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text(l10n.rosterAllBranches),
-                        ),
-                        ...branches.map(
-                          (b) => DropdownMenuItem<String?>(
-                            value: b,
-                            child: Text(b),
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) =>
-                          ref
-                                  .read(rosterLocationFilterProvider.notifier)
-                                  .state =
-                              value,
-                    ),
-                  ),
+                const RosterFilterButton(),
               ],
             ),
           ],
@@ -364,32 +355,40 @@ class _RosterControlBar extends ConsumerWidget {
     );
   }
 
-  /// "3–9 Oct 2026". A week never crosses a month (they are clipped), so the
-  /// month and year are written once, after the range.
+  /// "3–9 Oct 2026", "26 Sep – 2 Oct 2026", "27 Dec 2026 – 2 Jan 2027": the
+  /// shared month and year are written once, after the range.
   static String _weekLabel(BuildContext context, List<String> week) {
+    if (week.isEmpty) return '';
     final start = DateTime.tryParse(week.first);
     final end = DateTime.tryParse(week.last);
     if (start == null || end == null) return week.first;
     final tail = formatDate(context, end, pattern: 'd MMM yyyy');
     if (week.length == 1) return tail;
+    if (start.year != end.year) {
+      return '${formatDate(context, start, pattern: 'd MMM yyyy')} – $tail';
+    }
+    if (start.month != end.month) {
+      return '${formatDate(context, start, pattern: 'd MMM')} – $tail';
+    }
     return '${formatDate(context, start, pattern: 'd')}–$tail';
   }
 }
 
-/// The days the grid draws: the visible week in week mode, else the month.
+/// The days the grid draws: all seven days of the visible week in week mode
+/// (whatever month each falls in), else the month's days.
+///
+/// [period] is [rosterMonthProvider]'s `YYYY-MM`; in week mode the week comes
+/// from it and [focus] (see [rosterWeekDates]), not from the payload, so a
+/// week straddling a month end is never cut short.
 List<String> rosterVisibleDates({
   required RosterMonth month,
+  required String period,
   required RosterViewMode mode,
   required String? focus,
   required DateTime today,
 }) {
-  final all = month.dates;
-  if (mode != RosterViewMode.week) return all;
-  final weeks = rosterWeeksOfMonth(month.month);
-  if (weeks.isEmpty) return all;
-  final week = weeks[rosterVisibleWeekIndex(month.month, focus, today)].toSet();
-  final visible = all.where(week.contains).toList();
-  return visible.isEmpty ? all : visible;
+  if (mode != RosterViewMode.week) return month.dates;
+  return rosterWeekDates(month: period, focus: focus, today: today);
 }
 
 class _RosterBody extends ConsumerWidget {
@@ -402,11 +401,19 @@ class _RosterBody extends ConsumerWidget {
     final l10n = context.l10n;
     final mode = ref.watch(rosterViewModeProvider);
     final focus = ref.watch(rosterWeekFocusProvider);
+    final period = ref.watch(rosterMonthProvider);
+    final filter = ref.watch(rosterEffectiveFilterProvider);
 
     if (!month.hrmsAvailable) {
       return _EmptyState(
         icon: Icons.info_outline,
         message: month.notice ?? l10n.rosterHrmsMissing,
+      );
+    }
+    if (month.employees.isEmpty && !filter.isEmpty) {
+      return _EmptyState(
+        icon: Icons.filter_alt_off_outlined,
+        message: l10n.rosterFilterNoMatch,
       );
     }
     if (month.employees.isEmpty) {
@@ -423,6 +430,7 @@ class _RosterBody extends ConsumerWidget {
     final coverIndex = RosterCoverIndex.fromMonth(month);
     final dates = rosterVisibleDates(
       month: month,
+      period: period,
       mode: mode,
       focus: focus,
       today: DateTime.now(),
@@ -442,6 +450,7 @@ class _RosterBody extends ConsumerWidget {
             dates: dates,
             stretchToWidth: mode == RosterViewMode.week,
             showShiftEnd: mode == RosterViewMode.week,
+            totalsFilter: filter,
           ),
         ),
       ],
@@ -465,12 +474,11 @@ class _RosterBody extends ConsumerWidget {
     final employee = month.employees
         .where((e) => e.employee == picked.employee)
         .firstOrNull;
-    // A gap for someone outside the current branch filter has no row here;
-    // there is no cell to open, so the list is all that can be shown.
+    // Gaps are filtered with the rows, so this is a safety net only.
     if (employee == null) return;
 
     if (ref.read(rosterViewModeProvider) == RosterViewMode.week) {
-      ref.read(rosterWeekFocusProvider.notifier).state = picked.date;
+      rosterFocusWeekOn(ref, picked.date);
     }
     await showRosterDaySheet(
       context,
@@ -647,10 +655,15 @@ class RosterGrid extends ConsumerWidget {
     this.dates,
     this.stretchToWidth = false,
     this.showShiftEnd = false,
+    this.totalsFilter = RosterFilter.empty,
   });
 
   final RosterMonth month;
   final RosterCoverIndex coverIndex;
+
+  /// The people/branch filter the rows were picked with; it also narrows the
+  /// on-duty row. See [dayTotals].
+  final RosterFilter totalsFilter;
 
   /// The days to draw; the whole month when null.
   final List<String>? dates;
@@ -686,10 +699,11 @@ class RosterGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dates = this.dates ?? month.dates;
     final theme = Theme.of(context);
-    final branch = ref.watch(rosterLocationFilterProvider);
+    final locations = totalsFilter.locations;
+    final branch = locations.length == 1 ? locations.first : null;
     final shifts = RosterShiftCatalog(month.shiftCatalog);
     final resolver = RosterStyleResolver.of(context, catalog: shifts);
-    final totals = _dayTotals(month, dates, resolver);
+    final totals = dayTotals(month, dates, resolver, filter: totalsFilter);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -812,20 +826,34 @@ class RosterGrid extends ConsumerWidget {
   /// Resolved through the same [RosterStyleResolver] the cells use, so the
   /// number in the totals row can never count a day differently from the way
   /// the column below it is drawn.
-  static Map<String, RosterDayTotals> _dayTotals(
+  /// On duty / at risk per day, over the rows drawn.
+  ///
+  /// With branches in [filter], a day only counts for a row picked through a
+  /// branch when that day is AT one of those branches (the cell's location,
+  /// else where the person's unrostered days land). Someone who belongs to
+  /// Dokki but covers at the Factory on Tuesday is not "on duty at Dokki" that
+  /// Tuesday. People picked by name always count. A day whose branch cannot be
+  /// told counts, rather than silently vanishing.
+  @visibleForTesting
+  static Map<String, RosterDayTotals> dayTotals(
     RosterMonth month,
     List<String> dates,
-    RosterStyleResolver resolver,
-  ) {
+    RosterStyleResolver resolver, {
+    RosterFilter filter = RosterFilter.empty,
+  }) {
+    final locations = filter.locations;
     final totals = <String, RosterDayTotals>{};
     for (final date in dates) {
       var duty = 0;
       var risk = 0;
       for (final employee in month.employees) {
-        final state = resolver.stateFor(
-          cell: employee.cellFor(date),
-          date: date,
-        );
+        final cell = employee.cellFor(date);
+        if (locations.isNotEmpty &&
+            !filter.employees.contains(employee.employee)) {
+          final at = (cell?.shiftLocation ?? employee.fallbackLocation).trim();
+          if (at.isNotEmpty && !locations.contains(at)) continue;
+        }
+        final state = resolver.stateFor(cell: cell, date: date);
         if (state == RosterCellState.working) {
           duty++;
         } else if (state == RosterCellState.offUncovered ||

@@ -11,6 +11,7 @@ import 'package:jarz_pos/src/features/roster/presentation/roster_plan_wizard.dar
 import 'package:jarz_pos/src/features/roster/presentation/roster_screen.dart';
 import 'package:jarz_pos/src/features/roster/presentation/widgets/roster_plan_person_card.dart';
 import 'package:jarz_pos/src/features/roster/presentation/widgets/roster_plan_review.dart';
+import 'package:jarz_pos/src/features/roster/state/roster_filter.dart';
 import 'package:jarz_pos/src/features/roster/state/roster_providers.dart';
 
 import '../../helpers/mock_services.dart';
@@ -352,6 +353,10 @@ void main() {
       _app(
         overrides: [
           canActAsLineManagerProvider.overrideWithValue(true),
+          rosterFilterKeyProvider.overrideWith((ref) async => null),
+          rosterFilterStoreProvider.overrideWithValue(
+            MemoryRosterFilterStore(),
+          ),
           rosterRepositoryProvider.overrideWithValue(_FakeRosterRepository()),
           rosterBootstrapProvider.overrideWith((ref) async => _bootstrap()),
           rosterMonthDataProvider.overrideWith(

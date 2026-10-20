@@ -32761,6 +32761,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Count rejected'**
   String get weeklyCountRejectedToast;
+
+  /// Roster filter button: nothing selected, everyone shown.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get rosterFilterAll;
+
+  /// Roster filter button tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by branch or person'**
+  String get rosterFilterTooltip;
+
+  /// Roster filter sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on the roster'**
+  String get rosterFilterTitle;
+
+  /// Roster filter sheet help line.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing selected shows everyone. A person shows if you picked them or one of their branches.'**
+  String get rosterFilterHelp;
+
+  /// Roster filter sheet: branches section header.
+  ///
+  /// In en, this message translates to:
+  /// **'Branches'**
+  String get rosterFilterBranches;
+
+  /// Roster filter sheet: people section header.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get rosterFilterPeople;
+
+  /// Roster filter sheet: select every entry in a section.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get rosterFilterSelectAll;
+
+  /// Roster filter sheet: people search field hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search people'**
+  String get rosterFilterSearchHint;
+
+  /// Roster filter sheet: people search found nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No one matches'**
+  String get rosterFilterNoPeople;
+
+  /// Roster filter sheet: apply button.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get rosterFilterApply;
+
+  /// Roster filter summary: number of selected branches.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 branch} other{{count} branches}}'**
+  String rosterFilterBranchCount(int count);
+
+  /// Roster filter summary: number of selected people.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 person} other{{count} people}}'**
+  String rosterFilterPeopleCount(int count);
+
+  /// Roster filter summary when both people and branches are selected, e.g. "3 people + 1 branch".
+  ///
+  /// In en, this message translates to:
+  /// **'{people} + {branches}'**
+  String rosterFilterPeopleAndBranches(String people, String branches);
+
+  /// Roster: the filter hides every row.
+  ///
+  /// In en, this message translates to:
+  /// **'No one on the roster matches this filter'**
+  String get rosterFilterNoMatch;
+
+  /// Attendance badge: the first punch was Check Out and the server counted it as Check In.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressed Check Out on arrival — counted as Check In'**
+  String get attendanceCheckoutCorrected;
+
+  /// Attendance badge: checked in but never checked out.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-out'**
+  String get attendanceMissedCheckout;
+
+  /// Attendance: the server note explaining a corrected punch.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: {note}'**
+  String attendanceLogTypeNote(String note);
+
+  /// Attendance check-in list: the punch type the person pressed before the server corrected it.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressed {original}, counted differently'**
+  String attendanceOriginalLogType(String original);
+
+  /// Attendance day sheet: approve the new device the person checked in with.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve this phone'**
+  String get attendanceApproveDevice;
+
+  /// Attendance: approve-device confirmation title.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve this phone?'**
+  String get attendanceApproveDeviceConfirmTitle;
+
+  /// Attendance: approve-device confirmation body.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone becomes {name}’s own device and the New Device warning is cleared.'**
+  String attendanceApproveDeviceConfirmBody(String name);
+
+  /// Attendance: approve-device success snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone approved for {name}'**
+  String attendanceApproveDeviceDone(String name);
+
+  /// Attendance: approve-device failure.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not approve the phone: {error}'**
+  String attendanceApproveDeviceFailed(String error);
 }
 
 class _AppLocalizationsDelegate
