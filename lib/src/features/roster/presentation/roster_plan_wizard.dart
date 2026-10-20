@@ -95,8 +95,9 @@ class _RosterPlanWizardState extends ConsumerState<RosterPlanWizard> {
       // The grid's filter narrows the plan only when it is exactly one
       // branch and nobody picked by name: the backend takes ONE location, and
       // any other selection has no single-branch equivalent, so it plans
-      // everyone in scope as before.
-      final filter = ref.read(rosterFilterProvider);
+      // everyone in scope as before. The pruned filter, so a saved branch
+      // that no longer exists is not sent.
+      final filter = ref.read(rosterEffectiveFilterProvider);
       final singleBranch =
           filter.locations.length == 1 && filter.employees.isEmpty
           ? filter.locations.first

@@ -9,6 +9,7 @@ import '../../../core/router.dart';
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/network/session_expired_signal.dart';
 import '../../../core/network/user_service.dart';
+import '../../attendance/state/attendance_providers.dart';
 import '../../b2b/state/b2b_pipeline_notifier.dart';
 import '../../manager/state/manager_providers.dart';
 import '../../manufacturing/state/base_production_providers.dart';
@@ -21,6 +22,7 @@ import '../../shift/state/shift_notifier.dart';
 import '../../pos/state/pos_notifier.dart';
 import '../../pos/data/repositories/draft_cart_repository.dart';
 import '../../reports/state/reports_providers.dart';
+import '../../roster/state/roster_filter.dart';
 import '../../cash_custody/state/cash_custody_notifier.dart';
 import '../../weekly_count/presentation/weekly_count_providers.dart';
 
@@ -200,6 +202,13 @@ class LoginNotifier extends AsyncNotifier<bool> {
     // user counts and whether they approve -- the banner and the drawer read
     // it, so a previous user's branches must not survive a switch.
     ref.invalidate(weeklyCountStatusProvider);
+    // Roster people/branch filter: keep-alive and keyed to the user who set
+    // it. Until the next user's key resolved, they saw -- and an apply()
+    // saved under -- the previous user's filter.
+    ref.invalidate(rosterFilterProvider);
+    // Attendance bootstrap carries can_approve_device: a manager's "Approve
+    // this phone" must not show for the next user on a shared device.
+    ref.invalidate(attendanceBootstrapProvider);
     // Per-user Hive caches (async; non-fatal on failure).
     unawaited(_clearUserScopedCaches());
   }
