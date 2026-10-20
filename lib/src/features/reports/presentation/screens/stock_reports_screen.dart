@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
@@ -251,18 +251,30 @@ class _FinalProductsTab extends ConsumerWidget {
             return ReportEmptyView(message: l10n.reportsNoData);
           }
           final grand = _totalsOrNull(data['totals']);
+          // Days-of-cover thresholds are a newer key; the legend only shows
+          // when the server sends them.
+          final hasCover = data['cover'] is Map;
+          final cover = CoverThresholds.fromJson(data['cover']);
+          final hasHeader = grand != null || hasCover;
           return ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsetsDirectional.all(8),
-            itemCount: groups.length + (grand == null ? 0 : 1),
+            itemCount: groups.length + (hasHeader ? 1 : 0),
             itemBuilder: (context, index) {
-              if (grand != null && index == 0) {
+              if (hasHeader && index == 0) {
                 return Padding(
                   padding: const EdgeInsetsDirectional.only(bottom: 12),
-                  child: _GrandTotalCard(totals: grand),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (grand != null) _GrandTotalCard(totals: grand),
+                      if (grand != null && hasCover) const SizedBox(height: 8),
+                      if (hasCover) _CoverLegend(cover: cover),
+                    ],
+                  ),
                 );
               }
-              final group = groups[index - (grand == null ? 0 : 1)];
+              final group = groups[index - (hasHeader ? 1 : 0)];
               final groupName = ReportJson.str(group['group_name']);
               final warehouses = ReportJson.strings(group['warehouses']);
               final items = ReportJson.list(group['items']);
@@ -278,7 +290,11 @@ class _FinalProductsTab extends ConsumerWidget {
                       child: _TotalsLine(totals: totals),
                     ),
                   const SizedBox(height: 6),
-                  _FinalProductsTable(warehouses: warehouses, items: items),
+                  _FinalProductsTable(
+                    warehouses: warehouses,
+                    items: items,
+                    cover: cover,
+                  ),
                 ],
               );
             },
@@ -289,13 +305,143 @@ class _FinalProductsTab extends ConsumerWidget {
   }
 }
 
+// ── Days of cover: cell colours ────────────────────────────────────────
+
+/// The Final Products report's days-of-cover thresholds
+/// (`data['cover']`): under [redBelow] days is red, over [greenAbove] is
+/// green, in between is amber. Defaults match the backend's.
+class CoverThresholds {
+  final double redBelow;
+  final double greenAbove;
+  const CoverThresholds({this.redBelow = 3, this.greenAbove = 7});
+
+  factory CoverThresholds.fromJson(Object? v) {
+    final m = ReportJson.map(v);
+    return CoverThresholds(
+      redBelow: ReportJson.dbl(m['red_below'], 3),
+      greenAbove: ReportJson.dbl(m['green_above'], 7),
+    );
+  }
+}
+
+/// How a stock quantity cell is tinted.
+enum CoverTone { none, red, amber, green }
+
+/// The tint for a quantity with [cover] days of stock at the recent sales
+/// rate. No recent sales (null cover) is left untinted even at zero — a
+/// branch that never sells an item would otherwise read as a wall of red
+/// (an oversold bin still shows its red text). With sales, nothing on hand
+/// is red.
+CoverTone coverTone(
+  double qty,
+  double? cover,
+  double redBelow,
+  double greenAbove,
+) {
+  if (cover == null) return CoverTone.none;
+  if (qty <= 0) return CoverTone.red;
+  if (cover < redBelow) return CoverTone.red;
+  if (cover <= greenAbove) return CoverTone.amber;
+  return CoverTone.green;
+}
+
+const _coverGreen = Color(0xFF43A047); // green 600
+const _coverAmber = Color(0xFFFFA000); // amber 700
+const _coverRed = Color(0xFFE53935); // red 600
+
+Color? _coverColor(CoverTone tone) => switch (tone) {
+      CoverTone.none => null,
+      CoverTone.red => _coverRed,
+      CoverTone.amber => _coverAmber,
+      CoverTone.green => _coverGreen,
+    };
+
+/// Cell background for a tone; reads on light and dark surfaces.
+Color? _coverTint(CoverTone tone) =>
+    _coverColor(tone)?.withValues(alpha: 0.18);
+
+/// Days of cover with at most one decimal, in the app's locale.
+String _formatDays(BuildContext context, double days) =>
+    NumberFormat('#,##0.#', context.l10n.localeName).format(days);
+
+/// "Days cover: [< 3] [3–7] [> 7] [No sales]" under the grand total.
+class _CoverLegend extends StatelessWidget {
+  final CoverThresholds cover;
+  const _CoverLegend({required this.cover});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final red = _formatDays(context, cover.redBelow);
+    final green = _formatDays(context, cover.greenAbove);
+    return Wrap(
+      key: const ValueKey('final-products-cover-legend'),
+      spacing: 6,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(
+          l10n.rptG2ColumnDaysCover,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        _LegendChip(label: '< $red', color: _coverRed),
+        _LegendChip(label: '$red–$green', color: _coverAmber),
+        _LegendChip(label: '> $green', color: _coverGreen),
+        _LegendChip(
+          label: l10n.productionRoundStatusNoSales,
+          color: theme.colorScheme.outline,
+          neutral: true,
+        ),
+      ],
+    );
+  }
+}
+
+class _LegendChip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  /// A localized word rather than a number range: follow the text direction.
+  final bool neutral;
+  const _LegendChip({
+    required this.label,
+    required this.color,
+    this.neutral = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: neutral ? 0.12 : 0.18),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        // "< 3" must not be mirrored to "3 >" in Arabic.
+        textDirection: neutral ? null : TextDirection.ltr,
+        style: theme.textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
 class _FinalProductsTable extends StatelessWidget {
   final List<String> warehouses;
   final List<JsonMap> items;
+  final CoverThresholds cover;
 
   const _FinalProductsTable({
     required this.warehouses,
     required this.items,
+    this.cover = const CoverThresholds(),
   });
 
   double _resolveItemColumnWidth({
@@ -374,30 +520,70 @@ class _FinalProductsTable extends StatelessWidget {
     required double width,
     required TextStyle? style,
     String? tooltip,
+    Color? tint,
   }) {
+    Widget content = Align(
+      alignment: AlignmentDirectional.centerEnd,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: AlignmentDirectional.centerEnd,
+        child: Text(
+          text,
+          style: style,
+          maxLines: 1,
+          textAlign: TextAlign.end,
+        ),
+      ),
+    );
+    // Same 6/8 inset as an untinted cell, split around the tinted box.
+    content = tint == null
+        ? Padding(
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: 6,
+              vertical: 8,
+            ),
+            child: content,
+          )
+        : Padding(
+            padding: const EdgeInsetsDirectional.all(3),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: tint,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: 3,
+                  vertical: 5,
+                ),
+                child: content,
+              ),
+            ),
+          );
     return SizedBox(
       width: width,
       child: Tooltip(
         message: tooltip ?? text,
-        child: Padding(
-          padding:
-              const EdgeInsetsDirectional.symmetric(horizontal: 6, vertical: 8),
-          child: Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: AlignmentDirectional.centerEnd,
-              child: Text(
-                text,
-                style: style,
-                maxLines: 1,
-                textAlign: TextAlign.end,
-              ),
-            ),
-          ),
-        ),
+        child: content,
       ),
     );
+  }
+
+  /// The tint and tooltip suffix for one quantity cell, or (null, null) when
+  /// the server sent no days-of-cover for this item (older servers).
+  ({Color? tint, String? note}) _coverFor(
+    BuildContext context, {
+    required bool hasCover,
+    required double qty,
+    required double? days,
+  }) {
+    if (!hasCover) return (tint: null, note: null);
+    final l10n = context.l10n;
+    final tone = coverTone(qty, days, cover.redBelow, cover.greenAbove);
+    final note = days == null
+        ? l10n.replenishmentNoSalesYet
+        : l10n.replenishmentDaysOfCover(_formatDays(context, days));
+    return (tint: _coverTint(tone), note: note);
   }
 
   @override
@@ -492,6 +678,16 @@ class _FinalProductsTable extends StatelessWidget {
               final total = ReportJson.dbl(item['total_qty']);
               final itemName = ReportJson.str(item['item_name']);
               final value = ReportJson.dbl(item['stock_value']);
+              final hasCover = item.containsKey('days_cover');
+              final whCover = ReportJson.map(item['days_cover']);
+              final totalCover = _coverFor(
+                context,
+                hasCover: hasCover,
+                qty: total,
+                days: ReportJson.dblOrNull(item['total_days_cover']),
+              );
+              final totalTip =
+                  '${l10n.reportsTotal}: ${_formatQty(context, total)}';
 
               return DataRow(cells: [
                 DataCell(_buildTextCell(
@@ -506,19 +702,29 @@ class _FinalProductsTable extends StatelessWidget {
                   // reading that hides it.
                   final formattedQty =
                       qty != 0 ? _formatQty(context, qty) : '-';
+                  final c = _coverFor(
+                    context,
+                    hasCover: hasCover,
+                    qty: qty,
+                    days: ReportJson.dblOrNull(whCover[wh]),
+                  );
+                  final tip = '${_shortWarehouse(wh)}: $formattedQty';
                   return DataCell(_buildNumericCell(
                     text: formattedQty,
                     width: dataColWidth,
                     style: qty < 0 ? negativeStyle : cellStyle,
-                    tooltip: '${_shortWarehouse(wh)}: $formattedQty',
+                    tooltip: c.note == null ? tip : '$tip\n${c.note}',
+                    tint: c.tint,
                   ));
                 }),
                 DataCell(_buildNumericCell(
                   text: _formatQty(context, total),
                   width: dataColWidth,
                   style: total < 0 ? negativeTotalStyle : totalStyle,
-                  tooltip:
-                      '${l10n.reportsTotal}: ${_formatQty(context, total)}',
+                  tooltip: totalCover.note == null
+                      ? totalTip
+                      : '$totalTip\n${totalCover.note}',
+                  tint: totalCover.tint,
                 )),
                 if (hasValue)
                   DataCell(_buildNumericCell(

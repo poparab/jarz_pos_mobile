@@ -345,6 +345,18 @@ void main() {
       expect(find.textContaining('9 new customers'), findsOneWidget);
       expect(find.textContaining('15 delivery / 3 pickup'), findsOneWidget);
       expect(find.textContaining('Cancelled 2'), findsOneWidget);
+      // B2C / B2B is a visual split, no longer caption text; discounts left
+      // the hero (they stay in the attention list and the CSV).
+      const split = 'revenue-hero-channel-split';
+      expect(inKey('revenue-hero', find.byKey(const ValueKey(split))),
+          findsOneWidget);
+      expect(inKey(split, find.text('B2C')), findsOneWidget);
+      expect(inKey(split, find.text('B2B')), findsOneWidget);
+      expect(inKey(split, find.text('100.0%')), findsOneWidget);
+      expect(inKey(split, find.text('0.0%')), findsOneWidget);
+      expect(inKey('revenue-hero', find.textContaining('Discounts')),
+          findsNothing);
+      expect(inKey('revenue-hero', find.textContaining('B2C 4')), findsNothing);
       // A single day has no daily average / best / worst line.
       expect(find.byKey(const ValueKey('revenue-hero-days')), findsNothing);
 
@@ -430,6 +442,10 @@ void main() {
       expect(find.text('vs 5–11 Oct up to 14:05'), findsOneWidget);
       expect(find.byKey(const ValueKey('revenue-hero-days')), findsOneWidget);
       expect(find.textContaining('Best Mon 12 Oct'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('revenue-hero-channel-split')),
+        findsOneWidget,
+      );
       expect(find.textContaining('Worst Wed 14 Oct'), findsOneWidget);
       expect(find.byKey(const ValueKey('revenue-attention-0')), findsOneWidget);
       expect(find.byKey(const ValueKey('revenue-attention-1')), findsOneWidget);
@@ -476,6 +492,10 @@ void main() {
       expect(find.text('يحتاج متابعة'), findsOneWidget);
       expect(find.byKey(const ValueKey('revenue-attention-5')), findsOneWidget);
       expect(find.text('حسب المصدر'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('revenue-hero-channel-split')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Arabic, last 7 days renders without overflow', (tester) async {
@@ -514,6 +534,11 @@ void main() {
       }
       expect(find.byKey(const ValueKey('revenue-hero')), findsOneWidget);
       expect(find.byKey(const ValueKey('revenue-where-from')), findsOneWidget);
+      // No B2C or B2B sales: no channel split.
+      expect(
+        find.byKey(const ValueKey('revenue-hero-channel-split')),
+        findsNothing,
+      );
       expect(find.byKey(const ValueKey('revenue-by-hour')), findsOneWidget);
     });
   });

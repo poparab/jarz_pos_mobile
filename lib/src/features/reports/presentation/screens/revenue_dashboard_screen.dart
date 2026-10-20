@@ -494,9 +494,9 @@ class _HeroCard extends StatelessWidget {
         : (query?.toIso ?? '');
     final compare = _comparisonLabel(context, p);
 
+    // B2C / B2B are drawn as the channel split above this line; discounts
+    // stay in the attention list and the CSV export, not in the hero.
     final caption = [
-      l10n.rptRevCaptionB2c(money(s.b2c)),
-      l10n.rptRevCaptionB2b(money(s.b2b)),
       l10n.rptRevNewCustomersCount(s.newCustomers),
       l10n.rptRevDeliveryPickup(
         count(f.deliveryOrders),
@@ -504,7 +504,6 @@ class _HeroCard extends StatelessWidget {
       ),
     ].join(' · ');
     final leakage = [
-      l10n.rptRevDiscountsAmount(money(s.discountTotal)),
       l10n.rptRevReturnsAmount(money(s.returnsValue)),
       l10n.rptRevCancelledShort(count(s.cancelled)),
       l10n.rptRevTotalInclShipping(money(s.totalRevenue)),
@@ -606,6 +605,10 @@ class _HeroCard extends StatelessWidget {
               ),
             ],
             const Divider(height: 20),
+            if (_pos(s.b2c) + _pos(s.b2b) > 0) ...[
+              _ChannelSplit(b2c: s.b2c, b2b: s.b2b),
+              const SizedBox(height: 10),
+            ],
             Text(caption, style: theme.textTheme.bodySmall),
             const SizedBox(height: 4),
             Text(
@@ -660,6 +663,139 @@ class _HeroStat extends StatelessWidget {
         ),
         _ChangeText(pct: pct, small: true),
       ],
+    );
+  }
+}
+
+/// B2C against B2B for the selected range: two tiles (label, amount, share)
+/// over one bar split by share. The hero hides it when both are zero.
+class _ChannelSplit extends StatelessWidget {
+  final double b2c;
+  final double b2b;
+  const _ChannelSplit({required this.b2c, required this.b2b})
+    : super(key: const ValueKey('revenue-hero-channel-split'));
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    // A net-negative channel (returns above sales) counts as no share.
+    final c = _pos(b2c);
+    final b = _pos(b2b);
+    final sum = c + b;
+    final b2cShare = sum > 0 ? c / sum : 0.0;
+    final b2bShare = sum > 0 ? b / sum : 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _ChannelTile(
+                label: l10n.rptRevB2c,
+                amount: b2c,
+                share: b2cShare,
+                color: _b2cColor,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ChannelTile(
+                label: l10n.rptRevB2b,
+                amount: b2b,
+                share: b2bShare,
+                color: _b2bColor,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: SizedBox(
+            height: 8,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final w = constraints.maxWidth;
+                // Row follows the text direction, so B2C sits at the start
+                // in both LTR and RTL, matching the tiles above.
+                return Row(
+                  children: [
+                    SizedBox(
+                      width: w * b2cShare,
+                      child: const ColoredBox(color: _b2cColor),
+                    ),
+                    SizedBox(
+                      width: w * b2bShare,
+                      child: const ColoredBox(color: _b2bColor),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ChannelTile extends StatelessWidget {
+  final String label;
+  final double amount;
+  final double share;
+  final Color color;
+  const _ChannelTile({
+    required this.label,
+    required this.amount,
+    required this.share,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(10, 8, 10, 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              formatCompactCurrency(context, amount),
+              maxLines: 1,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Text(
+            '${_pct(share * 100)}%',
+            maxLines: 1,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1369,6 +1505,10 @@ class _ChangePill extends StatelessWidget {
 final _positive = Colors.green.shade700;
 const _negative = Color(0xFFD32F2F);
 const _amber = Color(0xFFF9A825);
+
+/// The hero's channel split: B2C blue, B2B teal.
+const _b2cColor = Color(0xFF1E88E5);
+const _b2bColor = Color(0xFF00897B);
 
 /// The backend's label for invoices with no POS Profile.
 const _noProfile = '(No Profile)';
