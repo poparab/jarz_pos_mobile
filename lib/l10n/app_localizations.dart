@@ -32420,6 +32420,36 @@ abstract class AppLocalizations {
   /// **'Write the reason for rejecting.'**
   String get weeklyCountErrReasonRequired;
 
+  /// Weekly count refusal: not_pending.
+  ///
+  /// In en, this message translates to:
+  /// **'This count has already been reviewed.'**
+  String get weeklyCountErrNotPending;
+
+  /// Weekly count refusal: not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Count not found.'**
+  String get weeklyCountErrNotFound;
+
+  /// Weekly count refusal: post_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'The count could not be posted. Try again or contact the manager.'**
+  String get weeklyCountErrPostFailed;
+
+  /// Weekly count refusal: no_items.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no items to count in this branch.'**
+  String get weeklyCountErrNoItems;
+
+  /// Weekly count refusal: own_count.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot review your own count. Another manager reviews it.'**
+  String get weeklyCountErrOwnCount;
+
   /// Approvals list: pending heading.
   ///
   /// In en, this message translates to:

@@ -38,11 +38,41 @@ final weeklyCountSheetProvider = FutureProvider.autoDispose
       return ref.watch(weeklyCountServiceProvider).getSheet(posProfile);
     });
 
-/// Recent counts (pending first is the screen's job), for the approvals list.
+/// How many pending counts the approvals list asks for. Pending is fetched on
+/// its own so a burst of recent counts can never push one off the list.
+const weeklyCountPendingLimit = 200;
+
+/// How many recent counts (any status) the approvals list shows as history.
+const weeklyCountRecentLimit = 50;
+
+/// The approvals list: every pending count first, then the recent history.
 final weeklyCountListProvider =
-    FutureProvider.autoDispose<List<WeeklyCountSummary>>((ref) {
-      return ref.watch(weeklyCountServiceProvider).list(limit: 50);
+    FutureProvider.autoDispose<List<WeeklyCountSummary>>((ref) async {
+      final service = ref.watch(weeklyCountServiceProvider);
+      final results = await Future.wait([
+        service.list(
+          status: WeeklyCountDocStatus.pendingApproval,
+          limit: weeklyCountPendingLimit,
+        ),
+        service.list(limit: weeklyCountRecentLimit),
+      ]);
+      return mergeWeeklyCountLists(pending: results[0], recent: results[1]);
     });
+
+/// Pending first (in the server's order), then the recent rows not already
+/// listed. De-duplicated by name: a pending count is in both answers.
+List<WeeklyCountSummary> mergeWeeklyCountLists({
+  required List<WeeklyCountSummary> pending,
+  required List<WeeklyCountSummary> recent,
+}) {
+  final seen = <String>{};
+  return [
+    for (final row in pending)
+      if (seen.add(row.name)) row,
+    for (final row in recent)
+      if (seen.add(row.name)) row,
+  ];
+}
 
 /// One count with its lines.
 final weeklyCountDetailProvider = FutureProvider.autoDispose

@@ -19557,6 +19557,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weeklyCountErrReasonRequired => 'Write the reason for rejecting.';
 
   @override
+  String get weeklyCountErrNotPending =>
+      'This count has already been reviewed.';
+
+  @override
+  String get weeklyCountErrNotFound => 'Count not found.';
+
+  @override
+  String get weeklyCountErrPostFailed =>
+      'The count could not be posted. Try again or contact the manager.';
+
+  @override
+  String get weeklyCountErrNoItems =>
+      'There are no items to count in this branch.';
+
+  @override
+  String get weeklyCountErrOwnCount =>
+      'You cannot review your own count. Another manager reviews it.';
+
+  @override
   String get weeklyCountApprovalsPending => 'Waiting for approval';
 
   @override

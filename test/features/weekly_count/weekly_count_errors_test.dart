@@ -86,6 +86,11 @@ void main() {
         WeeklyCountErrorCodes.noAccess,
         WeeklyCountErrorCodes.noWarehouse,
         WeeklyCountErrorCodes.reasonRequired,
+        WeeklyCountErrorCodes.notPending,
+        WeeklyCountErrorCodes.notFound,
+        WeeklyCountErrorCodes.postFailed,
+        WeeklyCountErrorCodes.noItems,
+        WeeklyCountErrorCodes.ownCount,
       ];
       final texts = <String>{};
       for (final code in codes) {
@@ -104,6 +109,24 @@ void main() {
         ),
       });
       expect(weeklyCountErrorMessage(ar, e), ar.weeklyCountErrAlreadyPending);
+    });
+
+    test('the review and posting codes map to their own sentences', () {
+      final cases = {
+        '[not_pending] Already reviewed': ar.weeklyCountErrNotPending,
+        '[not_found] No such count': ar.weeklyCountErrNotFound,
+        '[post_failed] Stock Reconciliation failed':
+            ar.weeklyCountErrPostFailed,
+        '[no_items] Nothing to count': ar.weeklyCountErrNoItems,
+        '[own_count] Someone else must decide': ar.weeklyCountErrOwnCount,
+        '[reason_required] Give a reason': ar.weeklyCountErrReasonRequired,
+      };
+      cases.forEach((message, expected) {
+        final e = _frappeError({'_server_messages': _serverMessages(message)});
+        expect(weeklyCountErrorMessage(ar, e), expected, reason: message);
+      });
+      expect(ar.weeklyCountErrNotPending, 'هذا الجرد تمت مراجعته بالفعل');
+      expect(ar.weeklyCountErrNoItems, 'لا توجد أصناف للجرد في هذا الفرع');
     });
 
     test('an unknown code is not mapped', () {

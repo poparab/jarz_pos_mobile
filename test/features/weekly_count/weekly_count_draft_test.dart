@@ -9,7 +9,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:jarz_pos/src/features/weekly_count/data/weekly_count_draft.dart';
 
+const _user = 'yehia@jarz.test';
+
 WeeklyCountDraft _draft([Map<String, int>? counts]) => WeeklyCountDraft(
+  user: _user,
   posProfile: 'Maadi',
   weekStart: '2026-10-17',
   counts: counts,
@@ -120,10 +123,17 @@ void main() {
     test('round-trips through JSON with its request id', () {
       final d = _draft({'A': 3, 'B': 0});
       final back = WeeklyCountDraft.fromJson(d.toJson())!;
+      expect(back.user, _user);
       expect(back.posProfile, 'Maadi');
       expect(back.weekStart, '2026-10-17');
       expect(back.clientRequestId, d.clientRequestId);
+      expect(back.submitAttempted, isFalse);
       expect(back.counts, {'A': 3, 'B': 0});
+    });
+
+    test('round-trips the submit-attempted flag', () {
+      final d = _draft()..submitAttempted = true;
+      expect(WeeklyCountDraft.fromJson(d.toJson())!.submitAttempted, isTrue);
     });
 
     test('every new draft gets its own request id', () {
@@ -134,7 +144,17 @@ void main() {
     test('rejects a broken entry and drops bad quantities', () {
       expect(WeeklyCountDraft.fromJson(null), isNull);
       expect(WeeklyCountDraft.fromJson({'pos_profile': 'Maadi'}), isNull);
+      // A draft with no owner (the old per-branch shape) is never loaded.
+      expect(
+        WeeklyCountDraft.fromJson({
+          'pos_profile': 'Maadi',
+          'week_start': '2026-10-17',
+          'counts': {'A': 1},
+        }),
+        isNull,
+      );
       final back = WeeklyCountDraft.fromJson({
+        'user': _user,
         'pos_profile': 'Maadi',
         'week_start': '2026-10-17',
         'counts': {'A': 2, 'B': -1, 'C': 'x', 'D': '4'},
@@ -142,20 +162,56 @@ void main() {
       expect(back.counts, {'A': 2, 'D': 4});
     });
 
-    test('the key is per branch and week', () {
+    test('the key is per user, branch and week', () {
       expect(
-        WeeklyCountDraft.storageKey('Maadi', '2026-10-17'),
-        'draft:Maadi:2026-10-17',
+        WeeklyCountDraft.storageKey(_user, 'Maadi', '2026-10-17'),
+        'draft:$_user:Maadi:2026-10-17',
+      );
+      expect(_draft().key, 'draft:$_user:Maadi:2026-10-17');
+      expect(
+        WeeklyCountDraft.storageKey('other@jarz.test', 'Maadi', '2026-10-17'),
+        isNot(_draft().key),
       );
     });
 
     test('the memory store saves, loads and deletes', () async {
       final store = MemoryWeeklyCountDraftStore();
       await store.save(_draft({'A': 1}));
-      final loaded = await store.load('Maadi', '2026-10-17');
+      final loaded = await store.load(_user, 'Maadi', '2026-10-17');
       expect(loaded?.counts, {'A': 1});
-      await store.delete('Maadi', '2026-10-17');
-      expect(await store.load('Maadi', '2026-10-17'), isNull);
+      await store.delete(_user, 'Maadi', '2026-10-17');
+      expect(await store.load(_user, 'Maadi', '2026-10-17'), isNull);
+    });
+
+    test('another user on the same tablet does not get the draft', () async {
+      final store = MemoryWeeklyCountDraftStore();
+      await store.save(_draft({'A': 1}));
+      expect(
+        await store.load('other@jarz.test', 'Maadi', '2026-10-17'),
+        isNull,
+      );
+      expect((await store.load(_user, 'Maadi', '2026-10-17'))?.counts, {
+        'A': 1,
+      });
+    });
+  });
+
+  group('request id after a rejection', () {
+    test('a draft that was sent gets a fresh id and keeps its counts', () {
+      final d = _draft({'A': 2})..submitAttempted = true;
+      final oldId = d.clientRequestId;
+      expect(d.renewRequestIdAfterRejection(), isTrue);
+      expect(d.clientRequestId, isNot(oldId));
+      expect(d.clientRequestId, isNotEmpty);
+      expect(d.submitAttempted, isFalse);
+      expect(d.counts, {'A': 2});
+    });
+
+    test('a draft never sent keeps its id', () {
+      final d = _draft({'A': 2});
+      final id = d.clientRequestId;
+      expect(d.renewRequestIdAfterRejection(), isFalse);
+      expect(d.clientRequestId, id);
     });
   });
 }

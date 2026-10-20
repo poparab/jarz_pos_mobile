@@ -77,25 +77,40 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
 
   Future<void> _loadDraft() async {
     final sheet = widget.sheet;
-    WeeklyCountDraft? saved;
+    // Drafts are per user: a shared branch tablet must not hand one
+    // counter's numbers to the next. No user known = memory-only draft.
+    var user = '';
     try {
-      saved = await _store.load(sheet.posProfile, sheet.weekStart);
+      user = await ref.read(weeklyCountDraftUserProvider.future) ?? '';
     } catch (_) {
-      // A broken cache only costs the counter a restart of the count.
+      // Roles unreachable: count anyway, just without autosave.
+    }
+    WeeklyCountDraft? saved;
+    if (user.isNotEmpty) {
+      try {
+        saved = await _store.load(user, sheet.posProfile, sheet.weekStart);
+      } catch (_) {
+        // A broken cache only costs the counter a restart of the count.
+      }
     }
     if (!mounted) return;
     if (widget.sheet.posProfile != sheet.posProfile ||
         widget.sheet.weekStart != sheet.weekStart) {
       return;
     }
-    setState(() {
-      _draft =
-          saved ??
-          WeeklyCountDraft(
-            posProfile: sheet.posProfile,
-            weekStart: sheet.weekStart,
-          );
-    });
+    final draft =
+        saved ??
+        WeeklyCountDraft(
+          user: user,
+          posProfile: sheet.posProfile,
+          weekStart: sheet.weekStart,
+        );
+    // A recount after a rejection never reuses the rejected submission's id.
+    if (sheet.state == WeeklyCountState.rejected &&
+        draft.renewRequestIdAfterRejection()) {
+      unawaited(_persist(draft));
+    }
+    setState(() => _draft = draft);
   }
 
   void _change(void Function(WeeklyCountDraft d) edit) {
@@ -106,11 +121,17 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
   }
 
   Future<void> _persist(WeeklyCountDraft draft) async {
+    if (draft.user.isEmpty) return;
     try {
       await _store.save(draft);
     } catch (_) {
       // Best-effort: the count is still on screen.
     }
+  }
+
+  Future<void> _deleteDraft(WeeklyCountDraft draft) async {
+    if (draft.user.isEmpty) return;
+    await _store.delete(draft.user, draft.posProfile, draft.weekStart);
   }
 
   GlobalKey _keyFor(String code) => _rowKeys.putIfAbsent(code, GlobalKey.new);
@@ -259,7 +280,9 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
 
     setState(() => _submitting = true);
     // Saved first so the request id survives a crash mid-request: a retry
-    // then returns the same document instead of a second one.
+    // then returns the same document instead of a second one. The flag says
+    // the id may now name a real document (see renewRequestIdAfterRejection).
+    draft.submitAttempted = true;
     await _persist(draft);
     try {
       final result = await ref
@@ -270,7 +293,7 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
             clientRequestId: draft.clientRequestId,
           );
       try {
-        await _store.delete(draft.posProfile, draft.weekStart);
+        await _deleteDraft(draft);
       } catch (_) {
         // A leftover draft is harmless: next week has a new key.
       }
@@ -297,7 +320,7 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
         case WeeklyCountErrorCodes.alreadyPending:
         case WeeklyCountErrorCodes.alreadyDone:
           try {
-            await _store.delete(draft.posProfile, draft.weekStart);
+            await _deleteDraft(draft);
           } catch (_) {
             // ignore: the week is closed either way.
           }

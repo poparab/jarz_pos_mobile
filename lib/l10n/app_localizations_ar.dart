@@ -19554,6 +19554,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get weeklyCountErrReasonRequired => 'اكتب سبب الرفض.';
 
   @override
+  String get weeklyCountErrNotPending => 'هذا الجرد تمت مراجعته بالفعل';
+
+  @override
+  String get weeklyCountErrNotFound => 'الجرد غير موجود';
+
+  @override
+  String get weeklyCountErrPostFailed =>
+      'تعذر ترحيل الجرد، حاول مرة أخرى أو تواصل مع المدير';
+
+  @override
+  String get weeklyCountErrNoItems => 'لا توجد أصناف للجرد في هذا الفرع';
+
+  @override
+  String get weeklyCountErrOwnCount =>
+      'لا يمكنك مراجعة جرد قمت به بنفسك، يراجعه مدير آخر';
+
+  @override
   String get weeklyCountApprovalsPending => 'بانتظار الموافقة';
 
   @override

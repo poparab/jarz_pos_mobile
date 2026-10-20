@@ -58,13 +58,13 @@ Map<String, dynamic> _item(String code) => {
   'stock_uom': 'Nos',
 };
 
-final _sheet = WeeklyCountSheet.fromJson({
+WeeklyCountSheet _sheetIn(String state) => WeeklyCountSheet.fromJson({
   'pos_profile': 'Maadi',
   'warehouse': 'Maadi - J',
   'week_start': '2026-10-17',
   'due_date': '2026-10-23',
   'is_approver': false,
-  'state': 'due',
+  'state': state,
   'total_items': 3,
   'sections': [
     {
@@ -80,12 +80,19 @@ final _sheet = WeeklyCountSheet.fromJson({
   ],
 });
 
+final _sheet = _sheetIn('due');
+
+const _user = 'yehia@jarz.test';
+
 final _ar = lookupAppLocalizations(const Locale('ar'));
 
 class _Harness {
-  _Harness({Object? failWith}) : service = _FakeService(failWith: failWith);
+  _Harness({Object? failWith, WeeklyCountSheet? sheet})
+    : service = _FakeService(failWith: failWith),
+      sheet = sheet ?? _sheet;
 
   final _FakeService service;
+  final WeeklyCountSheet sheet;
   final store = MemoryWeeklyCountDraftStore();
   final submitted = <WeeklyCountSubmitResult>[];
   var reloads = 0;
@@ -100,6 +107,7 @@ class _Harness {
         overrides: [
           weeklyCountServiceProvider.overrideWithValue(service),
           weeklyCountDraftStoreProvider.overrideWithValue(store),
+          weeklyCountDraftUserProvider.overrideWith((ref) async => _user),
         ],
         child: MaterialApp(
           locale: const Locale('ar'),
@@ -112,7 +120,7 @@ class _Harness {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: WeeklyCountSheetView(
-              sheet: _sheet,
+              sheet: sheet,
               branchLabel: 'Maadi',
               onSubmitted: submitted.add,
               onReloadSheet: () => reloads++,
@@ -150,6 +158,15 @@ Future<void> _confirmDialog(WidgetTester tester, String label) async {
   await tester.pumpAndSettle();
 }
 
+Future<void> _countAllAndSubmit(WidgetTester tester) async {
+  for (final section in ['Large', 'Small']) {
+    await _tap(tester, WeeklyCountSheetKeys.allZero(section));
+    await _confirmDialog(tester, _ar.weeklyCountAllZero);
+  }
+  await _tap(tester, WeeklyCountSheetKeys.submit);
+  await _confirmDialog(tester, _ar.weeklyCountSubmitConfirmButton);
+}
+
 /// Unmount so snackbar and pulse timers are disposed before the test ends.
 Future<void> _unmount(WidgetTester tester) async {
   await tester.pumpWidget(const SizedBox());
@@ -178,7 +195,7 @@ void main() {
 
     // Autosaved as it goes.
     final saved =
-        h.store.data[WeeklyCountDraft.storageKey('Maadi', '2026-10-17')];
+        h.store.data[WeeklyCountDraft.storageKey(_user, 'Maadi', '2026-10-17')];
     expect(saved?['counts'], {'L1': 1, 'L2': 0});
 
     await _unmount(tester);
@@ -296,6 +313,83 @@ void main() {
     expect(h.reloads, 0);
     expect(h.submitted, isEmpty);
     expect(h.store.data, isEmpty);
+
+    await _unmount(tester);
+  });
+
+  testWidgets('a draft saved by another user on this tablet is not opened', (
+    tester,
+  ) async {
+    final h = _Harness();
+    await h.store.save(
+      WeeklyCountDraft(
+        user: 'previous@jarz.test',
+        posProfile: 'Maadi',
+        weekStart: '2026-10-17',
+        counts: {'L1': 5, 'L2': 1, 'S1': 0},
+      ),
+    );
+    await h.pump(tester);
+
+    expect(_qtyText(tester, 'L1'), '—');
+    expect(find.text(_ar.weeklyCountProgress(0, 3)), findsOneWidget);
+
+    await _unmount(tester);
+  });
+
+  testWidgets('recount after a rejection gets a fresh request id', (
+    tester,
+  ) async {
+    final h = _Harness(sheet: _sheetIn('rejected'));
+    // The rejected submission's draft survived (its response was lost, so
+    // the delete never ran): same counts, same id, already sent once.
+    await h.store.save(
+      WeeklyCountDraft(
+        user: _user,
+        posProfile: 'Maadi',
+        weekStart: '2026-10-17',
+        clientRequestId: 'rejected-request-id',
+        submitAttempted: true,
+        counts: {'L1': 4},
+      ),
+    );
+    await h.pump(tester);
+
+    // The counts stay; only the id is renewed (and saved).
+    expect(_qtyText(tester, 'L1'), '4');
+    final key = WeeklyCountDraft.storageKey(_user, 'Maadi', '2026-10-17');
+    expect(
+      h.store.data[key]?['client_request_id'],
+      isNot('rejected-request-id'),
+    );
+
+    await _countAllAndSubmit(tester);
+
+    expect(h.service.calls, hasLength(1));
+    final id = h.service.calls.single.clientRequestId;
+    expect(id, isNotEmpty);
+    expect(id, isNot('rejected-request-id'));
+
+    await _unmount(tester);
+  });
+
+  testWidgets('a recount draft never sent keeps its request id', (
+    tester,
+  ) async {
+    final h = _Harness(sheet: _sheetIn('rejected'));
+    await h.store.save(
+      WeeklyCountDraft(
+        user: _user,
+        posProfile: 'Maadi',
+        weekStart: '2026-10-17',
+        clientRequestId: 'recount-in-progress',
+        counts: {'L1': 4},
+      ),
+    );
+    await h.pump(tester);
+    await _countAllAndSubmit(tester);
+
+    expect(h.service.calls.single.clientRequestId, 'recount-in-progress');
 
     await _unmount(tester);
   });

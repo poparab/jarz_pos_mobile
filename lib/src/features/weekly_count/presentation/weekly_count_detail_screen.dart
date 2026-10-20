@@ -92,6 +92,16 @@ class _WeeklyCountDetailScreenState
     } catch (e) {
       if (!mounted) return;
       setState(() => _busy = false);
+      if (weeklyCountErrorCode(e) == WeeklyCountErrorCodes.notPending) {
+        // Already reviewed (by someone else, or by this very tap whose
+        // response was lost): not a failure. Reload the count, which now
+        // shows its real status, and everything that lists it.
+        invalidateWeeklyCountState(ref, name: widget.countName);
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.weeklyCountErrNotPending)),
+        );
+        return;
+      }
       // Someone else acted first, or the state moved: show the fresh one.
       ref.invalidate(weeklyCountDetailProvider(widget.countName));
       messenger.showSnackBar(

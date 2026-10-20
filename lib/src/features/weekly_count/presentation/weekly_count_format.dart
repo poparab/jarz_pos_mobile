@@ -135,6 +135,16 @@ String? weeklyCountKnownErrorMessage(AppLocalizations l10n, String? code) {
       return l10n.weeklyCountErrNoWarehouse;
     case WeeklyCountErrorCodes.reasonRequired:
       return l10n.weeklyCountErrReasonRequired;
+    case WeeklyCountErrorCodes.notPending:
+      return l10n.weeklyCountErrNotPending;
+    case WeeklyCountErrorCodes.notFound:
+      return l10n.weeklyCountErrNotFound;
+    case WeeklyCountErrorCodes.postFailed:
+      return l10n.weeklyCountErrPostFailed;
+    case WeeklyCountErrorCodes.noItems:
+      return l10n.weeklyCountErrNoItems;
+    case WeeklyCountErrorCodes.ownCount:
+      return l10n.weeklyCountErrOwnCount;
     default:
       return null;
   }

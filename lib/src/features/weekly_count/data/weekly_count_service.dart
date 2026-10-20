@@ -132,6 +132,20 @@ abstract final class WeeklyCountErrorCodes {
   static const noAccess = 'no_access';
   static const noWarehouse = 'no_warehouse';
   static const reasonRequired = 'reason_required';
+
+  /// approve / reject: the count is no longer Pending Approval (already
+  /// reviewed, often by a retry after a lost response).
+  static const notPending = 'not_pending';
+  static const notFound = 'not_found';
+
+  /// approve / auto-approve: the Stock Reconciliation could not be posted.
+  static const postFailed = 'post_failed';
+
+  /// sheet / submit: the branch has nothing to count.
+  static const noItems = 'no_items';
+
+  /// approve / reject: the caller counted this one; someone else decides.
+  static const ownCount = 'own_count';
 }
 
 final RegExp _errorCodePattern = RegExp(r'\[([a-z][a-z0-9_]*)\]');

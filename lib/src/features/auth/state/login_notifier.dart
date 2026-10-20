@@ -219,7 +219,6 @@ class LoginNotifier extends AsyncNotifier<bool> {
     for (final boxName in const [
       HiveBoxes.leadsCache,
       HiveBoxes.inventoryCount,
-      HiveBoxes.weeklyCount,
     ]) {
       try {
         if (Hive.isBoxOpen(boxName)) {
@@ -228,6 +227,17 @@ class LoginNotifier extends AsyncNotifier<bool> {
       } catch (_) {
         // ignore: best-effort per-box clear.
       }
+    }
+    // Weekly count drafts: opened if need be, then cleared. A draft written
+    // in an earlier app run sits in a box nobody has opened yet, and on a
+    // shared branch tablet it would otherwise outlive the counter's session.
+    try {
+      final box = Hive.isBoxOpen(HiveBoxes.weeklyCount)
+          ? Hive.box(HiveBoxes.weeklyCount)
+          : await Hive.openBox(HiveBoxes.weeklyCount);
+      await box.clear();
+    } catch (_) {
+      // ignore: best-effort; the drafts are keyed per user as well.
     }
   }
 }
