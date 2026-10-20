@@ -15,6 +15,7 @@ class StockHandoverCard extends StatelessWidget {
     this.onReject,
     this.onCancel,
     this.busy = false,
+    this.handled = false,
     this.highlight = false,
   });
 
@@ -25,6 +26,10 @@ class StockHandoverCard extends StatelessWidget {
   final VoidCallback? onCancel;
   final bool busy;
 
+  /// An action on this card already succeeded and the refreshed list has not
+  /// arrived yet: keep the actions hidden so it cannot be answered twice.
+  final bool handled;
+
   /// Draw it as the thing waiting for this user.
   final bool highlight;
 
@@ -33,8 +38,11 @@ class StockHandoverCard extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final h = handover;
-    final showRespond = h.isPending && h.canRespond;
-    final showCancel = h.isPending && h.canCancel;
+    final showRespond = h.isPending && h.canRespond && !handled;
+    final showCancel = h.isPending && h.canCancel && !handled;
+    // A "sent out" batch is matched by a manager as a whole; the only single
+    // action on it is to reject it.
+    final rejectOnly = h.isDispatch;
     final proposedByOther = h.lastProposedByName.isNotEmpty &&
         h.lastProposedByName != h.declaredByName;
 
@@ -61,7 +69,9 @@ class StockHandoverCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    l10n.stockHandoverRoute(h.fromLabel, h.toLabel),
+                    h.isDispatch
+                        ? l10n.stockHandoverDispatchTitle(h.fromLabel)
+                        : l10n.stockHandoverRoute(h.fromLabel, h.toLabel),
                     style: theme.textTheme.titleMedium
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
@@ -86,7 +96,15 @@ class StockHandoverCard extends StatelessWidget {
                 ),
                 style: theme.textTheme.bodySmall,
               ),
-            if (h.isPending && h.awaitingLabel.isNotEmpty && !showRespond)
+            if (h.isPending && (h.isDispatch || h.inGroup))
+              Text(
+                h.isDispatch
+                    ? l10n.stockHandoverDispatchWaiting
+                    : l10n.stockHandoverGroupWaiting,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: theme.colorScheme.outline),
+              )
+            else if (h.isPending && h.awaitingLabel.isNotEmpty && !showRespond)
               Text(
                 l10n.stockHandoverAwaiting(h.awaitingLabel),
                 style: theme.textTheme.bodySmall
@@ -146,16 +164,18 @@ class StockHandoverCard extends StatelessWidget {
                         icon: const Icon(Icons.block),
                         label: Text(l10n.stockHandoverReject),
                       ),
-                      OutlinedButton.icon(
-                        onPressed: onChange,
-                        icon: const Icon(Icons.edit_outlined),
-                        label: Text(l10n.stockHandoverChange),
-                      ),
-                      FilledButton.icon(
-                        onPressed: onConfirm,
-                        icon: const Icon(Icons.check),
-                        label: Text(l10n.stockHandoverConfirm),
-                      ),
+                      if (!rejectOnly) ...[
+                        OutlinedButton.icon(
+                          onPressed: onChange,
+                          icon: const Icon(Icons.edit_outlined),
+                          label: Text(l10n.stockHandoverChange),
+                        ),
+                        FilledButton.icon(
+                          onPressed: onConfirm,
+                          icon: const Icon(Icons.check),
+                          label: Text(l10n.stockHandoverConfirm),
+                        ),
+                      ],
                     ],
                   ],
                 ),

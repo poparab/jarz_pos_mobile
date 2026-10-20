@@ -19248,19 +19248,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get stockHandoverIReceived => 'استلمت';
 
   @override
-  String get stockHandoverTheyTook => 'خدوا مني';
-
-  @override
-  String get stockHandoverISent => 'بعتّ';
-
-  @override
   String get stockHandoverFromWhom => 'استلمت من مين؟';
-
-  @override
-  String get stockHandoverWhoTook => 'مين اللي خد؟';
-
-  @override
-  String get stockHandoverToWhom => 'بعتّ لمين؟';
 
   @override
   String get stockHandoverNoCounterparts =>
@@ -19298,16 +19286,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String stockHandoverReviewTook(String name) {
-    return '$name خد منك:';
-  }
-
-  @override
-  String stockHandoverReviewSent(String name) {
-    return 'إنت بعتّ لـ $name:';
-  }
-
-  @override
   String stockHandoverReviewChange(String source, String target) {
     return 'الكميات الصح، من $source لـ $target:';
   }
@@ -19335,6 +19313,137 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get stockHandoverKeepEditing => 'كمّل';
+
+  @override
+  String get stockHandoverISentOut => 'بعتّ بضاعة';
+
+  @override
+  String get stockHandoverReviewSentOut => 'إنت بعتّ:';
+
+  @override
+  String get stockHandoverReviewHintSentOut =>
+      'المدير هيطابقها مع الفروع اللي استلمت. مفيش حاجة هتتنقل قبل كده.';
+
+  @override
+  String get stockHandoverSentOutSnack => 'اتسجّلت. مستنية المدير يطابقها.';
+
+  @override
+  String get stockHandoverNoChangeHint => 'مفيش تغيير. أكّدها بدل كده.';
+
+  @override
+  String stockHandoverDispatchTitle(String source) {
+    return '$source بعتّ بضاعة';
+  }
+
+  @override
+  String get stockHandoverDispatchWaiting => 'اتبعتت · مستنية المدير يطابقها';
+
+  @override
+  String get stockHandoverGroupWaiting => 'مستنية المدير يطابقها';
+
+  @override
+  String stockHandoverToMatch(int count) {
+    return 'محتاجة مطابقة ($count)';
+  }
+
+  @override
+  String stockHandoverMatchItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صنف',
+      few: '$count أصناف',
+      two: 'صنفين',
+      one: 'صنف واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String stockHandoverMatchClaim(String label, String qty) {
+    return '$label: $qty';
+  }
+
+  @override
+  String get stockHandoverMatchBalanced => 'متطابقة';
+
+  @override
+  String stockHandoverMatchUnmatched(String qty) {
+    return '$qty قطعة مش متطابقة';
+  }
+
+  @override
+  String stockHandoverMatchTitle(String source) {
+    return 'مطابقة $source';
+  }
+
+  @override
+  String get stockHandoverMatchSent => 'اتبعت';
+
+  @override
+  String stockHandoverMatchRemaining(String qty) {
+    return 'المتبقي: $qty';
+  }
+
+  @override
+  String get stockHandoverMatchAddBranch => 'ضيف فرع';
+
+  @override
+  String get stockHandoverMatchPickBranch => 'أنهي فرع استلمها؟';
+
+  @override
+  String get stockHandoverMatchNoBranches => 'مفيش فرع تاني تضيفه.';
+
+  @override
+  String get stockHandoverMatchCannotConfirm =>
+      'إنت اللي سجّلت جزء من الدفعة دي. لازم مدير تاني يأكدها.';
+
+  @override
+  String get stockHandoverMatchConfirm => 'تأكيد المطابقة';
+
+  @override
+  String get stockHandoverMatchReviewTitle => 'راجع قبل التأكيد';
+
+  @override
+  String stockHandoverMatchWas(String qty) {
+    return 'كانت $qty';
+  }
+
+  @override
+  String stockHandoverMatchSentChange(String item, String was, String now) {
+    return '$item: المبعوت اتغير من $was لـ $now';
+  }
+
+  @override
+  String get stockHandoverMatchNoteHint => 'ملاحظة (اختياري)';
+
+  @override
+  String stockHandoverMatchConfirmedSnack(String entry) {
+    return 'اتطابقت. البضاعة اتنقلت ($entry).';
+  }
+
+  @override
+  String get stockHandoverMatchRejectBatch => 'رفض الدفعة المبعوتة';
+
+  @override
+  String stockHandoverMatchRejectTitle(String source) {
+    return 'ترفض اللي $source بعتّه؟';
+  }
+
+  @override
+  String stockHandoverMatchRejectBody(String source) {
+    return 'إيصالات الفروع هترجع لـ $source تأكدها واحدة واحدة.';
+  }
+
+  @override
+  String get stockHandoverMatchRejectedSnack => 'اترفضت الدفعة المبعوتة.';
+
+  @override
+  String get userErrorHandoverRule => 'التسليم ده مينفعش يتم لسه.';
+
+  @override
+  String get stockTransferBecomesOfficialNote =>
+      'بتبقى رسمية لما الطرف التاني يأكد، وبتتسجّل وقتها.';
 
   @override
   String stockTransferSentPending(String handover) {

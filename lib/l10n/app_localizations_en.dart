@@ -19252,19 +19252,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stockHandoverIReceived => 'I received';
 
   @override
-  String get stockHandoverTheyTook => 'They took from me';
-
-  @override
-  String get stockHandoverISent => 'I sent';
-
-  @override
   String get stockHandoverFromWhom => 'Received from whom?';
-
-  @override
-  String get stockHandoverWhoTook => 'Who took it?';
-
-  @override
-  String get stockHandoverToWhom => 'Sent to whom?';
 
   @override
   String get stockHandoverNoCounterparts =>
@@ -19300,16 +19288,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String stockHandoverReviewTook(String name) {
-    return '$name took from you:';
-  }
-
-  @override
-  String stockHandoverReviewSent(String name) {
-    return 'You sent to $name:';
-  }
-
-  @override
   String stockHandoverReviewChange(String source, String target) {
     return 'Correct quantities, $source → $target:';
   }
@@ -19337,6 +19315,137 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stockHandoverKeepEditing => 'Keep editing';
+
+  @override
+  String get stockHandoverISentOut => 'I sent out';
+
+  @override
+  String get stockHandoverReviewSentOut => 'You sent out:';
+
+  @override
+  String get stockHandoverReviewHintSentOut =>
+      'A manager matches it with the branches that received it. Nothing moves until then.';
+
+  @override
+  String get stockHandoverSentOutSnack =>
+      'Sent out. Waiting for the manager to match.';
+
+  @override
+  String get stockHandoverNoChangeHint => 'No change. Confirm it instead.';
+
+  @override
+  String stockHandoverDispatchTitle(String source) {
+    return '$source sent out';
+  }
+
+  @override
+  String get stockHandoverDispatchWaiting =>
+      'Sent out · waiting for the manager to match';
+
+  @override
+  String get stockHandoverGroupWaiting => 'Waiting for the manager to match';
+
+  @override
+  String stockHandoverToMatch(int count) {
+    return 'To match ($count)';
+  }
+
+  @override
+  String stockHandoverMatchItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String stockHandoverMatchClaim(String label, String qty) {
+    return '$label: $qty';
+  }
+
+  @override
+  String get stockHandoverMatchBalanced => 'Balanced';
+
+  @override
+  String stockHandoverMatchUnmatched(String qty) {
+    return '$qty units unmatched';
+  }
+
+  @override
+  String stockHandoverMatchTitle(String source) {
+    return 'Match $source';
+  }
+
+  @override
+  String get stockHandoverMatchSent => 'Sent';
+
+  @override
+  String stockHandoverMatchRemaining(String qty) {
+    return 'Remaining: $qty';
+  }
+
+  @override
+  String get stockHandoverMatchAddBranch => 'Add branch';
+
+  @override
+  String get stockHandoverMatchPickBranch => 'Which branch got it?';
+
+  @override
+  String get stockHandoverMatchNoBranches => 'There is no other branch to add.';
+
+  @override
+  String get stockHandoverMatchCannotConfirm =>
+      'You declared part of this batch. Another manager must confirm.';
+
+  @override
+  String get stockHandoverMatchConfirm => 'Confirm match';
+
+  @override
+  String get stockHandoverMatchReviewTitle => 'Review before confirming';
+
+  @override
+  String stockHandoverMatchWas(String qty) {
+    return 'was $qty';
+  }
+
+  @override
+  String stockHandoverMatchSentChange(String item, String was, String now) {
+    return '$item: sent $was → $now';
+  }
+
+  @override
+  String get stockHandoverMatchNoteHint => 'Note (optional)';
+
+  @override
+  String stockHandoverMatchConfirmedSnack(String entry) {
+    return 'Matched. Stock moved ($entry).';
+  }
+
+  @override
+  String get stockHandoverMatchRejectBatch => 'Reject sent-out batch';
+
+  @override
+  String stockHandoverMatchRejectTitle(String source) {
+    return 'Reject what $source sent out?';
+  }
+
+  @override
+  String stockHandoverMatchRejectBody(String source) {
+    return 'The branches\' receipts go back to $source to confirm one by one.';
+  }
+
+  @override
+  String get stockHandoverMatchRejectedSnack => 'Sent-out batch rejected.';
+
+  @override
+  String get userErrorHandoverRule => 'This handover can\'t go through yet.';
+
+  @override
+  String get stockTransferBecomesOfficialNote =>
+      'Becomes official when the other side confirms; posted at that moment.';
 
   @override
   String stockTransferSentPending(String handover) {

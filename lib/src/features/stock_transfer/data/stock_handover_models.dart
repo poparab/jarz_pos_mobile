@@ -35,6 +35,11 @@ List<Map<String, dynamic>> _maps(Object? value) {
       .toList();
 }
 
+List<String> _strings(Object? value) {
+  if (value is! List) return const [];
+  return value.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
+}
+
 /// Unwraps Frappe's `{"message": ...}` envelope when present.
 Object? unwrapFrappeMessage(Object? payload) {
   if (payload is Map && payload.containsKey('message')) {
@@ -190,6 +195,8 @@ class StockHandover {
     required this.fromLabel,
     required this.toWarehouse,
     required this.toLabel,
+    this.kind = 'Handover',
+    this.groupSource,
     this.awaitingSide = '',
     this.awaitingLabel = '',
     this.declaredByName = '',
@@ -210,10 +217,19 @@ class StockHandover {
   final String status;
   final String fromWarehouse;
   final String fromLabel;
+
+  /// Empty for a Dispatch ("sent out"): it has no destination until a manager
+  /// matches it.
   final String toWarehouse;
   final String toLabel;
 
-  /// `From` or `To`.
+  /// `Handover` (one side to the other) | `Dispatch` ("I sent out").
+  final String kind;
+
+  /// The sender warehouse when this row sits in a manager match group.
+  final String? groupSource;
+
+  /// `From`, `To` or `Manager`.
   final String awaitingSide;
   final String awaitingLabel;
   final String declaredByName;
@@ -232,9 +248,23 @@ class StockHandover {
   bool get isRejected => status == 'Rejected';
   bool get isCancelled => status == 'Cancelled';
 
+  /// A "sent out" declaration with no destination yet.
+  bool get isDispatch => kind == 'Dispatch';
+
+  /// A receipt held in a manager match group (waits for the manager, not the
+  /// sender).
+  bool get inGroup => !isDispatch && groupSource != null;
+
+  /// True when nobody on the branch side can act: the manager matches it.
+  bool get awaitsManager => awaitingSide == 'Manager';
+
   /// The warehouse whose turn it is (the one that would confirm / change).
-  String get awaitingWarehouse =>
-      awaitingSide == 'From' ? fromWarehouse : toWarehouse;
+  /// Empty when a manager is awaited.
+  String get awaitingWarehouse => switch (awaitingSide) {
+        'From' => fromWarehouse,
+        'To' => toWarehouse,
+        _ => '',
+      };
 
   /// The other side of [awaitingWarehouse].
   String get proposingWarehouse =>
@@ -254,6 +284,8 @@ class StockHandover {
       fromLabel: fromLabel.isEmpty ? fromWh : fromLabel,
       toWarehouse: toWh,
       toLabel: toLabel.isEmpty ? toWh : toLabel,
+      kind: _toStr(json['kind']).isEmpty ? 'Handover' : _toStr(json['kind']),
+      groupSource: _toOptStr(json['group_source']),
       awaitingSide: _toStr(json['awaiting_side']),
       awaitingLabel: _toStr(json['awaiting_label']),
       declaredByName: _toStr(json['declared_by_name']),
@@ -275,14 +307,21 @@ class StockHandoverLists {
     this.waitingForMe = const [],
     this.waitingForThem = const [],
     this.recent = const [],
+    this.toMatch = const [],
   });
 
   final List<StockHandover> waitingForMe;
   final List<StockHandover> waitingForThem;
   final List<StockHandover> recent;
 
+  /// Manager only (empty for everyone else): "sent out" batches to match.
+  final List<MatchGroup> toMatch;
+
   bool get isEmpty =>
-      waitingForMe.isEmpty && waitingForThem.isEmpty && recent.isEmpty;
+      waitingForMe.isEmpty &&
+      waitingForThem.isEmpty &&
+      recent.isEmpty &&
+      toMatch.isEmpty;
 
   factory StockHandoverLists.fromJson(Map<String, dynamic> json) {
     List<StockHandover> parse(Object? v) =>
@@ -291,8 +330,163 @@ class StockHandoverLists {
       waitingForMe: parse(json['waiting_for_me']),
       waitingForThem: parse(json['waiting_for_them']),
       recent: parse(json['recent']),
+      toMatch: _maps(json['to_match']).map(MatchGroup.fromJson).toList(),
     );
   }
+}
+
+/// One receiver's claim on an item ("Nasr City says it got 12").
+class MatchClaim {
+  const MatchClaim({required this.warehouse, this.qty = 0});
+
+  final String warehouse;
+  final double qty;
+
+  factory MatchClaim.fromJson(Map<String, dynamic> json) => MatchClaim(
+        warehouse: _toStr(json['warehouse']),
+        qty: _toDouble(json['qty']),
+      );
+}
+
+/// A receiver that claimed something from the sender.
+class MatchDestination {
+  const MatchDestination({
+    required this.warehouse,
+    required this.label,
+    this.handovers = const [],
+  });
+
+  final String warehouse;
+  final String label;
+  final List<String> handovers;
+
+  factory MatchDestination.fromJson(Map<String, dynamic> json) {
+    final wh = _toStr(json['warehouse']);
+    final label = _toStr(json['label']);
+    return MatchDestination(
+      warehouse: wh,
+      label: label.isEmpty ? wh : label,
+      handovers: _strings(json['handovers']),
+    );
+  }
+}
+
+/// One item of a match group: what left, and what each receiver claims.
+class MatchItem {
+  const MatchItem({
+    required this.itemCode,
+    required this.itemName,
+    this.stockUom = '',
+    this.sent = 0,
+    this.claims = const [],
+    this.remaining = 0,
+  });
+
+  final String itemCode;
+  final String itemName;
+  final String stockUom;
+  final double sent;
+  final List<MatchClaim> claims;
+
+  /// `sent - sum(claims)` as the server computed it; may be negative.
+  final double remaining;
+
+  double claimFor(String warehouse) => claims
+      .where((c) => c.warehouse == warehouse)
+      .fold(0.0, (sum, c) => sum + c.qty);
+
+  factory MatchItem.fromJson(Map<String, dynamic> json) {
+    final code = _toStr(json['item_code']);
+    final name = _toStr(json['item_name']);
+    return MatchItem(
+      itemCode: code,
+      itemName: name.isEmpty ? code : name,
+      stockUom: _toStr(json['stock_uom']),
+      sent: _toDouble(json['sent']),
+      claims: _maps(json['claims']).map(MatchClaim.fromJson).toList(),
+      remaining: _toDouble(json['remaining']),
+    );
+  }
+}
+
+/// Everything one source warehouse sent out and the receivers' claims on it
+/// (`list_handovers.to_match`). Computed per request by the server, never
+/// stored. [dispatches] + [receipts] are the exact members the manager was
+/// shown: `confirm_match` sends them back as its concurrency token.
+class MatchGroup {
+  const MatchGroup({
+    required this.sourceWarehouse,
+    required this.sourceLabel,
+    this.dispatches = const [],
+    this.receipts = const [],
+    this.destinations = const [],
+    this.items = const [],
+    this.balanced = false,
+    this.oldestAt,
+    this.declaredByNames = const [],
+    this.canConfirm = false,
+  });
+
+  final String sourceWarehouse;
+  final String sourceLabel;
+  final List<String> dispatches;
+  final List<String> receipts;
+  final List<MatchDestination> destinations;
+  final List<MatchItem> items;
+  final bool balanced;
+  final DateTime? oldestAt;
+  final List<String> declaredByNames;
+
+  /// False when the current user declared any member: another manager must
+  /// confirm.
+  final bool canConfirm;
+
+  /// The exact member list `confirm_match` expects.
+  List<String> get members => [...dispatches, ...receipts];
+
+  /// Units not placed yet, summed over the items (absolute values), for the
+  /// "N units unmatched" chip.
+  double get unmatchedUnits =>
+      items.fold(0.0, (sum, i) => sum + i.remaining.abs());
+
+  String labelFor(String warehouse) {
+    for (final d in destinations) {
+      if (d.warehouse == warehouse) return d.label;
+    }
+    return warehouse;
+  }
+
+  factory MatchGroup.fromJson(Map<String, dynamic> json) {
+    final wh = _toStr(json['source_warehouse']);
+    final label = _toStr(json['source_label']);
+    return MatchGroup(
+      sourceWarehouse: wh,
+      sourceLabel: label.isEmpty ? wh : label,
+      dispatches: _strings(json['dispatches']),
+      receipts: _strings(json['receipts']),
+      destinations:
+          _maps(json['destinations']).map(MatchDestination.fromJson).toList(),
+      items: _maps(json['items']).map(MatchItem.fromJson).toList(),
+      balanced: _toBool(json['balanced']),
+      oldestAt: DateTime.tryParse(_toStr(json['oldest_at'])),
+      declaredByNames: _strings(json['declared_by_names']),
+      canConfirm: _toBool(json['can_confirm']),
+    );
+  }
+}
+
+/// What `confirm_match` answered: `{ok, stock_entry, handovers: [names]}`.
+class MatchConfirmOutcome {
+  const MatchConfirmOutcome({this.stockEntry, this.handovers = const []});
+
+  final String? stockEntry;
+  final List<String> handovers;
+
+  factory MatchConfirmOutcome.fromJson(Map<String, dynamic> json) =>
+      MatchConfirmOutcome(
+        stockEntry: _toOptStr(json['stock_entry']),
+        handovers: _strings(json['handovers']),
+      );
 }
 
 /// What `transfer.submit_transfer` answered.

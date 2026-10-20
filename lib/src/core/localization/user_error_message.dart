@@ -63,6 +63,9 @@ String userErrorMessageFor(
       error.startsWith('${l10n.userErrorValidationFallback}\n')) {
     return error;
   }
+  if (error is String && error.startsWith('${l10n.userErrorHandoverRule}\n')) {
+    return error;
+  }
   final category = _classify(error);
   if (error is! Error &&
       (category == _UserErrorCategory.unknown ||
@@ -339,6 +342,12 @@ String _withArabicLead(AppLocalizations l10n, String reason) =>
 bool _hasCodeIdentifier(String value) =>
     RegExp(r'[A-Za-z0-9]+_[A-Za-z0-9_]+').hasMatch(value);
 
+bool _isHandoverRule(String lowerText) => _hasAny(lowerText, const [
+      'to confirm this handover',
+      'every unit must go somewhere',
+      'something changed in this batch',
+    ]);
+
 String? _businessMessage(AppLocalizations l10n, String? candidate) {
   if (candidate == null || !_isSafeUserText(candidate)) return null;
   final text = candidate.toLowerCase();
@@ -347,6 +356,14 @@ String? _businessMessage(AppLocalizations l10n, String? candidate) {
   if (text == 'no profile selected' || text.contains('select a pos profile'))
     return l10n.checkoutSelectProfileFirst;
   if (text == 'draft_limit_reached') return l10n.userErrorDraftLimit;
+  // Stock Handover rules (`jarz_pos.services.stock_handover`): the server's
+  // sentence says exactly what to fix ("Every unit must go somewhere", "Something
+  // changed in this batch..."), so keep it after a localized lead line. This
+  // must come before the stock clauses below: those would swallow it into the
+  // generic "insufficient stock" text.
+  if (_isHandoverRule(text)) {
+    return '${l10n.userErrorHandoverRule}\n$candidate';
+  }
   // Cash Custody refusals (`jarz_pos.api.cash_custody`, and the custody
   // branch of expenses / purchase payment). Arabic only: an English UI keeps
   // the server's own sentence, which names the balance and the holder, while

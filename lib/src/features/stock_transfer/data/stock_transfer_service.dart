@@ -113,15 +113,18 @@ class StockTransferService {
     return HandoverContext.fromJson(unwrapFrappeMap(resp.data));
   }
 
-  /// The items that may be declared between the two sides (jars only).
+  /// The items that may be declared between the two sides (jars only). With
+  /// no [counterpartWarehouse] ("I sent out") the server returns the union
+  /// over every possible receiver.
   Future<List<HandoverItemOption>> listHandoverItems({
     required String myWarehouse,
-    required String counterpartWarehouse,
+    String? counterpartWarehouse,
     String? search,
   }) async {
     final resp = await _dio.post(ApiEndpoints.stockHandoverListItems, data: {
       'my_warehouse': myWarehouse,
-      'counterpart_warehouse': counterpartWarehouse,
+      if (counterpartWarehouse != null && counterpartWarehouse.isNotEmpty)
+        'counterpart_warehouse': counterpartWarehouse,
       if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
     });
     final message = unwrapFrappeMessage(resp.data);
@@ -136,21 +139,28 @@ class StockTransferService {
         .toList();
   }
 
-  /// "I received from …" ([direction] `in`) or "… took from me / I sent"
-  /// (`out`). Lines without a positive quantity never leave the client.
+  /// "I received from …" ([direction] `in`, needs [counterpartWarehouse]) or
+  /// "I sent out" (`out`, no counterpart: a Dispatch a manager matches later).
+  /// Lines without a positive quantity never leave the client.
+  /// [clientRequestId] is generated once per editor session so a double tap
+  /// returns the first handover instead of inserting a second.
   Future<StockHandover?> declareHandover({
     required String myWarehouse,
-    required String counterpartWarehouse,
+    String? counterpartWarehouse,
     required String direction,
     required List<Map<String, dynamic>> lines,
     String? posProfile,
+    String? clientRequestId,
   }) async {
     final resp = await _dio.post(ApiEndpoints.stockHandoverDeclare, data: {
       'my_warehouse': myWarehouse,
-      'counterpart_warehouse': counterpartWarehouse,
+      if (counterpartWarehouse != null && counterpartWarehouse.isNotEmpty)
+        'counterpart_warehouse': counterpartWarehouse,
       'direction': direction,
       'lines': positiveHandoverLines(lines),
       if (posProfile != null && posProfile.isNotEmpty) 'pos_profile': posProfile,
+      if (clientRequestId != null && clientRequestId.isNotEmpty)
+        'client_request_id': clientRequestId,
     });
     return _handoverFrom(resp.data);
   }
@@ -199,6 +209,25 @@ class StockTransferService {
     return _handoverFrom(resp.data);
   }
 
+  /// Manager confirms a whole "sent out" batch. [members] is the exact
+  /// `dispatches + receipts` list the manager was shown (the server's
+  /// concurrency token); [lines] is `[{item_code, sent, splits:[{warehouse,
+  /// qty}]}]`. Zero or negative splits are dropped here.
+  Future<MatchConfirmOutcome> confirmMatch({
+    required String sourceWarehouse,
+    required List<String> members,
+    required List<Map<String, dynamic>> lines,
+    String? note,
+  }) async {
+    final resp = await _dio.post(ApiEndpoints.stockHandoverConfirmMatch, data: {
+      'source_warehouse': sourceWarehouse,
+      'members': members,
+      'lines': positiveMatchLines(lines),
+      if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+    });
+    return MatchConfirmOutcome.fromJson(unwrapFrappeMap(resp.data));
+  }
+
   /// `{"ok": true, "handover": {...}}`, or the handover itself.
   StockHandover? _handoverFrom(Object? payload) {
     final message = unwrapFrappeMap(payload);
@@ -226,4 +255,33 @@ List<Map<String, dynamic>> positiveHandoverLines(
           (l['qty'] as num) > 0)
         {'item_code': l['item_code'], 'qty': (l['qty'] as num).toDouble()},
   ];
+}
+
+/// `{item_code, sent, splits:[{warehouse, qty}]}` keeping only positive,
+/// finite splits. Every item keeps its line, even with sent 0 and no splits:
+/// the server refuses a batch with "Every item in the batch needs a line"
+/// when one is missing.
+List<Map<String, dynamic>> positiveMatchLines(
+  List<Map<String, dynamic>> lines,
+) {
+  bool positive(Object? v) => v is num && v.isFinite && v > 0;
+  final out = <Map<String, dynamic>>[];
+  for (final l in lines) {
+    if (l['item_code'] == null) continue;
+    final splits = <Map<String, dynamic>>[];
+    final raw = l['splits'];
+    if (raw is List) {
+      for (final s in raw) {
+        if (s is Map && s['warehouse'] != null && positive(s['qty'])) {
+          splits.add({
+            'warehouse': s['warehouse'],
+            'qty': (s['qty'] as num).toDouble(),
+          });
+        }
+      }
+    }
+    final sent = positive(l['sent']) ? (l['sent'] as num).toDouble() : 0.0;
+    out.add({'item_code': l['item_code'], 'sent': sent, 'splits': splits});
+  }
+  return out;
 }

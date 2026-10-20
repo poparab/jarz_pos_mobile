@@ -72,6 +72,12 @@ class JarzFirebaseMessagingService : FlutterFirebaseMessagingService() {
                 "branch_count_approval", "branch_count_rejected" -> {
                     OrderAlertNative.showApprovalNotification(applicationContext, data)
                 }
+                // Stock handover: a manager is awaited on a handover or a sent-out
+                // batch to match. Same foreground gap, same quiet approvals
+                // channel. The tap routes to /stock-transfer?tab=handovers.
+                "stock_handover" -> {
+                    OrderAlertNative.showApprovalNotification(applicationContext, data)
+                }
             }
         }
         super.onMessageReceived(remoteMessage)

@@ -9,6 +9,7 @@ import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../../core/network/user_service.dart';
 import '../data/stock_handover_models.dart';
 import '../data/stock_transfer_service.dart';
+import '../state/match_plan.dart';
 import '../state/stock_handover_providers.dart';
 import 'widgets/stock_handover_view.dart';
 import 'widgets/stock_transfer_history.dart';
@@ -19,7 +20,7 @@ import 'widgets/stock_transfer_history.dart';
 /// answers): a transfer manager gets two tabs — the full transfer and the
 /// handovers — and everyone else (the branch on shift, the production team)
 /// gets the handover view alone. Every endpoint re-checks on the server.
-class StockTransferScreen extends ConsumerWidget {
+class StockTransferScreen extends ConsumerStatefulWidget {
   const StockTransferScreen({super.key, this.initialTab});
 
   /// `handovers` opens a manager on the Handovers tab (where a
@@ -27,7 +28,48 @@ class StockTransferScreen extends ConsumerWidget {
   final String? initialTab;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StockTransferScreen> createState() =>
+      _StockTransferScreenState();
+}
+
+class _StockTransferScreenState extends ConsumerState<StockTransferScreen>
+    with SingleTickerProviderStateMixin {
+  // Owned here (not a DefaultTabController) so a push tap that re-opens this
+  // already-mounted screen with `?tab=handovers` can still move the tab:
+  // the route's widget is updated, not rebuilt from scratch.
+  //
+  // Created in initState, not lazily: a non-manager never reads it, and a
+  // lazy `late final` would first run inside dispose() and create a ticker
+  // while the state is being torn down.
+  late final TabController _tabs;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabs = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTab == 'handovers' ? 1 : 0,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant StockTransferScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTab == 'handovers' &&
+        oldWidget.initialTab != 'handovers') {
+      _tabs.animateTo(1);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabs.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final ctxAsync = ref.watch(stockHandoverContextProvider);
     final roleManager = ref.watch(canAccessStockTransferProvider);
@@ -43,53 +85,53 @@ class StockTransferScreen extends ConsumerWidget {
     }
 
     final profile = ref.watch(handoverSelectedProfileProvider);
+    // Only what a manager is actually awaited on: rows they can answer, plus
+    // "sent out" batches that already add up and are ready to confirm.
     final waiting = handoverCtx == null
         ? 0
-        : ref
+        : handoverBadgeCount(
+            ref
                 .watch(stockHandoverListsProvider(
                     handoverListQueryFor(handoverCtx, profile)))
-                .valueOrNull
-                ?.waitingForMe
-                .length ??
-            0;
+                .valueOrNull,
+            myWarehouses: [for (final s in handoverCtx.mySides) s.warehouse],
+          );
 
-    return DefaultTabController(
-      length: 2,
-      initialIndex: initialTab == 'handovers' ? 1 : 0,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.stockTransferTitle),
-          actions: [
-            IconButton(
-              tooltip: l10n.stockTransferHistoryTitle,
-              icon: const Icon(Icons.history),
-              onPressed: () => StockTransferHistory.show(context, ref),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.stockTransferTitle),
+        actions: [
+          IconButton(
+            tooltip: l10n.stockTransferHistoryTitle,
+            icon: const Icon(Icons.history),
+            onPressed: () => StockTransferHistory.show(context, ref),
+          ),
+        ],
+        bottom: TabBar(
+          controller: _tabs,
+          tabs: [
+            Tab(text: l10n.stockHandoverTabTransfer),
+            Tab(
+              child: Badge(
+                isLabelVisible: waiting > 0,
+                label: Text('$waiting'),
+                offset: const Offset(14, -6),
+                child: Text(l10n.stockHandoverTabHandovers),
+              ),
             ),
           ],
-          bottom: TabBar(
-            tabs: [
-              Tab(text: l10n.stockHandoverTabTransfer),
-              Tab(
-                child: Badge(
-                  isLabelVisible: waiting > 0,
-                  label: Text('$waiting'),
-                  offset: const Offset(14, -6),
-                  child: Text(l10n.stockHandoverTabHandovers),
-                ),
-              ),
-            ],
-          ),
         ),
-        drawer: const AppDrawer(),
-        body: const TabBarView(
-          // The full transfer lists scroll vertically only, but a stray
-          // horizontal swipe must not throw away a half-built transfer view.
-          physics: NeverScrollableScrollPhysics(),
-          children: [
-            _FullTransferPanel(),
-            StockHandoverView(),
-          ],
-        ),
+      ),
+      drawer: const AppDrawer(),
+      body: TabBarView(
+        controller: _tabs,
+        // The full transfer lists scroll vertically only, but a stray
+        // horizontal swipe must not throw away a half-built transfer view.
+        physics: const NeverScrollableScrollPhysics(),
+        children: const [
+          _FullTransferPanel(),
+          StockHandoverView(),
+        ],
       ),
     );
   }
@@ -121,6 +163,10 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
   // asks for both halves or returns nothing.
   DateTime? postingDate;
 
+  /// A submit is in flight: blocks a second tap from creating a second
+  /// handover while the first reply is still on its way.
+  bool _submitting = false;
+
   // Keep the latest search results to enable bulk-add/select-all actions
   List<Map<String, dynamic>> currentItems = [];
 
@@ -146,13 +192,17 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
     final l10n = context.l10n;
     final isPhone = ResponsiveUtils.isPhone(context);
     final padding = ResponsiveUtils.getResponsivePadding(context, small: 10, medium: 12, large: 12);
+    // Rebuild once get_context arrives: it decides whether the pair is a
+    // branch handover (F8).
+    ref.watch(stockHandoverContextProvider);
+    final pending = _touchesBranch();
 
     final leftPanel = Padding(
       padding: padding,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _buildBranchSelectors(),
         const SizedBox(height: 8),
-        _buildDatePickerRow(),
+        if (pending) _buildPendingNote() else _buildDatePickerRow(),
         const SizedBox(height: 8),
         Row(children: [
           Expanded(
@@ -212,7 +262,7 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
                   const SizedBox(width: 8),
                   Text(l10n.stockTransferLinesTitle(lines.length), style: Theme.of(context).textTheme.titleMedium),
                   const Spacer(),
-                  if (postingDate != null)
+                  if (postingDate != null && !pending)
                     Padding(
                       padding: const EdgeInsetsDirectional.only(end: 8.0),
                       child: Chip(label: Text(l10n.stockTransferPostingChip(formatPostingDateTimeForDisplay(context, postingDate!)))),
@@ -282,7 +332,7 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ),
-                            if (postingDate != null)
+                            if (postingDate != null && !_touchesBranch())
                               Padding(
                                 padding: const EdgeInsetsDirectional.only(end: 8.0),
                                 child: Chip(label: Text(l10n.stockTransferPostingChip(formatPostingDateTimeForDisplay(context, postingDate!)))),
@@ -406,7 +456,47 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
     );
   }
 
+  /// True when either side of the chosen pair is a branch: the transfer then
+  /// becomes a handover the other side confirms, and is posted at that moment,
+  /// so there is no posting date to pick or confirm. Mirrors the server's
+  /// `touches_branch`: both sides must be known sides.
+  bool _touchesBranch() {
+    final source = sourceWarehouse;
+    final target = targetWarehouse;
+    if (source == null || target == null) return false;
+    final ctx = ref.read(stockHandoverContextProvider).valueOrNull;
+    // Before get_context answers: this form only offers POS Profile
+    // warehouses, which are branches.
+    if (ctx == null) return true;
+    final known = {
+      for (final side in [...ctx.mySides, ...ctx.counterparts])
+        side.warehouse: side,
+    };
+    final a = known[source];
+    final b = known[target];
+    if (a == null || b == null) return false;
+    return a.isBranch || b.isBranch;
+  }
+
+  Widget _buildPendingNote() {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(Icons.info_outline, size: 18, color: theme.colorScheme.outline),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            context.l10n.stockTransferBecomesOfficialNote,
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.outline),
+          ),
+        ),
+      ],
+    );
+  }
+
   bool _canSubmit() {
+    if (_submitting) return false;
     if (sourceWarehouse == null || targetWarehouse == null) return false;
     if (sourceWarehouse == targetWarehouse) return false;
     return lines.any((l) => ((l['qty'] as num?)?.toDouble() ?? 0) > 0);
@@ -703,22 +793,29 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
     final service = ref.read(stockTransferServiceProvider);
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    // A branch handover is posted when the other side confirms, so it has no
+    // posting date and nothing to confirm here (F8).
+    final pending = _touchesBranch();
+    setState(() => _submitting = true);
+    _sheetSetState?.call(() {});
     try {
       final payload = [for (final l in lines) if (((l['qty'] as num?)?.toDouble() ?? 0) > 0) {'item_code': l['item_code'], 'qty': (l['qty'] as num).toDouble()}];
-      final chosen = postingDate;
-      final resolvedPostingDate = resolvePostingDateOrToday(chosen);
-      final confirmedPostingDate = await confirmPostingDatesBeforeSubmit(
-        context,
-        dates: [chosen ?? resolvedPostingDate],
-        includeTime: chosen != null,
-      );
-      if (!confirmedPostingDate || !mounted) {
-        return;
+      String? postingDateStr;
+      if (!pending) {
+        final chosen = postingDate;
+        final resolvedPostingDate = resolvePostingDateOrToday(chosen);
+        final confirmedPostingDate = await confirmPostingDatesBeforeSubmit(
+          context,
+          dates: [chosen ?? resolvedPostingDate],
+          includeTime: chosen != null,
+        );
+        if (!confirmedPostingDate || !mounted) {
+          return;
+        }
+        postingDateStr = chosen == null
+            ? formatPostingDateForApi(resolvedPostingDate)
+            : formatPostingDateTimeForApi(chosen);
       }
-
-      final postingDateStr = chosen == null
-          ? formatPostingDateForApi(resolvedPostingDate)
-          : formatPostingDateTimeForApi(chosen);
       final res = await service.submitTransfer(
         sourceWarehouse: sourceWarehouse!,
         targetWarehouse: targetWarehouse!,
@@ -752,7 +849,13 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
       });
       _sheetSetState?.call(() {});
     } catch (e) {
+      if (!mounted) return;
       messenger.showSnackBar(SnackBar(content: Text(context.userErrorMessage(e))));
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+        _sheetSetState?.call(() {});
+      }
     }
   }
 

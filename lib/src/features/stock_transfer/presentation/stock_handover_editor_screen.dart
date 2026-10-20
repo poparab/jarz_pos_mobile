@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/localization/user_error_message.dart';
-import '../../../core/utils/pasted_text.dart';
 import '../data/stock_handover_models.dart';
 import '../data/stock_transfer_service.dart';
 import '../state/stock_handover_providers.dart';
 import 'widgets/handover_format.dart';
+import 'widgets/handover_qty_input.dart';
 
 /// What the sentence on the review step says.
 enum HandoverEditMode {
   /// Branch or factory: "I received from (counterpart)", direction `in`.
   received,
 
-  /// Branch: "(counterpart) took from me", direction `out`.
-  took,
-
-  /// Factory: "I sent to (counterpart)", direction `out`.
-  sent,
+  /// "I sent out", direction `out`. No destination: the user only says what
+  /// left, and a manager matches it with the branches that received it.
+  sentOut,
 
   /// The awaiting side corrects the quantities of a pending handover.
   change,
@@ -34,25 +32,28 @@ class StockHandoverEditorScreen extends ConsumerStatefulWidget {
   const StockHandoverEditorScreen._({
     required this.mode,
     required this.myWarehouse,
-    required this.counterpartWarehouse,
-    required this.counterpartLabel,
+    this.counterpartWarehouse,
+    this.counterpartLabel,
     this.posProfile,
     this.handover,
   });
 
-  /// A new declaration by [mySide] against [counterpart].
+  /// A new declaration by [mySide]. [counterpart] is required for "I
+  /// received" and ignored for "I sent out".
   factory StockHandoverEditorScreen.declare({
     required HandoverEditMode mode,
     required HandoverSide mySide,
-    required HandoverSide counterpart,
+    HandoverSide? counterpart,
     String? posProfile,
   }) {
     assert(mode != HandoverEditMode.change);
+    assert(mode == HandoverEditMode.sentOut || counterpart != null);
+    final other = mode == HandoverEditMode.sentOut ? null : counterpart;
     return StockHandoverEditorScreen._(
       mode: mode,
       myWarehouse: mySide.warehouse,
-      counterpartWarehouse: counterpart.warehouse,
-      counterpartLabel: counterpart.label,
+      counterpartWarehouse: other?.warehouse,
+      counterpartLabel: other?.label,
       posProfile: mySide.posProfile ?? posProfile,
     );
   }
@@ -75,8 +76,8 @@ class StockHandoverEditorScreen extends ConsumerStatefulWidget {
 
   final HandoverEditMode mode;
   final String myWarehouse;
-  final String counterpartWarehouse;
-  final String counterpartLabel;
+  final String? counterpartWarehouse;
+  final String? counterpartLabel;
   final String? posProfile;
   final StockHandover? handover;
 
@@ -95,6 +96,10 @@ class _StockHandoverEditorScreenState
   _Step _step = _Step.items;
   bool _submitting = false;
   bool _done = false;
+
+  /// One id per editor session: a double tap or a retry after a lost reply
+  /// makes the server hand back the first declaration instead of a second.
+  final String _clientRequestId = const Uuid().v4();
 
   /// Names for lines that came with the handover, so a prefilled item still
   /// reads right even if the server's item list no longer offers it.
@@ -128,6 +133,33 @@ class _StockHandoverEditorScreenState
       );
 
   bool get _hasInput => _qty.values.any((q) => q > 0);
+
+  bool get _isChange => widget.mode == HandoverEditMode.change;
+
+  /// Change mode only: true while the quantities still equal what was
+  /// proposed, so a "change" would say nothing the other side hasn't seen.
+  bool get _unchanged {
+    final h = widget.handover;
+    if (h == null) return false;
+    final before = {
+      for (final l in h.items)
+        if (l.qty > 0) l.itemCode: l.qty,
+    };
+    final now = {
+      for (final e in _qty.entries)
+        if (e.value > 0) e.key: e.value,
+    };
+    if (before.length != now.length) return false;
+    for (final e in before.entries) {
+      final v = now[e.key];
+      if (v == null || (v - e.value).abs() > 1e-9) return false;
+    }
+    return true;
+  }
+
+  /// Review / Send are allowed: something typed, and in change mode, a real
+  /// difference (F4).
+  bool get _canProceed => _hasInput && !(_isChange && _unchanged);
 
   int get _lineCount => _qty.values.where((q) => q > 0).length;
 
@@ -179,7 +211,7 @@ class _StockHandoverEditorScreenState
       setState(() => _step = _Step.items);
       return;
     }
-    final isChange = widget.mode == HandoverEditMode.change;
+    final isChange = _isChange;
     // A change starts filled in, so only a fresh declaration with nothing
     // typed can leave without asking.
     if (_hasInput || isChange) {
@@ -191,7 +223,7 @@ class _StockHandoverEditorScreenState
   }
 
   Future<void> _submit(List<HandoverItemOption> items) async {
-    if (_submitting || !_hasInput) return;
+    if (_submitting || !_canProceed) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
@@ -218,13 +250,20 @@ class _StockHandoverEditorScreenState
           direction: widget.direction,
           lines: lines,
           posProfile: widget.posProfile,
+          clientRequestId: _clientRequestId,
         );
       }
       final waitingFor = (result?.awaitingLabel ?? '').isNotEmpty
           ? result!.awaitingLabel
-          : widget.counterpartLabel;
+          : (widget.counterpartLabel ?? '');
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.stockHandoverSentSnack(waitingFor))),
+        SnackBar(
+          content: Text(
+            widget.mode == HandoverEditMode.sentOut
+                ? l10n.stockHandoverSentOutSnack
+                : l10n.stockHandoverSentSnack(waitingFor),
+          ),
+        ),
       );
       ref.invalidate(stockHandoverListsProvider);
       _done = true;
@@ -242,7 +281,7 @@ class _StockHandoverEditorScreenState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final itemsAsync = ref.watch(stockHandoverItemsProvider(_itemsQuery));
-    final isChange = widget.mode == HandoverEditMode.change;
+    final isChange = _isChange;
     final title = _step == _Step.review
         ? l10n.stockHandoverReviewTitle
         : (isChange ? l10n.stockHandoverEditTitle : l10n.stockHandoverItemsTitle);
@@ -360,6 +399,8 @@ class _StockHandoverEditorScreenState
                   children: rows,
                 ),
         ),
+        if (_isChange && _hasInput && _unchanged)
+          _NoChangeHint(text: l10n.stockHandoverNoChangeHint),
         _BottomBar(
           children: [
             Expanded(
@@ -367,7 +408,7 @@ class _StockHandoverEditorScreenState
                 style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(52),
                 ),
-                onPressed: _hasInput
+                onPressed: _canProceed
                     ? () {
                         FocusScope.of(context).unfocus();
                         setState(() => _step = _Step.review);
@@ -387,14 +428,12 @@ class _StockHandoverEditorScreenState
 
   String _reviewHeader() {
     final l10n = context.l10n;
-    final name = widget.counterpartLabel;
+    final name = widget.counterpartLabel ?? '';
     switch (widget.mode) {
       case HandoverEditMode.received:
         return l10n.stockHandoverReviewReceived(name);
-      case HandoverEditMode.took:
-        return l10n.stockHandoverReviewTook(name);
-      case HandoverEditMode.sent:
-        return l10n.stockHandoverReviewSent(name);
+      case HandoverEditMode.sentOut:
+        return l10n.stockHandoverReviewSentOut;
       case HandoverEditMode.change:
         final h = widget.handover!;
         return l10n.stockHandoverReviewChange(h.fromLabel, h.toLabel);
@@ -413,6 +452,13 @@ class _StockHandoverEditorScreenState
         line.itemCode: line.qty,
     };
     final total = chosen.fold<double>(0, (s, i) => s + (_qty[i.itemCode] ?? 0));
+    // F5: a line that was proposed and is now zero is removed. Show it with
+    // its old quantity struck through and 0 after, so the other side's view
+    // of what changed is complete.
+    final removed = [
+      for (final line in widget.handover?.items ?? const <StockHandoverLine>[])
+        if (line.qty > 0 && (_qty[line.itemCode] ?? 0) <= 0) line,
+    ];
 
     return Column(
       children: [
@@ -460,6 +506,33 @@ class _StockHandoverEditorScreenState
                     ],
                   ),
                 ),
+              for (final line in removed)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(line.itemName,
+                            style: theme.textTheme.titleMedium),
+                      ),
+                      Text(
+                        handoverQty(line.qty),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          decoration: TextDecoration.lineThrough,
+                          color: theme.colorScheme.outline,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        handoverQty(0),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: theme.colorScheme.error,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               const Divider(height: 24),
               Text(
                 l10n.stockHandoverReviewTotal(handoverQty(total)),
@@ -467,13 +540,17 @@ class _StockHandoverEditorScreenState
               ),
               const SizedBox(height: 8),
               Text(
-                l10n.stockHandoverReviewHint,
+                widget.mode == HandoverEditMode.sentOut
+                    ? l10n.stockHandoverReviewHintSentOut
+                    : l10n.stockHandoverReviewHint,
                 style: theme.textTheme.bodySmall
                     ?.copyWith(color: theme.colorScheme.outline),
               ),
             ],
           ),
         ),
+        if (_isChange && _unchanged)
+          _NoChangeHint(text: l10n.stockHandoverNoChangeHint),
         _BottomBar(
           children: [
             Expanded(
@@ -494,7 +571,7 @@ class _StockHandoverEditorScreenState
                 style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(52),
                 ),
-                onPressed: _submitting || chosen.isEmpty
+                onPressed: _submitting || chosen.isEmpty || !_canProceed
                     ? null
                     : () => _submit(items),
                 icon: _submitting
@@ -510,6 +587,29 @@ class _StockHandoverEditorScreenState
           ],
         ),
       ],
+    );
+  }
+}
+
+/// "No change. Confirm it instead": shown above a disabled Review / Send.
+class _NoChangeHint extends StatelessWidget {
+  const _NoChangeHint({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      color: theme.colorScheme.surface,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: theme.textTheme.bodyMedium
+            ?.copyWith(color: theme.colorScheme.outline),
+      ),
     );
   }
 }
@@ -666,7 +766,7 @@ class _HandoverQtyTileState extends State<_HandoverQtyTile> {
                     ?.copyWith(fontWeight: FontWeight.w700),
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: const [_QtyInputFormatter()],
+                inputFormatters: const [HandoverQtyInputFormatter()],
                 decoration: const InputDecoration(
                   isDense: true,
                   hintText: '0',
@@ -690,32 +790,6 @@ class _HandoverQtyTileState extends State<_HandoverQtyTile> {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Positive decimals only, up to 3 places. Arabic-Indic digits and the Arabic
-/// decimal separator (or a comma) are folded to ASCII, so an Arabic keyboard
-/// types a number instead of nothing.
-class _QtyInputFormatter extends TextInputFormatter {
-  const _QtyInputFormatter();
-
-  static final _valid = RegExp(r'^\d{0,6}(\.\d{0,3})?$');
-
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final text = PastedText.normalizeDigits(newValue.text)
-        .replaceAll('٫', '.')
-        .replaceAll(',', '.')
-        .trim();
-    if (!_valid.hasMatch(text)) return oldValue;
-    if (text == newValue.text) return newValue;
-    return TextEditingValue(
-      text: text,
-      selection: TextSelection.collapsed(offset: text.length),
     );
   }
 }

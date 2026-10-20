@@ -337,6 +337,10 @@ abstract final class ApiEndpoints {
   static const stockHandoverCancel =
       '/api/method/jarz_pos.api.stock_handover.cancel';
 
+  /// Manager-only: confirms a whole "sent out" batch with its split.
+  static const stockHandoverConfirmMatch =
+      '/api/method/jarz_pos.api.stock_handover.confirm_match';
+
   // ── Branch Replenishment ─────────────────────────────────────
   /// What each branch is short of, against its own selling rate. Read only —
   /// the send half of that screen posts to [submitTransfer], because moving

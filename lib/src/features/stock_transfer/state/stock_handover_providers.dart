@@ -62,7 +62,8 @@ final stockHandoverListsProvider = FutureProvider.autoDispose
 
 /// `list_items` for one pair of sides. Search is done on the client: the list
 /// is a few dozen jars, and filtering locally keeps typing instant.
-typedef HandoverItemsQuery = ({String myWarehouse, String counterpartWarehouse});
+/// [counterpartWarehouse] is null for "I sent out" (no destination yet).
+typedef HandoverItemsQuery = ({String myWarehouse, String? counterpartWarehouse});
 
 final stockHandoverItemsProvider = FutureProvider.autoDispose
     .family<List<HandoverItemOption>, HandoverItemsQuery>((ref, query) async {

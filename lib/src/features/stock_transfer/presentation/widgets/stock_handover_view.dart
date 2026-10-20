@@ -7,6 +7,7 @@ import '../../data/stock_handover_models.dart';
 import '../../data/stock_transfer_service.dart';
 import '../../state/stock_handover_providers.dart';
 import '../stock_handover_editor_screen.dart';
+import '../stock_handover_match_screen.dart';
 import 'handover_format.dart';
 import 'stock_handover_card.dart';
 
@@ -21,8 +22,9 @@ HandoverListQuery handoverListQueryFor(HandoverContext ctx, String? profile) {
 }
 
 /// The handover half of the Stock Transfer screen: what is waiting for this
-/// user, the two big "I received" / "They took from me" buttons, what is
-/// waiting for the other side, and the recent history.
+/// user, the two big "I received" / "I sent out" buttons, what is waiting for
+/// the other side, and the recent history. A manager also gets the "To match"
+/// section on top: batches a branch sent out, waiting to be matched.
 class StockHandoverView extends ConsumerStatefulWidget {
   const StockHandoverView({super.key});
 
@@ -34,6 +36,10 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
     with AutomaticKeepAliveClientMixin {
   String? _sideWarehouse;
   final Set<String> _busy = {};
+
+  /// Handovers answered successfully whose refreshed list has not arrived yet.
+  /// Their actions stay hidden so a second tap cannot answer them twice.
+  final Set<String> _handled = {};
 
   @override
   bool get wantKeepAlive => true;
@@ -64,22 +70,22 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
     String? profile,
   ) async {
     final l10n = context.l10n;
-    final options = ctx.counterpartsFor(side);
-    if (options.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.stockHandoverNoCounterparts)),
-      );
-      return;
+    // "I sent out" has no destination: the user only says what left and a
+    // manager matches it. Only "I received" asks from where.
+    HandoverSide? counterpart;
+    if (mode == HandoverEditMode.received) {
+      final options = ctx.counterpartsFor(side);
+      if (options.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.stockHandoverNoCounterparts)),
+        );
+        return;
+      }
+      counterpart = options.length == 1
+          ? options.first
+          : await _pickCounterpart(l10n.stockHandoverFromWhom, options);
+      if (counterpart == null || !mounted) return;
     }
-    final title = switch (mode) {
-      HandoverEditMode.received => l10n.stockHandoverFromWhom,
-      HandoverEditMode.took => l10n.stockHandoverWhoTook,
-      _ => l10n.stockHandoverToWhom,
-    };
-    final counterpart = options.length == 1
-        ? options.first
-        : await _pickCounterpart(title, options);
-    if (counterpart == null || !mounted) return;
     final sent = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => StockHandoverEditorScreen.declare(
@@ -171,6 +177,7 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
     try {
       final result = await call(ref.read(stockTransferServiceProvider));
       messenger.showSnackBar(SnackBar(content: Text(successMessage(result))));
+      if (mounted) setState(() => _handled.add(h.name));
       ref.invalidate(stockHandoverListsProvider);
     } catch (e) {
       if (!mounted) return;
@@ -247,7 +254,9 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
       ),
     );
     final reason = reasonCtrl.text;
-    reasonCtrl.dispose();
+    // The dialog's TextField is still mounted during the exit animation, so
+    // dispose only once the route transition is surely over.
+    Future<void>.delayed(const Duration(seconds: 1), reasonCtrl.dispose);
     if (ok != true || !mounted) return;
     await _run(
       h,
@@ -302,6 +311,25 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
     }
   }
 
+  Future<void> _openMatch(
+    HandoverContext ctx,
+    MatchGroup group,
+    String? profile,
+  ) async {
+    final done = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => StockHandoverMatchScreen(
+          group: group,
+          destinations: ctx.counterparts,
+          posProfile: profile,
+        ),
+      ),
+    );
+    if (done == true && mounted) {
+      ref.invalidate(stockHandoverListsProvider);
+    }
+  }
+
   // ── Build ────────────────────────────────────────────────────────────────
 
   @override
@@ -328,8 +356,30 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
         final listsAsync = ref.watch(stockHandoverListsProvider(query));
         final side = _selectedSide(ctx);
 
+        // A fresh list means every pending "handled" mark has been resolved.
+        ref.listen(stockHandoverListsProvider(query), (prev, next) {
+          if (!next.isLoading && _handled.isNotEmpty) {
+            setState(_handled.clear);
+          }
+        });
+
         final children = <Widget>[];
         final lists = listsAsync.valueOrNull;
+
+        // To match — managers only, and only while there is something.
+        if (lists != null && lists.toMatch.isNotEmpty) {
+          children.add(_SectionHeader(
+            icon: Icons.account_tree_outlined,
+            text: l10n.stockHandoverToMatch(lists.toMatch.length),
+            emphasised: true,
+          ));
+          for (final g in lists.toMatch) {
+            children.add(_MatchGroupCard(
+              group: g,
+              onTap: () => _openMatch(ctx, g, profile),
+            ));
+          }
+        }
 
         // Waiting for you — always on top.
         if (lists != null) {
@@ -354,6 +404,7 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
               handover: h,
               highlight: true,
               busy: _busy.contains(h.name),
+              handled: _handled.contains(h.name),
               onConfirm: () => _confirm(h, profile),
               onChange: () => _change(h, profile),
               onReject: () => _reject(h, profile),
@@ -397,6 +448,7 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
               children.add(StockHandoverCard(
                 handover: h,
                 busy: _busy.contains(h.name),
+                handled: _handled.contains(h.name),
                 onConfirm: () => _confirm(h, profile),
                 onChange: () => _change(h, profile),
                 onReject: () => _reject(h, profile),
@@ -457,17 +509,17 @@ class _DeclarePanel extends StatelessWidget {
     final theme = Theme.of(context);
     final factory = selected.isFactory;
 
-    final buttons = factory
-        ? [
-            (Icons.outbox_outlined, l10n.stockHandoverISent, HandoverEditMode.sent),
-            (Icons.move_to_inbox_outlined, l10n.stockHandoverIReceived,
-                HandoverEditMode.received),
-          ]
-        : [
-            (Icons.move_to_inbox_outlined, l10n.stockHandoverIReceived,
-                HandoverEditMode.received),
-            (Icons.outbox_outlined, l10n.stockHandoverTheyTook, HandoverEditMode.took),
-          ];
+    final sentOut = (
+      Icons.outbox_outlined,
+      l10n.stockHandoverISentOut,
+      HandoverEditMode.sentOut,
+    );
+    final received = (
+      Icons.move_to_inbox_outlined,
+      l10n.stockHandoverIReceived,
+      HandoverEditMode.received,
+    );
+    final buttons = factory ? [sentOut, received] : [received, sentOut];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -537,6 +589,99 @@ class _DeclarePanel extends StatelessWidget {
         ),
         const SizedBox(height: 8),
       ],
+    );
+  }
+}
+
+/// One "sent out" batch waiting for a manager: where it came from, how many
+/// items, what each receiver claims so far, and whether it already adds up.
+class _MatchGroupCard extends StatelessWidget {
+  const _MatchGroupCard({required this.group, required this.onTap});
+
+  final MatchGroup group;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final balanced = group.balanced;
+    final chipColor =
+        balanced ? Colors.green.shade700 : theme.colorScheme.error;
+    final chipText = balanced
+        ? l10n.stockHandoverMatchBalanced
+        : l10n.stockHandoverMatchUnmatched(handoverQty(group.unmatchedUnits));
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      elevation: 2,
+      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: theme.colorScheme.primary, width: 1.2),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.outbox_outlined, color: theme.colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      group.sourceLabel,
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: chipColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (balanced)
+                          Icon(Icons.check, size: 14, color: chipColor),
+                        if (balanced) const SizedBox(width: 2),
+                        Text(
+                          chipText,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: chipColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.stockHandoverMatchItems(group.items.length),
+                style: theme.textTheme.bodySmall,
+              ),
+              for (final d in group.destinations)
+                Text(
+                  l10n.stockHandoverMatchClaim(
+                    d.label,
+                    handoverQty(group.items
+                        .fold(0.0, (sum, i) => sum + i.claimFor(d.warehouse))),
+                  ),
+                  style: theme.textTheme.bodyMedium,
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

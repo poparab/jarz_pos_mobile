@@ -759,5 +759,232 @@ void main() {
         );
       });
     });
+
+    group('handover v2: sent out without a counterpart', () {
+      const declarePath = '/api/method/jarz_pos.api.stock_handover.declare';
+      const itemsPath = '/api/method/jarz_pos.api.stock_handover.list_items';
+
+      test('declare out sends no counterpart but a client_request_id',
+          () async {
+        mockDio.setResponse(declarePath, {
+          'message': {
+            'ok': true,
+            'handover': {
+              'name': 'HND-9',
+              'status': 'Pending',
+              'kind': 'Dispatch',
+              'from_warehouse': 'Dokki - J',
+              'from_label': 'Dokki',
+              'to_warehouse': null,
+              'to_label': null,
+              'awaiting_side': 'Manager',
+              'can_cancel': true,
+              'items': [
+                {'item_code': 'A', 'qty': '20', 'declared_qty': 20},
+              ],
+            },
+          },
+        });
+
+        final h = await service.declareHandover(
+          myWarehouse: 'Dokki - J',
+          direction: 'out',
+          clientRequestId: 'req-1',
+          lines: [
+            {'item_code': 'A', 'qty': 20},
+          ],
+        );
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data.containsKey('counterpart_warehouse'), isFalse);
+        expect(data['direction'], 'out');
+        expect(data['client_request_id'], 'req-1');
+        expect(h, isNotNull);
+        expect(h!.isDispatch, isTrue);
+        expect(h.awaitsManager, isTrue);
+        expect(h.toWarehouse, '', reason: 'a null destination reads as empty');
+        expect(h.toLabel, '');
+        expect(h.items.single.qty, 20);
+      });
+
+      test('declare in without a request id omits the field', () async {
+        mockDio.setResponse(declarePath, {'message': {}});
+
+        await service.declareHandover(
+          myWarehouse: 'Dokki - J',
+          counterpartWarehouse: 'Finished Goods - J',
+          direction: 'in',
+          lines: const [],
+        );
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data['counterpart_warehouse'], 'Finished Goods - J');
+        expect(data.containsKey('client_request_id'), isFalse);
+      });
+
+      test('list_items without a counterpart omits it', () async {
+        mockDio.setResponse(itemsPath, {
+          'message': {
+            'items': [
+              {'item_code': 'A'},
+            ],
+          },
+        });
+
+        final items = await service.listHandoverItems(myWarehouse: 'Dokki - J');
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data.containsKey('counterpart_warehouse'), isFalse);
+        expect(items, hasLength(1));
+      });
+    });
+
+    group('handover v2: match groups', () {
+      const listPath = '/api/method/jarz_pos.api.stock_handover.list_handovers';
+      const matchPath = '/api/method/jarz_pos.api.stock_handover.confirm_match';
+
+      Map<String, dynamic> group() => {
+            'source_warehouse': 'Dokki - J',
+            'source_label': 'Dokki',
+            'dispatches': ['HND-1'],
+            'receipts': ['HND-2', 'HND-3'],
+            'destinations': [
+              {
+                'warehouse': 'Nasr city - J',
+                'label': 'Nasr City',
+                'handovers': ['HND-2'],
+              },
+              {'warehouse': 'Maadi - J', 'handovers': ['HND-3']},
+            ],
+            'items': [
+              {
+                'item_code': 'A',
+                'item_name': 'Jar A',
+                'stock_uom': 'Nos',
+                'sent': '20',
+                'claims': [
+                  {'warehouse': 'Nasr city - J', 'qty': 12},
+                  {'warehouse': 'Maadi - J', 'qty': '6.5'},
+                ],
+                'remaining': 1.5,
+              },
+              {
+                'item_code': 'B',
+                'sent': 0,
+                'claims': [
+                  {'warehouse': 'Maadi - J', 'qty': 2},
+                ],
+                'remaining': -2,
+              },
+            ],
+            'balanced': false,
+            'oldest_at': '2026-10-20 09:00:00',
+            'declared_by_names': ['Mona'],
+            'can_confirm': 1,
+          };
+
+      test('to_match parses leniently', () async {
+        mockDio.setResponse(listPath, {
+          'message': {
+            'waiting_for_me': [],
+            'to_match': [group(), 'junk', {}],
+          },
+        });
+
+        final lists = await service.listHandovers();
+
+        expect(lists.toMatch, hasLength(2),
+            reason: 'a non-map row is dropped, an empty map is kept');
+        final g = lists.toMatch.first;
+        expect(g.sourceWarehouse, 'Dokki - J');
+        expect(g.members, ['HND-1', 'HND-2', 'HND-3']);
+        expect(g.canConfirm, isTrue);
+        expect(g.balanced, isFalse);
+        expect(g.destinations, hasLength(2));
+        expect(g.labelFor('Maadi - J'), 'Maadi - J',
+            reason: 'a missing label falls back to the warehouse');
+        final a = g.items.first;
+        expect(a.sent, 20);
+        expect(a.claimFor('Maadi - J'), 6.5);
+        expect(a.claimFor('Nowhere'), 0);
+        expect(a.itemName, 'Jar A');
+        final b = g.items.last;
+        expect(b.itemName, 'B');
+        expect(b.remaining, -2);
+        expect(g.unmatchedUnits, 3.5);
+        expect(lists.isEmpty, isFalse);
+      });
+
+      test('a list without to_match reads as no groups', () async {
+        mockDio.setResponse(listPath, {
+          'message': {'waiting_for_me': []},
+        });
+
+        final lists = await service.listHandovers();
+
+        expect(lists.toMatch, isEmpty);
+      });
+
+      test('confirmMatch posts members, positive lines and a trimmed note',
+          () async {
+        mockDio.setResponse(matchPath, {
+          'message': {
+            'ok': true,
+            'stock_entry': 'MAT-STE-9',
+            'handovers': ['HND-1', 'HND-2'],
+          },
+        });
+
+        final out = await service.confirmMatch(
+          sourceWarehouse: 'Dokki - J',
+          members: ['HND-1', 'HND-2'],
+          note: '  recount  ',
+          lines: [
+            {
+              'item_code': 'A',
+              'sent': 20,
+              'splits': [
+                {'warehouse': 'Nasr city - J', 'qty': 12},
+                {'warehouse': 'Maadi - J', 'qty': 0},
+                {'warehouse': 'Giza - J', 'qty': 8},
+              ],
+            },
+            {'item_code': 'EMPTY', 'sent': 0, 'splits': []},
+          ],
+        );
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data['source_warehouse'], 'Dokki - J');
+        expect(data['members'], ['HND-1', 'HND-2']);
+        expect(data['note'], 'recount');
+        expect(data['lines'], [
+          {
+            'item_code': 'A',
+            'sent': 20.0,
+            'splits': [
+              {'warehouse': 'Nasr city - J', 'qty': 12.0},
+              {'warehouse': 'Giza - J', 'qty': 8.0},
+            ],
+          },
+          {'item_code': 'EMPTY', 'sent': 0.0, 'splits': <Map>[]},
+        ], reason: 'every item of the batch keeps a line, even all-zero');
+        expect(out.stockEntry, 'MAT-STE-9');
+        expect(out.handovers, ['HND-1', 'HND-2']);
+      });
+
+      test('confirmMatch omits a blank note', () async {
+        mockDio.setResponse(matchPath, {'message': {'ok': true}});
+
+        await service.confirmMatch(
+          sourceWarehouse: 'Dokki - J',
+          members: ['HND-1'],
+          note: '   ',
+          lines: const [],
+        );
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data.containsKey('note'), isFalse);
+      });
+    });
   });
 }
