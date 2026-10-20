@@ -19110,4 +19110,252 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get managerBarMore => 'المزيد';
+
+  @override
+  String get stockHandoverTabHandovers => 'التسليمات';
+
+  @override
+  String get stockHandoverTabTransfer => 'تحويل كامل';
+
+  @override
+  String get stockHandoverNoAccess =>
+      'افتح وردية على فرعك عشان تسجّل استلام وتسليم البضاعة.';
+
+  @override
+  String stockHandoverLoadFailed(String reason) {
+    return 'مقدرناش نحمّل التسليمات: $reason';
+  }
+
+  @override
+  String stockHandoverWaitingForYou(int count) {
+    return 'مستنية تأكيدك ($count)';
+  }
+
+  @override
+  String stockHandoverWaitingForThem(int count) {
+    return 'مستنية الطرف التاني ($count)';
+  }
+
+  @override
+  String stockHandoverRecent(int count) {
+    return 'الأخيرة ($count)';
+  }
+
+  @override
+  String get stockHandoverNothingWaiting => 'مفيش حاجة مستنياك.';
+
+  @override
+  String stockHandoverRoute(String source, String target) {
+    return 'من $source لـ $target';
+  }
+
+  @override
+  String stockHandoverDeclaredBy(String name, String time) {
+    return 'سجّلها $name · $time';
+  }
+
+  @override
+  String stockHandoverChangedBy(String name, String time) {
+    return 'عدّلها $name · $time';
+  }
+
+  @override
+  String stockHandoverAwaiting(String side) {
+    return 'مستنية $side';
+  }
+
+  @override
+  String get stockHandoverChangedBadge => 'متعدّلة';
+
+  @override
+  String get stockHandoverStatusPending => 'مستنية';
+
+  @override
+  String get stockHandoverStatusConfirmed => 'اتأكدت';
+
+  @override
+  String get stockHandoverStatusRejected => 'اترفضت';
+
+  @override
+  String get stockHandoverStatusCancelled => 'اتلغت';
+
+  @override
+  String stockHandoverReason(String reason) {
+    return 'السبب: $reason';
+  }
+
+  @override
+  String stockHandoverEntry(String entry) {
+    return 'قيد $entry';
+  }
+
+  @override
+  String get stockHandoverConfirm => 'تأكيد';
+
+  @override
+  String get stockHandoverChange => 'تعديل';
+
+  @override
+  String get stockHandoverReject => 'رفض';
+
+  @override
+  String get stockHandoverCancel => 'إلغاء التسليم';
+
+  @override
+  String get stockHandoverConfirmTitle => 'تأكيد التسليم ده؟';
+
+  @override
+  String stockHandoverConfirmBody(String source, String target) {
+    return 'البضاعة هتتنقل من $source لـ $target دلوقتي.';
+  }
+
+  @override
+  String get stockHandoverRejectTitle => 'رفض التسليم ده؟';
+
+  @override
+  String get stockHandoverRejectReasonHint => 'السبب (اختياري)';
+
+  @override
+  String get stockHandoverCancelTitle => 'إلغاء التسليم ده؟';
+
+  @override
+  String get stockHandoverCancelBody =>
+      'لسه مفيش حاجة اتنقلت، والطرف التاني مش هيتطلب منه يأكدها.';
+
+  @override
+  String get stockHandoverKeep => 'سيبها';
+
+  @override
+  String stockHandoverConfirmedSnack(String entry) {
+    return 'اتأكدت. البضاعة اتنقلت ($entry).';
+  }
+
+  @override
+  String get stockHandoverRejectedSnack => 'اترفض التسليم.';
+
+  @override
+  String get stockHandoverCancelledSnack => 'اتلغى التسليم.';
+
+  @override
+  String stockHandoverSentSnack(String side) {
+    return 'اتبعتت. مستنية $side تأكد.';
+  }
+
+  @override
+  String get stockHandoverActingAs => 'إنت';
+
+  @override
+  String get stockHandoverIReceived => 'استلمت';
+
+  @override
+  String get stockHandoverTheyTook => 'خدوا مني';
+
+  @override
+  String get stockHandoverISent => 'بعتّ';
+
+  @override
+  String get stockHandoverFromWhom => 'استلمت من مين؟';
+
+  @override
+  String get stockHandoverWhoTook => 'مين اللي خد؟';
+
+  @override
+  String get stockHandoverToWhom => 'بعتّ لمين؟';
+
+  @override
+  String get stockHandoverNoCounterparts =>
+      'مفيش طرف تاني تستلم منه أو تسلّمه.';
+
+  @override
+  String get stockHandoverItemsTitle => 'ضيف الأصناف';
+
+  @override
+  String get stockHandoverEditTitle => 'تعديل الكميات';
+
+  @override
+  String stockHandoverReviewButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مراجعة ($count صنف)',
+      few: 'مراجعة ($count أصناف)',
+      two: 'مراجعة (صنفين)',
+      one: 'مراجعة (صنف واحد)',
+      zero: 'مراجعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stockHandoverNoItems => 'مفيش أصناف بين الطرفين دول.';
+
+  @override
+  String get stockHandoverReviewTitle => 'مراجعة';
+
+  @override
+  String stockHandoverReviewReceived(String name) {
+    return 'إنت استلمت من $name:';
+  }
+
+  @override
+  String stockHandoverReviewTook(String name) {
+    return '$name خد منك:';
+  }
+
+  @override
+  String stockHandoverReviewSent(String name) {
+    return 'إنت بعتّ لـ $name:';
+  }
+
+  @override
+  String stockHandoverReviewChange(String source, String target) {
+    return 'الكميات الصح، من $source لـ $target:';
+  }
+
+  @override
+  String stockHandoverReviewTotal(String qty) {
+    return 'الإجمالي: $qty';
+  }
+
+  @override
+  String get stockHandoverReviewHint =>
+      'مفيش حاجة هتتنقل غير لما الطرف التاني يأكد.';
+
+  @override
+  String get stockHandoverBack => 'رجوع';
+
+  @override
+  String get stockHandoverSend => 'تأكيد وإرسال';
+
+  @override
+  String get stockHandoverDiscardTitle => 'تلغي الكميات اللي كتبتها؟';
+
+  @override
+  String get stockHandoverDiscard => 'إلغاء';
+
+  @override
+  String get stockHandoverKeepEditing => 'كمّل';
+
+  @override
+  String stockTransferSentPending(String handover) {
+    return 'اتبعت. مستني الطرف التاني يأكد ($handover).';
+  }
+
+  @override
+  String replenishmentSentPendingBody(
+    int lineCount,
+    String totalQty,
+    String name,
+    String handover,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lineCount,
+      locale: localeName,
+      other: '$lineCount سطر',
+      few: '$lineCount سطور',
+      two: 'سطرين',
+      one: 'سطر واحد',
+    );
+    return '$_temp0 · $totalQty قطعة · مستني $name يأكد ($handover)';
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/frappe_error_message.dart';
+import '../../stock_transfer/data/stock_handover_models.dart';
 import '../../stock_transfer/data/stock_transfer_service.dart';
 import '../data/models/branch_replenishment.dart';
 import '../data/replenishment_service.dart';
@@ -31,6 +32,8 @@ class ReplenishmentSendResult {
     required this.lineCount,
     required this.totalQty,
     required this.stockEntry,
+    this.handover = '',
+    this.pending = false,
   }) : success = true,
        error = null,
        failedItemName = null;
@@ -42,13 +45,20 @@ class ReplenishmentSendResult {
   }) : success = false,
        lineCount = 0,
        totalQty = 0,
-       stockEntry = '';
+       stockEntry = '',
+       handover = '',
+       pending = false;
 
   final bool success;
   final String branchLabel;
   final int lineCount;
   final double totalQty;
   final String stockEntry;
+
+  /// Set when the branch must confirm before anything moves: `submit_transfer`
+  /// answered `pending: true` with a handover name instead of a Stock Entry.
+  final String handover;
+  final bool pending;
 
   /// The raw failure, so the screen can run it through the app's own error
   /// presenter instead of this layer guessing at wording.
@@ -155,6 +165,7 @@ class ReplenishmentDraftNotifier extends AutoDisposeNotifier<ReplenishmentDraft>
             targetWarehouse: branch.warehouse,
             lines: lines,
           );
+      final outcome = TransferSubmitOutcome.fromJson(response);
       state = state.copyWith(
         sending: false,
         edits: {
@@ -167,7 +178,9 @@ class ReplenishmentDraftNotifier extends AutoDisposeNotifier<ReplenishmentDraft>
           branchLabel: branch.displayName,
           lineCount: totals.lineCount,
           totalQty: totals.totalQty,
-          stockEntry: (response['stock_entry'] ?? '').toString(),
+          stockEntry: outcome.stockEntry ?? '',
+          handover: outcome.handover ?? '',
+          pending: outcome.pending,
         ),
       );
       ref.invalidate(replenishmentPlanProvider);

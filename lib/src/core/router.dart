@@ -540,7 +540,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.stockTransfer,
         name: 'stock-transfer',
-        builder: (context, state) => const StockTransferScreen(),
+        builder: (context, state) => StockTransferScreen(
+          initialTab: state.uri.queryParameters['tab'],
+        ),
       ),
       // Ungated here like every other manager screen: the drawer decides who
       // is offered the entry (`canAccessStockTransferProvider`, the same gate

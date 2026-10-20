@@ -320,6 +320,23 @@ abstract final class ApiEndpoints {
   static const transferListHistory =
       '/api/method/jarz_pos.api.transfer.list_transfers';
 
+  // ── Stock Handover ────────────────────────────────────────────────────
+  // A movement that touches a branch is declared by one side and becomes a
+  // Stock Entry only when the OTHER side confirms. `submitTransfer` above now
+  // answers `pending: true` + a handover name for those instead of posting.
+  static const stockHandoverGetContext =
+      '/api/method/jarz_pos.api.stock_handover.get_context';
+  static const stockHandoverListItems =
+      '/api/method/jarz_pos.api.stock_handover.list_items';
+  static const stockHandoverDeclare =
+      '/api/method/jarz_pos.api.stock_handover.declare';
+  static const stockHandoverList =
+      '/api/method/jarz_pos.api.stock_handover.list_handovers';
+  static const stockHandoverRespond =
+      '/api/method/jarz_pos.api.stock_handover.respond';
+  static const stockHandoverCancel =
+      '/api/method/jarz_pos.api.stock_handover.cancel';
+
   // ── Branch Replenishment ─────────────────────────────────────
   /// What each branch is short of, against its own selling rate. Read only —
   /// the send half of that screen posts to [submitTransfer], because moving

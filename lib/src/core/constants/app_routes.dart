@@ -44,6 +44,10 @@ abstract final class AppRoutes {
   static const productionSop = '/manufacturing/sop';
   static const stockTransfer = '/stock-transfer';
 
+  /// Stock Transfer opened on its Handovers tab (where a `stock_handover`
+  /// push lands). Non-managers only have that view, so the query is ignored.
+  static const stockTransferHandovers = '/stock-transfer?tab=handovers';
+
   /// What the factory should send each branch today. Separate from
   /// [stockTransfer], which is the manual "move these items from A to B" form:
   /// this one answers WHAT to move, and only then moves it.

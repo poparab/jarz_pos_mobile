@@ -6,18 +6,110 @@ import '../../../core/localization/user_error_message.dart';
 import '../../../core/utils/responsive_utils.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
-import '../../manager/state/manager_providers.dart';
+import '../../../core/network/user_service.dart';
+import '../data/stock_handover_models.dart';
 import '../data/stock_transfer_service.dart';
+import '../state/stock_handover_providers.dart';
+import 'widgets/stock_handover_view.dart';
 import 'widgets/stock_transfer_history.dart';
 
-class StockTransferScreen extends ConsumerStatefulWidget {
-  const StockTransferScreen({super.key});
+/// Stock Transfer: the manager's full transfer UI plus stock handovers.
+///
+/// Who sees what is decided by `get_context` (the role gate stands in until it
+/// answers): a transfer manager gets two tabs — the full transfer and the
+/// handovers — and everyone else (the branch on shift, the production team)
+/// gets the handover view alone. Every endpoint re-checks on the server.
+class StockTransferScreen extends ConsumerWidget {
+  const StockTransferScreen({super.key, this.initialTab});
+
+  /// `handovers` opens a manager on the Handovers tab (where a
+  /// `stock_handover` push lands). Ignored for everyone else.
+  final String? initialTab;
 
   @override
-  ConsumerState<StockTransferScreen> createState() => _StockTransferScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final ctxAsync = ref.watch(stockHandoverContextProvider);
+    final roleManager = ref.watch(canAccessStockTransferProvider);
+    final handoverCtx = ctxAsync.valueOrNull;
+    final canManage = handoverCtx?.canManage ?? roleManager;
+
+    if (!canManage) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.stockTransferTitle)),
+        drawer: const AppDrawer(),
+        body: const StockHandoverView(),
+      );
+    }
+
+    final profile = ref.watch(handoverSelectedProfileProvider);
+    final waiting = handoverCtx == null
+        ? 0
+        : ref
+                .watch(stockHandoverListsProvider(
+                    handoverListQueryFor(handoverCtx, profile)))
+                .valueOrNull
+                ?.waitingForMe
+                .length ??
+            0;
+
+    return DefaultTabController(
+      length: 2,
+      initialIndex: initialTab == 'handovers' ? 1 : 0,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.stockTransferTitle),
+          actions: [
+            IconButton(
+              tooltip: l10n.stockTransferHistoryTitle,
+              icon: const Icon(Icons.history),
+              onPressed: () => StockTransferHistory.show(context, ref),
+            ),
+          ],
+          bottom: TabBar(
+            tabs: [
+              Tab(text: l10n.stockHandoverTabTransfer),
+              Tab(
+                child: Badge(
+                  isLabelVisible: waiting > 0,
+                  label: Text('$waiting'),
+                  offset: const Offset(14, -6),
+                  child: Text(l10n.stockHandoverTabHandovers),
+                ),
+              ),
+            ],
+          ),
+        ),
+        drawer: const AppDrawer(),
+        body: const TabBarView(
+          // The full transfer lists scroll vertically only, but a stray
+          // horizontal swipe must not throw away a half-built transfer view.
+          physics: NeverScrollableScrollPhysics(),
+          children: [
+            _FullTransferPanel(),
+            StockHandoverView(),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
+/// The manager's full transfer: source/target, search, bulk add, posting date.
+/// For a pair that touches a branch, `submit_transfer` now creates a pending
+/// handover instead of posting.
+class _FullTransferPanel extends ConsumerStatefulWidget {
+  const _FullTransferPanel();
+
+  @override
+  ConsumerState<_FullTransferPanel> createState() => _FullTransferPanelState();
+}
+
+class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   String? sourceProfile;
   String? targetProfile;
   String? sourceWarehouse;
@@ -50,27 +142,10 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final l10n = context.l10n;
-    final allowed = ref.watch(managerAccessProvider).maybeWhen(data: (v) => v, orElse: () => false);
-    if (!allowed) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.stockTransferTitle)),
-        body: Center(child: Text(l10n.stockTransferManagersOnly)),
-      );
-    }
     final isPhone = ResponsiveUtils.isPhone(context);
     final padding = ResponsiveUtils.getResponsivePadding(context, small: 10, medium: 12, large: 12);
-
-    final appBar = AppBar(
-      title: Text(l10n.stockTransferTitle),
-      actions: [
-        IconButton(
-          tooltip: l10n.stockTransferHistoryTitle,
-          icon: const Icon(Icons.history),
-          onPressed: () => StockTransferHistory.show(context, ref),
-        ),
-      ],
-    );
 
     final leftPanel = Padding(
       padding: padding,
@@ -103,9 +178,9 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
     );
 
     if (isPhone) {
+      // A nested Scaffold only to host the lines FAB inside this tab; the app
+      // bar and drawer belong to the screen around it.
       return Scaffold(
-        appBar: appBar,
-        drawer: const AppDrawer(),
         body: leftPanel,
         floatingActionButton: Badge(
           isLabelVisible: lines.isNotEmpty,
@@ -120,8 +195,6 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
     }
 
     return Scaffold(
-      appBar: appBar,
-      drawer: const AppDrawer(),
       body: Row(
         children: [
           Expanded(
@@ -652,9 +725,19 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen> {
         lines: payload,
         postingDate: postingDateStr,
       );
+      final outcome = TransferSubmitOutcome.fromJson(res);
+      // A pair touching a branch is a pending handover now: nothing has moved
+      // until the other side confirms, so there is no entry to name.
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.stockTransferTransferCreated((res['stock_entry'] ?? '-').toString()))),
+        SnackBar(
+          content: Text(
+            outcome.pending
+                ? l10n.stockTransferSentPending(outcome.handover ?? '-')
+                : l10n.stockTransferTransferCreated(outcome.stockEntry ?? '-'),
+          ),
+        ),
       );
+      if (outcome.pending) ref.invalidate(stockHandoverListsProvider);
       if (!mounted) return;
       setState(() {
         for (final l in lines) {

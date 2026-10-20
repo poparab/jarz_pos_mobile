@@ -19114,4 +19114,248 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get managerBarMore => 'More';
+
+  @override
+  String get stockHandoverTabHandovers => 'Handovers';
+
+  @override
+  String get stockHandoverTabTransfer => 'Full transfer';
+
+  @override
+  String get stockHandoverNoAccess =>
+      'Open a shift on your branch to record stock handovers.';
+
+  @override
+  String stockHandoverLoadFailed(String reason) {
+    return 'Could not load handovers: $reason';
+  }
+
+  @override
+  String stockHandoverWaitingForYou(int count) {
+    return 'Waiting for you ($count)';
+  }
+
+  @override
+  String stockHandoverWaitingForThem(int count) {
+    return 'Waiting for them ($count)';
+  }
+
+  @override
+  String stockHandoverRecent(int count) {
+    return 'Recent ($count)';
+  }
+
+  @override
+  String get stockHandoverNothingWaiting => 'Nothing is waiting for you.';
+
+  @override
+  String stockHandoverRoute(String source, String target) {
+    return '$source → $target';
+  }
+
+  @override
+  String stockHandoverDeclaredBy(String name, String time) {
+    return 'Declared by $name · $time';
+  }
+
+  @override
+  String stockHandoverChangedBy(String name, String time) {
+    return 'Changed by $name · $time';
+  }
+
+  @override
+  String stockHandoverAwaiting(String side) {
+    return 'Waiting for $side';
+  }
+
+  @override
+  String get stockHandoverChangedBadge => 'Changed';
+
+  @override
+  String get stockHandoverStatusPending => 'Pending';
+
+  @override
+  String get stockHandoverStatusConfirmed => 'Confirmed';
+
+  @override
+  String get stockHandoverStatusRejected => 'Rejected';
+
+  @override
+  String get stockHandoverStatusCancelled => 'Cancelled';
+
+  @override
+  String stockHandoverReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String stockHandoverEntry(String entry) {
+    return 'Entry $entry';
+  }
+
+  @override
+  String get stockHandoverConfirm => 'Confirm';
+
+  @override
+  String get stockHandoverChange => 'Change';
+
+  @override
+  String get stockHandoverReject => 'Reject';
+
+  @override
+  String get stockHandoverCancel => 'Cancel handover';
+
+  @override
+  String get stockHandoverConfirmTitle => 'Confirm this handover?';
+
+  @override
+  String stockHandoverConfirmBody(String source, String target) {
+    return 'The stock moves from $source to $target now.';
+  }
+
+  @override
+  String get stockHandoverRejectTitle => 'Reject this handover?';
+
+  @override
+  String get stockHandoverRejectReasonHint => 'Reason (optional)';
+
+  @override
+  String get stockHandoverCancelTitle => 'Cancel this handover?';
+
+  @override
+  String get stockHandoverCancelBody =>
+      'Nothing has moved yet. The other side will no longer be asked to confirm it.';
+
+  @override
+  String get stockHandoverKeep => 'Keep it';
+
+  @override
+  String stockHandoverConfirmedSnack(String entry) {
+    return 'Confirmed. Stock moved ($entry).';
+  }
+
+  @override
+  String get stockHandoverRejectedSnack => 'Handover rejected.';
+
+  @override
+  String get stockHandoverCancelledSnack => 'Handover cancelled.';
+
+  @override
+  String stockHandoverSentSnack(String side) {
+    return 'Sent. Waiting for $side to confirm.';
+  }
+
+  @override
+  String get stockHandoverActingAs => 'You are';
+
+  @override
+  String get stockHandoverIReceived => 'I received';
+
+  @override
+  String get stockHandoverTheyTook => 'They took from me';
+
+  @override
+  String get stockHandoverISent => 'I sent';
+
+  @override
+  String get stockHandoverFromWhom => 'Received from whom?';
+
+  @override
+  String get stockHandoverWhoTook => 'Who took it?';
+
+  @override
+  String get stockHandoverToWhom => 'Sent to whom?';
+
+  @override
+  String get stockHandoverNoCounterparts =>
+      'There is nobody to hand stock to or from.';
+
+  @override
+  String get stockHandoverItemsTitle => 'Add items';
+
+  @override
+  String get stockHandoverEditTitle => 'Change quantities';
+
+  @override
+  String stockHandoverReviewButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Review ($count items)',
+      one: 'Review (1 item)',
+      zero: 'Review',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stockHandoverNoItems => 'No items to declare between these two.';
+
+  @override
+  String get stockHandoverReviewTitle => 'Review';
+
+  @override
+  String stockHandoverReviewReceived(String name) {
+    return 'You received from $name:';
+  }
+
+  @override
+  String stockHandoverReviewTook(String name) {
+    return '$name took from you:';
+  }
+
+  @override
+  String stockHandoverReviewSent(String name) {
+    return 'You sent to $name:';
+  }
+
+  @override
+  String stockHandoverReviewChange(String source, String target) {
+    return 'Correct quantities, $source → $target:';
+  }
+
+  @override
+  String stockHandoverReviewTotal(String qty) {
+    return 'Total: $qty';
+  }
+
+  @override
+  String get stockHandoverReviewHint =>
+      'Nothing moves until the other side confirms.';
+
+  @override
+  String get stockHandoverBack => 'Back';
+
+  @override
+  String get stockHandoverSend => 'Confirm and send';
+
+  @override
+  String get stockHandoverDiscardTitle => 'Discard the quantities you entered?';
+
+  @override
+  String get stockHandoverDiscard => 'Discard';
+
+  @override
+  String get stockHandoverKeepEditing => 'Keep editing';
+
+  @override
+  String stockTransferSentPending(String handover) {
+    return 'Sent. Waiting for the other side to confirm ($handover).';
+  }
+
+  @override
+  String replenishmentSentPendingBody(
+    int lineCount,
+    String totalQty,
+    String name,
+    String handover,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lineCount,
+      locale: localeName,
+      other: '$lineCount lines',
+      one: '1 line',
+    );
+    return '$_temp0 · $totalQty units · waiting for $name to confirm ($handover)';
+  }
 }

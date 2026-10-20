@@ -50,6 +50,11 @@ function notificationUrlFor(data) {
   if (data.type === 'courier_alert') {
     return `${appBasePath}#/courier-alerts`;
   }
+  // A stock handover waiting for this side's confirmation: the Stock Transfer
+  // screen, opened on its Handovers tab.
+  if (data.type === 'stock_handover') {
+    return `${appBasePath}#/stock-transfer?tab=handovers`;
+  }
   if (data.type === 'task_notification') {
     return data.task_id
       ? `${appBasePath}#/tasks/${encodeURIComponent(data.task_id)}`

@@ -31730,6 +31730,371 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More'**
   String get managerBarMore;
+
+  /// No description provided for @stockHandoverTabHandovers.
+  ///
+  /// In en, this message translates to:
+  /// **'Handovers'**
+  String get stockHandoverTabHandovers;
+
+  /// No description provided for @stockHandoverTabTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Full transfer'**
+  String get stockHandoverTabTransfer;
+
+  /// No description provided for @stockHandoverNoAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a shift on your branch to record stock handovers.'**
+  String get stockHandoverNoAccess;
+
+  /// No description provided for @stockHandoverLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load handovers: {reason}'**
+  String stockHandoverLoadFailed(String reason);
+
+  /// No description provided for @stockHandoverWaitingForYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for you ({count})'**
+  String stockHandoverWaitingForYou(int count);
+
+  /// No description provided for @stockHandoverWaitingForThem.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for them ({count})'**
+  String stockHandoverWaitingForThem(int count);
+
+  /// No description provided for @stockHandoverRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent ({count})'**
+  String stockHandoverRecent(int count);
+
+  /// No description provided for @stockHandoverNothingWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is waiting for you.'**
+  String get stockHandoverNothingWaiting;
+
+  /// No description provided for @stockHandoverRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'{source} → {target}'**
+  String stockHandoverRoute(String source, String target);
+
+  /// No description provided for @stockHandoverDeclaredBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Declared by {name} · {time}'**
+  String stockHandoverDeclaredBy(String name, String time);
+
+  /// No description provided for @stockHandoverChangedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed by {name} · {time}'**
+  String stockHandoverChangedBy(String name, String time);
+
+  /// No description provided for @stockHandoverAwaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {side}'**
+  String stockHandoverAwaiting(String side);
+
+  /// No description provided for @stockHandoverChangedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed'**
+  String get stockHandoverChangedBadge;
+
+  /// No description provided for @stockHandoverStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get stockHandoverStatusPending;
+
+  /// No description provided for @stockHandoverStatusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get stockHandoverStatusConfirmed;
+
+  /// No description provided for @stockHandoverStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get stockHandoverStatusRejected;
+
+  /// No description provided for @stockHandoverStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get stockHandoverStatusCancelled;
+
+  /// No description provided for @stockHandoverReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {reason}'**
+  String stockHandoverReason(String reason);
+
+  /// No description provided for @stockHandoverEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry {entry}'**
+  String stockHandoverEntry(String entry);
+
+  /// No description provided for @stockHandoverConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get stockHandoverConfirm;
+
+  /// No description provided for @stockHandoverChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get stockHandoverChange;
+
+  /// No description provided for @stockHandoverReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get stockHandoverReject;
+
+  /// No description provided for @stockHandoverCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel handover'**
+  String get stockHandoverCancel;
+
+  /// No description provided for @stockHandoverConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm this handover?'**
+  String get stockHandoverConfirmTitle;
+
+  /// No description provided for @stockHandoverConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The stock moves from {source} to {target} now.'**
+  String stockHandoverConfirmBody(String source, String target);
+
+  /// No description provided for @stockHandoverRejectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject this handover?'**
+  String get stockHandoverRejectTitle;
+
+  /// No description provided for @stockHandoverRejectReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get stockHandoverRejectReasonHint;
+
+  /// No description provided for @stockHandoverCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this handover?'**
+  String get stockHandoverCancelTitle;
+
+  /// No description provided for @stockHandoverCancelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has moved yet. The other side will no longer be asked to confirm it.'**
+  String get stockHandoverCancelBody;
+
+  /// No description provided for @stockHandoverKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it'**
+  String get stockHandoverKeep;
+
+  /// No description provided for @stockHandoverConfirmedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed. Stock moved ({entry}).'**
+  String stockHandoverConfirmedSnack(String entry);
+
+  /// No description provided for @stockHandoverRejectedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Handover rejected.'**
+  String get stockHandoverRejectedSnack;
+
+  /// No description provided for @stockHandoverCancelledSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Handover cancelled.'**
+  String get stockHandoverCancelledSnack;
+
+  /// No description provided for @stockHandoverSentSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent. Waiting for {side} to confirm.'**
+  String stockHandoverSentSnack(String side);
+
+  /// No description provided for @stockHandoverActingAs.
+  ///
+  /// In en, this message translates to:
+  /// **'You are'**
+  String get stockHandoverActingAs;
+
+  /// No description provided for @stockHandoverIReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'I received'**
+  String get stockHandoverIReceived;
+
+  /// No description provided for @stockHandoverTheyTook.
+  ///
+  /// In en, this message translates to:
+  /// **'They took from me'**
+  String get stockHandoverTheyTook;
+
+  /// No description provided for @stockHandoverISent.
+  ///
+  /// In en, this message translates to:
+  /// **'I sent'**
+  String get stockHandoverISent;
+
+  /// No description provided for @stockHandoverFromWhom.
+  ///
+  /// In en, this message translates to:
+  /// **'Received from whom?'**
+  String get stockHandoverFromWhom;
+
+  /// No description provided for @stockHandoverWhoTook.
+  ///
+  /// In en, this message translates to:
+  /// **'Who took it?'**
+  String get stockHandoverWhoTook;
+
+  /// No description provided for @stockHandoverToWhom.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to whom?'**
+  String get stockHandoverToWhom;
+
+  /// No description provided for @stockHandoverNoCounterparts.
+  ///
+  /// In en, this message translates to:
+  /// **'There is nobody to hand stock to or from.'**
+  String get stockHandoverNoCounterparts;
+
+  /// No description provided for @stockHandoverItemsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add items'**
+  String get stockHandoverItemsTitle;
+
+  /// No description provided for @stockHandoverEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change quantities'**
+  String get stockHandoverEditTitle;
+
+  /// No description provided for @stockHandoverReviewButton.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Review} =1{Review (1 item)} other{Review ({count} items)}}'**
+  String stockHandoverReviewButton(int count);
+
+  /// No description provided for @stockHandoverNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No items to declare between these two.'**
+  String get stockHandoverNoItems;
+
+  /// No description provided for @stockHandoverReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get stockHandoverReviewTitle;
+
+  /// No description provided for @stockHandoverReviewReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'You received from {name}:'**
+  String stockHandoverReviewReceived(String name);
+
+  /// No description provided for @stockHandoverReviewTook.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} took from you:'**
+  String stockHandoverReviewTook(String name);
+
+  /// No description provided for @stockHandoverReviewSent.
+  ///
+  /// In en, this message translates to:
+  /// **'You sent to {name}:'**
+  String stockHandoverReviewSent(String name);
+
+  /// No description provided for @stockHandoverReviewChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct quantities, {source} → {target}:'**
+  String stockHandoverReviewChange(String source, String target);
+
+  /// No description provided for @stockHandoverReviewTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {qty}'**
+  String stockHandoverReviewTotal(String qty);
+
+  /// No description provided for @stockHandoverReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing moves until the other side confirms.'**
+  String get stockHandoverReviewHint;
+
+  /// No description provided for @stockHandoverBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get stockHandoverBack;
+
+  /// No description provided for @stockHandoverSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm and send'**
+  String get stockHandoverSend;
+
+  /// No description provided for @stockHandoverDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard the quantities you entered?'**
+  String get stockHandoverDiscardTitle;
+
+  /// No description provided for @stockHandoverDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get stockHandoverDiscard;
+
+  /// No description provided for @stockHandoverKeepEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get stockHandoverKeepEditing;
+
+  /// No description provided for @stockTransferSentPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent. Waiting for the other side to confirm ({handover}).'**
+  String stockTransferSentPending(String handover);
+
+  /// No description provided for @replenishmentSentPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{lineCount, plural, =1{1 line} other{{lineCount} lines}} · {totalQty} units · waiting for {name} to confirm ({handover})'**
+  String replenishmentSentPendingBody(
+    int lineCount,
+    String totalQty,
+    String name,
+    String handover,
+  );
 }
 
 class _AppLocalizationsDelegate

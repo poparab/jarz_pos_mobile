@@ -17,6 +17,7 @@ import '../../features/purchase_request/state/purchase_request_notifier.dart';
 import '../../features/approvals/presentation/pending_approvals_widgets.dart';
 import '../../features/cash_custody/state/cash_custody_notifier.dart';
 import '../../features/chat_inbox/state/chat_providers.dart';
+import '../../features/stock_transfer/state/stock_handover_providers.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -77,6 +78,10 @@ class AppDrawer extends ConsumerWidget {
     final canAccessWooSync = ref.watch(canAccessWooSyncProvider);
     final canAccessTaskBoard = ref.watch(canAccessTaskBoardProvider);
     final canAccessStockTransfer = ref.watch(canAccessStockTransferProvider);
+    // Wider than [canAccessStockTransfer] on purpose: the screen now also holds
+    // stock handovers, which the production team and the cashier holding a
+    // branch's open shift take part in. Replenishment keeps the narrow gate.
+    final canOpenStockTransfer = ref.watch(canOpenStockTransferProvider);
     final canAccessInventoryCount = ref.watch(canAccessInventoryCountProvider);
     final canAccessPurchaseInvoice =
         ref.watch(canAccessPurchaseInvoiceProvider);
@@ -357,7 +362,7 @@ class AppDrawer extends ConsumerWidget {
           // front of somebody every call on it answers "Not permitted" to.
           onTap: () => navigate(AppRoutes.replenishment),
         ),
-      if (canAccessStockTransfer)
+      if (canOpenStockTransfer)
         navTile(
           icon: Icons.swap_horiz,
           title: l10n.menuStockTransfer,

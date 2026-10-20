@@ -35,6 +35,7 @@ import '../../credit/state/credit_providers.dart';
 import '../../followups/state/followups_providers.dart';
 import '../../courier_alerts/state/courier_alerts_providers.dart';
 import '../../chat_inbox/state/chat_providers.dart';
+import '../../stock_transfer/state/stock_handover_providers.dart';
 
 /// Ceiling for the alert poll's backoff.
 ///
@@ -588,6 +589,18 @@ class OrderAlertBridge {
           _navigateToChat(data['route']?.toString());
         }
         break;
+      case 'stock_handover':
+        _logger.info(
+          'FCM stock handover: ${data['notification_id'] ?? ''}',
+        );
+        // One side declared (or changed) a stock handover and the other side
+        // must confirm it. The tray entry is drawn by the SDK; here an open
+        // Stock Transfer screen catches up, and a tap lands on its handovers.
+        _refreshStockHandovers();
+        if (openedApp) {
+          _navigateTo(AppRoutes.stockTransferHandovers);
+        }
+        break;
       default:
         _logger.debug('Ignored push message of type $type');
     }
@@ -695,6 +708,15 @@ class OrderAlertBridge {
     }
   }
 
+  /// Any open handover list. Never starts a fetch for a closed screen.
+  void _refreshStockHandovers() {
+    try {
+      refreshStockHandoversAfterPush(_ref);
+    } catch (error, stackTrace) {
+      _logger.error('Failed to refresh handovers after push', error, stackTrace);
+    }
+  }
+
   /// The push carries the thread's route; anything else lands on the inbox.
   void _navigateToChat(String? route) {
     final target = route?.trim() ?? '';
@@ -765,6 +787,9 @@ class OrderAlertBridge {
     } else if (type == 'chat_waiting') {
       _refreshChats(payload['conversation']);
       _navigateToChat(payload['route']);
+    } else if (type == 'stock_handover') {
+      _refreshStockHandovers();
+      _navigateTo(AppRoutes.stockTransferHandovers);
     }
   }
 

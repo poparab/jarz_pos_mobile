@@ -325,11 +325,21 @@ class _SendResultCard extends ConsumerWidget {
                           style: theme.textTheme.titleSmall,
                         ),
                         Text(
-                          l10n.replenishmentSentBody(
-                            result.lineCount,
-                            trimQty(result.totalQty),
-                            isolateLtr(result.stockEntry),
-                          ),
+                          // A branch-bound send is a pending handover now:
+                          // nothing has moved until the branch confirms, so
+                          // naming a Stock Entry would be a lie.
+                          result.pending
+                              ? l10n.replenishmentSentPendingBody(
+                                  result.lineCount,
+                                  trimQty(result.totalQty),
+                                  result.branchLabel,
+                                  isolateLtr(result.handover),
+                                )
+                              : l10n.replenishmentSentBody(
+                                  result.lineCount,
+                                  trimQty(result.totalQty),
+                                  isolateLtr(result.stockEntry),
+                                ),
                           style: theme.textTheme.bodySmall,
                         ),
                       ]

@@ -168,6 +168,14 @@ class UserRoles {
   /// The two line-manager spellings are the only additions to the manager set.
   bool get canAccessStockTransfer => _isBackendManagerSet || isLineManager;
 
+  /// Whether this user may take part in a stock handover by ROLE alone: the
+  /// transfer managers above, or the production team acting for the factory
+  /// (`ROLES.PRODUCTION_EXECUTE`). A branch cashier qualifies too, but only
+  /// through an open shift, which is not a role — the Stock Transfer tile adds
+  /// that half itself (`canOpenStockTransferProvider`).
+  bool get canAccessStockHandover =>
+      canAccessStockTransfer || canExecuteProduction;
+
   /// Whether this user may run an inventory count.
   /// Mirrors `ROLES.STOCK`, enforced by
   /// `inventory_count._ensure_manager_access` — the same set as
@@ -599,6 +607,16 @@ final canAccessStockTransferProvider = Provider<bool>((ref) {
   final rolesAsync = ref.watch(userRolesFutureProvider);
   return rolesAsync.maybeWhen(
     data: (roles) => roles.canAccessStockTransfer,
+    orElse: () => false,
+  );
+});
+
+/// Role half of the Stock Transfer gate for handovers. See
+/// [UserRoles.canAccessStockHandover].
+final canAccessStockHandoverProvider = Provider<bool>((ref) {
+  final rolesAsync = ref.watch(userRolesFutureProvider);
+  return rolesAsync.maybeWhen(
+    data: (roles) => roles.canAccessStockHandover,
     orElse: () => false,
   );
 });
