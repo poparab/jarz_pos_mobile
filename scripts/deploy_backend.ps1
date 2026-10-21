@@ -756,6 +756,11 @@ function Invoke-AppBootstrap {
             continue
         }
         Write-Step "Installing $appName on site frontend (first install)..."
+        # Clear the cached app -> module map first. install-app syncs DocTypes from
+        # frappe.local.app_modules, which comes from Redis ("app_modules") and on a
+        # live server predates the new app: the Module Def gets created, zero
+        # DocTypes sync, and after_install dies (jarz_social on staging, 2026-10-21).
+        Invoke-Remote "docker exec $BackendContainer bench --site frontend clear-cache" | Out-Null
         Invoke-Remote "docker exec $BackendContainer bench --site frontend install-app $appName" | Out-Null
         Write-Info "$appName installed on site"
     }
