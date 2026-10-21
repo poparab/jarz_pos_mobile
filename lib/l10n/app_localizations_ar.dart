@@ -19446,6 +19446,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'بتبقى رسمية لما الطرف التاني يأكد، وبتتسجّل وقتها.';
 
   @override
+  String get stockTransferPostDirectTitle => 'ترحيل فوري (بدون تأكيد)';
+
+  @override
+  String get stockTransferPostDirectSubtitle =>
+      'الكمية بتتحرك فوراً، والفرع مش محتاج يأكد.';
+
+  @override
   String stockTransferSentPending(String handover) {
     return 'اتبعت. مستني الطرف التاني يأكد ($handover).';
   }

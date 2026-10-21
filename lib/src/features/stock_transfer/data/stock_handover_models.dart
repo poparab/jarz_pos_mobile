@@ -93,6 +93,7 @@ class HandoverContext {
     this.mySides = const [],
     this.counterparts = const [],
     this.canManage = false,
+    this.canPostDirect = false,
   });
 
   final List<HandoverSide> mySides;
@@ -100,6 +101,10 @@ class HandoverContext {
 
   /// `ROLES.STOCK_TRANSFER`: the full manager transfer screen applies too.
   final bool canManage;
+
+  /// `can_post_direct`: a JARZ Manager may post a branch-touching transfer in
+  /// one step (`submit_transfer(direct=1)`) instead of opening a handover.
+  final bool canPostDirect;
 
   bool get canDeclare => mySides.isNotEmpty;
 
@@ -120,6 +125,7 @@ class HandoverContext {
       counterparts:
           _maps(json['counterparts']).map(HandoverSide.fromJson).toList(),
       canManage: _toBool(json['can_manage']),
+      canPostDirect: _toBool(json['can_post_direct']),
     );
   }
 }
@@ -494,17 +500,23 @@ class MatchConfirmOutcome {
 /// Two shapes are valid: the old `{"ok": true, "stock_entry": "MAT-STE-…"}`
 /// (posted now), and, for a transfer touching a branch,
 /// `{"ok": true, "stock_entry": null, "handover": "HND-…", "pending": true}`
-/// — nothing has moved yet; the other side must confirm.
+/// — nothing has moved yet; the other side must confirm. A manager's
+/// one-step post of a branch pair answers
+/// `{"ok": true, "stock_entry": "MAT-STE-…", "direct": true}` (posted now).
 class TransferSubmitOutcome {
   const TransferSubmitOutcome({
     this.stockEntry,
     this.handover,
     this.pending = false,
+    this.direct = false,
   });
 
   final String? stockEntry;
   final String? handover;
   final bool pending;
+
+  /// A branch pair posted in one step, with no handover.
+  final bool direct;
 
   factory TransferSubmitOutcome.fromJson(Map<String, dynamic> json) {
     final handover = _toOptStr(json['handover']);
@@ -513,6 +525,7 @@ class TransferSubmitOutcome {
       handover: handover,
       // A handover name alone also means "not posted yet", whatever the flag.
       pending: _toBool(json['pending']) || handover != null,
+      direct: _toBool(json['direct']),
     );
   }
 }

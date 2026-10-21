@@ -32235,6 +32235,18 @@ abstract class AppLocalizations {
   /// **'Becomes official when the other side confirms; posted at that moment.'**
   String get stockTransferBecomesOfficialNote;
 
+  /// No description provided for @stockTransferPostDirectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post now (no confirmation)'**
+  String get stockTransferPostDirectTitle;
+
+  /// No description provided for @stockTransferPostDirectSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock moves immediately; the branch does not need to confirm.'**
+  String get stockTransferPostDirectSubtitle;
+
   /// No description provided for @stockTransferSentPending.
   ///
   /// In en, this message translates to:

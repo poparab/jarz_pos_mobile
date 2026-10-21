@@ -167,6 +167,10 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
   /// handover while the first reply is still on its way.
   bool _submitting = false;
 
+  /// A JARZ Manager's "Post now (no confirmation)" switch for a branch pair:
+  /// on by default, only shown when `get_context` says `can_post_direct`.
+  bool _postDirect = true;
+
   // Keep the latest search results to enable bulk-add/select-all actions
   List<Map<String, dynamic>> currentItems = [];
 
@@ -195,13 +199,15 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
     // Rebuild once get_context arrives: it decides whether the pair is a
     // branch handover (F8).
     ref.watch(stockHandoverContextProvider);
-    final pending = _touchesBranch();
+    final pending = _isPendingFlow;
+    final showDirectSwitch = _touchesBranch() && _canPostDirect;
 
     final leftPanel = Padding(
       padding: padding,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _buildBranchSelectors(),
         const SizedBox(height: 8),
+        if (showDirectSwitch) _buildPostDirectSwitch(),
         if (pending) _buildPendingNote() else _buildDatePickerRow(),
         const SizedBox(height: 8),
         Row(children: [
@@ -332,7 +338,7 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ),
-                            if (postingDate != null && !_touchesBranch())
+                            if (postingDate != null && !_isPendingFlow)
                               Padding(
                                 padding: const EdgeInsetsDirectional.only(end: 8.0),
                                 child: Chip(label: Text(l10n.stockTransferPostingChip(formatPostingDateTimeForDisplay(context, postingDate!)))),
@@ -476,6 +482,32 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
     final b = known[target];
     if (a == null || b == null) return false;
     return a.isBranch || b.isBranch;
+  }
+
+  /// `get_context` granted the one-step post (JARZ Manager).
+  bool get _canPostDirect =>
+      ref.read(stockHandoverContextProvider).valueOrNull?.canPostDirect ??
+      false;
+
+  /// The transfer becomes a pending handover: a branch pair, unless a manager
+  /// who may post direct left "Post now" on. Decides the pending note vs the
+  /// posting date, and what [_submit] sends.
+  bool get _isPendingFlow =>
+      _touchesBranch() && !(_canPostDirect && _postDirect);
+
+  Widget _buildPostDirectSwitch() {
+    final l10n = context.l10n;
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      title: Text(l10n.stockTransferPostDirectTitle),
+      subtitle: Text(l10n.stockTransferPostDirectSubtitle),
+      value: _postDirect,
+      onChanged: (v) {
+        setState(() => _postDirect = v);
+        _sheetSetState?.call(() {});
+      },
+    );
   }
 
   Widget _buildPendingNote() {
@@ -794,8 +826,10 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     // A branch handover is posted when the other side confirms, so it has no
-    // posting date and nothing to confirm here (F8).
-    final pending = _touchesBranch();
+    // posting date and nothing to confirm here (F8). A manager's one-step
+    // post of a branch pair is posted now, so it keeps the posting date.
+    final pending = _isPendingFlow;
+    final direct = !pending && _touchesBranch();
     setState(() => _submitting = true);
     _sheetSetState?.call(() {});
     try {
@@ -821,6 +855,7 @@ class _FullTransferPanelState extends ConsumerState<_FullTransferPanel>
         targetWarehouse: targetWarehouse!,
         lines: payload,
         postingDate: postingDateStr,
+        direct: direct,
       );
       final outcome = TransferSubmitOutcome.fromJson(res);
       // A pair touching a branch is a pending handover now: nothing has moved

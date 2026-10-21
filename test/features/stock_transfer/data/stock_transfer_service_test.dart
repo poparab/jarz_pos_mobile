@@ -386,6 +386,78 @@ void main() {
 
         expect(outcome.pending, isTrue);
       });
+
+      test('direct=true is sent as 1 and the reply reads as posted', () async {
+        mockDio.setResponse(path, {
+          'message': {
+            'ok': true,
+            'stock_entry': 'MAT-STE-0010',
+            'direct': true,
+          },
+        });
+
+        final res = await service.submitTransfer(
+          sourceWarehouse: 'Finished Goods - J',
+          targetWarehouse: 'Dokki - J',
+          lines: [
+            {'item_code': 'JAR-L', 'qty': 4},
+          ],
+          postingDate: '2026-10-20',
+          direct: true,
+        );
+        final outcome = TransferSubmitOutcome.fromJson(res);
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data['direct'], equals(1));
+        expect(data['posting_date'], equals('2026-10-20'));
+        expect(outcome.direct, isTrue);
+        expect(outcome.pending, isFalse);
+        expect(outcome.stockEntry, equals('MAT-STE-0010'));
+      });
+
+      test('direct is omitted by default', () async {
+        mockDio.setResponse(path, {
+          'message': {'ok': true, 'stock_entry': 'MAT-STE-0011'},
+        });
+
+        await service.submitTransfer(
+          sourceWarehouse: 'Stores - J',
+          targetWarehouse: 'Finished Goods - J',
+          lines: [
+            {'item_code': 'JAR-L', 'qty': 1},
+          ],
+        );
+
+        final data = mockDio.requestLog.first['data'] as Map;
+        expect(data.containsKey('direct'), isFalse);
+      });
+    });
+
+    group('HandoverContext can_post_direct', () {
+      test('true parses as true', () {
+        expect(
+          HandoverContext.fromJson({'can_post_direct': true}).canPostDirect,
+          isTrue,
+        );
+        expect(
+          HandoverContext.fromJson({'can_post_direct': 1}).canPostDirect,
+          isTrue,
+        );
+      });
+
+      test('false parses as false', () {
+        expect(
+          HandoverContext.fromJson({'can_post_direct': false}).canPostDirect,
+          isFalse,
+        );
+      });
+
+      test('missing defaults to false', () {
+        expect(
+          HandoverContext.fromJson({'can_manage': true}).canPostDirect,
+          isFalse,
+        );
+      });
     });
 
     group('getHandoverContext', () {

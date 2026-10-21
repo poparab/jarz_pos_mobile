@@ -6992,6 +6992,8 @@
   "stockHandoverMatchRejectedSnack": "اترفضت الدفعة المبعوتة.",
   "userErrorHandoverRule": "التسليم ده مينفعش يتم لسه.",
   "stockTransferBecomesOfficialNote": "بتبقى رسمية لما الطرف التاني يأكد، وبتتسجّل وقتها.",
+  "stockTransferPostDirectTitle": "ترحيل فوري (بدون تأكيد)",
+  "stockTransferPostDirectSubtitle": "الكمية بتتحرك فوراً، والفرع مش محتاج يأكد.",
   "stockTransferSentPending": "اتبعت. مستني الطرف التاني يأكد ({handover}).",
   "replenishmentSentPendingBody": "{lineCount, plural, =1{سطر واحد} =2{سطرين} few{{lineCount} سطور} other{{lineCount} سطر}} · {totalQty} قطعة · مستني {name} يأكد ({handover})",
   "menuWeeklyCount": "الجرد الأسبوعي",

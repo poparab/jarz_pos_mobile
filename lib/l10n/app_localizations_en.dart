@@ -19448,6 +19448,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Becomes official when the other side confirms; posted at that moment.';
 
   @override
+  String get stockTransferPostDirectTitle => 'Post now (no confirmation)';
+
+  @override
+  String get stockTransferPostDirectSubtitle =>
+      'Stock moves immediately; the branch does not need to confirm.';
+
+  @override
   String stockTransferSentPending(String handover) {
     return 'Sent. Waiting for the other side to confirm ($handover).';
   }

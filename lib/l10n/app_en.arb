@@ -10831,6 +10831,8 @@
   "stockHandoverMatchRejectedSnack": "Sent-out batch rejected.",
   "userErrorHandoverRule": "This handover can''t go through yet.",
   "stockTransferBecomesOfficialNote": "Becomes official when the other side confirms; posted at that moment.",
+  "stockTransferPostDirectTitle": "Post now (no confirmation)",
+  "stockTransferPostDirectSubtitle": "Stock moves immediately; the branch does not need to confirm.",
   "stockTransferSentPending": "Sent. Waiting for the other side to confirm ({handover}).",
   "@stockTransferSentPending": {"placeholders": {"handover": {"type": "String"}}},
   "replenishmentSentPendingBody": "{lineCount, plural, =1{1 line} other{{lineCount} lines}} · {totalQty} units · waiting for {name} to confirm ({handover})",
