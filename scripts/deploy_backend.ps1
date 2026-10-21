@@ -22,7 +22,17 @@ param(
     # Accepts a 7-40 char hex SHA, prefix-matched against the resolved remote
     # head of each deployed app; the run is refused before the backup and
     # before the pull if none matches, so a refused run changes nothing.
-    [string]$Commit
+    [string]$Commit,
+
+    # Pin for jarz_social, the optional fourth app. -Commit above only ever pins
+    # jarz_pos; jarz_social lives in its own repo with its own history, so it gets
+    # its own tripwire, same semantics as -Commit: the SHA (7-40 hex, prefix match)
+    # must equal jarz_social's remote head or the run is refused before the clone,
+    # the backup and the pull. Passing it also OPTS jarz_social INTO this deploy.
+    # Without it, jarz_social is deployed only where it is already installed
+    # (unpinned, like hrms), so a server that has no deploy key for the private
+    # repo yet can still take a POS hotfix.
+    [string]$SocialCommit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -78,6 +88,32 @@ $appRepos = @{
     'jarz_pos'                     = 'git@github.com:poparab/jarz_pos.git'
     'jarz_woocommerce_integration' = 'git@github.com:poparab/Woo_ERPNext.git'
     'jarz_courier'                 = 'git@github.com:poparab/jarz_courier.git'
+    'jarz_social'                  = 'git@github.com:poparab/jarz_social.git'
+}
+
+# jarz_social: optional fourth app, private repo, NOT in $deployedApps. It joins the
+# run only when -SocialCommit is given or it is already cloned on the server (see
+# "jarz_social opt-in" below). Declares no required_apps beyond frappe, no pip deps,
+# no JS build assets, so the generic clone -> pip -e -> apps.txt -> install-app
+# bootstrap is all it needs.
+$socialApp = 'jarz_social'
+
+# Per-app SSH key override. GitHub refuses the same deploy key on two repos, and the
+# servers' default id_ed25519 is already bound to the other private repos, so
+# jarz_social needs its own read-only deploy key. Apps absent from this table use
+# the default key exactly as before.
+$appSshKeys = @{
+    'jarz_social' = '/home/ubuntu/.ssh/id_ed25519_jarz_social'
+}
+
+function Get-GitSshCommand([string]$AppName) {
+    if ($appSshKeys.ContainsKey($AppName)) {
+        # IdentitiesOnly: offer ONLY this key, so GitHub cannot authenticate us as
+        # the default key's repo and answer "Repository not found" for a repo that
+        # key was never granted.
+        return "ssh -i $($appSshKeys[$AppName]) -o IdentitiesOnly=yes -o UserKnownHostsFile=/home/ubuntu/.ssh/known_hosts -o StrictHostKeyChecking=accept-new"
+    }
+    return $gitSshCommand
 }
 
 $config = switch ($Environment) {
@@ -220,7 +256,7 @@ function Convert-GitHubRemoteToSsh($GitTarget) {
 }
 
 function Get-RemoteBranchHead($GitTarget) {
-    $lsRemote = (Invoke-Remote "sudo GIT_SSH_COMMAND='$gitSshCommand' git -c safe.directory=$($GitTarget.AppPath) -C $($GitTarget.AppPath) ls-remote $($GitTarget.RemoteName) refs/heads/$($GitTarget.BranchName)").Trim()
+    $lsRemote = (Invoke-Remote "sudo GIT_SSH_COMMAND='$(Get-GitSshCommand $GitTarget.AppName)' git -c safe.directory=$($GitTarget.AppPath) -C $($GitTarget.AppPath) ls-remote $($GitTarget.RemoteName) refs/heads/$($GitTarget.BranchName)").Trim()
     if (-not $lsRemote) {
         throw "Could not resolve remote branch head for $($GitTarget.AppName)"
     }
@@ -590,7 +626,7 @@ function Ensure-AppCloned([string]$AppName) {
     # repo on disk as root:root with no chown and no install.
     #
     # Full clone, never --depth: Assert-AppRepoIntegrity rejects shallow clones.
-    Invoke-Remote "sudo GIT_SSH_COMMAND='$gitSshCommand' git clone --quiet $repoUrl $appPath" | Out-Null
+    Invoke-Remote "sudo GIT_SSH_COMMAND='$(Get-GitSshCommand $AppName)' git clone --quiet $repoUrl $appPath" | Out-Null
     Invoke-Remote "sudo chown -R ubuntu:ubuntu $appPath" | Out-Null
     Write-Info "$AppName cloned"
     return $true
@@ -725,6 +761,65 @@ function Invoke-AppBootstrap {
     }
 }
 
+# ── jarz_social opt-in ───────────────────────────────────────────────────────
+# jarz_social is a private repo that the servers cannot read until the owner
+# registers a deploy key for it. Naming it in $deployedApps would therefore make
+# EVERY backend deploy (POS hotfixes included) abort at the clone -- the
+# 2026-08-05 jarz_courier incident. So it joins a run only when:
+#   * -SocialCommit is given (explicit request, pinned), or
+#   * it is already cloned on that server (keeps following main like hrms).
+# Everything else about it (clone, pip -e, apps.txt, install-app, pull, migrate,
+# restart, head report) rides the generic per-app machinery above.
+
+function Assert-SocialRepoReadable {
+    # Fails up front, before the backup / clone / pull, with the exact one-time
+    # setup the owner must do. Read-only: one `git ls-remote`. Returns the remote
+    # head SHA of main so -SocialCommit can be enforced before anything is cloned.
+    $keyPath = $appSshKeys[$socialApp]
+    $repoUrl = $appRepos[$socialApp]
+
+    $hasKey = (Invoke-Remote "test -f $keyPath && echo yes || echo no" -IgnoreExitCode).Trim()
+    $out = ''
+    $ok = $false
+    if ($hasKey -eq 'yes') {
+        $out = Invoke-Remote "GIT_SSH_COMMAND='$(Get-GitSshCommand $socialApp) -o BatchMode=yes' git ls-remote $repoUrl refs/heads/main 2>&1" -IgnoreExitCode
+        $ok = ($out -match '(?m)^[0-9a-f]{40}\s+refs/heads/main')
+    }
+
+    if (-not $ok) {
+        $why = if ($hasKey -ne 'yes') { "the deploy key $keyPath does not exist on $($config.ServerIp)" } else { "git ls-remote $repoUrl failed:`n$out" }
+        throw (
+            "jarz_social is requested but this server cannot read the private repo: $why`n`n" +
+            "One-time owner setup (nothing in this script creates keys or edits server config), per server:`n" +
+            "  1. ssh -i <pem> ubuntu@$($config.ServerIp)`n" +
+            "  2. ssh-keygen -t ed25519 -N '' -C 'jarz_social-deploy-$Environment' -f $keyPath`n" +
+            "  3. cat $keyPath.pub   (public half only - never paste the private key anywhere)`n" +
+            "  4. GitHub > poparab/jarz_social > Settings > Deploy keys > Add deploy key:`n" +
+            "     title 'erp-$Environment', paste the public key, leave 'Allow write access' UNTICKED.`n" +
+            "     (GitHub refuses one deploy key on two repos, so the default id_ed25519 cannot be reused.)`n" +
+            "  5. Verify: GIT_SSH_COMMAND='ssh -i $keyPath -o IdentitiesOnly=yes' git ls-remote $repoUrl refs/heads/main`n" +
+            "Nothing has been changed on the server by this run."
+        )
+    }
+
+    $head = (($out -split "`r?`n" | Where-Object { $_ -match 'refs/heads/main' } | Select-Object -First 1) -split '\s+')[0]
+    if ($SocialCommit) {
+        $wanted = $SocialCommit.Trim().ToLowerInvariant()
+        if ($wanted -notmatch '^[0-9a-f]{7,40}$') {
+            throw "-SocialCommit must be a hex git SHA of 7-40 characters; got '$SocialCommit'."
+        }
+        if (-not $head.StartsWith($wanted)) {
+            throw (
+                "SOCIAL COMMIT PIN MISMATCH: -SocialCommit $wanted does not match jarz_social's remote head $head.`n" +
+                "Someone pushed to poparab/jarz_social main since the cut was recorded. Nothing has been " +
+                "changed on the server. Re-check the commit, then re-run with the -SocialCommit value you want."
+            )
+        }
+        Write-Info "-SocialCommit $wanted confirmed: jarz_social remote head is $head"
+    }
+    return $head
+}
+
 function Get-RemoteHttpCode {
     $output = ssh -q -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i $SshKeyPath $sshTarget "curl -s -o /dev/null -w '%{http_code}' https://$($config.Domain) 2>/dev/null || echo 000" 2>$null
     return (($output -join "`n").Trim() -split "`r?`n")[-1]
@@ -762,6 +857,28 @@ foreach ($serviceName in $serviceNames) {
 Write-Info "Backend container: $backendContainer"
 Write-Info "Frontend container: $frontendContainer"
 Write-Host ''
+
+# Decide whether jarz_social is part of this run, and prove the server can read its
+# private repo BEFORE anything is cloned, backed up or pulled.
+$socialPlannedInstall = $false
+$socialFreshInstall = $false
+$socialTargetHead = $null
+$socialCloned = Test-AppCloned $socialApp
+$includeSocial = [bool]$SocialCommit -or $socialCloned
+if ($includeSocial) {
+    Write-Step 'Checking jarz_social repo access...'
+    $socialTargetHead = Assert-SocialRepoReadable
+    Write-Info "jarz_social is readable from the server; remote main is $socialTargetHead"
+    $config.CustomApps = @($deployedApps) + $socialApp
+    $socialSiteApps = Get-SiteInstalledApps $backendContainer
+    $socialFreshInstall = (-not $socialCloned) -or ($socialSiteApps -notcontains $socialApp)
+    $socialPlannedInstall = $socialFreshInstall
+    Write-Host ''
+}
+else {
+    Write-Info 'jarz_social: not installed on this server and not requested (pass -SocialCommit <sha> to install/pin it)'
+    Write-Host ''
+}
 
 # MUST run before the Resolve-GitTarget loop below: that loop calls `git rev-parse`
 # on every app path and hard-throws if the clone is absent, which would break this
@@ -811,9 +928,17 @@ if ($PlanOnly) {
         Write-Host "        current: $($gitTarget.HeadBefore)"
         Write-Host "        target : $($gitTarget.RemoteHead)"
     }
+    if ($socialPlannedInstall -and -not ($gitTargets | Where-Object { $_.AppName -eq $socialApp })) {
+        # Not on disk yet, so there is no git state to compare: show the first-install plan.
+        Write-Info "${socialApp}: install-required (first install: clone, pip -e, apps.txt, install-app)"
+        Write-Host "        current: (not installed)"
+        Write-Host "        target : $socialTargetHead"
+    }
     Write-Host ''
-    Write-Output "DEPLOY_REQUIRED=$($deployRequired.ToString().ToLowerInvariant())"
-    Write-Output "UPDATED_APPS=$((@($appsNeedingUpdate | ForEach-Object { $_.AppName }) -join ','))"
+    $planUpdatedApps = @($appsNeedingUpdate | ForEach-Object { $_.AppName })
+    if ($socialPlannedInstall -and $planUpdatedApps -notcontains $socialApp) { $planUpdatedApps += $socialApp }
+    Write-Output "DEPLOY_REQUIRED=$(($deployRequired -or $socialPlannedInstall).ToString().ToLowerInvariant())"
+    Write-Output "UPDATED_APPS=$($planUpdatedApps -join ',')"
     exit 0
 }
 
@@ -882,7 +1007,7 @@ foreach ($gitTarget in $gitTargets) {
     # second later. Deliberately not `git clean` — this is a live volume and a broad
     # clean could take out anything else living here. --exclude-standard is correct:
     # ignored files are overwritten by merge without complaint and never block a pull.
-    Invoke-Remote "sudo GIT_SSH_COMMAND='$gitSshCommand' git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) fetch --quiet $($gitTarget.RemoteName) $($gitTarget.BranchName)" | Out-Null
+    Invoke-Remote "sudo GIT_SSH_COMMAND='$(Get-GitSshCommand $gitTarget.AppName)' git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) fetch --quiet $($gitTarget.RemoteName) $($gitTarget.BranchName)" | Out-Null
 
     $splitLines = { param($text) ($text -split "`r?`n") | ForEach-Object { $_.Trim() } | Where-Object { $_ } }
     $addedPaths = & $splitLines (Invoke-Remote "sudo git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) diff --diff-filter=A --name-only HEAD $($gitTarget.RemoteHead)" -IgnoreExitCode)
@@ -911,7 +1036,7 @@ foreach ($gitTarget in $gitTargets) {
     # false-greened deploys before. Failing is correct, and it fails BEFORE
     # anything lands, so the abort leaves no half-deployed state.
     Write-Info "Fast-forwarding $($gitTarget.AppName) to $($gitTarget.RemoteHead)"
-    $pullOutput = Invoke-Remote "sudo GIT_SSH_COMMAND='$gitSshCommand' git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) merge --ff-only --quiet $($gitTarget.RemoteHead)"
+    $pullOutput = Invoke-Remote "sudo GIT_SSH_COMMAND='$(Get-GitSshCommand $gitTarget.AppName)' git -c safe.directory=$($gitTarget.AppPath) -C $($gitTarget.AppPath) merge --ff-only --quiet $($gitTarget.RemoteHead)"
     if ($pullOutput) {
         Write-Host $pullOutput
     }
@@ -966,7 +1091,11 @@ $changedAppNames = @($changedApps | ForEach-Object { $_.AppName })
 # -ForceReinstallApps to override". That is the one situation it exists for: a
 # previous deploy pulled the commit but failed to install its dependency, so
 # git is already at target and only the venv is wrong.
-if ($changedAppNames.Count -eq 0 -and -not $ForceMigrate -and -not $ForceReinstallApps) {
+# A fresh jarz_social install lands during the bootstrap, before this point, so its
+# pull is a no-op and $changedAppNames can be empty. The workers still must restart
+# to import the new app (scheduler jobs, hooks) and migrate must sync it, so a fresh
+# install opens this gate by itself.
+if ($changedAppNames.Count -eq 0 -and -not $ForceMigrate -and -not $ForceReinstallApps -and -not $socialFreshInstall) {
     Write-Info 'No custom app commits changed on the target server. Skipping reinstall, asset relink, migrate, cache clear, and service restart.'
     Write-Host ''
 }
@@ -975,6 +1104,7 @@ else {
         $why = @()
         if ($ForceMigrate) { $why += '-ForceMigrate' }
         if ($ForceReinstallApps) { $why += '-ForceReinstallApps' }
+        if ($socialFreshInstall) { $why += 'jarz_social first install' }
         Write-Info ("No custom app commits changed, but $($why -join ' + ') was set: proceeding " +
                     '(e.g. a dependency or schema change already on the server but never installed/migrated).')
         Write-Host ''

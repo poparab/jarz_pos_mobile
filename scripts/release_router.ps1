@@ -12,6 +12,9 @@ param(
     # repositories have independent histories, so never reuse this for backend.
     [string]$CommitSha,
     [string]$BackendCommitSha,
+    # Pin for jarz_social (separate repo, separate history). Opts jarz_social into the
+    # backend deploy; see -SocialCommit in deploy_backend.ps1.
+    [string]$SocialCommitSha,
     [string]$FlutterCommitSha,
     [string]$ReleaseNotes,
     [int]$FirebaseTimeoutMinutes = 45,
@@ -347,6 +350,9 @@ $backendPlanArgs = @('-Environment', $Environment, '-PlanOnly')
 if ($BackendCommitSha) {
     $backendPlanArgs += @('-Commit', $BackendCommitSha)
 }
+if ($SocialCommitSha) {
+    $backendPlanArgs += @('-SocialCommit', $SocialCommitSha)
+}
 $backendPlanOutput = Invoke-PowerShellScript -ScriptPath $backendScriptPath -Arguments $backendPlanArgs
 $backendDeployRequired = (Get-KeyValueFromText -Text $backendPlanOutput -Key 'DEPLOY_REQUIRED') -eq 'true'
 $webDeployRequired = $false
@@ -377,11 +383,14 @@ Write-Host ''
 $releaseJobs = @()
 if ($backendDeployRequired) {
     Write-Step 'Starting backend deploy in parallel...'
-    $releaseJobs += Start-Job -Name 'backend-release' -ArgumentList $backendScriptPath, $Environment, $BackendCommitSha -ScriptBlock {
-        param($scriptPath, $targetEnvironment, $targetCommit)
+    $releaseJobs += Start-Job -Name 'backend-release' -ArgumentList $backendScriptPath, $Environment, $BackendCommitSha, $SocialCommitSha -ScriptBlock {
+        param($scriptPath, $targetEnvironment, $targetCommit, $socialCommit)
         $arguments = @('-Environment', $targetEnvironment)
         if ($targetCommit) {
             $arguments += @('-Commit', $targetCommit)
+        }
+        if ($socialCommit) {
+            $arguments += @('-SocialCommit', $socialCommit)
         }
         & powershell -NoProfile -ExecutionPolicy Bypass -File $scriptPath @arguments 2>&1
         if ($LASTEXITCODE -ne 0) {
