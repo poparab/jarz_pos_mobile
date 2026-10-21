@@ -7,7 +7,7 @@ import '../../data/stock_handover_models.dart';
 import '../../data/stock_transfer_service.dart';
 import '../../state/stock_handover_providers.dart';
 import '../stock_handover_editor_screen.dart';
-import '../stock_handover_match_screen.dart';
+import '../stock_transit_screen.dart';
 import 'handover_format.dart';
 import 'stock_handover_card.dart';
 
@@ -23,8 +23,8 @@ HandoverListQuery handoverListQueryFor(HandoverContext ctx, String? profile) {
 
 /// The handover half of the Stock Transfer screen: what is waiting for this
 /// user, the two big "I received" / "I sent out" buttons, what is waiting for
-/// the other side, and the recent history. A manager also gets the "To match"
-/// section on top: batches a branch sent out, waiting to be matched.
+/// the other side, and the recent history. A manager also gets the Transit
+/// entry on top: receipts waiting to be matched with what was sent out.
 class StockHandoverView extends ConsumerStatefulWidget {
   const StockHandoverView({super.key});
 
@@ -71,20 +71,15 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
   ) async {
     final l10n = context.l10n;
     // "I sent out" has no destination: the user only says what left and a
-    // manager matches it. Only "I received" asks from where.
+    // manager matches it. Only "I received" asks from where, and "I don't
+    // know who sent it" is its first, default answer.
     HandoverSide? counterpart;
     if (mode == HandoverEditMode.received) {
       final options = ctx.counterpartsFor(side);
-      if (options.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.stockHandoverNoCounterparts)),
-        );
-        return;
-      }
-      counterpart = options.length == 1
-          ? options.first
-          : await _pickCounterpart(l10n.stockHandoverFromWhom, options);
-      if (counterpart == null || !mounted) return;
+      final choice =
+          await _pickCounterpart(l10n.stockHandoverFromWhom, options);
+      if (choice == null || !mounted) return;
+      counterpart = choice.side;
     }
     final sent = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -101,11 +96,11 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
     }
   }
 
-  Future<HandoverSide?> _pickCounterpart(
+  Future<_SenderChoice?> _pickCounterpart(
     String title,
     List<HandoverSide> options,
   ) {
-    return showModalBottomSheet<HandoverSide>(
+    return showModalBottomSheet<_SenderChoice>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
@@ -133,6 +128,32 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
                     shrinkWrap: true,
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
                     children: [
+                      Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        elevation: 0,
+                        color: theme.colorScheme.secondaryContainer,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: theme.colorScheme.secondary,
+                            width: 1.2,
+                          ),
+                        ),
+                        child: ListTile(
+                          minTileHeight: 64,
+                          leading: const Icon(Icons.help_outline),
+                          title: Text(
+                            sheetCtx.l10n.stockHandoverUnknownSender,
+                            style: theme.textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          subtitle: Text(
+                            sheetCtx.l10n.stockHandoverUnknownSenderHint,
+                          ),
+                          onTap: () => Navigator.of(sheetCtx)
+                              .pop(const _SenderChoice(null)),
+                        ),
+                      ),
                       for (final option in options)
                         Card(
                           margin: const EdgeInsets.only(bottom: 8),
@@ -151,7 +172,8 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
                               option.label,
                               style: theme.textTheme.titleMedium,
                             ),
-                            onTap: () => Navigator.of(sheetCtx).pop(option),
+                            onTap: () => Navigator.of(sheetCtx)
+                                .pop(_SenderChoice(option)),
                           ),
                         ),
                     ],
@@ -311,23 +333,14 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
     }
   }
 
-  Future<void> _openMatch(
-    HandoverContext ctx,
-    MatchGroup group,
-    String? profile,
-  ) async {
-    final done = await Navigator.of(context).push<bool>(
+  Future<void> _openTransit(String? profile) async {
+    await Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => StockHandoverMatchScreen(
-          group: group,
-          destinations: ctx.counterparts,
-          posProfile: profile,
-        ),
+        builder: (_) => StockTransitScreen(posProfile: profile),
       ),
     );
-    if (done == true && mounted) {
-      ref.invalidate(stockHandoverListsProvider);
-    }
+    // Approvals change the lists and the badge either way.
+    if (mounted) ref.invalidate(stockHandoverListsProvider);
   }
 
   // ── Build ────────────────────────────────────────────────────────────────
@@ -366,19 +379,12 @@ class _StockHandoverViewState extends ConsumerState<StockHandoverView>
         final children = <Widget>[];
         final lists = listsAsync.valueOrNull;
 
-        // To match — managers only, and only while there is something.
-        if (lists != null && lists.toMatch.isNotEmpty) {
-          children.add(_SectionHeader(
-            icon: Icons.account_tree_outlined,
-            text: l10n.stockHandoverToMatch(lists.toMatch.length),
-            emphasised: true,
+        // Transit — managers only: the one way into matching.
+        if (ctx.canMatchTransit) {
+          children.add(_TransitEntryCard(
+            toApprove: lists?.transitToMatch ?? 0,
+            onTap: () => _openTransit(profile),
           ));
-          for (final g in lists.toMatch) {
-            children.add(_MatchGroupCard(
-              group: g,
-              onTap: () => _openMatch(ctx, g, profile),
-            ));
-          }
         }
 
         // Waiting for you — always on top.
@@ -593,91 +599,73 @@ class _DeclarePanel extends StatelessWidget {
   }
 }
 
-/// One "sent out" batch waiting for a manager: where it came from, how many
-/// items, what each receiver claims so far, and whether it already adds up.
-class _MatchGroupCard extends StatelessWidget {
-  const _MatchGroupCard({required this.group, required this.onTap});
+//// Which sender the receiver picked: [side] null = "I don't know who sent it".
+class _SenderChoice {
+  const _SenderChoice(this.side);
+  final HandoverSide? side;
+}
 
-  final MatchGroup group;
+/// The manager's way into the Transit board, with how many receipts wait.
+class _TransitEntryCard extends StatelessWidget {
+  const _TransitEntryCard({required this.toApprove, required this.onTap});
+
+  final int toApprove;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final balanced = group.balanced;
-    final chipColor =
-        balanced ? Colors.green.shade700 : theme.colorScheme.error;
-    final chipText = balanced
-        ? l10n.stockHandoverMatchBalanced
-        : l10n.stockHandoverMatchUnmatched(handoverQty(group.unmatchedUnits));
-
+    final waiting = toApprove > 0;
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
-      elevation: 2,
-      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+      elevation: waiting ? 2 : 0,
+      color: waiting
+          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
+          : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: theme.colorScheme.primary, width: 1.2),
+        side: waiting
+            ? BorderSide(color: theme.colorScheme.primary, width: 1.2)
+            : BorderSide.none,
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 8, 12),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Icon(Icons.outbox_outlined, color: theme.colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      group.sourceLabel,
+              Badge(
+                isLabelVisible: waiting,
+                label: Text('$toApprove'),
+                child: Icon(
+                  Icons.local_shipping_outlined,
+                  size: 30,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${l10n.stockTransitEntryTitle} — '
+                      '${l10n.stockTransitEntryToApprove(toApprove)}',
                       style: theme.textTheme.titleMedium
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: chipColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.stockTransitEntrySubtitle,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.outline),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (balanced)
-                          Icon(Icons.check, size: 14, color: chipColor),
-                        if (balanced) const SizedBox(width: 2),
-                        Text(
-                          chipText,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: chipColor,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                l10n.stockHandoverMatchItems(group.items.length),
-                style: theme.textTheme.bodySmall,
-              ),
-              for (final d in group.destinations)
-                Text(
-                  l10n.stockHandoverMatchClaim(
-                    d.label,
-                    handoverQty(group.items
-                        .fold(0.0, (sum, i) => sum + i.claimFor(d.warehouse))),
-                  ),
-                  style: theme.textTheme.bodyMedium,
+                  ],
                 ),
+              ),
+              const Icon(Icons.chevron_right),
             ],
           ),
         ),

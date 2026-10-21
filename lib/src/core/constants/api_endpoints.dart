@@ -337,9 +337,18 @@ abstract final class ApiEndpoints {
   static const stockHandoverCancel =
       '/api/method/jarz_pos.api.stock_handover.cancel';
 
-  /// Manager-only: confirms a whole "sent out" batch with its split.
-  static const stockHandoverConfirmMatch =
-      '/api/method/jarz_pos.api.stock_handover.confirm_match';
+  // Transit matching (managers): "I sent out" posts the stock into the
+  // transit warehouse; a manager approves each receipt against the sends.
+  static const stockHandoverTransitBoard =
+      '/api/method/jarz_pos.api.stock_handover.get_transit_board';
+  static const stockHandoverApproveReceipt =
+      '/api/method/jarz_pos.api.stock_handover.approve_receipt';
+  static const stockHandoverRejectReceipt =
+      '/api/method/jarz_pos.api.stock_handover.reject_receipt';
+  static const stockHandoverWriteOffTransit =
+      '/api/method/jarz_pos.api.stock_handover.write_off_transit';
+  static const stockHandoverReturnToSender =
+      '/api/method/jarz_pos.api.stock_handover.return_to_sender';
 
   // ── Branch Replenishment ─────────────────────────────────────
   /// What each branch is short of, against its own selling rate. Read only —

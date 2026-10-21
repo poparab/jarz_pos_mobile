@@ -62,19 +62,36 @@ final stockHandoverListsProvider = FutureProvider.autoDispose
 
 /// `list_items` for one pair of sides. Search is done on the client: the list
 /// is a few dozen jars, and filtering locally keeps typing instant.
-/// [counterpartWarehouse] is null for "I sent out" (no destination yet).
-typedef HandoverItemsQuery = ({String myWarehouse, String? counterpartWarehouse});
+/// [counterpartWarehouse] is null for "I sent out" (no destination yet) and
+/// for an "I received" whose sender is unknown; [direction] tells the two
+/// unions apart.
+typedef HandoverItemsQuery = ({
+  String myWarehouse,
+  String? counterpartWarehouse,
+  String direction,
+});
 
 final stockHandoverItemsProvider = FutureProvider.autoDispose
     .family<List<HandoverItemOption>, HandoverItemsQuery>((ref, query) async {
   return ref.read(stockTransferServiceProvider).listHandoverItems(
         myWarehouse: query.myWarehouse,
         counterpartWarehouse: query.counterpartWarehouse,
+        direction: query.direction,
       );
 });
 
-/// Called after a `stock_handover` push: refreshes any open handover list.
-/// Invalidating an autoDispose provider nobody watches costs nothing.
+/// The manager's Transit board for [posProfile] (may be null).
+final transitBoardProvider = FutureProvider.autoDispose
+    .family<TransitBoard, String?>((ref, posProfile) async {
+  return ref
+      .read(stockTransferServiceProvider)
+      .getTransitBoard(posProfile: posProfile);
+});
+
+/// Called after a `stock_handover` push: refreshes any open handover list
+/// and the Transit board. Invalidating an autoDispose provider nobody
+/// watches costs nothing.
 void refreshStockHandoversAfterPush(Ref ref) {
   ref.invalidate(stockHandoverListsProvider);
+  ref.invalidate(transitBoardProvider);
 }

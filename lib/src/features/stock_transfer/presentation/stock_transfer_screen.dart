@@ -9,7 +9,7 @@ import '../../../core/widgets/posting_date_confirmation_dialog.dart';
 import '../../../core/network/user_service.dart';
 import '../data/stock_handover_models.dart';
 import '../data/stock_transfer_service.dart';
-import '../state/match_plan.dart';
+import '../state/handover_badge.dart';
 import '../state/stock_handover_providers.dart';
 import 'widgets/stock_handover_view.dart';
 import 'widgets/stock_transfer_history.dart';
@@ -86,7 +86,7 @@ class _StockTransferScreenState extends ConsumerState<StockTransferScreen>
 
     final profile = ref.watch(handoverSelectedProfileProvider);
     // Only what a manager is actually awaited on: rows they can answer, plus
-    // "sent out" batches that already add up and are ready to confirm.
+    // the receipts waiting on the Transit board.
     final waiting = handoverCtx == null
         ? 0
         : handoverBadgeCount(

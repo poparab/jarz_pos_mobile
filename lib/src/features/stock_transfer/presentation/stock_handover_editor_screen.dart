@@ -32,14 +32,16 @@ class StockHandoverEditorScreen extends ConsumerStatefulWidget {
   const StockHandoverEditorScreen._({
     required this.mode,
     required this.myWarehouse,
+    this.myLabel = '',
     this.counterpartWarehouse,
     this.counterpartLabel,
     this.posProfile,
     this.handover,
   });
 
-  /// A new declaration by [mySide]. [counterpart] is required for "I
-  /// received" and ignored for "I sent out".
+  /// A new declaration by [mySide]. For "I received", [counterpart] is the
+  /// sender, or null when the receiver does not know who sent it (a manager
+  /// matches it). Ignored for "I sent out".
   factory StockHandoverEditorScreen.declare({
     required HandoverEditMode mode,
     required HandoverSide mySide,
@@ -47,11 +49,11 @@ class StockHandoverEditorScreen extends ConsumerStatefulWidget {
     String? posProfile,
   }) {
     assert(mode != HandoverEditMode.change);
-    assert(mode == HandoverEditMode.sentOut || counterpart != null);
     final other = mode == HandoverEditMode.sentOut ? null : counterpart;
     return StockHandoverEditorScreen._(
       mode: mode,
       myWarehouse: mySide.warehouse,
+      myLabel: mySide.label,
       counterpartWarehouse: other?.warehouse,
       counterpartLabel: other?.label,
       posProfile: mySide.posProfile ?? posProfile,
@@ -76,12 +78,20 @@ class StockHandoverEditorScreen extends ConsumerStatefulWidget {
 
   final HandoverEditMode mode;
   final String myWarehouse;
+
+  /// [myWarehouse]'s label, for the "leaves {side} now" line of "I sent out".
+  final String myLabel;
   final String? counterpartWarehouse;
   final String? counterpartLabel;
   final String? posProfile;
   final StockHandover? handover;
 
   String get direction => mode == HandoverEditMode.received ? 'in' : 'out';
+
+  /// "I received" with no sender named: a manager matches it.
+  bool get isUnsourced =>
+      mode == HandoverEditMode.received &&
+      (counterpartWarehouse == null || counterpartWarehouse!.isEmpty);
 
   @override
   ConsumerState<StockHandoverEditorScreen> createState() =>
@@ -130,6 +140,7 @@ class _StockHandoverEditorScreenState
   HandoverItemsQuery get _itemsQuery => (
         myWarehouse: widget.myWarehouse,
         counterpartWarehouse: widget.counterpartWarehouse,
+        direction: widget.direction,
       );
 
   bool get _hasInput => _qty.values.any((q) => q > 0);
@@ -261,7 +272,11 @@ class _StockHandoverEditorScreenState
           content: Text(
             widget.mode == HandoverEditMode.sentOut
                 ? l10n.stockHandoverSentOutSnack
-                : l10n.stockHandoverSentSnack(waitingFor),
+                : (widget.isUnsourced ||
+                        (result?.awaitsManager ?? false) ||
+                        waitingFor.isEmpty)
+                    ? l10n.stockHandoverSentToManagerSnack
+                    : l10n.stockHandoverSentSnack(waitingFor),
           ),
         ),
       );
@@ -431,7 +446,9 @@ class _StockHandoverEditorScreenState
     final name = widget.counterpartLabel ?? '';
     switch (widget.mode) {
       case HandoverEditMode.received:
-        return l10n.stockHandoverReviewReceived(name);
+        return widget.isUnsourced
+            ? l10n.stockHandoverReviewReceivedUnknown
+            : l10n.stockHandoverReviewReceived(name);
       case HandoverEditMode.sentOut:
         return l10n.stockHandoverReviewSentOut;
       case HandoverEditMode.change:
@@ -539,13 +556,42 @@ class _StockHandoverEditorScreenState
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
-              Text(
-                widget.mode == HandoverEditMode.sentOut
-                    ? l10n.stockHandoverReviewHintSentOut
-                    : l10n.stockHandoverReviewHint,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.outline),
-              ),
+              if (widget.mode == HandoverEditMode.sentOut)
+                // "Leaves <side> now" is the one line here that moves stock
+                // the moment Send is tapped: say it as a banner, not a hint.
+                Container(
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 10),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.tertiaryContainer
+                        .withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.local_shipping_outlined,
+                          color: theme.colorScheme.onTertiaryContainer),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          l10n.stockHandoverReviewHintSentOut(widget.myLabel),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onTertiaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Text(
+                  widget.isUnsourced
+                      ? l10n.stockHandoverReviewHintUnknown
+                      : l10n.stockHandoverReviewHint,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.colorScheme.outline),
+                ),
             ],
           ),
         ),

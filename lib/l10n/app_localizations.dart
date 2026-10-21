@@ -32058,13 +32058,13 @@ abstract class AppLocalizations {
   /// No description provided for @stockHandoverReviewHintSentOut.
   ///
   /// In en, this message translates to:
-  /// **'A manager matches it with the branches that received it. Nothing moves until then.'**
-  String get stockHandoverReviewHintSentOut;
+  /// **'This stock leaves {side} now and goes to In Transit. A manager matches it with the branches that receive it.'**
+  String stockHandoverReviewHintSentOut(String side);
 
   /// No description provided for @stockHandoverSentOutSnack.
   ///
   /// In en, this message translates to:
-  /// **'Sent out. Waiting for the manager to match.'**
+  /// **'Sent out. The stock is now In Transit.'**
   String get stockHandoverSentOutSnack;
 
   /// No description provided for @stockHandoverNoChangeHint.
@@ -32082,146 +32082,542 @@ abstract class AppLocalizations {
   /// No description provided for @stockHandoverDispatchWaiting.
   ///
   /// In en, this message translates to:
-  /// **'Sent out · waiting for the manager to match'**
+  /// **'In transit · waiting for a manager to match'**
   String get stockHandoverDispatchWaiting;
 
   /// No description provided for @stockHandoverGroupWaiting.
   ///
   /// In en, this message translates to:
-  /// **'Waiting for the manager to match'**
+  /// **'Waiting for a manager to match'**
   String get stockHandoverGroupWaiting;
 
-  /// No description provided for @stockHandoverToMatch.
+  /// No description provided for @stockHandoverUnknownSender.
   ///
   /// In en, this message translates to:
-  /// **'To match ({count})'**
-  String stockHandoverToMatch(int count);
+  /// **'I don\'\'t know who sent it'**
+  String get stockHandoverUnknownSender;
 
-  /// No description provided for @stockHandoverMatchItems.
+  /// No description provided for @stockHandoverUnknownSenderHint.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 item} other{{count} items}}'**
-  String stockHandoverMatchItems(int count);
+  /// **'A manager matches it with what was sent'**
+  String get stockHandoverUnknownSenderHint;
 
-  /// No description provided for @stockHandoverMatchClaim.
+  /// No description provided for @stockHandoverUnknownSenderLabel.
   ///
   /// In en, this message translates to:
-  /// **'{label}: {qty}'**
-  String stockHandoverMatchClaim(String label, String qty);
+  /// **'Unknown sender'**
+  String get stockHandoverUnknownSenderLabel;
 
-  /// No description provided for @stockHandoverMatchBalanced.
+  /// No description provided for @stockHandoverReviewReceivedUnknown.
   ///
   /// In en, this message translates to:
-  /// **'Balanced'**
-  String get stockHandoverMatchBalanced;
+  /// **'You received (sender unknown):'**
+  String get stockHandoverReviewReceivedUnknown;
 
-  /// No description provided for @stockHandoverMatchUnmatched.
+  /// No description provided for @stockHandoverReviewHintUnknown.
   ///
   /// In en, this message translates to:
-  /// **'{qty} units unmatched'**
-  String stockHandoverMatchUnmatched(String qty);
+  /// **'A manager matches it with what was sent. Nothing moves until then.'**
+  String get stockHandoverReviewHintUnknown;
 
-  /// No description provided for @stockHandoverMatchTitle.
+  /// No description provided for @stockHandoverSentToManagerSnack.
   ///
   /// In en, this message translates to:
-  /// **'Match {source}'**
-  String stockHandoverMatchTitle(String source);
+  /// **'Sent. Waiting for a manager to match.'**
+  String get stockHandoverSentToManagerSnack;
 
-  /// No description provided for @stockHandoverMatchSent.
+  /// No description provided for @stockTransitEntryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sent'**
-  String get stockHandoverMatchSent;
+  /// **'Transit'**
+  String get stockTransitEntryTitle;
 
-  /// No description provided for @stockHandoverMatchRemaining.
+  /// No description provided for @stockTransitEntryToApprove.
   ///
   /// In en, this message translates to:
-  /// **'Remaining: {qty}'**
-  String stockHandoverMatchRemaining(String qty);
+  /// **'{count, plural, =0{Nothing to approve} =1{1 to approve} other{{count} to approve}}'**
+  String stockTransitEntryToApprove(int count);
 
-  /// No description provided for @stockHandoverMatchAddBranch.
+  /// No description provided for @stockTransitEntrySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Add branch'**
-  String get stockHandoverMatchAddBranch;
+  /// **'Match what was sent with what arrived'**
+  String get stockTransitEntrySubtitle;
 
-  /// No description provided for @stockHandoverMatchPickBranch.
+  /// No description provided for @stockTransitTitle.
   ///
   /// In en, this message translates to:
-  /// **'Which branch got it?'**
-  String get stockHandoverMatchPickBranch;
+  /// **'Transit'**
+  String get stockTransitTitle;
 
-  /// No description provided for @stockHandoverMatchNoBranches.
+  /// No description provided for @stockTransitSummaryToApprove.
   ///
   /// In en, this message translates to:
-  /// **'There is no other branch to add.'**
-  String get stockHandoverMatchNoBranches;
+  /// **'To approve'**
+  String get stockTransitSummaryToApprove;
 
-  /// No description provided for @stockHandoverMatchCannotConfirm.
+  /// No description provided for @stockTransitSummaryUnits.
   ///
   /// In en, this message translates to:
-  /// **'You declared part of this batch. Another manager must confirm.'**
-  String get stockHandoverMatchCannotConfirm;
+  /// **'Units in transit'**
+  String get stockTransitSummaryUnits;
 
-  /// No description provided for @stockHandoverMatchConfirm.
+  /// No description provided for @stockTransitSummaryOverdue.
   ///
   /// In en, this message translates to:
-  /// **'Confirm match'**
-  String get stockHandoverMatchConfirm;
+  /// **'Overdue sends'**
+  String get stockTransitSummaryOverdue;
 
-  /// No description provided for @stockHandoverMatchReviewTitle.
+  /// No description provided for @stockTransitSectionToApprove.
   ///
   /// In en, this message translates to:
-  /// **'Review before confirming'**
-  String get stockHandoverMatchReviewTitle;
+  /// **'To approve ({count})'**
+  String stockTransitSectionToApprove(int count);
 
-  /// No description provided for @stockHandoverMatchWas.
+  /// No description provided for @stockTransitSectionInTransit.
   ///
   /// In en, this message translates to:
-  /// **'was {qty}'**
-  String stockHandoverMatchWas(String qty);
+  /// **'In transit ({count})'**
+  String stockTransitSectionInTransit(int count);
 
-  /// No description provided for @stockHandoverMatchSentChange.
+  /// No description provided for @stockTransitNothingToApprove.
   ///
   /// In en, this message translates to:
-  /// **'{item}: sent {was} → {now}'**
-  String stockHandoverMatchSentChange(String item, String was, String now);
+  /// **'Nothing waiting for approval.'**
+  String get stockTransitNothingToApprove;
 
-  /// No description provided for @stockHandoverMatchNoteHint.
+  /// No description provided for @stockTransitNothingInTransit.
   ///
   /// In en, this message translates to:
-  /// **'Note (optional)'**
-  String get stockHandoverMatchNoteHint;
+  /// **'Nothing is in transit.'**
+  String get stockTransitNothingInTransit;
 
-  /// No description provided for @stockHandoverMatchConfirmedSnack.
+  /// No description provided for @stockTransitReceivedBy.
   ///
   /// In en, this message translates to:
-  /// **'Matched. Stock moved ({entry}).'**
-  String stockHandoverMatchConfirmedSnack(String entry);
+  /// **'{target} received'**
+  String stockTransitReceivedBy(String target);
 
-  /// No description provided for @stockHandoverMatchRejectBatch.
+  /// No description provided for @stockTransitNamedChip.
   ///
   /// In en, this message translates to:
-  /// **'Reject sent-out batch'**
-  String get stockHandoverMatchRejectBatch;
+  /// **'Says from {source}'**
+  String stockTransitNamedChip(String source);
 
-  /// No description provided for @stockHandoverMatchRejectTitle.
+  /// No description provided for @stockTransitUnknownChip.
   ///
   /// In en, this message translates to:
-  /// **'Reject what {source} sent out?'**
-  String stockHandoverMatchRejectTitle(String source);
+  /// **'Sender unknown'**
+  String get stockTransitUnknownChip;
 
-  /// No description provided for @stockHandoverMatchRejectBody.
+  /// No description provided for @stockTransitUnresolved.
   ///
   /// In en, this message translates to:
-  /// **'The branches\'\' receipts go back to {source} to confirm one by one.'**
-  String stockHandoverMatchRejectBody(String source);
+  /// **'{qty} with no source'**
+  String stockTransitUnresolved(String qty);
 
-  /// No description provided for @stockHandoverMatchRejectedSnack.
+  /// No description provided for @stockTransitLeftToAssign.
   ///
   /// In en, this message translates to:
-  /// **'Sent-out batch rejected.'**
-  String get stockHandoverMatchRejectedSnack;
+  /// **'Left to assign: {qty}'**
+  String stockTransitLeftToAssign(String qty);
+
+  /// No description provided for @stockTransitOverAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'{qty} too many assigned'**
+  String stockTransitOverAssigned(String qty);
+
+  /// No description provided for @stockTransitAllAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'All assigned'**
+  String get stockTransitAllAssigned;
+
+  /// No description provided for @stockTransitTapToChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to choose where it came from'**
+  String get stockTransitTapToChoose;
+
+  /// No description provided for @stockTransitEditedByYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Set by you'**
+  String get stockTransitEditedByYou;
+
+  /// No description provided for @stockTransitReceivedChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Received {was} → {now}'**
+  String stockTransitReceivedChanged(String was, String now);
+
+  /// No description provided for @stockTransitReasonExact.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact match — {source} sent {qty}'**
+  String stockTransitReasonExact(String source, String qty);
+
+  /// No description provided for @stockTransitReasonOnlySender.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {source} sent this'**
+  String stockTransitReasonOnlySender(String source);
+
+  /// No description provided for @stockTransitReasonSameShipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Same shipment as the other items'**
+  String get stockTransitReasonSameShipment;
+
+  /// No description provided for @stockTransitReasonSentBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent before it was received'**
+  String get stockTransitReasonSentBefore;
+
+  /// No description provided for @stockTransitReasonSentAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent after it was received — check'**
+  String get stockTransitReasonSentAfter;
+
+  /// No description provided for @stockTransitReasonUsual.
+  ///
+  /// In en, this message translates to:
+  /// **'Usually from {source} ({percent}%)'**
+  String stockTransitReasonUsual(String source, String percent);
+
+  /// No description provided for @stockTransitReasonNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiver said it came from {source}'**
+  String stockTransitReasonNamed(String source);
+
+  /// No description provided for @stockTransitReasonSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Split across several sends'**
+  String get stockTransitReasonSplit;
+
+  /// No description provided for @stockTransitReasonNoSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody declared sending this — check the sender'**
+  String get stockTransitReasonNoSend;
+
+  /// No description provided for @stockTransitConfidenceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Confident'**
+  String get stockTransitConfidenceHigh;
+
+  /// No description provided for @stockTransitConfidenceMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Likely'**
+  String get stockTransitConfidenceMedium;
+
+  /// No description provided for @stockTransitConfidenceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get stockTransitConfidenceLow;
+
+  /// No description provided for @stockTransitApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get stockTransitApprove;
+
+  /// No description provided for @stockTransitCannotApproveOwn.
+  ///
+  /// In en, this message translates to:
+  /// **'You declared this receipt. Another manager must approve it.'**
+  String get stockTransitCannotApproveOwn;
+
+  /// No description provided for @stockTransitApprovedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved. Stock moved to {target} ({entry}).'**
+  String stockTransitApprovedSnack(String target, String entry);
+
+  /// No description provided for @stockTransitRejectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject what {target} received?'**
+  String stockTransitRejectTitle(String target);
+
+  /// No description provided for @stockTransitRejectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing moves. The receiver sees it was rejected.'**
+  String get stockTransitRejectBody;
+
+  /// No description provided for @stockTransitReasonRequiredHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (required)'**
+  String get stockTransitReasonRequiredHint;
+
+  /// No description provided for @stockTransitRejectedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt rejected.'**
+  String get stockTransitRejectedSnack;
+
+  /// No description provided for @stockTransitDriftSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Something changed meanwhile. The board was reloaded — check again.'**
+  String get stockTransitDriftSnack;
+
+  /// No description provided for @stockTransitApproveConfident.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve all confident'**
+  String get stockTransitApproveConfident;
+
+  /// No description provided for @stockTransitApproveConfidentNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No receipt is fully confident yet.'**
+  String get stockTransitApproveConfidentNone;
+
+  /// No description provided for @stockTransitApproveConfidentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Approve 1 confident receipt?} other{Approve {count} confident receipts?}}'**
+  String stockTransitApproveConfidentTitle(int count);
+
+  /// No description provided for @stockTransitApproveConfidentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every line below has one sure source. Each receipt is approved on its own.'**
+  String get stockTransitApproveConfidentBody;
+
+  /// No description provided for @stockTransitApproveConfidentButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve {count}'**
+  String stockTransitApproveConfidentButton(int count);
+
+  /// No description provided for @stockTransitApproveConfidentDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{ok} approved, {failed} not approved'**
+  String stockTransitApproveConfidentDone(int ok, int failed);
+
+  /// No description provided for @stockTransitApproveConfidentChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'{receipt} changed meanwhile — left for you to check'**
+  String stockTransitApproveConfidentChanged(String receipt);
+
+  /// No description provided for @stockTransitSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{item} — where did it come from?'**
+  String stockTransitSheetTitle(String item);
+
+  /// No description provided for @stockTransitActuallyReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Actually received'**
+  String get stockTransitActuallyReceived;
+
+  /// No description provided for @stockTransitDeclaredQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Declared {qty}'**
+  String stockTransitDeclaredQty(String qty);
+
+  /// No description provided for @stockTransitOpenSends.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends in transit'**
+  String get stockTransitOpenSends;
+
+  /// No description provided for @stockTransitSendLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{qty} left'**
+  String stockTransitSendLeft(String qty);
+
+  /// No description provided for @stockTransitReservedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{qty} suggested for other receipts'**
+  String stockTransitReservedElsewhere(String qty);
+
+  /// No description provided for @stockTransitOverRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'More than this send has left'**
+  String get stockTransitOverRemaining;
+
+  /// No description provided for @stockTransitNoOpenSends.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody has this item in transit.'**
+  String get stockTransitNoOpenSends;
+
+  /// No description provided for @stockTransitNotDeclared.
+  ///
+  /// In en, this message translates to:
+  /// **'Sender didn\'\'t declare it'**
+  String get stockTransitNotDeclared;
+
+  /// No description provided for @stockTransitAddNotDeclared.
+  ///
+  /// In en, this message translates to:
+  /// **'Sender didn\'\'t declare it — pick who sent it'**
+  String get stockTransitAddNotDeclared;
+
+  /// No description provided for @stockTransitPickSender.
+  ///
+  /// In en, this message translates to:
+  /// **'Who sent it?'**
+  String get stockTransitPickSender;
+
+  /// No description provided for @stockTransitNoSenders.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no other side to pick.'**
+  String get stockTransitNoSenders;
+
+  /// No description provided for @stockTransitFillRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the rest'**
+  String get stockTransitFillRest;
+
+  /// No description provided for @stockTransitResetSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to suggestion'**
+  String get stockTransitResetSuggestion;
+
+  /// No description provided for @stockTransitSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested'**
+  String get stockTransitSuggested;
+
+  /// No description provided for @stockTransitDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get stockTransitDone;
+
+  /// No description provided for @stockTransitRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get stockTransitRemove;
+
+  /// No description provided for @stockTransitAgeHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours, plural, =0{Just now} =1{1 hour in transit} other{{hours} hours in transit}}'**
+  String stockTransitAgeHours(int hours);
+
+  /// No description provided for @stockTransitAgeDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day in transit} other{{days} days in transit}}'**
+  String stockTransitAgeDays(int days);
+
+  /// No description provided for @stockTransitOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get stockTransitOverdue;
+
+  /// No description provided for @stockTransitLeftOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{left} of {total} left'**
+  String stockTransitLeftOf(String left, String total);
+
+  /// No description provided for @stockTransitReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to sender'**
+  String get stockTransitReturn;
+
+  /// No description provided for @stockTransitWriteOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Write off'**
+  String get stockTransitWriteOff;
+
+  /// No description provided for @stockTransitReturnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to {source}'**
+  String stockTransitReturnTitle(String source);
+
+  /// No description provided for @stockTransitReturnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These units go back into {source}\'\'s stock.'**
+  String stockTransitReturnBody(String source);
+
+  /// No description provided for @stockTransitWriteOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Write off from {source}\'\'s send'**
+  String stockTransitWriteOffTitle(String source);
+
+  /// No description provided for @stockTransitWriteOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These units are recorded as lost. This can\'\'t be undone.'**
+  String get stockTransitWriteOffBody;
+
+  /// No description provided for @stockTransitWriteOffConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Write off {qty} units as lost?'**
+  String stockTransitWriteOffConfirmTitle(String qty);
+
+  /// No description provided for @stockTransitReturnConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Return {qty}'**
+  String stockTransitReturnConfirm(String qty);
+
+  /// No description provided for @stockTransitWriteOffConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Write off {qty}'**
+  String stockTransitWriteOffConfirm(String qty);
+
+  /// No description provided for @stockTransitReturnedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned to {source}.'**
+  String stockTransitReturnedSnack(String source);
+
+  /// No description provided for @stockTransitWrittenOffSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Written off.'**
+  String get stockTransitWrittenOffSnack;
+
+  /// No description provided for @stockTransitCannotActOwn.
+  ///
+  /// In en, this message translates to:
+  /// **'You sent this. Another manager must return or write it off.'**
+  String get stockTransitCannotActOwn;
+
+  /// No description provided for @stockTransitSentBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent by {name} · {time}'**
+  String stockTransitSentBy(String name, String time);
 
   /// No description provided for @userErrorHandoverRule.
   ///

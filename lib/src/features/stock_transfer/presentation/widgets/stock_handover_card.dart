@@ -71,7 +71,12 @@ class StockHandoverCard extends StatelessWidget {
                   child: Text(
                     h.isDispatch
                         ? l10n.stockHandoverDispatchTitle(h.fromLabel)
-                        : l10n.stockHandoverRoute(h.fromLabel, h.toLabel),
+                        : l10n.stockHandoverRoute(
+                            h.isUnsourced
+                                ? l10n.stockHandoverUnknownSenderLabel
+                                : h.fromLabel,
+                            h.toLabel,
+                          ),
                     style: theme.textTheme.titleMedium
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
@@ -96,7 +101,10 @@ class StockHandoverCard extends StatelessWidget {
                 ),
                 style: theme.textTheme.bodySmall,
               ),
-            if (h.isPending && (h.isDispatch || h.inGroup))
+            // Sends, unsourced receipts and receipts in the transit pool all
+            // wait for a manager to match them, not for a branch.
+            if (h.isPending &&
+                (h.isDispatch || h.inGroup || h.isUnsourced || h.awaitsManager))
               Text(
                 h.isDispatch
                     ? l10n.stockHandoverDispatchWaiting

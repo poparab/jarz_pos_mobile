@@ -346,6 +346,9 @@ bool _isHandoverRule(String lowerText) => _hasAny(lowerText, const [
       'to confirm this handover',
       'every unit must go somewhere',
       'something changed in this batch',
+      // Transit board refusals (approve / write off / return): the sentence
+      // names the send and the quantity left, which the manager needs.
+      'transit',
     ]);
 
 String? _businessMessage(AppLocalizations l10n, String? candidate) {

@@ -118,17 +118,21 @@ class StockTransferService {
   }
 
   /// The items that may be declared between the two sides (jars only). With
-  /// no [counterpartWarehouse] ("I sent out") the server returns the union
-  /// over every possible receiver.
+  /// no [counterpartWarehouse] the server returns a union: over every
+  /// possible receiver for "I sent out", over every possible sender for an
+  /// "I received" whose sender is unknown. [direction] (`in` / `out`) tells
+  /// the server which union; a server that does not take it ignores it.
   Future<List<HandoverItemOption>> listHandoverItems({
     required String myWarehouse,
     String? counterpartWarehouse,
+    String? direction,
     String? search,
   }) async {
     final resp = await _dio.post(ApiEndpoints.stockHandoverListItems, data: {
       'my_warehouse': myWarehouse,
       if (counterpartWarehouse != null && counterpartWarehouse.isNotEmpty)
         'counterpart_warehouse': counterpartWarehouse,
+      if (direction != null && direction.isNotEmpty) 'direction': direction,
       if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
     });
     final message = unwrapFrappeMessage(resp.data);
@@ -143,8 +147,10 @@ class StockTransferService {
         .toList();
   }
 
-  /// "I received from …" ([direction] `in`, needs [counterpartWarehouse]) or
-  /// "I sent out" (`out`, no counterpart: a Dispatch a manager matches later).
+  /// "I received from …" ([direction] `in`; no [counterpartWarehouse] = the
+  /// receiver does not know who sent it, a manager matches it) or "I sent
+  /// out" (`out`, no counterpart: the stock goes into transit now and a
+  /// manager matches it with the receipts).
   /// Lines without a positive quantity never leave the client.
   /// [clientRequestId] is generated once per editor session so a double tap
   /// returns the first handover instead of inserting a second.
@@ -213,23 +219,87 @@ class StockTransferService {
     return _handoverFrom(resp.data);
   }
 
-  /// Manager confirms a whole "sent out" batch. [members] is the exact
-  /// `dispatches + receipts` list the manager was shown (the server's
-  /// concurrency token); [lines] is `[{item_code, sent, splits:[{warehouse,
-  /// qty}]}]`. Zero or negative splits are dropped here.
-  Future<MatchConfirmOutcome> confirmMatch({
-    required String sourceWarehouse,
-    required List<String> members,
-    required List<Map<String, dynamic>> lines,
-    String? note,
-  }) async {
-    final resp = await _dio.post(ApiEndpoints.stockHandoverConfirmMatch, data: {
-      'source_warehouse': sourceWarehouse,
-      'members': members,
-      'lines': positiveMatchLines(lines),
-      if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+  // ── Transit board (managers) ─────────────────────────────────────────────
+
+  /// Open sends, receipts to approve with the engine's suggestions, and the
+  /// sides a sender can be picked from.
+  Future<TransitBoard> getTransitBoard({String? posProfile}) async {
+    final resp = await _dio.post(ApiEndpoints.stockHandoverTransitBoard, data: {
+      if (posProfile != null && posProfile.isNotEmpty) 'pos_profile': posProfile,
     });
-    return MatchConfirmOutcome.fromJson(unwrapFrappeMap(resp.data));
+    return TransitBoard.fromJson(unwrapFrappeMap(resp.data));
+  }
+
+  /// Approves one receipt. [allocations] is
+  /// `[{item_code, dispatch|null, source_warehouse, qty, was_recommended,
+  /// confidence}]` (non-positive rows are dropped here); [received] is the
+  /// optional `{item_code: qty}` correction of what actually arrived;
+  /// [version] is the board's drift token.
+  Future<TransitApproveOutcome> approveReceipt({
+    required String receipt,
+    required List<Map<String, dynamic>> allocations,
+    Map<String, double>? received,
+    String? note,
+    String? version,
+    String? posProfile,
+  }) async {
+    final resp = await _dio.post(ApiEndpoints.stockHandoverApproveReceipt, data: {
+      'receipt': receipt,
+      'allocations': positiveAllocations(allocations),
+      if (received != null && received.isNotEmpty) 'received': received,
+      if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      if (version != null && version.isNotEmpty) 'version': version,
+      if (posProfile != null && posProfile.isNotEmpty) 'pos_profile': posProfile,
+    });
+    return TransitApproveOutcome.fromJson(unwrapFrappeMap(resp.data));
+  }
+
+  Future<TransitActionOutcome> rejectReceipt({
+    required String receipt,
+    required String reason,
+    String? posProfile,
+  }) async {
+    final resp = await _dio.post(ApiEndpoints.stockHandoverRejectReceipt, data: {
+      'receipt': receipt,
+      'reason': reason.trim(),
+      if (posProfile != null && posProfile.isNotEmpty) 'pos_profile': posProfile,
+    });
+    return TransitActionOutcome.fromJson(unwrapFrappeMap(resp.data));
+  }
+
+  /// Writes [lines] (`[{item_code, qty}]`) of a send off as lost. A reason is
+  /// required by the server.
+  Future<TransitActionOutcome> writeOffTransit({
+    required String dispatch,
+    required List<Map<String, dynamic>> lines,
+    required String reason,
+    String? posProfile,
+  }) async {
+    final resp =
+        await _dio.post(ApiEndpoints.stockHandoverWriteOffTransit, data: {
+      'dispatch': dispatch,
+      'lines': positiveHandoverLines(lines),
+      'reason': reason.trim(),
+      if (posProfile != null && posProfile.isNotEmpty) 'pos_profile': posProfile,
+    });
+    return TransitActionOutcome.fromJson(unwrapFrappeMap(resp.data));
+  }
+
+  /// Moves [lines] of a send back from transit to its sender.
+  Future<TransitActionOutcome> returnToSender({
+    required String dispatch,
+    required List<Map<String, dynamic>> lines,
+    String? reason,
+    String? posProfile,
+  }) async {
+    final resp =
+        await _dio.post(ApiEndpoints.stockHandoverReturnToSender, data: {
+      'dispatch': dispatch,
+      'lines': positiveHandoverLines(lines),
+      if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
+      if (posProfile != null && posProfile.isNotEmpty) 'pos_profile': posProfile,
+    });
+    return TransitActionOutcome.fromJson(unwrapFrappeMap(resp.data));
   }
 
   /// `{"ok": true, "handover": {...}}`, or the handover itself.
@@ -261,31 +331,31 @@ List<Map<String, dynamic>> positiveHandoverLines(
   ];
 }
 
-/// `{item_code, sent, splits:[{warehouse, qty}]}` keeping only positive,
-/// finite splits. Every item keeps its line, even with sent 0 and no splits:
-/// the server refuses a batch with "Every item in the batch needs a line"
-/// when one is missing.
-List<Map<String, dynamic>> positiveMatchLines(
-  List<Map<String, dynamic>> lines,
+/// `approve_receipt` allocations with a positive, finite quantity, normalised:
+/// `dispatch` stays null for a direct allocation, `was_recommended` is 0/1 and
+/// `confidence` a string. Rows without an item or a source are dropped.
+List<Map<String, dynamic>> positiveAllocations(
+  List<Map<String, dynamic>> allocations,
 ) {
-  bool positive(Object? v) => v is num && v.isFinite && v > 0;
   final out = <Map<String, dynamic>>[];
-  for (final l in lines) {
-    if (l['item_code'] == null) continue;
-    final splits = <Map<String, dynamic>>[];
-    final raw = l['splits'];
-    if (raw is List) {
-      for (final s in raw) {
-        if (s is Map && s['warehouse'] != null && positive(s['qty'])) {
-          splits.add({
-            'warehouse': s['warehouse'],
-            'qty': (s['qty'] as num).toDouble(),
-          });
-        }
-      }
+  for (final a in allocations) {
+    final qty = a['qty'];
+    if (a['item_code'] == null || qty is! num || !qty.isFinite || qty <= 0) {
+      continue;
     }
-    final sent = positive(l['sent']) ? (l['sent'] as num).toDouble() : 0.0;
-    out.add({'item_code': l['item_code'], 'sent': sent, 'splits': splits});
+    final source = a['source_warehouse'];
+    if (source == null || source.toString().isEmpty) continue;
+    final dispatch = a['dispatch'];
+    final rec = a['was_recommended'];
+    out.add({
+      'item_code': a['item_code'],
+      'dispatch':
+          (dispatch == null || dispatch.toString().isEmpty) ? null : dispatch,
+      'source_warehouse': source,
+      'qty': qty.toDouble(),
+      'was_recommended': (rec == true || rec == 1) ? 1 : 0,
+      'confidence': (a['confidence'] ?? '').toString(),
+    });
   }
   return out;
 }

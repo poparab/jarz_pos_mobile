@@ -19323,12 +19323,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stockHandoverReviewSentOut => 'You sent out:';
 
   @override
-  String get stockHandoverReviewHintSentOut =>
-      'A manager matches it with the branches that received it. Nothing moves until then.';
+  String stockHandoverReviewHintSentOut(String side) {
+    return 'This stock leaves $side now and goes to In Transit. A manager matches it with the branches that receive it.';
+  }
 
   @override
   String get stockHandoverSentOutSnack =>
-      'Sent out. Waiting for the manager to match.';
+      'Sent out. The stock is now In Transit.';
 
   @override
   String get stockHandoverNoChangeHint => 'No change. Confirm it instead.';
@@ -19340,105 +19341,384 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stockHandoverDispatchWaiting =>
-      'Sent out · waiting for the manager to match';
+      'In transit · waiting for a manager to match';
 
   @override
-  String get stockHandoverGroupWaiting => 'Waiting for the manager to match';
+  String get stockHandoverGroupWaiting => 'Waiting for a manager to match';
 
   @override
-  String stockHandoverToMatch(int count) {
-    return 'To match ($count)';
-  }
+  String get stockHandoverUnknownSender => 'I don\'t know who sent it';
 
   @override
-  String stockHandoverMatchItems(int count) {
+  String get stockHandoverUnknownSenderHint =>
+      'A manager matches it with what was sent';
+
+  @override
+  String get stockHandoverUnknownSenderLabel => 'Unknown sender';
+
+  @override
+  String get stockHandoverReviewReceivedUnknown =>
+      'You received (sender unknown):';
+
+  @override
+  String get stockHandoverReviewHintUnknown =>
+      'A manager matches it with what was sent. Nothing moves until then.';
+
+  @override
+  String get stockHandoverSentToManagerSnack =>
+      'Sent. Waiting for a manager to match.';
+
+  @override
+  String get stockTransitEntryTitle => 'Transit';
+
+  @override
+  String stockTransitEntryToApprove(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '1 item',
+      other: '$count to approve',
+      one: '1 to approve',
+      zero: 'Nothing to approve',
     );
     return '$_temp0';
   }
 
   @override
-  String stockHandoverMatchClaim(String label, String qty) {
-    return '$label: $qty';
+  String get stockTransitEntrySubtitle =>
+      'Match what was sent with what arrived';
+
+  @override
+  String get stockTransitTitle => 'Transit';
+
+  @override
+  String get stockTransitSummaryToApprove => 'To approve';
+
+  @override
+  String get stockTransitSummaryUnits => 'Units in transit';
+
+  @override
+  String get stockTransitSummaryOverdue => 'Overdue sends';
+
+  @override
+  String stockTransitSectionToApprove(int count) {
+    return 'To approve ($count)';
   }
 
   @override
-  String get stockHandoverMatchBalanced => 'Balanced';
-
-  @override
-  String stockHandoverMatchUnmatched(String qty) {
-    return '$qty units unmatched';
+  String stockTransitSectionInTransit(int count) {
+    return 'In transit ($count)';
   }
 
   @override
-  String stockHandoverMatchTitle(String source) {
-    return 'Match $source';
+  String get stockTransitNothingToApprove => 'Nothing waiting for approval.';
+
+  @override
+  String get stockTransitNothingInTransit => 'Nothing is in transit.';
+
+  @override
+  String stockTransitReceivedBy(String target) {
+    return '$target received';
   }
 
   @override
-  String get stockHandoverMatchSent => 'Sent';
-
-  @override
-  String stockHandoverMatchRemaining(String qty) {
-    return 'Remaining: $qty';
+  String stockTransitNamedChip(String source) {
+    return 'Says from $source';
   }
 
   @override
-  String get stockHandoverMatchAddBranch => 'Add branch';
+  String get stockTransitUnknownChip => 'Sender unknown';
 
   @override
-  String get stockHandoverMatchPickBranch => 'Which branch got it?';
-
-  @override
-  String get stockHandoverMatchNoBranches => 'There is no other branch to add.';
-
-  @override
-  String get stockHandoverMatchCannotConfirm =>
-      'You declared part of this batch. Another manager must confirm.';
-
-  @override
-  String get stockHandoverMatchConfirm => 'Confirm match';
-
-  @override
-  String get stockHandoverMatchReviewTitle => 'Review before confirming';
-
-  @override
-  String stockHandoverMatchWas(String qty) {
-    return 'was $qty';
+  String stockTransitUnresolved(String qty) {
+    return '$qty with no source';
   }
 
   @override
-  String stockHandoverMatchSentChange(String item, String was, String now) {
-    return '$item: sent $was → $now';
+  String stockTransitLeftToAssign(String qty) {
+    return 'Left to assign: $qty';
   }
 
   @override
-  String get stockHandoverMatchNoteHint => 'Note (optional)';
-
-  @override
-  String stockHandoverMatchConfirmedSnack(String entry) {
-    return 'Matched. Stock moved ($entry).';
+  String stockTransitOverAssigned(String qty) {
+    return '$qty too many assigned';
   }
 
   @override
-  String get stockHandoverMatchRejectBatch => 'Reject sent-out batch';
+  String get stockTransitAllAssigned => 'All assigned';
 
   @override
-  String stockHandoverMatchRejectTitle(String source) {
-    return 'Reject what $source sent out?';
+  String get stockTransitTapToChoose => 'Tap to choose where it came from';
+
+  @override
+  String get stockTransitEditedByYou => 'Set by you';
+
+  @override
+  String stockTransitReceivedChanged(String was, String now) {
+    return 'Received $was → $now';
   }
 
   @override
-  String stockHandoverMatchRejectBody(String source) {
-    return 'The branches\' receipts go back to $source to confirm one by one.';
+  String stockTransitReasonExact(String source, String qty) {
+    return 'Exact match — $source sent $qty';
   }
 
   @override
-  String get stockHandoverMatchRejectedSnack => 'Sent-out batch rejected.';
+  String stockTransitReasonOnlySender(String source) {
+    return 'Only $source sent this';
+  }
+
+  @override
+  String get stockTransitReasonSameShipment =>
+      'Same shipment as the other items';
+
+  @override
+  String get stockTransitReasonSentBefore => 'Sent before it was received';
+
+  @override
+  String get stockTransitReasonSentAfter =>
+      'Sent after it was received — check';
+
+  @override
+  String stockTransitReasonUsual(String source, String percent) {
+    return 'Usually from $source ($percent%)';
+  }
+
+  @override
+  String stockTransitReasonNamed(String source) {
+    return 'The receiver said it came from $source';
+  }
+
+  @override
+  String get stockTransitReasonSplit => 'Split across several sends';
+
+  @override
+  String get stockTransitReasonNoSend =>
+      'Nobody declared sending this — check the sender';
+
+  @override
+  String get stockTransitConfidenceHigh => 'Confident';
+
+  @override
+  String get stockTransitConfidenceMedium => 'Likely';
+
+  @override
+  String get stockTransitConfidenceLow => 'Check';
+
+  @override
+  String get stockTransitApprove => 'Approve';
+
+  @override
+  String get stockTransitCannotApproveOwn =>
+      'You declared this receipt. Another manager must approve it.';
+
+  @override
+  String stockTransitApprovedSnack(String target, String entry) {
+    return 'Approved. Stock moved to $target ($entry).';
+  }
+
+  @override
+  String stockTransitRejectTitle(String target) {
+    return 'Reject what $target received?';
+  }
+
+  @override
+  String get stockTransitRejectBody =>
+      'Nothing moves. The receiver sees it was rejected.';
+
+  @override
+  String get stockTransitReasonRequiredHint => 'Reason (required)';
+
+  @override
+  String get stockTransitRejectedSnack => 'Receipt rejected.';
+
+  @override
+  String get stockTransitDriftSnack =>
+      'Something changed meanwhile. The board was reloaded — check again.';
+
+  @override
+  String get stockTransitApproveConfident => 'Approve all confident';
+
+  @override
+  String get stockTransitApproveConfidentNone =>
+      'No receipt is fully confident yet.';
+
+  @override
+  String stockTransitApproveConfidentTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Approve $count confident receipts?',
+      one: 'Approve 1 confident receipt?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stockTransitApproveConfidentBody =>
+      'Every line below has one sure source. Each receipt is approved on its own.';
+
+  @override
+  String stockTransitApproveConfidentButton(int count) {
+    return 'Approve $count';
+  }
+
+  @override
+  String stockTransitApproveConfidentDone(int ok, int failed) {
+    return '$ok approved, $failed not approved';
+  }
+
+  @override
+  String stockTransitApproveConfidentChanged(String receipt) {
+    return '$receipt changed meanwhile — left for you to check';
+  }
+
+  @override
+  String stockTransitSheetTitle(String item) {
+    return '$item — where did it come from?';
+  }
+
+  @override
+  String get stockTransitActuallyReceived => 'Actually received';
+
+  @override
+  String stockTransitDeclaredQty(String qty) {
+    return 'Declared $qty';
+  }
+
+  @override
+  String get stockTransitOpenSends => 'Sends in transit';
+
+  @override
+  String stockTransitSendLeft(String qty) {
+    return '$qty left';
+  }
+
+  @override
+  String stockTransitReservedElsewhere(String qty) {
+    return '$qty suggested for other receipts';
+  }
+
+  @override
+  String get stockTransitOverRemaining => 'More than this send has left';
+
+  @override
+  String get stockTransitNoOpenSends => 'Nobody has this item in transit.';
+
+  @override
+  String get stockTransitNotDeclared => 'Sender didn\'t declare it';
+
+  @override
+  String get stockTransitAddNotDeclared =>
+      'Sender didn\'t declare it — pick who sent it';
+
+  @override
+  String get stockTransitPickSender => 'Who sent it?';
+
+  @override
+  String get stockTransitNoSenders => 'There is no other side to pick.';
+
+  @override
+  String get stockTransitFillRest => 'Fill the rest';
+
+  @override
+  String get stockTransitResetSuggestion => 'Back to suggestion';
+
+  @override
+  String get stockTransitSuggested => 'Suggested';
+
+  @override
+  String get stockTransitDone => 'Done';
+
+  @override
+  String get stockTransitRemove => 'Remove';
+
+  @override
+  String stockTransitAgeHours(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours hours in transit',
+      one: '1 hour in transit',
+      zero: 'Just now',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String stockTransitAgeDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days in transit',
+      one: '1 day in transit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stockTransitOverdue => 'Overdue';
+
+  @override
+  String stockTransitLeftOf(String left, String total) {
+    return '$left of $total left';
+  }
+
+  @override
+  String get stockTransitReturn => 'Return to sender';
+
+  @override
+  String get stockTransitWriteOff => 'Write off';
+
+  @override
+  String stockTransitReturnTitle(String source) {
+    return 'Return to $source';
+  }
+
+  @override
+  String stockTransitReturnBody(String source) {
+    return 'These units go back into $source\'s stock.';
+  }
+
+  @override
+  String stockTransitWriteOffTitle(String source) {
+    return 'Write off from $source\'s send';
+  }
+
+  @override
+  String get stockTransitWriteOffBody =>
+      'These units are recorded as lost. This can\'t be undone.';
+
+  @override
+  String stockTransitWriteOffConfirmTitle(String qty) {
+    return 'Write off $qty units as lost?';
+  }
+
+  @override
+  String stockTransitReturnConfirm(String qty) {
+    return 'Return $qty';
+  }
+
+  @override
+  String stockTransitWriteOffConfirm(String qty) {
+    return 'Write off $qty';
+  }
+
+  @override
+  String stockTransitReturnedSnack(String source) {
+    return 'Returned to $source.';
+  }
+
+  @override
+  String get stockTransitWrittenOffSnack => 'Written off.';
+
+  @override
+  String get stockTransitCannotActOwn =>
+      'You sent this. Another manager must return or write it off.';
+
+  @override
+  String stockTransitSentBy(String name, String time) {
+    return 'Sent by $name · $time';
+  }
 
   @override
   String get userErrorHandoverRule => 'This handover can\'t go through yet.';

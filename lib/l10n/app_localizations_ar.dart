@@ -19321,11 +19321,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get stockHandoverReviewSentOut => 'إنت بعتّ:';
 
   @override
-  String get stockHandoverReviewHintSentOut =>
-      'المدير هيطابقها مع الفروع اللي استلمت. مفيش حاجة هتتنقل قبل كده.';
+  String stockHandoverReviewHintSentOut(String side) {
+    return 'البضاعة دي هتخرج من $side دلوقتي وتبقى «في الطريق». المدير هيطابقها مع الفروع اللي هتستلمها.';
+  }
 
   @override
-  String get stockHandoverSentOutSnack => 'اتسجّلت. مستنية المدير يطابقها.';
+  String get stockHandoverSentOutSnack => 'اتسجّلت. البضاعة دلوقتي في الطريق.';
 
   @override
   String get stockHandoverNoChangeHint => 'مفيش تغيير. أكّدها بدل كده.';
@@ -19336,107 +19337,388 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get stockHandoverDispatchWaiting => 'اتبعتت · مستنية المدير يطابقها';
+  String get stockHandoverDispatchWaiting =>
+      'في الطريق · مستنية المدير يطابقها';
 
   @override
   String get stockHandoverGroupWaiting => 'مستنية المدير يطابقها';
 
   @override
-  String stockHandoverToMatch(int count) {
-    return 'محتاجة مطابقة ($count)';
-  }
+  String get stockHandoverUnknownSender => 'مش عارف مين بعتها';
 
   @override
-  String stockHandoverMatchItems(int count) {
+  String get stockHandoverUnknownSenderHint => 'المدير هيطابقها مع اللي اتبعت';
+
+  @override
+  String get stockHandoverUnknownSenderLabel => 'مش معروف مين بعت';
+
+  @override
+  String get stockHandoverReviewReceivedUnknown =>
+      'إنت استلمت (مش عارف من مين):';
+
+  @override
+  String get stockHandoverReviewHintUnknown =>
+      'المدير هيطابقها مع اللي اتبعت. مفيش حاجة هتتنقل قبل كده.';
+
+  @override
+  String get stockHandoverSentToManagerSnack =>
+      'اتبعتت. مستنية المدير يطابقها.';
+
+  @override
+  String get stockTransitEntryTitle => 'البضاعة اللي في الطريق';
+
+  @override
+  String stockTransitEntryToApprove(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count صنف',
-      few: '$count أصناف',
-      two: 'صنفين',
-      one: 'صنف واحد',
+      other: '$count استلام مستني موافقتك',
+      few: '$count استلامات مستنية موافقتك',
+      two: 'استلامين مستنيين موافقتك',
+      one: 'استلام واحد مستني موافقتك',
+      zero: 'مفيش حاجة مستنية موافقة',
     );
     return '$_temp0';
   }
 
   @override
-  String stockHandoverMatchClaim(String label, String qty) {
-    return '$label: $qty';
+  String get stockTransitEntrySubtitle => 'طابق اللي اتبعت مع اللي وصل';
+
+  @override
+  String get stockTransitTitle => 'البضاعة اللي في الطريق';
+
+  @override
+  String get stockTransitSummaryToApprove => 'مستنية موافقة';
+
+  @override
+  String get stockTransitSummaryUnits => 'قطع في الطريق';
+
+  @override
+  String get stockTransitSummaryOverdue => 'بعتات متأخرة';
+
+  @override
+  String stockTransitSectionToApprove(int count) {
+    return 'مستنية موافقتك ($count)';
   }
 
   @override
-  String get stockHandoverMatchBalanced => 'متطابقة';
-
-  @override
-  String stockHandoverMatchUnmatched(String qty) {
-    return '$qty قطعة مش متطابقة';
+  String stockTransitSectionInTransit(int count) {
+    return 'في الطريق ($count)';
   }
 
   @override
-  String stockHandoverMatchTitle(String source) {
-    return 'مطابقة $source';
+  String get stockTransitNothingToApprove => 'مفيش استلامات مستنية موافقة.';
+
+  @override
+  String get stockTransitNothingInTransit => 'مفيش بضاعة في الطريق.';
+
+  @override
+  String stockTransitReceivedBy(String target) {
+    return '$target استلم';
   }
 
   @override
-  String get stockHandoverMatchSent => 'اتبعت';
-
-  @override
-  String stockHandoverMatchRemaining(String qty) {
-    return 'المتبقي: $qty';
+  String stockTransitNamedChip(String source) {
+    return 'بيقول من $source';
   }
 
   @override
-  String get stockHandoverMatchAddBranch => 'ضيف فرع';
+  String get stockTransitUnknownChip => 'مش عارف مين بعت';
 
   @override
-  String get stockHandoverMatchPickBranch => 'أنهي فرع استلمها؟';
-
-  @override
-  String get stockHandoverMatchNoBranches => 'مفيش فرع تاني تضيفه.';
-
-  @override
-  String get stockHandoverMatchCannotConfirm =>
-      'إنت اللي سجّلت جزء من الدفعة دي. لازم مدير تاني يأكدها.';
-
-  @override
-  String get stockHandoverMatchConfirm => 'تأكيد المطابقة';
-
-  @override
-  String get stockHandoverMatchReviewTitle => 'راجع قبل التأكيد';
-
-  @override
-  String stockHandoverMatchWas(String qty) {
-    return 'كانت $qty';
+  String stockTransitUnresolved(String qty) {
+    return '$qty من غير مصدر';
   }
 
   @override
-  String stockHandoverMatchSentChange(String item, String was, String now) {
-    return '$item: المبعوت اتغير من $was لـ $now';
+  String stockTransitLeftToAssign(String qty) {
+    return 'فاضل تحدد مصدر $qty';
   }
 
   @override
-  String get stockHandoverMatchNoteHint => 'ملاحظة (اختياري)';
-
-  @override
-  String stockHandoverMatchConfirmedSnack(String entry) {
-    return 'اتطابقت. البضاعة اتنقلت ($entry).';
+  String stockTransitOverAssigned(String qty) {
+    return 'متحدد زيادة $qty';
   }
 
   @override
-  String get stockHandoverMatchRejectBatch => 'رفض الدفعة المبعوتة';
+  String get stockTransitAllAssigned => 'كله متحدد';
 
   @override
-  String stockHandoverMatchRejectTitle(String source) {
-    return 'ترفض اللي $source بعتّه؟';
+  String get stockTransitTapToChoose => 'دوس عشان تحدد جت منين';
+
+  @override
+  String get stockTransitEditedByYou => 'إنت اللي حددتها';
+
+  @override
+  String stockTransitReceivedChanged(String was, String now) {
+    return 'المستلم $was ← $now';
   }
 
   @override
-  String stockHandoverMatchRejectBody(String source) {
-    return 'إيصالات الفروع هترجع لـ $source تأكدها واحدة واحدة.';
+  String stockTransitReasonExact(String source, String qty) {
+    return 'مطابقة بالظبط — $source بعت $qty';
   }
 
   @override
-  String get stockHandoverMatchRejectedSnack => 'اترفضت الدفعة المبعوتة.';
+  String stockTransitReasonOnlySender(String source) {
+    return '$source بس اللي بعت الصنف ده';
+  }
+
+  @override
+  String get stockTransitReasonSameShipment => 'نفس شحنة باقي الأصناف';
+
+  @override
+  String get stockTransitReasonSentBefore => 'اتبعتت قبل ما تتستلم';
+
+  @override
+  String get stockTransitReasonSentAfter => 'اتبعتت بعد ما اتستلمت — راجعها';
+
+  @override
+  String stockTransitReasonUsual(String source, String percent) {
+    return 'غالبًا بتيجي من $source ($percent%)';
+  }
+
+  @override
+  String stockTransitReasonNamed(String source) {
+    return 'اللي استلم قال إنها من $source';
+  }
+
+  @override
+  String get stockTransitReasonSplit => 'متقسمة على أكتر من بعتة';
+
+  @override
+  String get stockTransitReasonNoSend =>
+      'محدش سجّل إنه بعت الصنف ده — اتأكد مين بعت';
+
+  @override
+  String get stockTransitConfidenceHigh => 'متأكدين';
+
+  @override
+  String get stockTransitConfidenceMedium => 'غالبًا';
+
+  @override
+  String get stockTransitConfidenceLow => 'راجعها';
+
+  @override
+  String get stockTransitApprove => 'موافقة';
+
+  @override
+  String get stockTransitCannotApproveOwn =>
+      'إنت اللي سجّلت الاستلام ده. لازم مدير تاني يوافق عليه.';
+
+  @override
+  String stockTransitApprovedSnack(String target, String entry) {
+    return 'تمت الموافقة. البضاعة اتنقلت لـ $target ($entry).';
+  }
+
+  @override
+  String stockTransitRejectTitle(String target) {
+    return 'ترفض اللي $target استلمه؟';
+  }
+
+  @override
+  String get stockTransitRejectBody =>
+      'مفيش حاجة هتتنقل، واللي استلم هيشوف إنها اترفضت.';
+
+  @override
+  String get stockTransitReasonRequiredHint => 'السبب (لازم)';
+
+  @override
+  String get stockTransitRejectedSnack => 'اترفض الاستلام.';
+
+  @override
+  String get stockTransitDriftSnack =>
+      'حاجة اتغيرت في الوقت ده. حدّثنا الشاشة — راجع تاني.';
+
+  @override
+  String get stockTransitApproveConfident => 'وافق على المتأكدين منها';
+
+  @override
+  String get stockTransitApproveConfidentNone =>
+      'مفيش استلام متأكدين منه بالكامل لسه.';
+
+  @override
+  String stockTransitApproveConfidentTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'توافق على $count استلام متأكدين منهم؟',
+      few: 'توافق على $count استلامات متأكدين منهم؟',
+      two: 'توافق على استلامين متأكدين منهم؟',
+      one: 'توافق على استلام واحد متأكدين منه؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stockTransitApproveConfidentBody =>
+      'كل سطر تحت ليه مصدر واحد أكيد. كل استلام بيتوافق عليه لوحده.';
+
+  @override
+  String stockTransitApproveConfidentButton(int count) {
+    return 'وافق على $count';
+  }
+
+  @override
+  String stockTransitApproveConfidentDone(int ok, int failed) {
+    return 'اتوافق على $ok، و$failed متوافقش عليهم';
+  }
+
+  @override
+  String stockTransitApproveConfidentChanged(String receipt) {
+    return '$receipt اتغير في الوقت ده — سبناه لك تراجعه';
+  }
+
+  @override
+  String stockTransitSheetTitle(String item) {
+    return '$item — جت منين؟';
+  }
+
+  @override
+  String get stockTransitActuallyReceived => 'اللي وصل فعلًا';
+
+  @override
+  String stockTransitDeclaredQty(String qty) {
+    return 'اتسجّل $qty';
+  }
+
+  @override
+  String get stockTransitOpenSends => 'البعتات اللي في الطريق';
+
+  @override
+  String stockTransitSendLeft(String qty) {
+    return 'فاضل $qty';
+  }
+
+  @override
+  String stockTransitReservedElsewhere(String qty) {
+    return '$qty منهم مقترحين لاستلامات تانية';
+  }
+
+  @override
+  String get stockTransitOverRemaining => 'أكتر من اللي فاضل في البعتة دي';
+
+  @override
+  String get stockTransitNoOpenSends => 'محدش باعت الصنف ده.';
+
+  @override
+  String get stockTransitNotDeclared => 'اللي بعت ماسجّلش';
+
+  @override
+  String get stockTransitAddNotDeclared => 'اللي بعت ماسجّلش — اختار مين بعت';
+
+  @override
+  String get stockTransitPickSender => 'مين بعتها؟';
+
+  @override
+  String get stockTransitNoSenders => 'مفيش طرف تاني تختاره.';
+
+  @override
+  String get stockTransitFillRest => 'كمّل الباقي';
+
+  @override
+  String get stockTransitResetSuggestion => 'رجّع الاقتراح';
+
+  @override
+  String get stockTransitSuggested => 'مقترحة';
+
+  @override
+  String get stockTransitDone => 'تمام';
+
+  @override
+  String get stockTransitRemove => 'شيل';
+
+  @override
+  String stockTransitAgeHours(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'في الطريق من $hours ساعة',
+      few: 'في الطريق من $hours ساعات',
+      two: 'في الطريق من ساعتين',
+      one: 'في الطريق من ساعة',
+      zero: 'لسه حالًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String stockTransitAgeDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'في الطريق من $days يوم',
+      few: 'في الطريق من $days أيام',
+      two: 'في الطريق من يومين',
+      one: 'في الطريق من يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stockTransitOverdue => 'متأخرة';
+
+  @override
+  String stockTransitLeftOf(String left, String total) {
+    return 'فاضل $left من $total';
+  }
+
+  @override
+  String get stockTransitReturn => 'رجّعها للي بعت';
+
+  @override
+  String get stockTransitWriteOff => 'اعتبرها فاقد';
+
+  @override
+  String stockTransitReturnTitle(String source) {
+    return 'ترجيع لـ $source';
+  }
+
+  @override
+  String stockTransitReturnBody(String source) {
+    return 'القطع دي هترجع لمخزون $source.';
+  }
+
+  @override
+  String stockTransitWriteOffTitle(String source) {
+    return 'فاقد من بعتة $source';
+  }
+
+  @override
+  String get stockTransitWriteOffBody =>
+      'القطع دي هتتسجّل فاقد، ومينفعش ترجع فيها.';
+
+  @override
+  String stockTransitWriteOffConfirmTitle(String qty) {
+    return 'تسجّل $qty قطعة فاقد؟';
+  }
+
+  @override
+  String stockTransitReturnConfirm(String qty) {
+    return 'رجّع $qty';
+  }
+
+  @override
+  String stockTransitWriteOffConfirm(String qty) {
+    return 'سجّل $qty فاقد';
+  }
+
+  @override
+  String stockTransitReturnedSnack(String source) {
+    return 'رجعت لـ $source.';
+  }
+
+  @override
+  String get stockTransitWrittenOffSnack => 'اتسجّلت فاقد.';
+
+  @override
+  String get stockTransitCannotActOwn =>
+      'إنت اللي بعتّ دي. لازم مدير تاني يرجّعها أو يسجّلها فاقد.';
+
+  @override
+  String stockTransitSentBy(String name, String time) {
+    return 'بعتها $name · $time';
+  }
 
   @override
   String get userErrorHandoverRule => 'التسليم ده مينفعش يتم لسه.';
