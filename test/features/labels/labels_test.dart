@@ -227,6 +227,41 @@ void main() {
     test('an empty list groups to an empty list', () {
       expect(groupLabelsByCustomer(const []), isEmpty);
     });
+
+    test('one flavour at two branches: rows sit together, flavour then branch',
+        () {
+      final labels = [
+        _labelJson(name: 'T-6O', customer: 'L', title: 'Tiramisu Medium',
+            storageLocation: '6th of october - J', status: 'Out of Stock'),
+        _labelJson(name: 'B-NC', customer: 'L', title: 'Berry Medium',
+            storageLocation: 'Nasr city - J', status: 'Reorder Soon'),
+        _labelJson(name: 'T-NC', customer: 'L', title: 'Tiramisu Medium',
+            storageLocation: 'Nasr city - J', status: 'OK'),
+      ].map(CustomerLabel.fromJson).toList();
+
+      final group = groupLabelsByCustomer(labels).single;
+      expect(group.labels.map((l) => l.name), ['B-NC', 'T-6O', 'T-NC']);
+      expect(group.labels.map((l) => l.locationName),
+          ['Nasr city', '6th of october', 'Nasr city']);
+      expect(group.worstStatus, LabelStatus.outOfStock);
+    });
+  });
+
+  group('labelLocationName', () {
+    test('drops the trailing company abbreviation', () {
+      expect(labelLocationName('Nasr city - J'), 'Nasr city');
+      expect(labelLocationName('6th of october - J'), '6th of october');
+    });
+
+    test('leaves a name without a suffix alone', () {
+      expect(labelLocationName('Factory'), 'Factory');
+    });
+
+    test('a label without a location has no location name', () {
+      final label =
+          CustomerLabel.fromJson(_labelJson(storageLocation: null));
+      expect(label.locationName, isNull);
+    });
   });
 
   group('LabelPrintOrder', () {
@@ -341,7 +376,7 @@ void main() {
       expect(state.visibleLabels.map((l) => l.name), ['A', 'B']);
     });
 
-    test('All shows every row including the customers who print their own', () {
+    test('All shows every row, switched-off labels included', () {
       final state = _stateWith(labels).copyWith(filter: LabelFilter.all);
       expect(state.visibleLabels.length, 5);
     });
@@ -351,9 +386,15 @@ void main() {
       expect(state.visibleLabels.map((l) => l.name), ['C']);
     });
 
-    test('Customer prints isolates the untracked labels', () {
-      final state = _stateWith(labels).copyWith(filter: LabelFilter.notTracked);
-      expect(state.visibleLabels.map((l) => l.name), ['E']);
+    test('there is no "Customer prints" filter any more: JARZ prints all', () {
+      expect(LabelFilter.values,
+          [LabelFilter.attention, LabelFilter.all, LabelFilter.onOrder]);
+    });
+
+    test('search also matches the storage location', () {
+      final state = _stateWith(labels)
+          .copyWith(filter: LabelFilter.all, search: 'zamalek');
+      expect(state.visibleLabels.map((l) => l.name), ['B']);
     });
 
     test('search narrows within the active filter, case-insensitively', () {

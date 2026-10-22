@@ -29,12 +29,18 @@ class B2bLabelFlavour {
   /// screen renders it through the labels feature's own status chip.
   final String status;
 
+  /// The JARZ branch warehouse the label set is kept at ("Nasr city - J").
+  /// One customer can hold a label per (flavour, branch), so this is what
+  /// tells two same-flavour rows apart. Empty on an older backend.
+  final String storageLocation;
+
   const B2bLabelFlavour({
     required this.label,
     required this.title,
     required this.size,
     required this.onHandQty,
     required this.status,
+    this.storageLocation = '',
   });
 
   factory B2bLabelFlavour.fromJson(Map<String, dynamic> json) =>
@@ -46,6 +52,7 @@ class B2bLabelFlavour {
         size: _toStr(json['size']),
         onHandQty: _toInt(json['on_hand_qty']),
         status: _toStr(json['status']),
+        storageLocation: _toStr(json['storage_location']).trim(),
       );
 }
 
@@ -75,11 +82,31 @@ class B2bAccountLabels {
       needsAttention: _toInt(json['needs_attention']),
       outOfStock: _toInt(json['out_of_stock']),
       reorderNow: _toInt(json['reorder_now']),
-      flavours: (json['flavours'] as List? ?? const [])
-          .whereType<Map>()
-          .map((e) => B2bLabelFlavour.fromJson(Map<String, dynamic>.from(e)))
-          .toList(),
+      flavours: _byFlavourThenBranch(
+        (json['flavours'] as List? ?? const [])
+            .whereType<Map>()
+            .map((e) => B2bLabelFlavour.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
+      ),
     );
+  }
+
+  /// Stable sort: flavour title, then branch, so a flavour's per-branch rows
+  /// sit next to each other.
+  static List<B2bLabelFlavour> _byFlavourThenBranch(
+      List<B2bLabelFlavour> rows) {
+    final indexed = rows.asMap().entries.toList();
+    indexed.sort((a, b) {
+      final byTitle =
+          a.value.title.toLowerCase().compareTo(b.value.title.toLowerCase());
+      if (byTitle != 0) return byTitle;
+      final byBranch = a.value.storageLocation
+          .toLowerCase()
+          .compareTo(b.value.storageLocation.toLowerCase());
+      if (byBranch != 0) return byBranch;
+      return a.key.compareTo(b.key);
+    });
+    return [for (final entry in indexed) entry.value];
   }
 
   bool get isEmpty => total == 0 && flavours.isEmpty;

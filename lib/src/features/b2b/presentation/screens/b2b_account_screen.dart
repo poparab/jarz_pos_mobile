@@ -19,7 +19,8 @@ import '../../../credit/presentation/widgets/settlement_terms_section.dart';
 import '../../../journey/presentation/widgets/journey_notes_section.dart';
 import '../../../journey/state/journey_notes_notifier.dart'
     show JourneyRef, journeyNotesProvider;
-import '../../../labels/models/label_models.dart' show LabelStatus;
+import '../../../labels/models/label_models.dart'
+    show LabelStatus, labelLocationName;
 import '../../../labels/presentation/widgets/label_status_chip.dart';
 import '../../../leads/data/leads_repository.dart';
 import '../../../leads/data/models/lead.dart';
@@ -2170,6 +2171,8 @@ class _LabelsSection extends StatelessWidget {
               subtitle: Text(
                 [
                   if (flavour.size.isNotEmpty) flavour.size,
+                  if (flavour.storageLocation.isNotEmpty)
+                    labelLocationName(flavour.storageLocation),
                   '${flavour.onHandQty} on hand',
                 ].join(' · '),
               ),

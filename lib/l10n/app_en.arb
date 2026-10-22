@@ -4176,7 +4176,7 @@
     }
   },
   "labelsHelpTitle": "How label tracking works",
-  "labelsHelpRows": "Every flavour has its own label design, so each is tracked on its own row. Labels come off stock automatically when an invoice is submitted for a customer whose labels we print. Customers who bring their own are marked \"Customer prints\" and are never counted.",
+  "labelsHelpRows": "Every flavour has its own label design, and each flavour is tracked on its own row per branch where its labels are kept, so a customer served from two branches has a row at each. JARZ prints every label, and labels come off stock automatically when the customer''s invoice is submitted.",
   "labelsHelpSheets": "Printing is ordered in sheets — {small} Small, {medium} Medium or {large} Large labels per sheet.",
   "@labelsHelpSheets": {
     "placeholders": {
@@ -4253,7 +4253,6 @@
   "labelsFilterNeedsPrinting": "Needs printing",
   "labelsFilterAll": "All",
   "labelsFilterAtPrinter": "At printer",
-  "labelsFilterCustomerPrints": "Customer prints",
   "labelsFilterWithCount": "{text} ({count})",
   "@labelsFilterWithCount": {
     "placeholders": {
@@ -4289,9 +4288,9 @@
   "labelStatusAtPrinterWhy": "A batch is already on its way.",
   "labelStatusOk": "OK",
   "labelStatusOkWhy": "Comfortable cover.",
-  "labelStatusCustomerPrints": "Customer prints",
-  "labelStatusCustomerPrintsWhy": "This customer supplies their own labels, so nothing is counted.",
   "labelStatusUnknown": "Unknown",
+  "labelStatusNotTracked": "Not tracked",
+  "labelStatusNotTrackedWhy": "This label is switched off, so nothing is counted.",
   "labelCardFlavours": "{count, plural, =1{1 flavour} other{{count} flavours}}",
   "@labelCardFlavours": {
     "placeholders": {
@@ -4309,6 +4308,7 @@
     }
   },
   "labelCardCustomerActions": "Customer actions",
+  "labelCardNotTracked": "Switched off, not counted",
   "labelCardAddFlavour": "Add flavour",
   "labelCardOnHand": "on hand",
   "labelCardOfCover": "of cover",
@@ -4331,7 +4331,6 @@
     }
   },
   "labelCardCoverNone": "—",
-  "labelCardCustomerSupplies": "Customer supplies their own labels",
   "labelCardSheetsCount": "{count, plural, =1{1 sheet} other{{count} sheets}}",
   "@labelCardSheetsCount": {
     "placeholders": {
@@ -4466,7 +4465,6 @@
   "labelDetailStockValue": "Stock value",
   "labelDetailAvgCost": "Avg cost/label",
   "labelDetailRetired": "This label is retired. Turn it back on in label settings to resume counting.",
-  "labelDetailCustomerSupplies": "This customer supplies their own labels, so nothing is counted and no alerts are raised. Turn on \"We print this label\" in settings if that changes.",
   "labelDetailActionOrder": "Order",
   "labelDetailActionCount": "Count",
   "labelDetailActionRecord": "Record",
@@ -4690,8 +4688,6 @@
   "labelSheetAdjustmentHelper": "Use a minus sign to reduce stock.",
   "labelSheetQtyHelper": "Enter a plain number — the direction follows from the type.",
   "labelSheetLabelName": "Label name",
-  "labelSheetWePrint": "We print this label",
-  "labelSheetWePrintHelp": "Off means the customer supplies their own — stops all counting and alerting without losing the history.",
   "labelSheetActive": "Active",
   "labelSheetActiveHelp": "Turn off to retire a design that is no longer used.",
   "labelSheetStoredAtHelper": "The branch or factory where this label physically lives.",
@@ -4748,8 +4744,24 @@
   "labelWizardPickCustomerFirst": "Pick a customer first.",
   "labelWizardNoFlavours": "No flavours found for this customer — nothing on their price list and no order history yet.",
   "labelWizardSizeOther": "Other",
-  "labelWizardFlavourHelp": "Tick every flavour whose label JARZ prints. Enter what is already on the shelf so nothing starts life as Out of Stock.",
+  "labelWizardFlavourHelp": "Tick every flavour to track at the branch you pick next. A flavour already tracked at another branch can be ticked again. Enter what is already on the shelf so nothing starts life as Out of Stock.",
   "labelWizardAlreadyTracked": "Already tracked",
+  "labelWizardTrackedAt": "Tracked at {locations}",
+  "@labelWizardTrackedAt": {
+    "placeholders": {
+      "locations": {
+        "type": "String"
+      }
+    }
+  },
+  "labelWizardAlreadyAtLocation": "{count, plural, =1{1 picked flavour is already tracked at this branch and will be skipped.} other{{count} picked flavours are already tracked at this branch and will be skipped.}}",
+  "@labelWizardAlreadyAtLocation": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "labelWizardOnPriceList": "On price list",
   "labelWizardOrderedBefore": "Ordered before",
   "labelWizardLabelsInStock": "Labels in stock now",
@@ -4759,7 +4771,7 @@
   "labelWizardUsualBatchHelper": "Applied to every flavour; changeable per label later.",
   "labelWizardConfirmPriceList": "Price list",
   "labelWizardConfirmUsualBatch": "Usual batch",
-  "labelWizardSafeToRerun": "Flavours already tracked are left untouched — running this again is always safe.",
+  "labelWizardSafeToRerun": "A flavour already tracked at the chosen branch is left untouched; picking another branch adds that branch''s labels. Running this again is always safe.",
   "b2bStageLead": "Lead",
   "b2bStageQualify": "Qualify",
   "b2bStageSample": "Sample",

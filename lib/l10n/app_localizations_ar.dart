@@ -7614,7 +7614,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get labelsHelpRows =>
-      'كل نكهة ليها تصميم ليبل خاص بيها، فكل واحدة بتتتابع في سطر لوحدها. الليبلات بتتخصم من المخزن لوحدها أول ما فاتورة تتعمل لعميل إحنا اللي بنطبعله. العملاء اللي بيجيبوا ليبلاتهم بنفسهم بيتعلّموا \"العميل بيطبع\" وعمرهم ما بيتحسبوا.';
+      'كل نكهة ليها تصميم ليبل خاص بيها، وكل نكهة بتتتابع في سطر لوحدها لكل فرع الليبلات متخزنة فيه، فالعميل اللي بيتخدم من فرعين بيبقى ليه سطر في كل فرع. JARZ بتطبع كل الليبلات، والليبلات بتتخصم من المخزن لوحدها أول ما فاتورة العميل تتعمل.';
 
   @override
   String labelsHelpSheets(Object small, Object medium, Object large) {
@@ -7687,9 +7687,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get labelsFilterAtPrinter => 'في المطبعة';
 
   @override
-  String get labelsFilterCustomerPrints => 'العميل بيطبع';
-
-  @override
   String labelsFilterWithCount(String text, int count) {
     return '$text ($count)';
   }
@@ -7751,14 +7748,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get labelStatusOkWhy => 'الرصيد مريح.';
 
   @override
-  String get labelStatusCustomerPrints => 'العميل بيطبع';
-
-  @override
-  String get labelStatusCustomerPrintsWhy =>
-      'العميل ده بيجيب ليبلاته بنفسه، فمفيش حاجة بتتحسب.';
-
-  @override
   String get labelStatusUnknown => 'غير معروف';
+
+  @override
+  String get labelStatusNotTracked => 'مش متتابع';
+
+  @override
+  String get labelStatusNotTrackedWhy => 'الليبل ده متقفل، فمفيش حاجة بتتحسب.';
 
   @override
   String labelCardFlavours(int count) {
@@ -7784,6 +7780,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get labelCardCustomerActions => 'إجراءات العميل';
+
+  @override
+  String get labelCardNotTracked => 'متقفل، مش بيتحسب';
 
   @override
   String get labelCardAddFlavour => 'ضيف نكهة';
@@ -7818,9 +7817,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get labelCardCoverNone => '—';
-
-  @override
-  String get labelCardCustomerSupplies => 'العميل بيجيب ليبلاته بنفسه';
 
   @override
   String labelCardSheetsCount(int count) {
@@ -7978,10 +7974,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get labelDetailRetired =>
       'الليبل ده متوقف. رجّعه من إعدادات الليبل عشان العد يكمّل.';
-
-  @override
-  String get labelDetailCustomerSupplies =>
-      'العميل ده بيجيب ليبلاته بنفسه، فمفيش حاجة بتتحسب ولا تنبيهات بتطلع. شغّل \"إحنا بنطبع الليبل ده\" من الإعدادات لو الوضع اتغيّر.';
 
   @override
   String get labelDetailActionOrder => 'اطلب';
@@ -8252,13 +8244,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get labelSheetLabelName => 'اسم الليبل';
 
   @override
-  String get labelSheetWePrint => 'إحنا بنطبع الليبل ده';
-
-  @override
-  String get labelSheetWePrintHelp =>
-      'لو مقفول يبقى العميل بيجيب ليبلاته بنفسه — بيوقف كل العد والتنبيهات من غير ما يضيّع السجل.';
-
-  @override
   String get labelSheetActive => 'شغّال';
 
   @override
@@ -8346,10 +8331,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get labelWizardFlavourHelp =>
-      'علّم على كل نكهة JARZ بتطبع ليبلها. واكتب اللي موجود على الرف دلوقتي عشان محدش يبدأ خلصان.';
+      'علّم على كل نكهة عايز تتابعها في الفرع اللي هتختاره في الخطوة الجاية. النكهة المتتابعة في فرع تاني تقدر تعلّم عليها تاني. واكتب اللي موجود على الرف دلوقتي عشان محدش يبدأ خلصان.';
 
   @override
   String get labelWizardAlreadyTracked => 'متتابعة بالفعل';
+
+  @override
+  String labelWizardTrackedAt(String locations) {
+    return 'متتابعة في $locations';
+  }
+
+  @override
+  String labelWizardAlreadyAtLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نكهات من اللي اخترتها متتابعة بالفعل في الفرع ده وهتتساب.',
+      one: 'نكهة واحدة من اللي اخترتها متتابعة بالفعل في الفرع ده وهتتساب.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get labelWizardOnPriceList => 'في قائمة الأسعار';
@@ -8383,7 +8384,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get labelWizardSafeToRerun =>
-      'النكهات المتتابعة بالفعل مش بتتلمس — تقدر تعيد ده في أي وقت من غير قلق.';
+      'النكهة المتتابعة بالفعل في الفرع اللي اخترته مش بتتلمس، ولو اخترت فرع تاني بتتضاف ليبلات الفرع ده. تقدر تعيد ده في أي وقت من غير قلق.';
 
   @override
   String get b2bStageLead => 'عميل محتمل';

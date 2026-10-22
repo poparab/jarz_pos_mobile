@@ -12680,7 +12680,7 @@ abstract class AppLocalizations {
   /// No description provided for @labelsHelpRows.
   ///
   /// In en, this message translates to:
-  /// **'Every flavour has its own label design, so each is tracked on its own row. Labels come off stock automatically when an invoice is submitted for a customer whose labels we print. Customers who bring their own are marked \"Customer prints\" and are never counted.'**
+  /// **'Every flavour has its own label design, and each flavour is tracked on its own row per branch where its labels are kept, so a customer served from two branches has a row at each. JARZ prints every label, and labels come off stock automatically when the customer\'\'s invoice is submitted.'**
   String get labelsHelpRows;
 
   /// No description provided for @labelsHelpSheets.
@@ -12765,12 +12765,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'At printer'**
   String get labelsFilterAtPrinter;
-
-  /// No description provided for @labelsFilterCustomerPrints.
-  ///
-  /// In en, this message translates to:
-  /// **'Customer prints'**
-  String get labelsFilterCustomerPrints;
 
   /// No description provided for @labelsFilterWithCount.
   ///
@@ -12880,23 +12874,23 @@ abstract class AppLocalizations {
   /// **'Comfortable cover.'**
   String get labelStatusOkWhy;
 
-  /// No description provided for @labelStatusCustomerPrints.
-  ///
-  /// In en, this message translates to:
-  /// **'Customer prints'**
-  String get labelStatusCustomerPrints;
-
-  /// No description provided for @labelStatusCustomerPrintsWhy.
-  ///
-  /// In en, this message translates to:
-  /// **'This customer supplies their own labels, so nothing is counted.'**
-  String get labelStatusCustomerPrintsWhy;
-
   /// No description provided for @labelStatusUnknown.
   ///
   /// In en, this message translates to:
   /// **'Unknown'**
   String get labelStatusUnknown;
+
+  /// No description provided for @labelStatusNotTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not tracked'**
+  String get labelStatusNotTracked;
+
+  /// No description provided for @labelStatusNotTrackedWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'This label is switched off, so nothing is counted.'**
+  String get labelStatusNotTrackedWhy;
 
   /// No description provided for @labelCardFlavours.
   ///
@@ -12915,6 +12909,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Customer actions'**
   String get labelCardCustomerActions;
+
+  /// No description provided for @labelCardNotTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Switched off, not counted'**
+  String get labelCardNotTracked;
 
   /// No description provided for @labelCardAddFlavour.
   ///
@@ -12963,12 +12963,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'—'**
   String get labelCardCoverNone;
-
-  /// No description provided for @labelCardCustomerSupplies.
-  ///
-  /// In en, this message translates to:
-  /// **'Customer supplies their own labels'**
-  String get labelCardCustomerSupplies;
 
   /// No description provided for @labelCardSheetsCount.
   ///
@@ -13191,12 +13185,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This label is retired. Turn it back on in label settings to resume counting.'**
   String get labelDetailRetired;
-
-  /// No description provided for @labelDetailCustomerSupplies.
-  ///
-  /// In en, this message translates to:
-  /// **'This customer supplies their own labels, so nothing is counted and no alerts are raised. Turn on \"We print this label\" in settings if that changes.'**
-  String get labelDetailCustomerSupplies;
 
   /// No description provided for @labelDetailActionOrder.
   ///
@@ -13629,18 +13617,6 @@ abstract class AppLocalizations {
   /// **'Label name'**
   String get labelSheetLabelName;
 
-  /// No description provided for @labelSheetWePrint.
-  ///
-  /// In en, this message translates to:
-  /// **'We print this label'**
-  String get labelSheetWePrint;
-
-  /// No description provided for @labelSheetWePrintHelp.
-  ///
-  /// In en, this message translates to:
-  /// **'Off means the customer supplies their own — stops all counting and alerting without losing the history.'**
-  String get labelSheetWePrintHelp;
-
   /// No description provided for @labelSheetActive.
   ///
   /// In en, this message translates to:
@@ -13794,7 +13770,7 @@ abstract class AppLocalizations {
   /// No description provided for @labelWizardFlavourHelp.
   ///
   /// In en, this message translates to:
-  /// **'Tick every flavour whose label JARZ prints. Enter what is already on the shelf so nothing starts life as Out of Stock.'**
+  /// **'Tick every flavour to track at the branch you pick next. A flavour already tracked at another branch can be ticked again. Enter what is already on the shelf so nothing starts life as Out of Stock.'**
   String get labelWizardFlavourHelp;
 
   /// No description provided for @labelWizardAlreadyTracked.
@@ -13802,6 +13778,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Already tracked'**
   String get labelWizardAlreadyTracked;
+
+  /// No description provided for @labelWizardTrackedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked at {locations}'**
+  String labelWizardTrackedAt(String locations);
+
+  /// No description provided for @labelWizardAlreadyAtLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 picked flavour is already tracked at this branch and will be skipped.} other{{count} picked flavours are already tracked at this branch and will be skipped.}}'**
+  String labelWizardAlreadyAtLocation(int count);
 
   /// No description provided for @labelWizardOnPriceList.
   ///
@@ -13860,7 +13848,7 @@ abstract class AppLocalizations {
   /// No description provided for @labelWizardSafeToRerun.
   ///
   /// In en, this message translates to:
-  /// **'Flavours already tracked are left untouched — running this again is always safe.'**
+  /// **'A flavour already tracked at the chosen branch is left untouched; picking another branch adds that branch\'\'s labels. Running this again is always safe.'**
   String get labelWizardSafeToRerun;
 
   /// No description provided for @b2bStageLead.

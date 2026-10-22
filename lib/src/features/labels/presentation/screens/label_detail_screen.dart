@@ -309,7 +309,6 @@ class _LabelDetailScreenState extends ConsumerState<LabelDetailScreen> {
             label: label.name,
             labelTitle: request.labelTitle,
             enabled: request.enabled,
-            wePrint: request.wePrint,
             storageLocation: request.storageLocation,
             labelsPerUnit: request.labelsPerUnit,
             labelsPerSheet: request.labelsPerSheet,
@@ -382,7 +381,7 @@ class _Header extends StatelessWidget {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    l10n.labelDetailStoredAt(label.storageLocation!),
+                    l10n.labelDetailStoredAt(label.locationName!),
                     style: theme.textTheme.bodySmall
                         ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     maxLines: 1,
@@ -512,9 +511,7 @@ class _Actions extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
         child: Text(
-          label.wePrint
-              ? context.l10n.labelDetailRetired
-              : context.l10n.labelDetailCustomerSupplies,
+          context.l10n.labelDetailRetired,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       );
@@ -751,7 +748,7 @@ class _Policy extends StatelessWidget {
       if (label.size != null) (l10n.labelDetailPolicySize, label.size!),
       (
         l10n.labelDetailPolicyStoredAt,
-        label.storageLocation ?? l10n.labelDetailPolicyNotSet
+        label.locationName ?? l10n.labelDetailPolicyNotSet
       ),
       (l10n.labelDetailPolicyMinStock, '${label.minStockQty}'),
       (

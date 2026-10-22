@@ -68,7 +68,6 @@ class MovementRequest {
 /// What [LabelPolicySheet] collects.
 class LabelPolicyRequest {
   final String labelTitle;
-  final bool wePrint;
   final bool enabled;
 
   /// Empty string clears the home location server-side.
@@ -83,7 +82,6 @@ class LabelPolicyRequest {
 
   const LabelPolicyRequest({
     required this.labelTitle,
-    required this.wePrint,
     required this.enabled,
     required this.storageLocation,
     required this.labelsPerUnit,
@@ -827,7 +825,6 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
   late final TextEditingController _notesController =
       TextEditingController(text: widget.label.notes ?? '');
 
-  late bool _wePrint = widget.label.wePrint;
   late bool _enabled = widget.label.enabled;
   late String? _location = widget.label.storageLocation;
 
@@ -857,13 +854,6 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
           decoration: _fieldDecoration(l10n.labelSheetLabelName),
         ),
         const SizedBox(height: 8),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          value: _wePrint,
-          onChanged: (value) => setState(() => _wePrint = value),
-          title: Text(l10n.labelSheetWePrint),
-          subtitle: Text(l10n.labelSheetWePrintHelp),
-        ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: _enabled,
@@ -968,7 +958,6 @@ class _LabelPolicySheetState extends ConsumerState<LabelPolicySheet> {
             labelTitle: _titleController.text.trim().isEmpty
                 ? widget.label.labelTitle
                 : _titleController.text.trim(),
-            wePrint: _wePrint,
             enabled: _enabled,
             // An empty string clears the home location server-side.
             storageLocation: _location ?? '',

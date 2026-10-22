@@ -81,9 +81,37 @@ void main() {
       expect(labels.reorderNow, 1);
       expect(labels.isEmpty, isFalse);
       expect(labels.flavours, hasLength(2));
-      expect(labels.flavours.first.label, 'JLBL-00001');
-      expect(labels.flavours.first.status, 'Out of Stock');
-      expect(labels.flavours.last.onHandQty, 120);
+      // Rows are ordered flavour then branch: Berry before Mango.
+      expect(labels.flavours.first.label, 'JLBL-00002');
+      expect(labels.flavours.first.onHandQty, 120);
+      expect(labels.flavours.last.label, 'JLBL-00001');
+      expect(labels.flavours.last.status, 'Out of Stock');
+      // An older backend sends no storage_location.
+      expect(labels.flavours.first.storageLocation, isEmpty);
+    });
+
+    test('one flavour at two branches parses as two rows, branch apart', () {
+      final labels = B2bAccountLabels.tryParse({
+        'total': 2,
+        'flavours': [
+          {
+            'label': 'JLBL-00011',
+            'title': 'Tiramisu Medium',
+            'storage_location': 'Nasr city - J',
+            'status': 'OK',
+          },
+          {
+            'label': 'JLBL-00012',
+            'title': 'Tiramisu Medium',
+            'storage_location': '6th of october - J',
+            'status': 'Reorder Now',
+          },
+        ],
+      });
+      expect(labels!.flavours.map((f) => f.storageLocation),
+          ['6th of october - J', 'Nasr city - J']);
+      expect(labels.flavours.map((f) => f.label),
+          ['JLBL-00012', 'JLBL-00011']);
     });
 
     test('an empty block reads as empty, prompting the setup shortcut', () {

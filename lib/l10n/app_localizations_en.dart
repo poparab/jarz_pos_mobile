@@ -7653,7 +7653,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labelsHelpRows =>
-      'Every flavour has its own label design, so each is tracked on its own row. Labels come off stock automatically when an invoice is submitted for a customer whose labels we print. Customers who bring their own are marked \"Customer prints\" and are never counted.';
+      'Every flavour has its own label design, and each flavour is tracked on its own row per branch where its labels are kept, so a customer served from two branches has a row at each. JARZ prints every label, and labels come off stock automatically when the customer\'s invoice is submitted.';
 
   @override
   String labelsHelpSheets(Object small, Object medium, Object large) {
@@ -7726,9 +7726,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labelsFilterAtPrinter => 'At printer';
 
   @override
-  String get labelsFilterCustomerPrints => 'Customer prints';
-
-  @override
   String labelsFilterWithCount(String text, int count) {
     return '$text ($count)';
   }
@@ -7790,14 +7787,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labelStatusOkWhy => 'Comfortable cover.';
 
   @override
-  String get labelStatusCustomerPrints => 'Customer prints';
-
-  @override
-  String get labelStatusCustomerPrintsWhy =>
-      'This customer supplies their own labels, so nothing is counted.';
-
-  @override
   String get labelStatusUnknown => 'Unknown';
+
+  @override
+  String get labelStatusNotTracked => 'Not tracked';
+
+  @override
+  String get labelStatusNotTrackedWhy =>
+      'This label is switched off, so nothing is counted.';
 
   @override
   String labelCardFlavours(int count) {
@@ -7823,6 +7820,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labelCardCustomerActions => 'Customer actions';
+
+  @override
+  String get labelCardNotTracked => 'Switched off, not counted';
 
   @override
   String get labelCardAddFlavour => 'Add flavour';
@@ -7857,9 +7857,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labelCardCoverNone => '—';
-
-  @override
-  String get labelCardCustomerSupplies => 'Customer supplies their own labels';
 
   @override
   String labelCardSheetsCount(int count) {
@@ -8017,10 +8014,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get labelDetailRetired =>
       'This label is retired. Turn it back on in label settings to resume counting.';
-
-  @override
-  String get labelDetailCustomerSupplies =>
-      'This customer supplies their own labels, so nothing is counted and no alerts are raised. Turn on \"We print this label\" in settings if that changes.';
 
   @override
   String get labelDetailActionOrder => 'Order';
@@ -8292,13 +8285,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labelSheetLabelName => 'Label name';
 
   @override
-  String get labelSheetWePrint => 'We print this label';
-
-  @override
-  String get labelSheetWePrintHelp =>
-      'Off means the customer supplies their own — stops all counting and alerting without losing the history.';
-
-  @override
   String get labelSheetActive => 'Active';
 
   @override
@@ -8387,10 +8373,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labelWizardFlavourHelp =>
-      'Tick every flavour whose label JARZ prints. Enter what is already on the shelf so nothing starts life as Out of Stock.';
+      'Tick every flavour to track at the branch you pick next. A flavour already tracked at another branch can be ticked again. Enter what is already on the shelf so nothing starts life as Out of Stock.';
 
   @override
   String get labelWizardAlreadyTracked => 'Already tracked';
+
+  @override
+  String labelWizardTrackedAt(String locations) {
+    return 'Tracked at $locations';
+  }
+
+  @override
+  String labelWizardAlreadyAtLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count picked flavours are already tracked at this branch and will be skipped.',
+      one:
+          '1 picked flavour is already tracked at this branch and will be skipped.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get labelWizardOnPriceList => 'On price list';
@@ -8424,7 +8428,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labelWizardSafeToRerun =>
-      'Flavours already tracked are left untouched — running this again is always safe.';
+      'A flavour already tracked at the chosen branch is left untouched; picking another branch adds that branch\'s labels. Running this again is always safe.';
 
   @override
   String get b2bStageLead => 'Lead';

@@ -4,6 +4,10 @@
 /// ledger — the app never adds up a balance itself, so the number on the phone
 /// and the number in the daily alert cannot drift apart.
 ///
+/// v3: one label per (customer, flavour item, storage location) — a customer
+/// served from two JARZ branches has one label set per branch. JARZ always
+/// prints the labels; the server forces `we_print = 1`.
+///
 /// v2: one label per (customer, flavour item). Ordering happens in SHEETS
 /// (21 Small / 21 Medium / 18 Large per sheet), each label has a home storage
 /// location, and print batches carry real money (supplier, net cost, purchase
@@ -47,6 +51,15 @@ DateTime? _toDate(dynamic value) {
   final text = _toNullableStr(value);
   if (text == null) return null;
   return DateTime.tryParse(text);
+}
+
+/// Display form of a storage-location warehouse: drops the trailing company
+/// abbreviation ("Nasr city - J" -> "Nasr city"). Mirrors the warehouse
+/// shortening used in the stock reports.
+String labelLocationName(String warehouse) {
+  final text = warehouse.trim();
+  final dashIdx = text.lastIndexOf(' - ');
+  return dashIdx > 0 ? text.substring(0, dashIdx) : text;
 }
 
 List<T> _parseList<T>(dynamic raw, T Function(Map<String, dynamic>) build) {
@@ -270,9 +283,8 @@ class CustomerLabel {
   final String? storageLocation;
   final bool enabled;
 
-  /// False when the customer supplies their own labels — never counted, never
-  /// alerted on. This is the flag that keeps the board down to the customers
-  /// this feature is actually about.
+  /// Legacy flag. JARZ always prints customer labels and the server now forces
+  /// it on; kept parsed so older payloads still read cleanly.
   final bool wePrint;
   final bool tracked;
   final double labelsPerUnit;
@@ -415,6 +427,10 @@ class CustomerLabel {
   String get displayTitle =>
       labelTitle == 'Default' ? customerName : '$customerName · $labelTitle';
 
+  /// The branch name for display ("Nasr city"), or null when no location is set.
+  String? get locationName =>
+      storageLocation == null ? null : labelLocationName(storageLocation!);
+
   bool get hasOpenPrintOrder => openPrintOrders.isNotEmpty;
 
   /// The soonest batch already on its way, if any.
@@ -463,11 +479,12 @@ class LabelCustomerGroup {
       labels.where((l) => l.needsAttention).length;
 }
 
-/// Groups board rows by customer, preserving the incoming order.
+/// Groups board rows by customer.
 ///
 /// The server sorts labels most urgent first; the first time a customer
 /// appears fixes their position, so the customer with the most urgent flavour
-/// still tops the board.
+/// still tops the board. Inside a customer the rows read flavour by flavour,
+/// then branch by branch, so one flavour's per-branch labels sit together.
 List<LabelCustomerGroup> groupLabelsByCustomer(List<CustomerLabel> labels) {
   final order = <String>[];
   final byCustomer = <String, List<CustomerLabel>>{};
@@ -484,9 +501,26 @@ List<LabelCustomerGroup> groupLabelsByCustomer(List<CustomerLabel> labels) {
       LabelCustomerGroup(
         customer: key,
         customerName: byCustomer[key]!.first.customerName,
-        labels: byCustomer[key]!,
+        labels: _byFlavourThenBranch(byCustomer[key]!),
       ),
   ];
+}
+
+/// Stable sort by flavour title, then storage location.
+List<CustomerLabel> _byFlavourThenBranch(List<CustomerLabel> labels) {
+  final indexed = labels.asMap().entries.toList();
+  indexed.sort((a, b) {
+    final byTitle = a.value.labelTitle
+        .toLowerCase()
+        .compareTo(b.value.labelTitle.toLowerCase());
+    if (byTitle != 0) return byTitle;
+    final byLocation = (a.value.storageLocation ?? '')
+        .toLowerCase()
+        .compareTo((b.value.storageLocation ?? '').toLowerCase());
+    if (byLocation != 0) return byLocation;
+    return a.key.compareTo(b.key);
+  });
+  return [for (final entry in indexed) entry.value];
 }
 
 /// Counts per status, for the dashboard header and the drawer badge.

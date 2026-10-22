@@ -7,8 +7,7 @@ import '../models/label_models.dart';
 enum LabelFilter {
   attention,
   all,
-  onOrder,
-  notTracked;
+  onOrder;
 
   bool matches(CustomerLabel label) {
     switch (this) {
@@ -18,8 +17,6 @@ enum LabelFilter {
         return true;
       case LabelFilter.onOrder:
         return label.status == LabelStatus.onOrder || label.hasOpenPrintOrder;
-      case LabelFilter.notTracked:
-        return !label.tracked;
     }
   }
 }
@@ -75,7 +72,8 @@ class LabelsState {
       if (query.isEmpty) return true;
       return label.customerName.toLowerCase().contains(query) ||
           label.customer.toLowerCase().contains(query) ||
-          label.labelTitle.toLowerCase().contains(query);
+          label.labelTitle.toLowerCase().contains(query) ||
+          (label.storageLocation ?? '').toLowerCase().contains(query);
     }).toList();
   }
 

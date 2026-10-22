@@ -105,15 +105,19 @@ class LabelsRepository {
         .toList();
   }
 
-  /// One-shot account setup: creates a label per picked flavour. Existing
-  /// labels are skipped server-side, so re-running is additive.
+  /// One-shot account setup: creates a label per picked flavour at the given
+  /// storage location. A flavour already tracked at THAT location is skipped
+  /// server-side; the same flavour at another branch gets its own label, so
+  /// re-running for a second branch is additive.
+  ///
+  /// `we_print` is always 1: JARZ prints every customer label (the server
+  /// forces it regardless).
   Future<LabelSetupResult> setupCustomerLabels({
     required String customer,
     required List<LabelSetupFlavour> flavours,
     String? storageLocation,
     String? priceList,
     int defaultPrintSheets = 0,
-    bool wePrint = true,
   }) async {
     final response = await _dio.post(ApiEndpoints.setupCustomerLabels, data: {
       'customer': customer,
@@ -123,7 +127,7 @@ class LabelsRepository {
       if (priceList != null && priceList.trim().isNotEmpty)
         'price_list': priceList.trim(),
       if (defaultPrintSheets > 0) 'default_print_sheets': defaultPrintSheets,
-      'we_print': wePrint ? 1 : 0,
+      'we_print': 1,
     });
     return LabelSetupResult.fromJson(_asMap(_unwrap(response)));
   }
@@ -132,7 +136,6 @@ class LabelsRepository {
     required String customer,
     required String item,
     String? labelTitle,
-    bool wePrint = true,
     String? storageLocation,
     double labelsPerUnit = 1,
     int labelsPerSheet = 0,
@@ -146,7 +149,7 @@ class LabelsRepository {
       'item': item,
       if (labelTitle != null && labelTitle.trim().isNotEmpty)
         'label_title': labelTitle.trim(),
-      'we_print': wePrint ? 1 : 0,
+      'we_print': 1,
       if (storageLocation != null && storageLocation.trim().isNotEmpty)
         'storage_location': storageLocation.trim(),
       'labels_per_unit': labelsPerUnit,
@@ -166,7 +169,6 @@ class LabelsRepository {
     String? labelTitle,
     String? item,
     bool? enabled,
-    bool? wePrint,
     String? storageLocation,
     double? labelsPerUnit,
     int? labelsPerSheet,
@@ -179,7 +181,6 @@ class LabelsRepository {
       if (labelTitle != null) 'label_title': labelTitle,
       if (item != null) 'item': item,
       if (enabled != null) 'enabled': enabled ? 1 : 0,
-      if (wePrint != null) 'we_print': wePrint ? 1 : 0,
       // An empty string is meaningful: it clears the home location.
       if (storageLocation != null) 'storage_location': storageLocation,
       if (labelsPerUnit != null) 'labels_per_unit': labelsPerUnit,

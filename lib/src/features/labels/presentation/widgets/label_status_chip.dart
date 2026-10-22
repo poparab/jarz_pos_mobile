@@ -68,8 +68,8 @@ class LabelStatusStyle {
         return LabelStatusStyle(
           color: const Color(0xFF757575),
           icon: Icons.do_not_disturb_on,
-          text: l10n.labelStatusCustomerPrints,
-          explanation: l10n.labelStatusCustomerPrintsWhy,
+          text: l10n.labelStatusNotTracked,
+          explanation: l10n.labelStatusNotTrackedWhy,
         );
       case LabelStatus.unknown:
         return LabelStatusStyle(

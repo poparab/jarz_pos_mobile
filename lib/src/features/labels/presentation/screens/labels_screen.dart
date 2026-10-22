@@ -370,11 +370,6 @@ class _FilterBar extends StatelessWidget {
       ),
       (LabelFilter.all, l10n.labelsFilterAll, summary.total),
       (LabelFilter.onOrder, l10n.labelsFilterAtPrinter, summary.onOrder),
-      (
-        LabelFilter.notTracked,
-        l10n.labelsFilterCustomerPrints,
-        summary.notTracked
-      ),
     ];
 
     return SizedBox(
@@ -445,7 +440,8 @@ class _LocationFilter extends StatelessWidget {
             for (final loc in locations)
               DropdownMenuItem<String?>(
                 value: loc,
-                child: Text(loc, overflow: TextOverflow.ellipsis),
+                child: Text(labelLocationName(loc),
+                    overflow: TextOverflow.ellipsis),
               ),
           ],
           onChanged: onChanged,

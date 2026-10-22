@@ -180,6 +180,29 @@ class LabelFlavourRow extends StatelessWidget {
                 ),
               ],
             ),
+            // One flavour can have a label set per branch, so the branch is
+            // what tells two otherwise identical rows apart.
+            if (label.locationName != null) ...[
+              const SizedBox(height: 2),
+              Row(
+                children: [
+                  Icon(Icons.place_outlined,
+                      size: 13, color: theme.colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 3),
+                  Expanded(
+                    child: Text(
+                      label.locationName!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 6),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -318,7 +341,7 @@ class _Footnote extends StatelessWidget {
         ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
     if (!label.tracked) {
-      return Text(l10n.labelCardCustomerSupplies, style: muted);
+      return Text(l10n.labelCardNotTracked, style: muted);
     }
 
     final arrival = label.nextArrival;

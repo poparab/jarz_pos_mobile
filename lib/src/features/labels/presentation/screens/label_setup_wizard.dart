@@ -17,8 +17,10 @@ import '../../state/labels_notifier.dart'
 /// labels live, confirm — and every design is tracked in one pass.
 ///
 /// One screen with steps, not four routes: the wizard holds all its state, and
-/// re-running it for an existing customer is additive (already-tracked
-/// flavours are disabled here and skipped server-side).
+/// re-running it for an existing customer is additive. Labels are kept per
+/// (customer, flavour, branch): a flavour already tracked at one branch can be
+/// ticked again for another branch, and only a flavour already tracked at the
+/// chosen branch is skipped server-side.
 class LabelSetupWizardScreen extends ConsumerStatefulWidget {
   /// Pre-selected customer (the "Add flavour" path); the wizard opens on the
   /// flavour step when set.
@@ -55,6 +57,11 @@ class _LabelSetupWizardScreenState
   bool _loadingFlavours = false;
   String? _flavourError;
   final Set<String> _picked = <String>{};
+
+  /// Flavour item -> storage locations it already has a label at ('' for a
+  /// label with no location). Read off the customer's existing labels so the
+  /// checklist can say WHERE a flavour is tracked rather than lock it out.
+  Map<String, Set<String>> _trackedAt = const {};
   final Map<String, TextEditingController> _openingQty = {};
 
   // Step 3: location + batch
@@ -126,6 +133,7 @@ class _LabelSetupWizardScreenState
     setState(() {
       _customer = option;
       _options = null;
+      _trackedAt = const {};
       _picked.clear();
       _flavourError = null;
     });
@@ -144,12 +152,49 @@ class _LabelSetupWizardScreenState
       final options = await ref
           .read(labelsRepositoryProvider)
           .getFlavourOptions(customer.customer);
-      if (mounted) setState(() => _options = options);
+      final trackedAt = await _loadTrackedAt(customer.customer);
+      if (mounted) {
+        setState(() {
+          _options = options;
+          _trackedAt = trackedAt;
+        });
+      }
     } catch (error) {
       if (mounted) setState(() => _flavourError = labelErrorMessage(error));
     } finally {
       if (mounted) setState(() => _loadingFlavours = false);
     }
+  }
+
+  /// Best effort: without it the checklist still works, it just cannot name
+  /// the branches a flavour is already tracked at.
+  Future<Map<String, Set<String>>> _loadTrackedAt(String customer) async {
+    try {
+      final dashboard = await ref
+          .read(labelsRepositoryProvider)
+          .getDashboard(customer: customer);
+      final map = <String, Set<String>>{};
+      for (final label in dashboard.labels) {
+        final item = label.item;
+        if (item == null || item.isEmpty) continue;
+        if (label.customer.isNotEmpty && label.customer != customer) continue;
+        map
+            .putIfAbsent(item, () => <String>{})
+            .add(label.storageLocation ?? '');
+      }
+      return map;
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  /// Picked flavours that already have a label at the chosen location — the
+  /// server will skip these.
+  int get _alreadyAtLocationCount {
+    final where = _location ?? '';
+    return _picked
+        .where((item) => _trackedAt[item]?.contains(where) ?? false)
+        .length;
   }
 
   TextEditingController _openingControllerFor(String itemCode) {
@@ -287,6 +332,7 @@ class _LabelSetupWizardScreenState
                 loading: _loadingFlavours,
                 error: _flavourError,
                 picked: _picked,
+                trackedAt: _trackedAt,
                 openingControllerFor: _openingControllerFor,
                 onRetry: _loadFlavours,
                 onToggle: (itemCode, selected) {
@@ -302,10 +348,13 @@ class _LabelSetupWizardScreenState
             ),
             Step(
               title: Text(context.l10n.labelWizardStepLocation),
-              subtitle: _location == null ? null : Text(_location!),
+              subtitle: _location == null
+                  ? null
+                  : Text(labelLocationName(_location!)),
               isActive: _step >= 2,
               content: _LocationStep(
                 location: _location,
+                alreadyAtLocation: _alreadyAtLocationCount,
                 sheetsController: _sheetsController,
                 onLocationChanged: (value) =>
                     setState(() => _location = value),
@@ -318,6 +367,7 @@ class _LabelSetupWizardScreenState
                 customer: _customer,
                 priceList: _options?.priceList ?? _customer?.defaultPriceList,
                 pickedCount: _picked.length,
+                alreadyAtLocation: _alreadyAtLocationCount,
                 location: _location,
                 sheets: int.tryParse(_sheetsController.text.trim()) ?? 0,
               ),
@@ -447,6 +497,7 @@ class _FlavourStep extends StatelessWidget {
   final bool loading;
   final String? error;
   final Set<String> picked;
+  final Map<String, Set<String>> trackedAt;
   final TextEditingController Function(String itemCode) openingControllerFor;
   final VoidCallback onRetry;
   final void Function(String itemCode, bool selected) onToggle;
@@ -456,6 +507,7 @@ class _FlavourStep extends StatelessWidget {
     required this.loading,
     required this.error,
     required this.picked,
+    required this.trackedAt,
     required this.openingControllerFor,
     required this.onRetry,
     required this.onToggle,
@@ -530,6 +582,7 @@ class _FlavourStep extends StatelessWidget {
           for (final flavour in bySize[size]!)
             _FlavourTile(
               flavour: flavour,
+              trackedAt: trackedAt[flavour.itemCode] ?? const <String>{},
               selected: picked.contains(flavour.itemCode),
               openingController: picked.contains(flavour.itemCode)
                   ? openingControllerFor(flavour.itemCode)
@@ -544,12 +597,16 @@ class _FlavourStep extends StatelessWidget {
 
 class _FlavourTile extends StatelessWidget {
   final LabelFlavourOption flavour;
+
+  /// Storage locations this flavour already has a label at ('' = none set).
+  final Set<String> trackedAt;
   final bool selected;
   final TextEditingController? openingController;
   final ValueChanged<bool> onToggle;
 
   const _FlavourTile({
     required this.flavour,
+    required this.trackedAt,
     required this.selected,
     required this.openingController,
     required this.onToggle,
@@ -559,8 +616,14 @@ class _FlavourTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final tracked = flavour.hasLabel;
+    final tracked = flavour.hasLabel || trackedAt.isNotEmpty;
+    final branches = (trackedAt.toList()..sort())
+        .map((loc) =>
+            loc.isEmpty ? l10n.labelDetailPolicyNotSet : labelLocationName(loc))
+        .join(', ');
 
+    // A tracked flavour stays selectable: labels are kept per branch, so the
+    // same flavour can be set up again for another branch.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -568,13 +631,11 @@ class _FlavourTile extends StatelessWidget {
           contentPadding: EdgeInsets.zero,
           dense: true,
           controlAffinity: ListTileControlAffinity.leading,
-          value: tracked || selected,
-          onChanged: tracked ? null : (value) => onToggle(value ?? false),
+          value: selected,
+          onChanged: (value) => onToggle(value ?? false),
           title: Text(
             flavour.itemName,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: tracked ? theme.colorScheme.onSurfaceVariant : null,
-            ),
+            style: theme.textTheme.bodyMedium,
           ),
           subtitle: Wrap(
             spacing: 6,
@@ -582,17 +643,19 @@ class _FlavourTile extends StatelessWidget {
             children: [
               if (tracked)
                 _SourceBadge(
-                    text: l10n.labelWizardAlreadyTracked, muted: true)
-              else ...[
-                if (flavour.onPriceList)
-                  _SourceBadge(text: l10n.labelWizardOnPriceList),
-                if (flavour.orderedBefore)
-                  _SourceBadge(text: l10n.labelWizardOrderedBefore),
-              ],
+                  text: branches.isEmpty
+                      ? l10n.labelWizardAlreadyTracked
+                      : l10n.labelWizardTrackedAt(branches),
+                  muted: true,
+                ),
+              if (flavour.onPriceList)
+                _SourceBadge(text: l10n.labelWizardOnPriceList),
+              if (flavour.orderedBefore)
+                _SourceBadge(text: l10n.labelWizardOrderedBefore),
             ],
           ),
         ),
-        if (selected && !tracked && openingController != null)
+        if (selected && openingController != null)
           Padding(
             padding: const EdgeInsets.only(left: 44, right: 8, bottom: 8),
             child: TextField(
@@ -643,11 +706,15 @@ class _SourceBadge extends StatelessWidget {
 // ---------------------------------------------------------------------------
 class _LocationStep extends ConsumerWidget {
   final String? location;
+
+  /// Picked flavours already tracked at [location]; the server skips them.
+  final int alreadyAtLocation;
   final TextEditingController sheetsController;
   final ValueChanged<String?> onLocationChanged;
 
   const _LocationStep({
     required this.location,
+    required this.alreadyAtLocation,
     required this.sheetsController,
     required this.onLocationChanged,
   });
@@ -692,6 +759,15 @@ class _LocationStep extends ConsumerWidget {
             onChanged: onLocationChanged,
           ),
         ),
+        if (alreadyAtLocation > 0) ...[
+          const SizedBox(height: 8),
+          Text(
+            l10n.labelWizardAlreadyAtLocation(alreadyAtLocation),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: const Color(0xFFE65100),
+                ),
+          ),
+        ],
         const SizedBox(height: 14),
         TextField(
           controller: sheetsController,
@@ -717,6 +793,7 @@ class _ConfirmStep extends StatelessWidget {
   final LabelCustomerOption? customer;
   final String? priceList;
   final int pickedCount;
+  final int alreadyAtLocation;
   final String? location;
   final int sheets;
 
@@ -724,6 +801,7 @@ class _ConfirmStep extends StatelessWidget {
     required this.customer,
     required this.priceList,
     required this.pickedCount,
+    required this.alreadyAtLocation,
     required this.location,
     required this.sheets,
   });
@@ -741,7 +819,9 @@ class _ConfirmStep extends StatelessWidget {
       (l10n.labelWizardStepFlavours, '$pickedCount'),
       (
         l10n.labelDetailPolicyStoredAt,
-        location ?? l10n.labelDetailPolicyNotSet
+        location == null
+            ? l10n.labelDetailPolicyNotSet
+            : labelLocationName(location!)
       ),
       (
         l10n.labelWizardConfirmUsualBatch,
@@ -773,6 +853,14 @@ class _ConfirmStep extends StatelessWidget {
               ],
             ),
           ),
+        if (alreadyAtLocation > 0) ...[
+          const SizedBox(height: 8),
+          Text(
+            l10n.labelWizardAlreadyAtLocation(alreadyAtLocation),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: const Color(0xFFE65100)),
+          ),
+        ],
         const SizedBox(height: 8),
         Text(
           l10n.labelWizardSafeToRerun,
