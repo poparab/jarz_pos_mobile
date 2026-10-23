@@ -274,6 +274,83 @@ class WeeklyCountSection {
   }
 }
 
+/// Prefix of the draft/count key of a B2B label, so one counts map holds both
+/// items and labels without a collision.
+const String weeklyCountLabelKeyPrefix = 'label:';
+
+/// One B2B label on the count sheet. No quantities: the count is blind.
+class WeeklyCountSheetLabel {
+  /// The Jarz Customer Label name (what the server takes back).
+  final String label;
+  final String title;
+  final String? itemCode;
+  final String itemName;
+  final String size;
+  final String? image;
+
+  const WeeklyCountSheetLabel({
+    required this.label,
+    required this.title,
+    this.itemCode,
+    this.itemName = '',
+    this.size = '',
+    this.image,
+  });
+
+  /// The key this label is counted under in a draft.
+  String get countKey => '$weeklyCountLabelKeyPrefix$label';
+
+  /// The line under the title: item name and size, when they add something.
+  String get subtitle {
+    final parts = <String>[
+      if (itemName.isNotEmpty && itemName != title) itemName,
+      if (size.isNotEmpty && size != title && size != itemName) size,
+    ];
+    return parts.join(' · ');
+  }
+
+  factory WeeklyCountSheetLabel.fromJson(Map<String, dynamic> json) {
+    final label = _asString(json['label']);
+    return WeeklyCountSheetLabel(
+      label: label,
+      title: _asStringOrNull(json['title']) ?? label,
+      itemCode: _asStringOrNull(json['item_code']),
+      itemName: _asString(json['item_name']),
+      size: _asString(json['size']),
+      image: _asStringOrNull(json['image']),
+    );
+  }
+}
+
+/// All the labels of one B2B customer.
+class WeeklyCountLabelSection {
+  final String key;
+  final String customer;
+  final String title;
+  final List<WeeklyCountSheetLabel> labels;
+
+  const WeeklyCountLabelSection({
+    required this.key,
+    required this.customer,
+    required this.title,
+    required this.labels,
+  });
+
+  factory WeeklyCountLabelSection.fromJson(Map<String, dynamic> json) {
+    final customer = _asString(json['customer']);
+    final key = _asStringOrNull(json['key']) ?? 'label:$customer';
+    return WeeklyCountLabelSection(
+      key: key,
+      customer: customer,
+      title: _asStringOrNull(json['title']) ?? customer,
+      labels: _asMapList(json['labels'])
+          .map(WeeklyCountSheetLabel.fromJson)
+          .where((l) => l.label.isNotEmpty)
+          .toList(growable: false),
+    );
+  }
+}
+
 /// `get_weekly_count_sheet`.
 class WeeklyCountSheet {
   final String posProfile;
@@ -285,6 +362,8 @@ class WeeklyCountSheet {
   final WeeklyCountRef? count;
   final int totalItems;
   final List<WeeklyCountSection> sections;
+  final int totalLabels;
+  final List<WeeklyCountLabelSection> labelSections;
 
   const WeeklyCountSheet({
     required this.posProfile,
@@ -296,6 +375,8 @@ class WeeklyCountSheet {
     required this.count,
     required this.totalItems,
     required this.sections,
+    this.totalLabels = 0,
+    this.labelSections = const [],
   });
 
   factory WeeklyCountSheet.fromJson(Map<String, dynamic> json) {
@@ -304,6 +385,14 @@ class WeeklyCountSheet {
         .where((s) => s.items.isNotEmpty)
         .toList(growable: false);
     final itemCount = sections.fold<int>(0, (n, s) => n + s.items.length);
+    final labelSections = _asMapList(json['label_sections'])
+        .map(WeeklyCountLabelSection.fromJson)
+        .where((s) => s.labels.isNotEmpty)
+        .toList(growable: false);
+    final labelCount = labelSections.fold<int>(
+      0,
+      (n, s) => n + s.labels.length,
+    );
     return WeeklyCountSheet(
       posProfile: _asString(json['pos_profile']),
       warehouse: _asString(json['warehouse']),
@@ -314,6 +403,8 @@ class WeeklyCountSheet {
       count: WeeklyCountRef.fromJson(json['count']),
       totalItems: _asInt(json['total_items'], itemCount),
       sections: sections,
+      totalLabels: _asInt(json['total_labels'], labelCount),
+      labelSections: labelSections,
     );
   }
 
@@ -329,6 +420,24 @@ class WeeklyCountSheet {
   }
 
   List<String> get itemCodes => [for (final i in allItems) i.itemCode];
+
+  /// Every label once, in sheet order (customers A-Z).
+  List<WeeklyCountSheetLabel> get allLabels {
+    final seen = <String>{};
+    return [
+      for (final s in labelSections)
+        for (final l in s.labels)
+          if (seen.add(l.label)) l,
+    ];
+  }
+
+  /// The draft keys of every label ([WeeklyCountSheetLabel.countKey]).
+  List<String> get labelKeys => [for (final l in allLabels) l.countKey];
+
+  bool get hasLabels => labelSections.isNotEmpty;
+
+  /// Everything that must be counted before submit: items, then labels.
+  List<String> get countKeys => [...itemCodes, ...labelKeys];
 }
 
 /// `submit_weekly_count`.
@@ -469,20 +578,72 @@ class WeeklyCountLine {
   }
 }
 
+/// A B2B label line of `get_weekly_count`.
+class WeeklyCountLabelLine {
+  final String label;
+  final String customer;
+  final String customerName;
+  final String? itemCode;
+  final String itemName;
+  final double countedQty;
+
+  /// Null for a non-approver.
+  final double? systemQty;
+  final double? difference;
+
+  const WeeklyCountLabelLine({
+    required this.label,
+    required this.customer,
+    required this.customerName,
+    this.itemCode,
+    required this.itemName,
+    required this.countedQty,
+    this.systemQty,
+    this.difference,
+  });
+
+  double? get effectiveDifference =>
+      difference ?? (systemQty == null ? null : countedQty - systemQty!);
+
+  bool get hasDifference {
+    final d = effectiveDifference;
+    return d != null && d.abs() > 1e-9;
+  }
+
+  factory WeeklyCountLabelLine.fromJson(Map<String, dynamic> json) {
+    final customer = _asString(json['customer']);
+    final code = _asStringOrNull(json['item_code']);
+    return WeeklyCountLabelLine(
+      label: _asString(json['label']),
+      customer: customer,
+      customerName: _asStringOrNull(json['customer_name']) ?? customer,
+      itemCode: code,
+      itemName: _asStringOrNull(json['item_name']) ?? code ?? '',
+      countedQty: _asDoubleOrNull(json['counted_qty']) ?? 0,
+      systemQty: _asDoubleOrNull(json['system_qty']),
+      difference: _asDoubleOrNull(json['difference']),
+    );
+  }
+}
+
 /// `get_weekly_count`.
 class WeeklyCountDetail {
   final WeeklyCountSummary header;
   final bool canApprove;
   final List<WeeklyCountLine> lines;
+  final List<WeeklyCountLabelLine> labelLines;
 
   const WeeklyCountDetail({
     required this.header,
     required this.canApprove,
     required this.lines,
+    this.labelLines = const [],
   });
 
   /// The caller sees system quantities only when the server sent them.
-  bool get showsSystemQty => lines.any((l) => l.systemQty != null);
+  bool get showsSystemQty =>
+      lines.any((l) => l.systemQty != null) ||
+      labelLines.any((l) => l.systemQty != null);
 
   List<WeeklyCountLine> get differenceLines =>
       lines.where((l) => l.hasDifference).toList(growable: false);
@@ -515,6 +676,9 @@ class WeeklyCountDetail {
           : header,
       canApprove: _asBool(json['can_approve']),
       lines: lines,
+      labelLines: _asMapList(
+        json['label_lines'],
+      ).map(WeeklyCountLabelLine.fromJson).toList(growable: false),
     );
   }
 }

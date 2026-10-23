@@ -103,6 +103,9 @@ class _StockHandoverEditorScreenState
   final Map<String, double> _qty = {};
   final TextEditingController _searchCtrl = TextEditingController();
   String _search = '';
+
+  /// Item groups opened or closed by hand; "Small" defaults to closed.
+  final Map<String, bool> _groupOpen = {};
   _Step _step = _Step.items;
   bool _submitting = false;
   bool _done = false;
@@ -138,10 +141,10 @@ class _StockHandoverEditorScreenState
   }
 
   HandoverItemsQuery get _itemsQuery => (
-        myWarehouse: widget.myWarehouse,
-        counterpartWarehouse: widget.counterpartWarehouse,
-        direction: widget.direction,
-      );
+    myWarehouse: widget.myWarehouse,
+    counterpartWarehouse: widget.counterpartWarehouse,
+    direction: widget.direction,
+  );
 
   bool get _hasInput => _qty.values.any((q) => q > 0);
 
@@ -273,10 +276,10 @@ class _StockHandoverEditorScreenState
             widget.mode == HandoverEditMode.sentOut
                 ? l10n.stockHandoverSentOutSnack
                 : (widget.isUnsourced ||
-                        (result?.awaitsManager ?? false) ||
-                        waitingFor.isEmpty)
-                    ? l10n.stockHandoverSentToManagerSnack
-                    : l10n.stockHandoverSentSnack(waitingFor),
+                      (result?.awaitsManager ?? false) ||
+                      waitingFor.isEmpty)
+                ? l10n.stockHandoverSentToManagerSnack
+                : l10n.stockHandoverSentSnack(waitingFor),
           ),
         ),
       );
@@ -299,7 +302,9 @@ class _StockHandoverEditorScreenState
     final isChange = _isChange;
     final title = _step == _Step.review
         ? l10n.stockHandoverReviewTitle
-        : (isChange ? l10n.stockHandoverEditTitle : l10n.stockHandoverItemsTitle);
+        : (isChange
+              ? l10n.stockHandoverEditTitle
+              : l10n.stockHandoverItemsTitle);
 
     return PopScope(
       canPop: _done,
@@ -343,10 +348,21 @@ class _StockHandoverEditorScreenState
     final visible = needle.isEmpty
         ? items
         : items
-            .where((o) =>
-                o.itemName.toLowerCase().contains(needle) ||
-                o.itemCode.toLowerCase().contains(needle))
-            .toList();
+              .where(
+                (o) =>
+                    o.itemName.toLowerCase().contains(needle) ||
+                    o.itemCode.toLowerCase().contains(needle),
+              )
+              .toList();
+
+    final groupCounts = <String, int>{};
+    for (final item in visible) {
+      groupCounts[item.itemGroup] = (groupCounts[item.itemGroup] ?? 0) + 1;
+    }
+    // "Small" starts collapsed (rarely handed over); a search shows matches.
+    bool groupOpen(String g) =>
+        needle.isNotEmpty ||
+        (_groupOpen[g] ?? g.trim().toLowerCase() != 'small');
 
     final rows = <Widget>[];
     String? group;
@@ -354,24 +370,56 @@ class _StockHandoverEditorScreenState
       if (item.itemGroup != group) {
         group = item.itemGroup;
         if (group.isNotEmpty) {
-          rows.add(Padding(
-            padding: const EdgeInsets.fromLTRB(4, 14, 4, 6),
-            child: Text(
-              group,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.w700,
+          final g = group;
+          final open = groupOpen(g);
+          rows.add(
+            InkWell(
+              key: ValueKey('handover-group-$g'),
+              onTap: needle.isNotEmpty
+                  ? null
+                  : () => setState(() => _groupOpen[g] = !open),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(4, 14, 4, 6),
+                child: Row(
+                  children: [
+                    Icon(
+                      open ? Icons.expand_less : Icons.expand_more,
+                      size: 20,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        g,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${groupCounts[g] ?? 0}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.hintColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ));
+          );
         }
       }
-      rows.add(_HandoverQtyTile(
-        key: ValueKey(item.itemCode),
-        item: item,
-        qty: _qty[item.itemCode] ?? 0,
-        onChanged: (v) => _setQty(item.itemCode, v),
-      ));
+      if (item.itemGroup.isNotEmpty && !groupOpen(item.itemGroup)) continue;
+      rows.add(
+        _HandoverQtyTile(
+          key: ValueKey(item.itemCode),
+          item: item,
+          qty: _qty[item.itemCode] ?? 0,
+          onChanged: (v) => _setQty(item.itemCode, v),
+        ),
+      );
     }
 
     return Column(
@@ -403,8 +451,10 @@ class _StockHandoverEditorScreenState
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
-                    child: Text(l10n.stockHandoverNoItems,
-                        textAlign: TextAlign.center),
+                    child: Text(
+                      l10n.stockHandoverNoItems,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 )
               : ListView(
@@ -485,8 +535,9 @@ class _StockHandoverEditorScreenState
             children: [
               Text(
                 _reviewHeader(),
-                style: theme.textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w700),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 12),
               for (final item in chosen)
@@ -495,8 +546,10 @@ class _StockHandoverEditorScreenState
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(item.itemName,
-                            style: theme.textTheme.titleMedium),
+                        child: Text(
+                          item.itemName,
+                          style: theme.textTheme.titleMedium,
+                        ),
                       ),
                       if (widget.handover != null &&
                           before[item.itemCode] != _qty[item.itemCode]) ...[
@@ -511,14 +564,18 @@ class _StockHandoverEditorScreenState
                       ],
                       Text(
                         handoverQty(_qty[item.itemCode] ?? 0),
-                        style: theme.textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.w800),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                       if (item.stockUom.isNotEmpty) ...[
                         const SizedBox(width: 4),
-                        Text(item.stockUom,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.outline)),
+                        Text(
+                          item.stockUom,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -529,8 +586,10 @@ class _StockHandoverEditorScreenState
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(line.itemName,
-                            style: theme.textTheme.titleMedium),
+                        child: Text(
+                          line.itemName,
+                          style: theme.textTheme.titleMedium,
+                        ),
                       ),
                       Text(
                         handoverQty(line.qty),
@@ -562,15 +621,18 @@ class _StockHandoverEditorScreenState
                 Container(
                   padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 10),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.tertiaryContainer
-                        .withValues(alpha: 0.6),
+                    color: theme.colorScheme.tertiaryContainer.withValues(
+                      alpha: 0.6,
+                    ),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.local_shipping_outlined,
-                          color: theme.colorScheme.onTertiaryContainer),
+                      Icon(
+                        Icons.local_shipping_outlined,
+                        color: theme.colorScheme.onTertiaryContainer,
+                      ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -589,8 +651,9 @@ class _StockHandoverEditorScreenState
                   widget.isUnsourced
                       ? l10n.stockHandoverReviewHintUnknown
                       : l10n.stockHandoverReviewHint,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.outline),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
                 ),
             ],
           ),
@@ -604,8 +667,9 @@ class _StockHandoverEditorScreenState
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(52),
                 ),
-                onPressed:
-                    _submitting ? null : () => setState(() => _step = _Step.items),
+                onPressed: _submitting
+                    ? null
+                    : () => setState(() => _step = _Step.items),
                 icon: const Icon(Icons.arrow_back),
                 label: Text(l10n.stockHandoverBack),
               ),
@@ -653,8 +717,9 @@ class _NoChangeHint extends StatelessWidget {
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: theme.textTheme.bodyMedium
-            ?.copyWith(color: theme.colorScheme.outline),
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.outline,
+        ),
       ),
     );
   }
@@ -787,8 +852,9 @@ class _HandoverQtyTileState extends State<_HandoverQtyTile> {
                   if (widget.item.stockUom.isNotEmpty)
                     Text(
                       widget.item.stockUom,
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: theme.colorScheme.outline),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
                     ),
                 ],
               ),
@@ -797,8 +863,8 @@ class _HandoverQtyTileState extends State<_HandoverQtyTile> {
               iconSize: 26,
               onPressed: active
                   ? () => widget.onChanged(
-                        (widget.qty - 1) < 0 ? 0 : widget.qty - 1,
-                      )
+                      (widget.qty - 1) < 0 ? 0 : widget.qty - 1,
+                    )
                   : null,
               icon: const Icon(Icons.remove),
             ),
@@ -808,16 +874,20 @@ class _HandoverQtyTileState extends State<_HandoverQtyTile> {
               child: TextField(
                 controller: _ctrl,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w700),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 inputFormatters: const [HandoverQtyInputFormatter()],
                 decoration: const InputDecoration(
                   isDense: true,
                   hintText: '0',
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 10,
+                  ),
                   border: OutlineInputBorder(),
                 ),
                 onTap: () => _ctrl.selection = TextSelection(

@@ -19844,6 +19844,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get weeklyCountSectionSmall => 'صغير';
 
   @override
+  String get weeklyCountLabelsHeading => 'ليبلات عملاء الجملة';
+
+  @override
   String get weeklyCountAllZero => 'الكل صفر';
 
   @override

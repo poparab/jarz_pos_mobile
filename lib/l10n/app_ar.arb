@@ -7109,6 +7109,7 @@
   "weeklyCountSectionLarge": "كبير",
   "weeklyCountSectionMedium": "وسط",
   "weeklyCountSectionSmall": "صغير",
+  "weeklyCountLabelsHeading": "ليبلات عملاء الجملة",
   "weeklyCountAllZero": "الكل صفر",
   "weeklyCountAllZeroTitle": "تعيين صفر؟",
   "weeklyCountAllZeroBody": "سيتم وضع صفر لـ {count} صنف لم يُعدّ بعد في قسم {section}. الأصناف التي عددتها لن تتغير.",

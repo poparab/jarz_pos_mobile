@@ -124,6 +124,18 @@ class WeeklyCountDraft {
       if (counts.containsKey(code)) {'item_code': code, 'qty': counts[code]},
   ];
 
+  /// The label payload: one `{label, qty}` per counted label key. Label keys
+  /// share the counts map (and so the saved draft) under
+  /// `label:<Jarz Customer Label name>`.
+  List<Map<String, dynamic>> labelLinesFor(Iterable<String> labelKeys) => [
+    for (final key in labelKeys)
+      if (counts.containsKey(key))
+        {
+          'label': key.startsWith('label:') ? key.substring(6) : key,
+          'qty': counts[key],
+        },
+  ];
+
   Map<String, dynamic> toJson() => {
     'user': user,
     'pos_profile': posProfile,

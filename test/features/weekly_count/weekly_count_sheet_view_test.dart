@@ -21,9 +21,15 @@ import 'package:jarz_pos/src/features/weekly_count/data/weekly_count_service.dar
 import 'package:jarz_pos/src/features/weekly_count/presentation/widgets/weekly_count_sheet_view.dart';
 
 class _SubmitCall {
-  _SubmitCall(this.posProfile, this.lines, this.clientRequestId);
+  _SubmitCall(
+    this.posProfile,
+    this.lines,
+    this.clientRequestId, [
+    this.labelLines,
+  ]);
   final String posProfile;
   final List<Map<String, dynamic>> lines;
+  final List<Map<String, dynamic>>? labelLines;
   final String clientRequestId;
 }
 
@@ -38,8 +44,9 @@ class _FakeService extends WeeklyCountService {
     required String posProfile,
     required List<Map<String, dynamic>> lines,
     required String clientRequestId,
+    List<Map<String, dynamic>>? labelLines,
   }) async {
-    calls.add(_SubmitCall(posProfile, lines, clientRequestId));
+    calls.add(_SubmitCall(posProfile, lines, clientRequestId, labelLines));
     final failure = failWith;
     if (failure != null) throw failure;
     return WeeklyCountSubmitResult.fromJson({
@@ -190,6 +197,9 @@ void main() {
 
     expect(_qtyText(tester, 'L1'), '1');
     expect(_qtyText(tester, 'L2'), '0');
+    // Small starts collapsed: its row is not built until the header is tapped.
+    expect(find.byKey(WeeklyCountSheetKeys.qty('S1')), findsNothing);
+    await _tap(tester, const ValueKey('wc-section-Small'));
     expect(_qtyText(tester, 'S1'), '—');
     expect(find.text(_ar.weeklyCountProgress(2, 3)), findsOneWidget);
 
@@ -233,7 +243,8 @@ void main() {
 
     expect(_qtyText(tester, 'L1'), '2');
     expect(_qtyText(tester, 'L2'), '0');
-    // The other section is untouched.
+    // The other section is untouched (and still collapsed).
+    await _tap(tester, const ValueKey('wc-section-Small'));
     expect(_qtyText(tester, 'S1'), '—');
 
     // Still not complete: the submit stays shut.
@@ -390,6 +401,83 @@ void main() {
     await _countAllAndSubmit(tester);
 
     expect(h.service.calls.single.clientRequestId, 'recount-in-progress');
+
+    await _unmount(tester);
+  });
+
+  testWidgets('Small starts collapsed, Large open; header toggles', (
+    tester,
+  ) async {
+    final h = _Harness();
+    await h.pump(tester);
+
+    expect(find.byKey(WeeklyCountSheetKeys.qty('L1')), findsOneWidget);
+    expect(find.byKey(WeeklyCountSheetKeys.qty('S1')), findsNothing);
+    await _tap(tester, const ValueKey('wc-section-Small'));
+    expect(find.byKey(WeeklyCountSheetKeys.qty('S1')), findsOneWidget);
+    await _tap(tester, const ValueKey('wc-section-Small'));
+    expect(find.byKey(WeeklyCountSheetKeys.qty('S1')), findsNothing);
+
+    await _unmount(tester);
+  });
+
+  testWidgets('B2B label sections are counted and sent as label_lines', (
+    tester,
+  ) async {
+    final sheet = WeeklyCountSheet.fromJson({
+      'pos_profile': 'Maadi',
+      'warehouse': 'Maadi - J',
+      'week_start': '2026-10-17',
+      'due_date': '2026-10-23',
+      'is_approver': false,
+      'state': 'due',
+      'total_items': 1,
+      'total_labels': 2,
+      'sections': [
+        {
+          'key': 'Large',
+          'title': 'Large',
+          'items': [_item('L1')],
+        },
+      ],
+      'label_sections': [
+        {
+          'key': 'label:CUST-1',
+          'customer': 'CUST-1',
+          'title': 'Cafe One',
+          'labels': [
+            {'label': 'LBL-1', 'title': 'Cafe One Tiramisu', 'size': 'Large'},
+            {'label': 'LBL-2', 'title': 'Cafe One Oreo', 'size': 'Large'},
+          ],
+        },
+      ],
+    });
+    final h = _Harness(sheet: sheet);
+    await h.pump(tester);
+
+    await _tap(tester, WeeklyCountSheetKeys.allZero('Large'));
+    await _confirmDialog(tester, _ar.weeklyCountAllZero);
+    // Items are done but labels are not: still blocked.
+    await _tap(tester, WeeklyCountSheetKeys.submit);
+    expect(h.service.calls, isEmpty);
+    expect(find.text(_ar.weeklyCountFinishFirst(2)), findsOneWidget);
+    // Let the snackbar go so it does not cover the submit button.
+    await tester.pump(const Duration(seconds: 10));
+    await tester.pumpAndSettle();
+
+    await _tap(tester, WeeklyCountSheetKeys.inc('label:LBL-1'));
+    await _tap(tester, WeeklyCountSheetKeys.dec('label:LBL-2'));
+    await _tap(tester, WeeklyCountSheetKeys.submit);
+    await _confirmDialog(tester, _ar.weeklyCountSubmitConfirmButton);
+
+    expect(h.service.calls, hasLength(1));
+    expect(h.service.calls.single.lines, [
+      {'item_code': 'L1', 'qty': 0},
+    ]);
+    expect(h.service.calls.single.labelLines, [
+      {'label': 'LBL-1', 'qty': 1},
+      {'label': 'LBL-2', 'qty': 0},
+    ]);
 
     await _unmount(tester);
   });

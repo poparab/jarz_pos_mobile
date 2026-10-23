@@ -57,6 +57,17 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
   String? _pulseCode;
   int _pulseTick = 0;
 
+  /// Sections the counter opened or closed by hand, by section key. A section
+  /// not listed follows [_defaultOpen]: Small starts closed, nobody counts it
+  /// much.
+  final Map<String, bool> _open = {};
+
+  static bool _defaultOpen(String sectionKey) =>
+      sectionKey.trim().toLowerCase() != 'small';
+
+  bool _isOpen(String sectionKey) =>
+      _open[sectionKey] ?? _defaultOpen(sectionKey);
+
   WeeklyCountDraftStore get _store => ref.read(weeklyCountDraftStoreProvider);
 
   @override
@@ -154,11 +165,10 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
     });
   }
 
-  Future<void> _allZero(WeeklyCountSection section) async {
+  Future<void> _allZero(String sectionTitle, List<String> codes) async {
     final draft = _draft;
     if (draft == null || _submitting) return;
     final l10n = context.l10n;
-    final codes = [for (final i in section.items) i.itemCode];
     final missing = codes.length - draft.countedOf(codes);
     if (missing == 0) {
       ScaffoldMessenger.of(context)
@@ -170,12 +180,7 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.weeklyCountAllZeroTitle),
-        content: Text(
-          l10n.weeklyCountAllZeroBody(
-            missing,
-            weeklyCountSectionTitle(l10n, section),
-          ),
-        ),
+        content: Text(l10n.weeklyCountAllZeroBody(missing, sectionTitle)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -201,27 +206,45 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
       ..showSnackBar(
         SnackBar(content: Text(context.l10n.weeklyCountFinishFirst(left))),
       );
+    // The row may sit in a collapsed section: open it first, scroll once it
+    // has been built.
+    final sectionKey = _sectionKeyOf(first);
     setState(() {
       _pulseCode = first;
       _pulseTick++;
+      if (sectionKey != null) _open[sectionKey] = true;
     });
-    final rowContext = _rowKeys[first]?.currentContext;
-    if (rowContext != null) {
-      unawaited(
-        Scrollable.ensureVisible(
-          rowContext,
-          alignment: 0.3,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOut,
-        ),
-      );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final rowContext = _rowKeys[first]?.currentContext;
+      if (rowContext != null) {
+        unawaited(
+          Scrollable.ensureVisible(
+            rowContext,
+            alignment: 0.3,
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOut,
+          ),
+        );
+      }
+    });
+  }
+
+  /// The key of the section (item or label) that holds [code], if any.
+  String? _sectionKeyOf(String code) {
+    for (final s in widget.sheet.sections) {
+      if (s.items.any((i) => i.itemCode == code)) return s.key;
     }
+    for (final s in widget.sheet.labelSections) {
+      if (s.labels.any((l) => l.countKey == code)) return s.key;
+    }
+    return null;
   }
 
   Future<void> _submit() async {
     final draft = _draft;
     if (draft == null || _submitting) return;
-    final codes = widget.sheet.itemCodes;
+    final codes = widget.sheet.countKeys;
     if (!draft.isComplete(codes)) {
       _pointAtFirstUncounted(draft, codes);
       return;
@@ -289,7 +312,8 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
           .read(weeklyCountServiceProvider)
           .submit(
             posProfile: widget.sheet.posProfile,
-            lines: draft.linesFor(codes),
+            lines: draft.linesFor(widget.sheet.itemCodes),
+            labelLines: draft.labelLinesFor(widget.sheet.labelKeys),
             clientRequestId: draft.clientRequestId,
           );
       try {
@@ -329,6 +353,20 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
     }
   }
 
+  Widget _rowFor(WeeklyCountDraft draft, WeeklyCountSheetItem item) {
+    final code = item.itemCode;
+    return _CountRow(
+      key: _keyFor(code),
+      item: item,
+      qty: draft.qtyOf(code),
+      pulseTick: code == _pulseCode ? _pulseTick : 0,
+      enabled: !_submitting,
+      onIncrement: () => _change((d) => d.increment(code)),
+      onDecrement: () => _change((d) => d.decrement(code)),
+      onTapQty: () => _openKeypad(item),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final draft = _draft;
@@ -338,7 +376,7 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final sheet = widget.sheet;
-    final codes = sheet.itemCodes;
+    final codes = sheet.countKeys;
     if (codes.isEmpty) {
       return Center(
         child: Padding(
@@ -364,36 +402,81 @@ class _WeeklyCountSheetViewState extends ConsumerState<WeeklyCountSheetView> {
       ];
       if (items.isEmpty) continue;
       final sectionCodes = [for (final i in items) i.itemCode];
+      final sectionTitle = weeklyCountSectionTitle(l10n, section);
+      final open = _isOpen(section.key);
       sectionWidgets.add(
         _SectionHeader(
           key: ValueKey('wc-section-${section.key}'),
-          title: weeklyCountSectionTitle(l10n, section),
+          title: sectionTitle,
           counted: draft.countedOf(sectionCodes),
           total: sectionCodes.length,
           zeroKey: WeeklyCountSheetKeys.allZero(section.key),
-          onAllZero: () => _allZero(
-            WeeklyCountSection(
-              key: section.key,
-              title: section.title,
-              items: items,
-            ),
+          onAllZero: () => _allZero(sectionTitle, sectionCodes),
+          open: open,
+          onToggle: () => setState(() => _open[section.key] = !open),
+        ),
+      );
+      if (!open) continue;
+      for (final item in items) {
+        sectionWidgets.add(_rowFor(draft, item));
+      }
+    }
+
+    if (sheet.hasLabels) {
+      sectionWidgets.add(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+          child: Row(
+            children: [
+              Icon(Icons.label, color: theme.colorScheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.weeklyCountLabelsHeading,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
-      for (final item in items) {
-        final code = item.itemCode;
+      for (final section in sheet.labelSections) {
+        final labels = [
+          for (final l in section.labels)
+            if (seen.add(l.countKey)) l,
+        ];
+        if (labels.isEmpty) continue;
+        final sectionCodes = [for (final l in labels) l.countKey];
+        final open = _isOpen(section.key);
         sectionWidgets.add(
-          _CountRow(
-            key: _keyFor(code),
-            item: item,
-            qty: draft.qtyOf(code),
-            pulseTick: code == _pulseCode ? _pulseTick : 0,
-            enabled: !_submitting,
-            onIncrement: () => _change((d) => d.increment(code)),
-            onDecrement: () => _change((d) => d.decrement(code)),
-            onTapQty: () => _openKeypad(item),
+          _SectionHeader(
+            key: ValueKey('wc-section-${section.key}'),
+            title: section.title,
+            counted: draft.countedOf(sectionCodes),
+            total: sectionCodes.length,
+            zeroKey: WeeklyCountSheetKeys.allZero(section.key),
+            onAllZero: () => _allZero(section.title, sectionCodes),
+            open: open,
+            onToggle: () => setState(() => _open[section.key] = !open),
+            leadingIcon: Icons.sell_outlined,
           ),
         );
+        if (!open) continue;
+        for (final label in labels) {
+          sectionWidgets.add(
+            _rowFor(
+              draft,
+              WeeklyCountSheetItem(
+                itemCode: label.countKey,
+                itemName: label.title,
+                stockUom: label.subtitle,
+                image: label.image,
+              ),
+            ),
+          );
+        }
       }
     }
 
@@ -508,8 +591,14 @@ class _SectionHeader extends StatelessWidget {
     required this.total,
     required this.zeroKey,
     required this.onAllZero,
+    required this.open,
+    required this.onToggle,
+    this.leadingIcon,
   });
 
+  final bool open;
+  final VoidCallback onToggle;
+  final IconData? leadingIcon;
   final String title;
   final int counted;
   final int total;
@@ -522,40 +611,54 @@ class _SectionHeader extends StatelessWidget {
     final done = counted == total;
     return Container(
       margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
       color: theme.colorScheme.surfaceContainerHigh,
-      child: Row(
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+      child: InkWell(
+        onTap: onToggle,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+          child: Row(
+            children: [
+              Icon(open ? Icons.expand_less : Icons.expand_more),
+              const SizedBox(width: 6),
+              if (leadingIcon != null) ...[
+                Icon(leadingIcon, size: 20),
+                const SizedBox(width: 6),
+              ],
+              Flexible(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '$counted / $total',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: done
+                      ? WeeklyCountColors.green
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              if (done) ...[
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.check_circle,
+                  size: 18,
+                  color: WeeklyCountColors.green,
+                ),
+              ],
+              const Spacer(),
+              TextButton(
+                key: zeroKey,
+                onPressed: onAllZero,
+                child: Text(context.l10n.weeklyCountAllZero),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          Text(
-            '$counted / $total',
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: done
-                  ? WeeklyCountColors.green
-                  : theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          if (done) ...[
-            const SizedBox(width: 4),
-            const Icon(
-              Icons.check_circle,
-              size: 18,
-              color: WeeklyCountColors.green,
-            ),
-          ],
-          const Spacer(),
-          TextButton(
-            key: zeroKey,
-            onPressed: onAllZero,
-            child: Text(context.l10n.weeklyCountAllZero),
-          ),
-        ],
+        ),
       ),
     );
   }

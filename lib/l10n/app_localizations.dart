@@ -32798,6 +32798,12 @@ abstract class AppLocalizations {
   /// **'Small'**
   String get weeklyCountSectionSmall;
 
+  /// Weekly count: heading above the B2B customer label sections (sheet and review).
+  ///
+  /// In en, this message translates to:
+  /// **'B2B labels'**
+  String get weeklyCountLabelsHeading;
+
   /// Weekly count: set the uncounted items of a section to 0.
   ///
   /// In en, this message translates to:

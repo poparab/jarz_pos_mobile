@@ -19845,6 +19845,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weeklyCountSectionSmall => 'Small';
 
   @override
+  String get weeklyCountLabelsHeading => 'B2B labels';
+
+  @override
   String get weeklyCountAllZero => 'All zero';
 
   @override

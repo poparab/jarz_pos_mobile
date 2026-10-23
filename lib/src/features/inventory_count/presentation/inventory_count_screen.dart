@@ -51,6 +51,15 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
   late final Future<List<Map<String, dynamic>>> _warehousesFuture;
   String? _selectedWarehouse;
   String? _selectedCategory;
+
+  /// Categories the operator opened or closed by hand. A category not listed
+  /// follows the default: "Small" starts collapsed (it is rarely counted),
+  /// every other one starts open.
+  final Map<String, bool> _categoryOpen = {};
+
+  bool _isCategoryOpen(String category) =>
+      _categoryOpen[category] ?? category.trim().toLowerCase() != 'small';
+
   DateTime _postingDate = DateTime.now();
 
   /// Whether the operator picked a clock time, or only inherited one.
@@ -1248,6 +1257,10 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
   ) {
     final theme = Theme.of(context);
     final showHeaders = visibleItems.map(_categoryOf).toSet().length > 1;
+    // A search that reaches into a collapsed category shows its matches.
+    final searching = _searchCtrl.text.trim().isNotEmpty;
+    bool open(String category) =>
+        !showHeaders || searching || _isCategoryOpen(category);
     final counts = <String, List<int>>{};
     for (final item in visibleItems) {
       final code = item['item_code'] as String? ?? '';
@@ -1271,30 +1284,43 @@ class _InventoryCountScreenState extends ConsumerState<InventoryCountScreen> {
       if (showHeaders && category != currentCategory) {
         currentCategory = category;
         final bucket = counts[category] ?? [0, 0];
+        final isOpen = open(category);
         widgets.add(
-          Padding(
-            padding: EdgeInsets.only(top: widgets.isEmpty ? 0 : 8, bottom: 8),
-            child: Row(
-              children: [
-                Text(category, style: theme.textTheme.titleSmall),
-                const SizedBox(width: 8),
-                Expanded(
-                  // Digits only, deliberately. The screen already shows
-                  // "Confirmed x / y" for the sheet as a whole, and repeating
-                  // that phrase per category would read as the same number
-                  // twice over rather than progress through one shelf.
-                  child: Text(
-                    '${bucket[0]}/${bucket[1]}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.hintColor,
+          InkWell(
+            key: ValueKey('inventory-category-$category'),
+            onTap: searching
+                ? null
+                : () => setState(() => _categoryOpen[category] = !isOpen),
+            child: Padding(
+              padding: EdgeInsets.only(top: widgets.isEmpty ? 0 : 8, bottom: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    isOpen ? Icons.expand_less : Icons.expand_more,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(category, style: theme.textTheme.titleSmall),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    // Digits only, deliberately. The screen already shows
+                    // "Confirmed x / y" for the sheet as a whole, and repeating
+                    // that phrase per category would read as the same number
+                    // twice over rather than progress through one shelf.
+                    child: Text(
+                      '${bucket[0]}/${bucket[1]}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.hintColor,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
       }
+      if (!open(category)) continue;
       widgets.add(
         Padding(
           padding: const EdgeInsets.only(bottom: 12),

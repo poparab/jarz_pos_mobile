@@ -10989,6 +10989,8 @@
   "@weeklyCountSectionMedium": {"description": "Weekly count section: Medium jars."},
   "weeklyCountSectionSmall": "Small",
   "@weeklyCountSectionSmall": {"description": "Weekly count section: Small jars."},
+  "weeklyCountLabelsHeading": "B2B labels",
+  "@weeklyCountLabelsHeading": {"description": "Weekly count: heading above the B2B customer label sections (sheet and review)."},
   "weeklyCountAllZero": "All zero",
   "@weeklyCountAllZero": {"description": "Weekly count: set the uncounted items of a section to 0."},
   "weeklyCountAllZeroTitle": "Set to zero?",

@@ -197,8 +197,9 @@ class _GrandTotalCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     formatCurrency(context, totals.stockValue),
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -210,8 +211,9 @@ class _GrandTotalCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   _formatQty(context, totals.qty),
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -279,6 +281,25 @@ class _FinalProductsTab extends ConsumerWidget {
               final warehouses = ReportJson.strings(group['warehouses']);
               final items = ReportJson.list(group['items']);
               final totals = _totalsOrNull(group['totals']);
+              final table = _FinalProductsTable(
+                warehouses: warehouses,
+                items: items,
+                cover: cover,
+              );
+              // The Small jar group is rarely looked at: start it collapsed
+              // (tap the header to open; the item count stays in the header).
+              if (groupName.trim().toLowerCase() == 'small') {
+                return Padding(
+                  padding: EdgeInsetsDirectional.only(top: index > 0 ? 16 : 0),
+                  child: _CollapsibleSection(
+                    title: groupName,
+                    itemCount: items.length,
+                    initiallyExpanded: false,
+                    totals: totals,
+                    child: table,
+                  ),
+                );
+              }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -290,11 +311,7 @@ class _FinalProductsTab extends ConsumerWidget {
                       child: _TotalsLine(totals: totals),
                     ),
                   const SizedBox(height: 6),
-                  _FinalProductsTable(
-                    warehouses: warehouses,
-                    items: items,
-                    cover: cover,
-                  ),
+                  table,
                 ],
               );
             },
@@ -350,15 +367,14 @@ const _coverAmber = Color(0xFFFFA000); // amber 700
 const _coverRed = Color(0xFFE53935); // red 600
 
 Color? _coverColor(CoverTone tone) => switch (tone) {
-      CoverTone.none => null,
-      CoverTone.red => _coverRed,
-      CoverTone.amber => _coverAmber,
-      CoverTone.green => _coverGreen,
-    };
+  CoverTone.none => null,
+  CoverTone.red => _coverRed,
+  CoverTone.amber => _coverAmber,
+  CoverTone.green => _coverGreen,
+};
 
 /// Cell background for a tone; reads on light and dark surfaces.
-Color? _coverTint(CoverTone tone) =>
-    _coverColor(tone)?.withValues(alpha: 0.18);
+Color? _coverTint(CoverTone tone) => _coverColor(tone)?.withValues(alpha: 0.18);
 
 /// Days of cover with at most one decimal, in the app's locale.
 String _formatDays(BuildContext context, double days) =>
@@ -416,7 +432,10 @@ class _LegendChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 8,
+        vertical: 3,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: neutral ? 0.12 : 0.18),
         borderRadius: BorderRadius.circular(6),
@@ -475,8 +494,10 @@ class _FinalProductsTable extends StatelessWidget {
       child: Tooltip(
         message: text,
         child: Padding(
-          padding:
-              const EdgeInsetsDirectional.symmetric(horizontal: 6, vertical: 8),
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: 6,
+            vertical: 8,
+          ),
           child: Text(
             text,
             style: style,
@@ -499,8 +520,10 @@ class _FinalProductsTable extends StatelessWidget {
       child: Tooltip(
         message: text,
         child: Padding(
-          padding:
-              const EdgeInsetsDirectional.symmetric(horizontal: 6, vertical: 8),
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: 6,
+            vertical: 8,
+          ),
           child: Align(
             alignment: AlignmentDirectional.centerStart,
             child: Text(
@@ -527,12 +550,7 @@ class _FinalProductsTable extends StatelessWidget {
       child: FittedBox(
         fit: BoxFit.scaleDown,
         alignment: AlignmentDirectional.centerEnd,
-        child: Text(
-          text,
-          style: style,
-          maxLines: 1,
-          textAlign: TextAlign.end,
-        ),
+        child: Text(text, style: style, maxLines: 1, textAlign: TextAlign.end),
       ),
     );
     // Same 6/8 inset as an untinted cell, split around the tinted box.
@@ -562,10 +580,7 @@ class _FinalProductsTable extends StatelessWidget {
           );
     return SizedBox(
       width: width,
-      child: Tooltip(
-        message: tooltip ?? text,
-        child: content,
-      ),
+      child: Tooltip(message: tooltip ?? text, child: content),
     );
   }
 
@@ -600,146 +615,157 @@ class _FinalProductsTable extends StatelessWidget {
       fontWeight: FontWeight.bold,
     );
     final negativeStyle = cellStyle?.copyWith(color: theme.colorScheme.error);
-    final negativeTotalStyle =
-        totalStyle?.copyWith(color: theme.colorScheme.error);
+    final negativeTotalStyle = totalStyle?.copyWith(
+      color: theme.colorScheme.error,
+    );
     // Stock value is a newer key; only add the column when the server sends it.
     final hasValue = items.any((i) => i.containsKey('stock_value'));
 
-    return LayoutBuilder(builder: (context, constraints) {
-      final viewportWidth = constraints.maxWidth.isFinite
-          ? constraints.maxWidth
-          : MediaQuery.sizeOf(context).width;
-      final rawTableWidth = viewportWidth - 16;
-      final tableWidth = rawTableWidth > 240 ? rawTableWidth : 240.0;
-      final metricColumnCount = warehouses.length + 1 + (hasValue ? 1 : 0);
-      final itemColWidth = _resolveItemColumnWidth(
-        tableWidth: tableWidth,
-        metricColumnCount: metricColumnCount,
-      );
-      final dataColWidth = metricColumnCount == 0
-          ? 0.0
-          : (tableWidth - itemColWidth) / metricColumnCount;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final viewportWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        final rawTableWidth = viewportWidth - 16;
+        final tableWidth = rawTableWidth > 240 ? rawTableWidth : 240.0;
+        final metricColumnCount = warehouses.length + 1 + (hasValue ? 1 : 0);
+        final itemColWidth = _resolveItemColumnWidth(
+          tableWidth: tableWidth,
+          metricColumnCount: metricColumnCount,
+        );
+        final dataColWidth = metricColumnCount == 0
+            ? 0.0
+            : (tableWidth - itemColWidth) / metricColumnCount;
 
-      return Padding(
-        padding: const EdgeInsetsDirectional.all(8),
-        child: SizedBox(
-          width: tableWidth,
-          child: DataTable(
-            columnSpacing: 0,
-            horizontalMargin: 0,
-            headingRowHeight: 48,
-            dataRowMinHeight: 40,
-            dataRowMaxHeight: 48,
-            border: TableBorder.all(
-              color: theme.dividerColor,
-              width: 0.5,
-            ),
-            columns: [
-              DataColumn(
-                label: _buildHeaderCell(
-                  text: l10n.reportsItemName,
-                  width: itemColWidth,
-                  style: headerStyle,
-                ),
-              ),
-              ...warehouses.map(
-                (wh) => DataColumn(
-                  label: _buildHeaderCell(
-                    text: _shortWarehouse(wh),
-                    width: dataColWidth,
-                    style: headerStyle,
-                    textAlign: TextAlign.end,
-                  ),
-                  numeric: true,
-                ),
-              ),
-              DataColumn(
-                label: _buildHeaderCell(
-                  text: l10n.reportsTotal,
-                  width: dataColWidth,
-                  style: headerStyle,
-                  textAlign: TextAlign.end,
-                ),
-                numeric: true,
-              ),
-              if (hasValue)
+        return Padding(
+          padding: const EdgeInsetsDirectional.all(8),
+          child: SizedBox(
+            width: tableWidth,
+            child: DataTable(
+              columnSpacing: 0,
+              horizontalMargin: 0,
+              headingRowHeight: 48,
+              dataRowMinHeight: 40,
+              dataRowMaxHeight: 48,
+              border: TableBorder.all(color: theme.dividerColor, width: 0.5),
+              columns: [
                 DataColumn(
                   label: _buildHeaderCell(
-                    text: l10n.rptG2StockValue,
+                    text: l10n.reportsItemName,
+                    width: itemColWidth,
+                    style: headerStyle,
+                  ),
+                ),
+                ...warehouses.map(
+                  (wh) => DataColumn(
+                    label: _buildHeaderCell(
+                      text: _shortWarehouse(wh),
+                      width: dataColWidth,
+                      style: headerStyle,
+                      textAlign: TextAlign.end,
+                    ),
+                    numeric: true,
+                  ),
+                ),
+                DataColumn(
+                  label: _buildHeaderCell(
+                    text: l10n.reportsTotal,
                     width: dataColWidth,
                     style: headerStyle,
                     textAlign: TextAlign.end,
                   ),
                   numeric: true,
                 ),
-            ],
-            rows: items.map((item) {
-              final whQty = ReportJson.map(item['warehouse_qty']);
-              final total = ReportJson.dbl(item['total_qty']);
-              final itemName = ReportJson.str(item['item_name']);
-              final value = ReportJson.dbl(item['stock_value']);
-              final hasCover = item.containsKey('days_cover');
-              final whCover = ReportJson.map(item['days_cover']);
-              final totalCover = _coverFor(
-                context,
-                hasCover: hasCover,
-                qty: total,
-                days: ReportJson.dblOrNull(item['total_days_cover']),
-              );
-              final totalTip =
-                  '${l10n.reportsTotal}: ${_formatQty(context, total)}';
-
-              return DataRow(cells: [
-                DataCell(_buildTextCell(
-                  text: itemName,
-                  width: itemColWidth,
-                  style: cellStyle,
-                )),
-                ...warehouses.map((wh) {
-                  final qty = ReportJson.dbl(whQty[wh]);
-                  // A negative bin is stock the branch has oversold. It used to
-                  // collapse to the same '-' as an empty cell, which is the one
-                  // reading that hides it.
-                  final formattedQty =
-                      qty != 0 ? _formatQty(context, qty) : '-';
-                  final c = _coverFor(
-                    context,
-                    hasCover: hasCover,
-                    qty: qty,
-                    days: ReportJson.dblOrNull(whCover[wh]),
-                  );
-                  final tip = '${_shortWarehouse(wh)}: $formattedQty';
-                  return DataCell(_buildNumericCell(
-                    text: formattedQty,
-                    width: dataColWidth,
-                    style: qty < 0 ? negativeStyle : cellStyle,
-                    tooltip: c.note == null ? tip : '$tip\n${c.note}',
-                    tint: c.tint,
-                  ));
-                }),
-                DataCell(_buildNumericCell(
-                  text: _formatQty(context, total),
-                  width: dataColWidth,
-                  style: total < 0 ? negativeTotalStyle : totalStyle,
-                  tooltip: totalCover.note == null
-                      ? totalTip
-                      : '$totalTip\n${totalCover.note}',
-                  tint: totalCover.tint,
-                )),
                 if (hasValue)
-                  DataCell(_buildNumericCell(
-                    text: formatCompactCurrency(context, value),
-                    width: dataColWidth,
-                    style: value < 0 ? negativeStyle : cellStyle,
-                    tooltip:
-                        '${l10n.rptG2StockValue}: ${formatCurrency(context, value)}',
-                  )),
-              ]);
-            }).toList(),
+                  DataColumn(
+                    label: _buildHeaderCell(
+                      text: l10n.rptG2StockValue,
+                      width: dataColWidth,
+                      style: headerStyle,
+                      textAlign: TextAlign.end,
+                    ),
+                    numeric: true,
+                  ),
+              ],
+              rows: items.map((item) {
+                final whQty = ReportJson.map(item['warehouse_qty']);
+                final total = ReportJson.dbl(item['total_qty']);
+                final itemName = ReportJson.str(item['item_name']);
+                final value = ReportJson.dbl(item['stock_value']);
+                final hasCover = item.containsKey('days_cover');
+                final whCover = ReportJson.map(item['days_cover']);
+                final totalCover = _coverFor(
+                  context,
+                  hasCover: hasCover,
+                  qty: total,
+                  days: ReportJson.dblOrNull(item['total_days_cover']),
+                );
+                final totalTip =
+                    '${l10n.reportsTotal}: ${_formatQty(context, total)}';
+
+                return DataRow(
+                  cells: [
+                    DataCell(
+                      _buildTextCell(
+                        text: itemName,
+                        width: itemColWidth,
+                        style: cellStyle,
+                      ),
+                    ),
+                    ...warehouses.map((wh) {
+                      final qty = ReportJson.dbl(whQty[wh]);
+                      // A negative bin is stock the branch has oversold. It used to
+                      // collapse to the same '-' as an empty cell, which is the one
+                      // reading that hides it.
+                      final formattedQty = qty != 0
+                          ? _formatQty(context, qty)
+                          : '-';
+                      final c = _coverFor(
+                        context,
+                        hasCover: hasCover,
+                        qty: qty,
+                        days: ReportJson.dblOrNull(whCover[wh]),
+                      );
+                      final tip = '${_shortWarehouse(wh)}: $formattedQty';
+                      return DataCell(
+                        _buildNumericCell(
+                          text: formattedQty,
+                          width: dataColWidth,
+                          style: qty < 0 ? negativeStyle : cellStyle,
+                          tooltip: c.note == null ? tip : '$tip\n${c.note}',
+                          tint: c.tint,
+                        ),
+                      );
+                    }),
+                    DataCell(
+                      _buildNumericCell(
+                        text: _formatQty(context, total),
+                        width: dataColWidth,
+                        style: total < 0 ? negativeTotalStyle : totalStyle,
+                        tooltip: totalCover.note == null
+                            ? totalTip
+                            : '$totalTip\n${totalCover.note}',
+                        tint: totalCover.tint,
+                      ),
+                    ),
+                    if (hasValue)
+                      DataCell(
+                        _buildNumericCell(
+                          text: formatCompactCurrency(context, value),
+                          width: dataColWidth,
+                          style: value < 0 ? negativeStyle : cellStyle,
+                          tooltip:
+                              '${l10n.rptG2StockValue}: ${formatCurrency(context, value)}',
+                        ),
+                      ),
+                  ],
+                );
+              }).toList(),
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -813,7 +839,10 @@ class _MaterialsBody extends StatelessWidget {
     final l10n = context.l10n;
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 12,
+        vertical: 8,
+      ),
       children: [
         if (grandTotals != null) ...[
           _GrandTotalCard(totals: grandTotals!),
@@ -887,7 +916,10 @@ class _CountBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: 7, vertical: 1),
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 7,
+        vertical: 1,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(10),
@@ -956,97 +988,104 @@ class _CompactItemGrid extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = context.l10n;
 
-    return LayoutBuilder(builder: (context, constraints) {
-      final crossCount = ResponsiveUtils.getGridColumns(context, min: 2, max: 4);
-      final cardWidth = (constraints.maxWidth - 8 * (crossCount - 1)) / crossCount;
-      return Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: items.map((item) {
-          final itemName = ReportJson.str(item['item_name']);
-          final stockUom = ReportJson.str(item['stock_uom']);
-          final totalQty = ReportJson.dbl(item['total_qty']);
-          final value = ReportJson.dblOrNull(item['stock_value']);
-          final whQty = ReportJson.map(item['warehouse_qty']);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossCount = ResponsiveUtils.getGridColumns(
+          context,
+          min: 2,
+          max: 4,
+        );
+        final cardWidth =
+            (constraints.maxWidth - 8 * (crossCount - 1)) / crossCount;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: items.map((item) {
+            final itemName = ReportJson.str(item['item_name']);
+            final stockUom = ReportJson.str(item['stock_uom']);
+            final totalQty = ReportJson.dbl(item['total_qty']);
+            final value = ReportJson.dblOrNull(item['stock_value']);
+            final whQty = ReportJson.map(item['warehouse_qty']);
 
-          return SizedBox(
-            width: cardWidth,
-            child: Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsetsDirectional.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      itemName,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsetsDirectional.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '${_formatQty(context, totalQty)} $stockUom',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          // An oversold material reaches this card, so it has
-                          // to read as a problem rather than as a small number.
-                          color: totalQty < 0
-                              ? theme.colorScheme.error
-                              : theme.colorScheme.onSecondaryContainer,
-                        ),
-                      ),
-                    ),
-                    if (value != null) ...[
-                      const SizedBox(height: 4),
+            return SizedBox(
+              width: cardWidth,
+              child: Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Text(
-                        '${l10n.rptG2StockValue}: '
-                        '${formatCurrency(context, value)}',
-                        style: theme.textTheme.labelSmall,
-                        maxLines: 1,
+                        itemName,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                    if (whQty.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      ...whQty.entries.map((e) {
-                        final qty = ReportJson.dbl(e.value);
-                        return Padding(
-                          padding: const EdgeInsetsDirectional.only(top: 1),
-                          child: Text(
-                            '${_shortWarehouse(e.key)}: '
-                            '${_formatQty(context, qty)}',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: qty < 0
-                                  ? theme.colorScheme.error
-                                  : theme.colorScheme.onSurfaceVariant,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                      Container(
+                        padding: const EdgeInsetsDirectional.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${_formatQty(context, totalQty)} $stockUom',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            // An oversold material reaches this card, so it has
+                            // to read as a problem rather than as a small number.
+                            color: totalQty < 0
+                                ? theme.colorScheme.error
+                                : theme.colorScheme.onSecondaryContainer,
                           ),
-                        );
-                      }),
+                        ),
+                      ),
+                      if (value != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '${l10n.rptG2StockValue}: '
+                          '${formatCurrency(context, value)}',
+                          style: theme.textTheme.labelSmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      if (whQty.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        ...whQty.entries.map((e) {
+                          final qty = ReportJson.dbl(e.value);
+                          return Padding(
+                            padding: const EdgeInsetsDirectional.only(top: 1),
+                            child: Text(
+                              '${_shortWarehouse(e.key)}: '
+                              '${_formatQty(context, qty)}',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: qty < 0
+                                    ? theme.colorScheme.error
+                                    : theme.colorScheme.onSurfaceVariant,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
-      );
-    });
+            );
+          }).toList(),
+        );
+      },
+    );
   }
 }
 

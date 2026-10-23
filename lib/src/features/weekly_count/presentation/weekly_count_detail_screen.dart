@@ -270,6 +270,61 @@ class _DetailBody extends StatelessWidget {
       }
     }
 
+    // B2B labels, grouped by customer (the server sorts by customer).
+    if (detail.labelLines.isNotEmpty) {
+      children.add(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 20, 8, 4),
+          child: Row(
+            children: [
+              Icon(Icons.label, color: theme.colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                l10n.weeklyCountLabelsHeading,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      children.add(_ColumnsHeader(withSystem: withSystem));
+      String? currentCustomer;
+      for (final line in detail.labelLines) {
+        if (line.customer != currentCustomer) {
+          currentCustomer = line.customer;
+          children.add(
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              color: theme.colorScheme.surfaceContainerHigh,
+              child: Text(
+                line.customerName,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          );
+        }
+        children.add(
+          _LineRow(
+            line: WeeklyCountLine(
+              itemCode: line.label,
+              itemName: line.itemName,
+              itemGroup: '',
+              stockUom: '',
+              countedQty: line.countedQty,
+              systemQty: line.systemQty,
+              difference: line.difference,
+            ),
+            withSystem: withSystem,
+          ),
+        );
+      }
+    }
+
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),

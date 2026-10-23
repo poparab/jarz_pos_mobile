@@ -327,4 +327,72 @@ void main() {
       expect(row.differencesCount, isNull);
     });
   });
+
+  group('B2B labels', () {
+    final labelJson = {
+      'pos_profile': 'Maadi',
+      'warehouse': 'Maadi - J',
+      'week_start': '2026-10-17',
+      'due_date': '2026-10-23',
+      'state': 'due',
+      'total_items': 0,
+      'total_labels': 2,
+      'sections': <Map<String, dynamic>>[],
+      'label_sections': [
+        {
+          'key': 'label:C1',
+          'customer': 'C1',
+          'title': 'Cafe',
+          'labels': [
+            {
+              'label': 'L-1',
+              'title': 'Cafe Tiramisu',
+              'item_code': 'TIR',
+              'item_name': 'Tiramisu',
+              'size': 'Small',
+              'image': null,
+            },
+            {'label': 'L-2', 'title': 'Cafe Oreo'},
+          ],
+        },
+      ],
+    };
+
+    test('parses label sections and keys', () {
+      final sheet = WeeklyCountSheet.fromJson(labelJson);
+      expect(sheet.totalLabels, 2);
+      expect(sheet.hasLabels, isTrue);
+      expect(sheet.labelSections.single.customer, 'C1');
+      expect(sheet.labelKeys, ['label:L-1', 'label:L-2']);
+      expect(sheet.countKeys, ['label:L-1', 'label:L-2']);
+      expect(sheet.allLabels.first.itemCode, 'TIR');
+      expect(sheet.allLabels.last.itemCode, isNull);
+    });
+
+    test('a sheet without label keys has no labels', () {
+      final json = Map<String, dynamic>.from(labelJson)
+        ..remove('label_sections')
+        ..remove('total_labels');
+      final sheet = WeeklyCountSheet.fromJson(json);
+      expect(sheet.hasLabels, isFalse);
+      expect(sheet.labelSections, isEmpty);
+      expect(sheet.totalLabels, 0);
+    });
+
+    test('a label line from a non-approver is blind', () {
+      final line = WeeklyCountLabelLine.fromJson({
+        'label': 'L-1',
+        'customer': 'C1',
+        'customer_name': 'Cafe',
+        'item_code': 'TIR',
+        'item_name': 'Tiramisu',
+        'counted_qty': 4,
+        'system_qty': null,
+        'difference': null,
+      });
+      expect(line.label, 'L-1');
+      expect(line.countedQty, 4);
+      expect(line.hasDifference, isFalse);
+    });
+  });
 }

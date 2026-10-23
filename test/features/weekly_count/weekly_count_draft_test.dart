@@ -214,4 +214,17 @@ void main() {
       expect(d.clientRequestId, id);
     });
   });
+
+  test('labelLinesFor strips the prefix and skips uncounted labels', () {
+    final d = WeeklyCountDraft(
+      user: 'u',
+      posProfile: 'P',
+      weekStart: '2026-10-17',
+      counts: {'label:A': 3, 'label:B': 0, 'X1': 5},
+    );
+    expect(d.labelLinesFor(['label:A', 'label:B', 'label:C']), [
+      {'label': 'A', 'qty': 3},
+      {'label': 'B', 'qty': 0},
+    ]);
+  });
 }

@@ -52,6 +52,8 @@ class ProductionRoundMakeTab extends StatelessWidget {
             title: sizeLabel(l10n, size),
             items: round.itemsOfSize(size),
             batches: round.summary.batches[size],
+            // Small is rarely made: starts folded, tap the header to open.
+            startCollapsed: size.trim().toLowerCase() == 'small',
           ),
         if (unsized.isNotEmpty)
           _SizeSection(round: round, title: '—', items: unsized),
@@ -60,21 +62,34 @@ class ProductionRoundMakeTab extends StatelessWidget {
   }
 }
 
-class _SizeSection extends StatelessWidget {
+class _SizeSection extends StatefulWidget {
   const _SizeSection({
     required this.round,
     required this.title,
     required this.items,
     this.batches,
+    this.startCollapsed = false,
   });
 
   final ProductionRound round;
   final String title;
   final List<ProductionRoundItem> items;
   final double? batches;
+  final bool startCollapsed;
+
+  @override
+  State<_SizeSection> createState() => _SizeSectionState();
+}
+
+class _SizeSectionState extends State<_SizeSection> {
+  late bool _open = !widget.startCollapsed;
 
   @override
   Widget build(BuildContext context) {
+    final round = widget.round;
+    final title = widget.title;
+    final items = widget.items;
+    final batches = widget.batches;
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final toMake = items.where((i) => i.isToMake).toList()..sort(_byUrgency);
@@ -85,67 +100,82 @@ class _SizeSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 4, 4, 6),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(title, style: theme.textTheme.titleMedium),
-                ),
-                if (batches != null && batches! > 0)
-                  Text(
-                    batchesLabel(l10n, batches!),
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.primary,
+          InkWell(
+            onTap: widget.startCollapsed
+                ? () => setState(() => _open = !_open)
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(4, 4, 4, 6),
+              child: Row(
+                children: [
+                  if (widget.startCollapsed) ...[
+                    Icon(_open ? Icons.expand_less : Icons.expand_more),
+                    const SizedBox(width: 4),
+                  ],
+                  Expanded(
+                    child: Text(
+                      widget.startCollapsed
+                          ? '$title (${items.length})'
+                          : title,
+                      style: theme.textTheme.titleMedium,
                     ),
                   ),
-              ],
-            ),
-          ),
-          Card(
-            margin: EdgeInsets.zero,
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                if (toMake.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Text(
-                      l10n.productionRoundNothingInSize,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                  if (batches != null && batches > 0)
+                    Text(
+                      batchesLabel(l10n, batches),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
                       ),
                     ),
-                  ),
-                for (var i = 0; i < toMake.length; i++) ...[
-                  if (i > 0) const Divider(height: 1),
-                  _ItemRow(round: round, item: toMake[i]),
                 ],
-                if (covered.isNotEmpty) ...[
-                  const Divider(height: 1),
-                  Theme(
-                    // ExpansionTile draws its own dividers when open; inside a
-                    // card they double up with the row separators.
-                    data: theme.copyWith(dividerColor: Colors.transparent),
-                    child: ExpansionTile(
-                      key: PageStorageKey('covered-$title'),
-                      dense: true,
-                      title: Text(
-                        l10n.productionRoundCoveredGroup(covered.length),
+              ),
+            ),
+          ),
+          if (_open)
+            Card(
+              margin: EdgeInsets.zero,
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  if (toMake.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Text(
+                        l10n.productionRoundNothingInSize,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      children: [
-                        for (final item in covered)
-                          _ItemRow(round: round, item: item),
-                      ],
                     ),
-                  ),
+                  for (var i = 0; i < toMake.length; i++) ...[
+                    if (i > 0) const Divider(height: 1),
+                    _ItemRow(round: round, item: toMake[i]),
+                  ],
+                  if (covered.isNotEmpty) ...[
+                    const Divider(height: 1),
+                    Theme(
+                      // ExpansionTile draws its own dividers when open; inside a
+                      // card they double up with the row separators.
+                      data: theme.copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        key: PageStorageKey('covered-$title'),
+                        dense: true,
+                        title: Text(
+                          l10n.productionRoundCoveredGroup(covered.length),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        children: [
+                          for (final item in covered)
+                            _ItemRow(round: round, item: item),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
         ],
       ),
     );

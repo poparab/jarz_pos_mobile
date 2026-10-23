@@ -58,6 +58,7 @@ class WeeklyCountService {
     required String posProfile,
     required List<Map<String, dynamic>> lines,
     required String clientRequestId,
+    List<Map<String, dynamic>>? labelLines,
   }) async {
     final resp = await _dio.post(
       WeeklyCountEndpoints.submit,
@@ -65,6 +66,10 @@ class WeeklyCountService {
         'pos_profile': posProfile,
         'lines': lines,
         'client_request_id': clientRequestId,
+        // Only a branch that stores labels sends them; the server wants every
+        // label on the sheet when the list is present.
+        if (labelLines != null && labelLines.isNotEmpty)
+          'label_lines': labelLines,
       }),
       options: Options(contentType: 'application/json'),
     );
