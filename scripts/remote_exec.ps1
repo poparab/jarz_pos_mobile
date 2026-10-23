@@ -90,7 +90,9 @@ if (-not (Test-Path $keyPath)) {
 if (-not (Test-Path $File)) {
     throw "Script not found: $File"
 }
-$source = Get-Content -Raw -Path $File
+# Windows PowerShell 5.1 reads a BOM-less file as ANSI; without -Encoding UTF8
+# every Arabic literal in a payload reaches the site as mojibake.
+$source = Get-Content -Raw -Encoding UTF8 -Path $File
 
 # Accident guard, not a sandbox. Catches the calls that actually mutate a site.
 if (-not $AllowWrite) {
