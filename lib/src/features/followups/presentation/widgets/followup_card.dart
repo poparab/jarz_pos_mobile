@@ -170,6 +170,14 @@ class FollowupCard extends StatelessWidget {
                 style: theme.textTheme.bodySmall,
               ),
             ],
+            if (row.reason.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                row.reason,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: scheme.onSurfaceVariant),
+              ),
+            ],
             if (!row.isCall && row.messageText.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
               Container(

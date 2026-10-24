@@ -163,6 +163,9 @@ class FollowupRow {
   final bool rfmIsRegular;
   final String territory;
 
+  /// Server-built line saying why the touch is due (last order, order count, items).
+  final String reason;
+
   /// Touch status as the server names it (e.g. `Pending`); may be empty.
   final String status;
 
@@ -198,6 +201,7 @@ class FollowupRow {
     this.customerSegment,
     this.rfmIsRegular = false,
     this.territory = '',
+    this.reason = '',
     this.status = '',
     this.reached = '',
     this.outcome = '',
@@ -232,6 +236,7 @@ class FollowupRow {
       customerSegment: _nullableString(json['customer_segment']),
       rfmIsRegular: followupBool(json['rfm_is_regular']),
       territory: followupString(json['territory']),
+      reason: followupString(json['reason']).trim(),
       status: followupString(json['status']).trim(),
       reached: followupString(json['reached']).trim(),
       outcome: followupString(json['outcome']).trim(),
@@ -270,6 +275,7 @@ class FollowupRow {
         customerSegment: customerSegment,
         rfmIsRegular: rfmIsRegular,
         territory: territory,
+        reason: reason,
         status: status,
         reached: reached,
         outcome: outcome,
