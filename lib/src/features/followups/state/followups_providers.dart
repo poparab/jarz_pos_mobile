@@ -43,6 +43,37 @@ class FollowupsTodayNotifier extends AutoDisposeAsyncNotifier<FollowupsToday> {
     _remove(name);
   }
 
+  /// Fetches (or re-fetches with [refresh]) the Claude message for [name] and
+  /// stores it on the row so it is not fetched again.
+  Future<FollowupDraftResult> draftMessage(
+    String name, {
+    bool refresh = false,
+  }) async {
+    final result = await ref
+        .read(followupsRepositoryProvider)
+        .draftMessage(name, refresh: refresh);
+    final current = state.valueOrNull;
+    if (current != null && result.messageText.trim().isNotEmpty) {
+      state = AsyncData(current.updating(
+        name,
+        (r) => r.copyWithAi(
+          messageText: result.messageText,
+          aiMessage: result.isClaude ? result.messageText : null,
+        ),
+      ));
+    }
+    return result;
+  }
+
+  /// Stores a fetched brief on the row so reopening the sheet is instant.
+  void rememberBrief(String name, String brief) {
+    final current = state.valueOrNull;
+    if (current == null || brief.trim().isEmpty) return;
+    state = AsyncData(
+      current.updating(name, (r) => r.copyWithAi(aiBrief: brief)),
+    );
+  }
+
   void _remove(String name) {
     final current = state.valueOrNull;
     if (current == null) return;

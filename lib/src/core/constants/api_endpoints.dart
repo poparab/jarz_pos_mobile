@@ -989,6 +989,10 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.customer_followups.log_touch';
   static const followupSkipTouch =
       '/api/method/jarz_pos.api.customer_followups.skip_touch';
+  static const followupDraftMessage =
+      '/api/method/jarz_pos.api.customer_followups.draft_followup_message';
+  static const followupCallBrief =
+      '/api/method/jarz_pos.api.customer_followups.get_call_brief';
   static const followupStats =
       '/api/method/jarz_pos.api.customer_followups.get_followup_stats';
 

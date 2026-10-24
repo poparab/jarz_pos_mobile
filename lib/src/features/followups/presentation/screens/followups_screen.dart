@@ -12,6 +12,7 @@ import '../../../printing/receipt/receipt_delivery.dart';
 import '../../data/followup_whatsapp.dart';
 import '../../data/models/followup_models.dart';
 import '../../state/followups_providers.dart';
+import '../widgets/call_brief_sheet.dart';
 import '../widgets/followup_card.dart';
 import '../widgets/log_touch_sheet.dart';
 import 'followup_stats_screen.dart';
@@ -30,6 +31,63 @@ class FollowupsScreen extends ConsumerStatefulWidget {
 class _FollowupsScreenState extends ConsumerState<FollowupsScreen> {
   /// Touches with a skip in flight, so their buttons cannot fire twice.
   final Set<String> _busy = <String>{};
+
+  /// Touches whose Claude message is being written right now.
+  final Set<String> _drafting = <String>{};
+
+  /// Touches already asked for a message this session, so a template
+  /// fallback is not re-requested (and re-waited for) on every tap.
+  final Set<String> _drafted = <String>{};
+
+  /// The row as it is now in state (the drafted text may have arrived).
+  FollowupRow _fresh(FollowupRow row) {
+    final rows = ref.read(followupsTodayProvider).valueOrNull?.rows;
+    if (rows == null) return row;
+    for (final r in rows) {
+      if (r.name == row.name) return r;
+    }
+    return row;
+  }
+
+  /// Makes sure [row] carries its Claude message; returns the row to use.
+  /// Quiet on failure: the template text already on the row is used.
+  Future<FollowupRow> _ensureMessage(FollowupRow row, {bool refresh = false}) async {
+    if (!refresh && (row.aiMessage.trim().isNotEmpty || _drafted.contains(row.name))) {
+      return _fresh(row);
+    }
+    if (_drafting.contains(row.name)) return _fresh(row);
+    setState(() => _drafting.add(row.name));
+    try {
+      await ref
+          .read(followupsTodayProvider.notifier)
+          .draftMessage(row.name, refresh: refresh);
+      _drafted.add(row.name);
+    } catch (_) {
+      // Keep going with the template text the row already has.
+    } finally {
+      if (mounted) setState(() => _drafting.remove(row.name));
+    }
+    return _fresh(row);
+  }
+
+  Future<void> _whatsappFor(FollowupRow row) async {
+    final fresh = row.isCall ? row : await _ensureMessage(row);
+    if (!mounted) return;
+    await _openWhatsapp(followupWhatsappUri(fresh));
+  }
+
+  Future<void> _rewrite(FollowupRow row) async {
+    await _ensureMessage(row, refresh: true);
+  }
+
+  Future<void> _brief(FollowupRow row) async {
+    await showCallBriefSheet(
+      context,
+      row: _fresh(row),
+      onCall: () => _call(row),
+      onWhatsapp: () => _whatsappFor(row),
+    );
+  }
 
   Future<void> _refresh() =>
       ref.read(followupsTodayProvider.notifier).refresh();
@@ -55,7 +113,8 @@ class _FollowupsScreenState extends ConsumerState<FollowupsScreen> {
 
   Future<void> _copyMessage(FollowupRow row) async {
     final copied = context.l10n.followupsMessageCopied;
-    await Clipboard.setData(ClipboardData(text: row.messageText));
+    final fresh = await _ensureMessage(row);
+    await Clipboard.setData(ClipboardData(text: fresh.messageText));
     if (mounted) _snack(copied);
   }
 
@@ -226,7 +285,10 @@ class _FollowupsScreenState extends ConsumerState<FollowupsScreen> {
           key: ValueKey(row.name),
           row: row,
           busy: _busy.contains(row.name),
-          onWhatsapp: () => _openWhatsapp(followupWhatsappUri(row)),
+          drafting: _drafting.contains(row.name),
+          onWhatsapp: () => _whatsappFor(row),
+          onBrief: () => _brief(row),
+          onRewrite: () => _rewrite(row),
           onCopy: () => _copyMessage(row),
           onCall: () => _call(row),
           onLog: () => _log(row),

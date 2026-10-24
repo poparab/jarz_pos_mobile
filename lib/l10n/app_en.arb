@@ -11156,5 +11156,12 @@
   "attendanceApproveDeviceDone": "Phone approved for {name}",
   "@attendanceApproveDeviceDone": {"description": "Attendance: approve-device success snackbar.", "placeholders": {"name": {"type": "String"}}},
   "attendanceApproveDeviceFailed": "Could not approve the phone: {error}",
-  "@attendanceApproveDeviceFailed": {"description": "Attendance: approve-device failure.", "placeholders": {"error": {"type": "String"}}}
+  "@attendanceApproveDeviceFailed": {"description": "Attendance: approve-device failure.", "placeholders": {"error": {"type": "String"}}},
+  "followupsWrittenByClaude": "Written by Claude",
+  "followupsActionRewrite": "Rewrite",
+  "followupsActionBrief": "Brief before call",
+  "followupsBriefLoading": "Preparing the brief...",
+  "followupsBriefRefresh": "Refresh the brief",
+  "followupsBriefFailed": "Could not load the brief",
+  "followupsBriefEmpty": "No brief available for this customer."
 }

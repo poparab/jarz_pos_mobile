@@ -20165,4 +20165,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String attendanceApproveDeviceFailed(String error) {
     return 'تعذّر اعتماد الهاتف: $error';
   }
+
+  @override
+  String get followupsWrittenByClaude => 'كتبها Claude';
+
+  @override
+  String get followupsActionRewrite => 'اكتبها تاني';
+
+  @override
+  String get followupsActionBrief => 'نبذة قبل المكالمة';
+
+  @override
+  String get followupsBriefLoading => 'بنجهّز النبذة...';
+
+  @override
+  String get followupsBriefRefresh => 'حدّث النبذة';
+
+  @override
+  String get followupsBriefFailed => 'مقدرناش نحمّل النبذة';
+
+  @override
+  String get followupsBriefEmpty => 'مفيش نبذة متاحة للعميل ده.';
 }

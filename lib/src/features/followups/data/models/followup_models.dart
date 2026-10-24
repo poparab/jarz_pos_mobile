@@ -133,6 +133,15 @@ class FollowupRow {
   /// Pre-rendered Arabic script / message for this step.
   final String messageText;
 
+  /// Claude-written WhatsApp message, cached server-side; empty if none.
+  final String aiMessage;
+
+  /// Claude-written brief about the customer for before the call; empty if none.
+  final String aiBrief;
+
+  /// The plain template message (what `messageText` falls back to).
+  final String templateText;
+
   /// `3h`, `day2`, `day7`, `day30`, `day32`, `day45`, `day50`.
   final String step;
   final FollowupChannel channel;
@@ -173,6 +182,9 @@ class FollowupRow {
     this.phone = '',
     this.whatsappMsisdn = '',
     this.messageText = '',
+    this.aiMessage = '',
+    this.aiBrief = '',
+    this.templateText = '',
     this.step = '',
     this.channel = FollowupChannel.message,
     this.dueAtRaw = '',
@@ -203,6 +215,9 @@ class FollowupRow {
       phone: followupString(json['phone']).trim(),
       whatsappMsisdn: followupString(json['whatsapp_msisdn']).trim(),
       messageText: followupString(json['message_text']),
+      aiMessage: followupString(json['ai_message']),
+      aiBrief: followupString(json['ai_brief']),
+      templateText: followupString(json['template_text']),
       step: followupString(json['step']).trim(),
       channel:
           channelRaw == 'call' ? FollowupChannel.call : FollowupChannel.message,
@@ -225,6 +240,43 @@ class FollowupRow {
       escalationTask: _nullableString(json['escalation_task']),
     );
   }
+
+  /// A copy with the message / AI fields replaced (everything else is kept).
+  FollowupRow copyWithAi({
+    String? messageText,
+    String? aiMessage,
+    String? aiBrief,
+  }) =>
+      FollowupRow(
+        name: name,
+        customer: customer,
+        customerName: customerName,
+        phone: phone,
+        whatsappMsisdn: whatsappMsisdn,
+        messageText: messageText ?? this.messageText,
+        aiMessage: aiMessage ?? this.aiMessage,
+        aiBrief: aiBrief ?? this.aiBrief,
+        templateText: templateText,
+        step: step,
+        channel: channel,
+        dueAtRaw: dueAtRaw,
+        isOverdue: isOverdue,
+        customerType: customerType,
+        valueBand: valueBand,
+        orderValue: orderValue,
+        invoice: invoice,
+        wooOrderId: wooOrderId,
+        lifetimeOrders: lifetimeOrders,
+        customerSegment: customerSegment,
+        rfmIsRegular: rfmIsRegular,
+        territory: territory,
+        status: status,
+        reached: reached,
+        outcome: outcome,
+        notes: notes,
+        apologyCode: apologyCode,
+        escalationTask: escalationTask,
+      );
 
   bool get isCall => channel == FollowupChannel.call;
   bool get isRepeat => customerType.toLowerCase() == 'repeat';
@@ -277,6 +329,18 @@ class FollowupsToday {
       rows.where((r) => r.isOverdue).toList(growable: false);
   List<FollowupRow> get todayRows =>
       rows.where((r) => !r.isOverdue).toList(growable: false);
+
+  /// This list with the touch [name] replaced by [update] applied to it.
+  FollowupsToday updating(
+    String name,
+    FollowupRow Function(FollowupRow) update,
+  ) =>
+      FollowupsToday(
+        summary: summary,
+        rows: List.unmodifiable([
+          for (final r in rows) r.name == name ? update(r) : r,
+        ]),
+      );
 
   /// This list with the touch [name] removed and the summary adjusted.
   FollowupsToday without(String name) {
@@ -394,4 +458,68 @@ class FollowupStats {
     }
     return reorderRate <= 1 ? reorderRate * 100 : reorderRate;
   }
+}
+
+/// `draft_followup_message`: the (possibly cached) WhatsApp text.
+class FollowupDraftResult {
+  final String name;
+  final String messageText;
+
+  /// `claude` | `template`.
+  final String source;
+  final bool cached;
+  final String error;
+
+  const FollowupDraftResult({
+    this.name = '',
+    this.messageText = '',
+    this.source = 'template',
+    this.cached = false,
+    this.error = '',
+  });
+
+  factory FollowupDraftResult.fromJson(dynamic json) {
+    if (json is! Map) return const FollowupDraftResult();
+    return FollowupDraftResult(
+      name: followupString(json['name']),
+      messageText: followupString(json['message_text']),
+      source: followupString(json['source'], fallback: 'template').trim(),
+      cached: followupBool(json['cached']),
+      error: followupString(json['error']),
+    );
+  }
+
+  bool get isClaude => source.toLowerCase() == 'claude';
+}
+
+/// `get_call_brief`: the (possibly cached) pre-call brief.
+class FollowupBriefResult {
+  final String name;
+  final String brief;
+
+  /// `claude` | `template`.
+  final String source;
+  final bool cached;
+  final String error;
+
+  const FollowupBriefResult({
+    this.name = '',
+    this.brief = '',
+    this.source = 'template',
+    this.cached = false,
+    this.error = '',
+  });
+
+  factory FollowupBriefResult.fromJson(dynamic json) {
+    if (json is! Map) return const FollowupBriefResult();
+    return FollowupBriefResult(
+      name: followupString(json['name']),
+      brief: followupString(json['brief']),
+      source: followupString(json['source'], fallback: 'template').trim(),
+      cached: followupBool(json['cached']),
+      error: followupString(json['error']),
+    );
+  }
+
+  bool get isClaude => source.toLowerCase() == 'claude';
 }

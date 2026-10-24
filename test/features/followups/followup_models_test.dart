@@ -47,6 +47,37 @@ void main() {
   });
 
   group('FollowupRow.fromJson', () {
+    test('parses the AI fields and defaults them to empty', () {
+      final row = FollowupRow.fromJson(_row(overrides: {
+        'ai_message': 'رسالة Claude',
+        'ai_brief': 'نبذة',
+        'template_text': 'قالب',
+      }));
+      expect(row.aiMessage, 'رسالة Claude');
+      expect(row.aiBrief, 'نبذة');
+      expect(row.templateText, 'قالب');
+      final plain = FollowupRow.fromJson(_row());
+      expect(plain.aiMessage, '');
+      expect(plain.aiBrief, '');
+      expect(plain.templateText, '');
+      final updated = row.copyWithAi(messageText: 'x');
+      expect(updated.messageText, 'x');
+      expect(updated.aiBrief, 'نبذة');
+      expect(updated.name, row.name);
+    });
+
+    test('draft and brief results parse source and cached', () {
+      final d = FollowupDraftResult.fromJson(
+          {'name': 'A', 'message_text': 'hi', 'source': 'claude', 'cached': 1});
+      expect(d.isClaude, isTrue);
+      expect(d.cached, isTrue);
+      final b = FollowupBriefResult.fromJson(
+          {'name': 'A', 'brief': 'br', 'source': 'template', 'error': 'e'});
+      expect(b.isClaude, isFalse);
+      expect(b.error, 'e');
+      expect(FollowupBriefResult.fromJson(null).brief, '');
+    });
+
     test('parses a well-formed row', () {
       final row = FollowupRow.fromJson(_row());
 

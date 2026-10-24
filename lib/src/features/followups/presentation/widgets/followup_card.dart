@@ -27,7 +27,10 @@ class FollowupCard extends StatelessWidget {
     required this.onCall,
     required this.onLog,
     required this.onSkip,
+    required this.onBrief,
+    required this.onRewrite,
     this.busy = false,
+    this.drafting = false,
   });
 
   final FollowupRow row;
@@ -36,7 +39,12 @@ class FollowupCard extends StatelessWidget {
   final VoidCallback onCall;
   final VoidCallback onLog;
   final VoidCallback onSkip;
+  final VoidCallback onBrief;
+  final VoidCallback onRewrite;
   final bool busy;
+
+  /// A Claude message is being written for this row.
+  final bool drafting;
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +170,46 @@ class FollowupCard extends StatelessWidget {
                 style: theme.textTheme.bodySmall,
               ),
             ],
+            if (!row.isCall && row.messageText.trim().isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (row.aiMessage.trim().isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Row(
+                          children: [
+                            Icon(Icons.auto_awesome,
+                                size: 14, color: scheme.primary),
+                            const SizedBox(width: 4),
+                            Text(
+                              l10n.followupsWrittenByClaude,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: scheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Text(
+                      row.messageText.trim(),
+                      style: theme.textTheme.bodySmall,
+                      maxLines: 6,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 4),
             Wrap(
               spacing: 4,
@@ -169,8 +217,15 @@ class FollowupCard extends StatelessWidget {
               children: [
                 if (!row.isCall || hasWhatsapp)
                   TextButton.icon(
-                    onPressed: hasWhatsapp && !busy ? onWhatsapp : null,
-                    icon: const Icon(Icons.chat, size: 18),
+                    onPressed:
+                        hasWhatsapp && !busy && !drafting ? onWhatsapp : null,
+                    icon: drafting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.chat, size: 18),
                     label: Text(
                       hasWhatsapp
                           ? l10n.followupsActionWhatsapp
@@ -180,8 +235,26 @@ class FollowupCard extends StatelessWidget {
                 if (row.messageText.trim().isNotEmpty)
                   IconButton(
                     tooltip: l10n.followupsActionCopy,
-                    onPressed: busy ? null : onCopy,
+                    onPressed: busy || drafting ? null : onCopy,
                     icon: const Icon(Icons.copy, size: 18),
+                  ),
+                if (!row.isCall)
+                  TextButton.icon(
+                    onPressed: busy || drafting ? null : onRewrite,
+                    icon: const Icon(Icons.auto_awesome, size: 18),
+                    label: Text(l10n.followupsActionRewrite),
+                  ),
+                if (row.isCall)
+                  FilledButton.icon(
+                    onPressed: busy ? null : onBrief,
+                    icon: const Icon(Icons.auto_awesome, size: 18),
+                    label: Text(l10n.followupsActionBrief),
+                  )
+                else
+                  TextButton.icon(
+                    onPressed: busy ? null : onBrief,
+                    icon: const Icon(Icons.article_outlined, size: 18),
+                    label: Text(l10n.followupsActionBrief),
                   ),
                 IconButton(
                   tooltip:

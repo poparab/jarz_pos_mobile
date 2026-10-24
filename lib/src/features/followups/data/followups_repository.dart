@@ -72,4 +72,38 @@ class FollowupsRepository {
     );
     return FollowupStats.fromJson(_payload(response));
   }
+
+  /// Claude calls can take ~45 s, so these two outlast the default timeout.
+  static final Options _slow = Options(
+    sendTimeout: const Duration(seconds: 70),
+    receiveTimeout: const Duration(seconds: 70),
+  );
+
+  /// `draft_followup_message` - the Claude-written WhatsApp text (cached
+  /// server-side unless [refresh]).
+  Future<FollowupDraftResult> draftMessage(
+    String name, {
+    bool refresh = false,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.followupDraftMessage,
+      data: {'name': name, 'refresh': refresh ? 1 : 0},
+      options: _slow,
+    );
+    return FollowupDraftResult.fromJson(_payload(response));
+  }
+
+  /// `get_call_brief` - the pre-call brief (cached server-side unless
+  /// [refresh]).
+  Future<FollowupBriefResult> getCallBrief(
+    String name, {
+    bool refresh = false,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.followupCallBrief,
+      data: {'name': name, 'refresh': refresh ? 1 : 0},
+      options: _slow,
+    );
+    return FollowupBriefResult.fromJson(_payload(response));
+  }
 }

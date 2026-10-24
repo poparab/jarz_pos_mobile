@@ -20172,4 +20172,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String attendanceApproveDeviceFailed(String error) {
     return 'Could not approve the phone: $error';
   }
+
+  @override
+  String get followupsWrittenByClaude => 'Written by Claude';
+
+  @override
+  String get followupsActionRewrite => 'Rewrite';
+
+  @override
+  String get followupsActionBrief => 'Brief before call';
+
+  @override
+  String get followupsBriefLoading => 'Preparing the brief...';
+
+  @override
+  String get followupsBriefRefresh => 'Refresh the brief';
+
+  @override
+  String get followupsBriefFailed => 'Could not load the brief';
+
+  @override
+  String get followupsBriefEmpty => 'No brief available for this customer.';
 }

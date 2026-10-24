@@ -7192,5 +7192,12 @@
   "attendanceApproveDeviceConfirmTitle": "اعتماد هذا الهاتف؟",
   "attendanceApproveDeviceConfirmBody": "سيصبح هذا الهاتف جهاز {name} المعتمد وسيُزال تنبيه الجهاز الجديد.",
   "attendanceApproveDeviceDone": "تم اعتماد الهاتف لـ {name}",
-  "attendanceApproveDeviceFailed": "تعذّر اعتماد الهاتف: {error}"
+  "attendanceApproveDeviceFailed": "تعذّر اعتماد الهاتف: {error}",
+  "followupsWrittenByClaude": "كتبها Claude",
+  "followupsActionRewrite": "اكتبها تاني",
+  "followupsActionBrief": "نبذة قبل المكالمة",
+  "followupsBriefLoading": "بنجهّز النبذة...",
+  "followupsBriefRefresh": "حدّث النبذة",
+  "followupsBriefFailed": "مقدرناش نحمّل النبذة",
+  "followupsBriefEmpty": "مفيش نبذة متاحة للعميل ده."
 }

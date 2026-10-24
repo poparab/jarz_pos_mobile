@@ -36,6 +36,16 @@ class _FakeRepo implements FollowupsRepository {
   Future<void> skipTouch({required String name, String? reason}) async {}
 
   @override
+  Future<FollowupDraftResult> draftMessage(String name,
+          {bool refresh = false}) async =>
+      FollowupDraftResult(name: name, messageText: 'm', source: 'template');
+
+  @override
+  Future<FollowupBriefResult> getCallBrief(String name,
+          {bool refresh = false}) async =>
+      FollowupBriefResult(name: name, brief: 'b', source: 'template');
+
+  @override
   Future<FollowupStats> fetchStats({
     required String fromDate,
     required String toDate,

@@ -33301,6 +33301,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not approve the phone: {error}'**
   String attendanceApproveDeviceFailed(String error);
+
+  /// No description provided for @followupsWrittenByClaude.
+  ///
+  /// In en, this message translates to:
+  /// **'Written by Claude'**
+  String get followupsWrittenByClaude;
+
+  /// No description provided for @followupsActionRewrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewrite'**
+  String get followupsActionRewrite;
+
+  /// No description provided for @followupsActionBrief.
+  ///
+  /// In en, this message translates to:
+  /// **'Brief before call'**
+  String get followupsActionBrief;
+
+  /// No description provided for @followupsBriefLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the brief...'**
+  String get followupsBriefLoading;
+
+  /// No description provided for @followupsBriefRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh the brief'**
+  String get followupsBriefRefresh;
+
+  /// No description provided for @followupsBriefFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the brief'**
+  String get followupsBriefFailed;
+
+  /// No description provided for @followupsBriefEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No brief available for this customer.'**
+  String get followupsBriefEmpty;
 }
 
 class _AppLocalizationsDelegate
