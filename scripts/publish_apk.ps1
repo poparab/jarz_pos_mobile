@@ -303,7 +303,8 @@ $downloadMetadata = [ordered]@{
     published_at_utc = (Get-Date).ToUniversalTime().ToString('o')
 }
 $localMeta = Join-Path $tempDir 'download-metadata.json'
-$downloadMetadata | ConvertTo-Json | Set-Content -Path $localMeta -Encoding UTF8
+# No BOM: Invoke-RestMethod in resolve_prod_patch_base.ps1 returns a BOM-prefixed body as a raw string.
+[System.IO.File]::WriteAllText($localMeta, ($downloadMetadata | ConvertTo-Json), (New-Object System.Text.UTF8Encoding($false)))
 
 # --- Upload ------------------------------------------------------------------
 

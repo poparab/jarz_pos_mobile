@@ -57,7 +57,11 @@ function Get-ServedBuild {
             # page as it was before the last publish.
             $uri = $MetadataUrl
             if ($uri -match '^https?://') { $uri = "$($uri)?t=$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())" }
-            return Invoke-RestMethod -Uri $uri -TimeoutSec 30
+            $body = Invoke-RestMethod -Uri $uri -TimeoutSec 30
+            # A BOM-prefixed body is not parsed as JSON and comes back as a string (the BOM
+            # decodes as U+FEFF on pwsh 7, as three Latin-1 characters on 5.1): drop it.
+            if ($body -is [string]) { $body = $body.Substring([Math]::Max(0, $body.IndexOf('{'))) | ConvertFrom-Json }
+            return $body
         } catch {
             $lastError = $_
             if ($attempt -lt 3) { Start-Sleep -Seconds 10 }
