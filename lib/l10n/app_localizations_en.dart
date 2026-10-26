@@ -8431,6 +8431,76 @@ class AppLocalizationsEn extends AppLocalizations {
       'A flavour already tracked at the chosen branch is left untouched; picking another branch adds that branch\'s labels. Running this again is always safe.';
 
   @override
+  String labelCardAtPrinterSuffix(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: ' · $n at printer',
+      zero: '',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labelCardRecordOrder => 'Record an order';
+
+  @override
+  String get labelsExpandAll => 'Expand all';
+
+  @override
+  String get labelsCollapseAll => 'Collapse all';
+
+  @override
+  String get labelQuickOrderTitle => 'Record an order';
+
+  @override
+  String get labelQuickOrderBranch => 'Goes to';
+
+  @override
+  String get labelQuickOrderBranches => 'Goes to (tap to change)';
+
+  @override
+  String get labelQuickOrderFlavours => 'Sheets ordered';
+
+  @override
+  String labelQuickOrderTimesBranches(int n) {
+    return '× $n branches';
+  }
+
+  @override
+  String get labelQuickOrderNotAtBranch => 'Not at the selected branch';
+
+  @override
+  String get labelQuickOrderFillSuggested => 'Fill suggested';
+
+  @override
+  String get labelQuickOrderOrderedOn => 'Ordered on';
+
+  @override
+  String get labelQuickOrderMore => 'Supplier & notes';
+
+  @override
+  String labelQuickOrderSubmit(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Record order · $n sheets',
+      one: 'Record order · 1 sheet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelsQuickOrderRecorded(int count, int sheets) {
+    return 'Recorded $count print orders · $sheets sheets';
+  }
+
+  @override
+  String labelsQuickOrderFailedSuffix(int n) {
+    return ' · $n failed';
+  }
+
+  @override
   String get b2bStageLead => 'Lead';
 
   @override

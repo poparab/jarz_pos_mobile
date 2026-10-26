@@ -554,6 +554,377 @@ class _PrintOrderSheetState extends ConsumerState<PrintOrderSheet> {
 }
 
 // ---------------------------------------------------------------------------
+// Quick order: record what was already ordered for one customer, all
+// flavours and branches in one go
+// ---------------------------------------------------------------------------
+/// What [QuickOrderSheet] collects: sheets per label (one label = one flavour
+/// at one branch), plus the details shared by every resulting print order.
+class QuickOrderRequest {
+  final Map<String, int> sheetsByLabel;
+  final String? supplier;
+
+  /// `yyyy-MM-dd`; null means today on the server.
+  final String? requestedOn;
+  final String? notes;
+
+  const QuickOrderRequest({
+    required this.sheetsByLabel,
+    required this.supplier,
+    required this.requestedOn,
+    required this.notes,
+  });
+
+  int get totalSheets => sheetsByLabel.values.fold(0, (a, b) => a + b);
+}
+
+/// One customer, every flavour, a stepper each. The branch is picked for the
+/// user when there is only one; with several, every branch starts selected and
+/// a flavour's count goes to each selected branch that carries it.
+class QuickOrderSheet extends StatefulWidget {
+  final String customerName;
+  final List<CustomerLabel> labels;
+
+  const QuickOrderSheet({
+    super.key,
+    required this.customerName,
+    required this.labels,
+  });
+
+  @override
+  State<QuickOrderSheet> createState() => _QuickOrderSheetState();
+}
+
+class _QuickOrderSheetState extends State<QuickOrderSheet> {
+  late final List<String?> _branches = {
+    for (final label in widget.labels) label.storageLocation,
+  }.toList();
+  late final Set<String?> _selected = {..._branches};
+  final Map<String, int> _counts = {};
+  final _notesController = TextEditingController();
+  LabelSupplierOption? _supplier;
+  DateTime _orderedOn = DateTime.now();
+  bool _showMore = false;
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  /// Flavours in board order, one entry per item across branches.
+  List<_QuickFlavour> get _flavours {
+    final byKey = <String, _QuickFlavour>{};
+    for (final label in widget.labels) {
+      final key = label.item ?? label.labelTitle;
+      byKey.putIfAbsent(key, () => _QuickFlavour(key, label)).labels.add(label);
+    }
+    return byKey.values.toList();
+  }
+
+  List<CustomerLabel> _targets(_QuickFlavour flavour) => flavour.labels
+      .where((label) => _selected.contains(label.storageLocation))
+      .toList();
+
+  Map<String, int> _sheetsByLabel() {
+    final result = <String, int>{};
+    for (final flavour in _flavours) {
+      final count = _counts[flavour.key] ?? 0;
+      if (count <= 0) continue;
+      for (final label in _targets(flavour)) {
+        result[label.name] = count;
+      }
+    }
+    return result;
+  }
+
+  void _fillSuggested() {
+    setState(() {
+      for (final flavour in _flavours) {
+        final targets = _targets(flavour);
+        if (targets.isEmpty) continue;
+        final suggested = targets
+            .map((l) => l.suggestedPrintSheets > 0
+                ? l.suggestedPrintSheets
+                : l.defaultPrintSheets)
+            .reduce((a, b) => a > b ? a : b);
+        _counts[flavour.key] = suggested;
+      }
+    });
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _orderedOn,
+      firstDate: now.subtract(const Duration(days: 60)),
+      lastDate: now,
+    );
+    if (picked != null) setState(() => _orderedOn = picked);
+  }
+
+  String _branchName(String? warehouse) =>
+      warehouse == null ? '—' : labelLocationName(warehouse);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final sheetsByLabel = _sheetsByLabel();
+    final total = sheetsByLabel.values.fold(0, (a, b) => a + b);
+    final multiBranch = _branches.length > 1;
+
+    return _SheetScaffold(
+      title: l10n.labelQuickOrderTitle,
+      subtitle: widget.customerName,
+      fields: [
+        // Where the labels go.
+        Text(
+          multiBranch
+              ? l10n.labelQuickOrderBranches
+              : l10n.labelQuickOrderBranch,
+          style: theme.textTheme.labelLarge,
+        ),
+        const SizedBox(height: 6),
+        if (!multiBranch)
+          Row(
+            children: [
+              Icon(Icons.place, size: 18, color: theme.colorScheme.primary),
+              const SizedBox(width: 6),
+              Text(
+                _branchName(_branches.first),
+                style: theme.textTheme.bodyLarge
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          )
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              for (final branch in _branches)
+                FilterChip(
+                  avatar: const Icon(Icons.place_outlined, size: 16),
+                  label: Text(_branchName(branch)),
+                  selected: _selected.contains(branch),
+                  onSelected: (on) => setState(() {
+                    if (on) {
+                      _selected.add(branch);
+                    } else if (_selected.length > 1) {
+                      _selected.remove(branch);
+                    }
+                  }),
+                ),
+            ],
+          ),
+        const SizedBox(height: 14),
+        // What was ordered.
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.labelQuickOrderFlavours,
+                style: theme.textTheme.labelLarge,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: _fillSuggested,
+              icon: const Icon(Icons.auto_fix_high, size: 16),
+              label: Text(l10n.labelQuickOrderFillSuggested),
+              style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+          ],
+        ),
+        for (final flavour in _flavours)
+          _QuickFlavourRow(
+            flavour: flavour,
+            count: _counts[flavour.key] ?? 0,
+            branchCount: multiBranch ? _targets(flavour).length : 1,
+            onChanged: (value) =>
+                setState(() => _counts[flavour.key] = value),
+          ),
+        const SizedBox(height: 10),
+        // When.
+        InkWell(
+          onTap: _pickDate,
+          borderRadius: BorderRadius.circular(8),
+          child: InputDecorator(
+            decoration: _fieldDecoration(l10n.labelQuickOrderOrderedOn)
+                .copyWith(prefixIcon: const Icon(Icons.event, size: 20)),
+            child: Text(
+              DateFormat('EEE d MMM', l10n.localeName).format(_orderedOn),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            onPressed: () => setState(() => _showMore = !_showMore),
+            icon: Icon(_showMore ? Icons.expand_less : Icons.expand_more),
+            label: Text(l10n.labelQuickOrderMore),
+          ),
+        ),
+        if (_showMore) ...[
+          SupplierField(
+            onChanged: (option) => setState(() => _supplier = option),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _notesController,
+            maxLines: 2,
+            decoration: _fieldDecoration(l10n.labelSheetNotesOptional),
+          ),
+        ],
+      ],
+      action: FilledButton.icon(
+        onPressed: total <= 0
+            ? null
+            : () => Navigator.of(context).pop(
+                  QuickOrderRequest(
+                    sheetsByLabel: sheetsByLabel,
+                    supplier: _supplier?.name,
+                    requestedOn: DateFormat('yyyy-MM-dd').format(_orderedOn),
+                    notes: _notesController.text.trim().isEmpty
+                        ? null
+                        : _notesController.text.trim(),
+                  ),
+                ),
+        icon: const Icon(Icons.check),
+        label: Text(l10n.labelQuickOrderSubmit(total)),
+      ),
+    );
+  }
+}
+
+class _QuickFlavour {
+  final String key;
+  final CustomerLabel sample;
+  final List<CustomerLabel> labels = [];
+
+  _QuickFlavour(this.key, this.sample);
+}
+
+class _QuickFlavourRow extends StatelessWidget {
+  final _QuickFlavour flavour;
+  final int count;
+  final int branchCount;
+  final ValueChanged<int> onChanged;
+
+  const _QuickFlavourRow({
+    required this.flavour,
+    required this.count,
+    required this.branchCount,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final sample = flavour.sample;
+    final active = count > 0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        sample.labelTitle,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: active ? FontWeight.w700 : null,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (sample.size != null) ...[
+                      const SizedBox(width: 6),
+                      _SizePill(size: sample.size!),
+                    ],
+                  ],
+                ),
+                if (active && branchCount > 1)
+                  Text(
+                    l10n.labelQuickOrderTimesBranches(branchCount),
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: theme.colorScheme.primary),
+                  )
+                else if (branchCount == 0)
+                  Text(
+                    l10n.labelQuickOrderNotAtBranch,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant),
+                  ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: count > 0 ? () => onChanged(count - 1) : null,
+            icon: const Icon(Icons.remove_circle_outline),
+            visualDensity: VisualDensity.compact,
+          ),
+          SizedBox(
+            width: 28,
+            child: Text(
+              '$count',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: active ? theme.colorScheme.primary : null,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: branchCount == 0 ? null : () => onChanged(count + 1),
+            icon: const Icon(Icons.add_circle),
+            color: theme.colorScheme.primary,
+            visualDensity: VisualDensity.compact,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Mirrors LabelSizeChip without importing the card widget into the sheets.
+class _SizePill extends StatelessWidget {
+  final String size;
+
+  const _SizePill({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Text(
+        size,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Receive a batch back
 // ---------------------------------------------------------------------------
 class ReceiveBatchSheet extends StatefulWidget {

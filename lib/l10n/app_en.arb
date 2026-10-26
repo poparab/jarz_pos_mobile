@@ -4772,6 +4772,60 @@
   "labelWizardConfirmPriceList": "Price list",
   "labelWizardConfirmUsualBatch": "Usual batch",
   "labelWizardSafeToRerun": "A flavour already tracked at the chosen branch is left untouched; picking another branch adds that branch''s labels. Running this again is always safe.",
+  "labelCardAtPrinterSuffix": "{n, plural, =0{} other{ · {n} at printer}}",
+  "@labelCardAtPrinterSuffix": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "labelCardRecordOrder": "Record an order",
+  "labelsExpandAll": "Expand all",
+  "labelsCollapseAll": "Collapse all",
+  "labelQuickOrderTitle": "Record an order",
+  "labelQuickOrderBranch": "Goes to",
+  "labelQuickOrderBranches": "Goes to (tap to change)",
+  "labelQuickOrderFlavours": "Sheets ordered",
+  "labelQuickOrderTimesBranches": "× {n} branches",
+  "@labelQuickOrderTimesBranches": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "labelQuickOrderNotAtBranch": "Not at the selected branch",
+  "labelQuickOrderFillSuggested": "Fill suggested",
+  "labelQuickOrderOrderedOn": "Ordered on",
+  "labelQuickOrderMore": "Supplier & notes",
+  "labelQuickOrderSubmit": "{n, plural, =1{Record order · 1 sheet} other{Record order · {n} sheets}}",
+  "@labelQuickOrderSubmit": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "labelsQuickOrderRecorded": "Recorded {count} print orders · {sheets} sheets",
+  "@labelsQuickOrderRecorded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "sheets": {
+        "type": "int"
+      }
+    }
+  },
+  "labelsQuickOrderFailedSuffix": " · {n} failed",
+  "@labelsQuickOrderFailedSuffix": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "b2bStageLead": "Lead",
   "b2bStageQualify": "Qualify",
   "b2bStageSample": "Sample",

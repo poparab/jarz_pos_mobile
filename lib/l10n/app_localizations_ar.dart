@@ -8387,6 +8387,70 @@ class AppLocalizationsAr extends AppLocalizations {
       'النكهة المتتابعة بالفعل في الفرع اللي اخترته مش بتتلمس، ولو اخترت فرع تاني بتتضاف ليبلات الفرع ده. تقدر تعيد ده في أي وقت من غير قلق.';
 
   @override
+  String labelCardAtPrinterSuffix(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: ' · $n عند المطبعة',
+      zero: '',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get labelCardRecordOrder => 'سجّل طلب';
+
+  @override
+  String get labelsExpandAll => 'افتح الكل';
+
+  @override
+  String get labelsCollapseAll => 'اقفل الكل';
+
+  @override
+  String get labelQuickOrderTitle => 'سجّل طلب طباعة';
+
+  @override
+  String get labelQuickOrderBranch => 'رايح على';
+
+  @override
+  String get labelQuickOrderBranches => 'رايح على (دوس للتغيير)';
+
+  @override
+  String get labelQuickOrderFlavours => 'الشيتات المطلوبة';
+
+  @override
+  String labelQuickOrderTimesBranches(int n) {
+    return '× $n فروع';
+  }
+
+  @override
+  String get labelQuickOrderNotAtBranch => 'مش موجودة في الفرع المختار';
+
+  @override
+  String get labelQuickOrderFillSuggested => 'املا المقترح';
+
+  @override
+  String get labelQuickOrderOrderedOn => 'اتطلب يوم';
+
+  @override
+  String get labelQuickOrderMore => 'المورد والملاحظات';
+
+  @override
+  String labelQuickOrderSubmit(int n) {
+    return 'سجّل الطلب · $n شيت';
+  }
+
+  @override
+  String labelsQuickOrderRecorded(int count, int sheets) {
+    return 'اتسجل $count طلب طباعة · $sheets شيت';
+  }
+
+  @override
+  String labelsQuickOrderFailedSuffix(int n) {
+    return ' · $n فشل';
+  }
+
+  @override
   String get b2bStageLead => 'عميل محتمل';
 
   @override

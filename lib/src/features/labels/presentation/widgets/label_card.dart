@@ -11,26 +11,36 @@ import 'label_status_chip.dart';
 /// The board is triaged by customer because that is how printing is decided —
 /// "does Cafe X need anything printed" — while each flavour keeps its own
 /// numbers, because every flavour has its own artwork and its own ledger.
+///
+/// Collapsed (the default) it is one compact header with a one-line status, so
+/// a whole board fits on a screen; tapping it opens the flavour rows.
 class LabelCustomerCard extends StatelessWidget {
   final LabelCustomerGroup group;
+  final bool expanded;
+  final VoidCallback onToggle;
   final void Function(CustomerLabel label) onOpen;
   final void Function(CustomerLabel label)? onPrint;
   final VoidCallback? onAddFlavour;
+  final VoidCallback? onQuickOrder;
 
   const LabelCustomerCard({
     super.key,
     required this.group,
     required this.onOpen,
+    required this.onToggle,
+    this.expanded = false,
     this.onPrint,
     this.onAddFlavour,
+    this.onQuickOrder,
   });
 
   @override
   Widget build(BuildContext context) {
     final style = LabelStatusStyle.of(context, group.worstStatus);
+    final l10n = context.l10n;
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       clipBehavior: Clip.antiAlias,
       child: IntrinsicHeight(
         child: Row(
@@ -41,14 +51,33 @@ class LabelCustomerCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _CustomerHeader(group: group, onAddFlavour: onAddFlavour),
-                  for (final label in group.labels) ...[
-                    const Divider(height: 1),
-                    LabelFlavourRow(
-                      label: label,
-                      onTap: () => onOpen(label),
-                      onPrint: onPrint == null ? null : () => onPrint!(label),
-                    ),
+                  _CustomerHeader(
+                    group: group,
+                    expanded: expanded,
+                    onToggle: onToggle,
+                    onQuickOrder: onQuickOrder,
+                  ),
+                  if (expanded) ...[
+                    for (final label in group.labels) ...[
+                      const Divider(height: 1),
+                      LabelFlavourRow(
+                        label: label,
+                        onTap: () => onOpen(label),
+                        onPrint:
+                            onPrint == null ? null : () => onPrint!(label),
+                      ),
+                    ],
+                    if (onAddFlavour != null) ...[
+                      const Divider(height: 1),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: TextButton.icon(
+                          onPressed: onAddFlavour,
+                          icon: const Icon(Icons.add, size: 18),
+                          label: Text(l10n.labelCardAddFlavour),
+                        ),
+                      ),
+                    ],
                   ],
                 ],
               ),
@@ -62,61 +91,112 @@ class LabelCustomerCard extends StatelessWidget {
 
 class _CustomerHeader extends StatelessWidget {
   final LabelCustomerGroup group;
-  final VoidCallback? onAddFlavour;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final VoidCallback? onQuickOrder;
 
-  const _CustomerHeader({required this.group, this.onAddFlavour});
+  const _CustomerHeader({
+    required this.group,
+    required this.expanded,
+    required this.onToggle,
+    this.onQuickOrder,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final attention = group.needsAttentionCount;
+    final atPrinter = group.labels.where((l) => l.hasOpenPrintOrder).length;
+    final branches = <String>{
+      for (final label in group.labels)
+        if (label.locationName != null) label.locationName!,
+    }.toList();
+    final muted = theme.textTheme.bodySmall
+        ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 4, 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  group.customerName,
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w700),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  l10n.labelCardFlavours(group.labels.length) +
-                      (attention > 0
-                          ? l10n.labelCardNeedPrintingSuffix(attention)
-                          : ''),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: attention > 0
-                        ? const Color(0xFFB3261E)
-                        : theme.colorScheme.onSurfaceVariant,
-                    fontWeight: attention > 0 ? FontWeight.w600 : null,
+    return InkWell(
+      onTap: onToggle,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 6, 4, 6),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          group.customerName,
+                          style: theme.textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      LabelStatusChip(status: group.worstStatus, dense: true),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: l10n.labelCardFlavours(group.labels.length)),
+                        if (attention > 0)
+                          TextSpan(
+                            text: l10n.labelCardNeedPrintingSuffix(attention),
+                            style: const TextStyle(
+                              color: Color(0xFFB3261E),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        if (atPrinter > 0)
+                          TextSpan(text: l10n.labelCardAtPrinterSuffix(atPrinter)),
+                      ],
+                    ),
+                    style: muted,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (branches.isNotEmpty)
+                    Row(
+                      children: [
+                        Icon(Icons.place_outlined,
+                            size: 13,
+                            color: theme.colorScheme.onSurfaceVariant),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            branches.join(' · '),
+                            style: muted,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
-          ),
-          if (onAddFlavour != null)
-            PopupMenuButton<String>(
-              tooltip: l10n.labelCardCustomerActions,
-              icon: const Icon(Icons.more_vert, size: 20),
-              onSelected: (value) {
-                if (value == 'add') onAddFlavour!();
-              },
-              itemBuilder: (_) => [
-                PopupMenuItem(
-                  value: 'add',
-                  child: Text(l10n.labelCardAddFlavour),
-                ),
-              ],
+            if (onQuickOrder != null)
+              IconButton.filledTonal(
+                tooltip: l10n.labelCardRecordOrder,
+                onPressed: onQuickOrder,
+                icon: const Icon(Icons.add_shopping_cart, size: 20),
+                visualDensity: VisualDensity.compact,
+              ),
+            AnimatedRotation(
+              turns: expanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 180),
+              child: Icon(Icons.expand_more,
+                  color: theme.colorScheme.onSurfaceVariant),
             ),
-        ],
+            const SizedBox(width: 4),
+          ],
+        ),
       ),
     );
   }

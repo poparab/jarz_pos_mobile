@@ -13851,6 +13851,102 @@ abstract class AppLocalizations {
   /// **'A flavour already tracked at the chosen branch is left untouched; picking another branch adds that branch\'\'s labels. Running this again is always safe.'**
   String get labelWizardSafeToRerun;
 
+  /// No description provided for @labelCardAtPrinterSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =0{} other{ · {n} at printer}}'**
+  String labelCardAtPrinterSuffix(int n);
+
+  /// No description provided for @labelCardRecordOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Record an order'**
+  String get labelCardRecordOrder;
+
+  /// No description provided for @labelsExpandAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all'**
+  String get labelsExpandAll;
+
+  /// No description provided for @labelsCollapseAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all'**
+  String get labelsCollapseAll;
+
+  /// No description provided for @labelQuickOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record an order'**
+  String get labelQuickOrderTitle;
+
+  /// No description provided for @labelQuickOrderBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Goes to'**
+  String get labelQuickOrderBranch;
+
+  /// No description provided for @labelQuickOrderBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'Goes to (tap to change)'**
+  String get labelQuickOrderBranches;
+
+  /// No description provided for @labelQuickOrderFlavours.
+  ///
+  /// In en, this message translates to:
+  /// **'Sheets ordered'**
+  String get labelQuickOrderFlavours;
+
+  /// No description provided for @labelQuickOrderTimesBranches.
+  ///
+  /// In en, this message translates to:
+  /// **'× {n} branches'**
+  String labelQuickOrderTimesBranches(int n);
+
+  /// No description provided for @labelQuickOrderNotAtBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Not at the selected branch'**
+  String get labelQuickOrderNotAtBranch;
+
+  /// No description provided for @labelQuickOrderFillSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill suggested'**
+  String get labelQuickOrderFillSuggested;
+
+  /// No description provided for @labelQuickOrderOrderedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered on'**
+  String get labelQuickOrderOrderedOn;
+
+  /// No description provided for @labelQuickOrderMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier & notes'**
+  String get labelQuickOrderMore;
+
+  /// No description provided for @labelQuickOrderSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{Record order · 1 sheet} other{Record order · {n} sheets}}'**
+  String labelQuickOrderSubmit(int n);
+
+  /// No description provided for @labelsQuickOrderRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded {count} print orders · {sheets} sheets'**
+  String labelsQuickOrderRecorded(int count, int sheets);
+
+  /// No description provided for @labelsQuickOrderFailedSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **' · {n} failed'**
+  String labelsQuickOrderFailedSuffix(int n);
+
   /// No description provided for @b2bStageLead.
   ///
   /// In en, this message translates to:

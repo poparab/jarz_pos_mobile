@@ -32,6 +32,10 @@ class LabelsScreen extends ConsumerStatefulWidget {
 class _LabelsScreenState extends ConsumerState<LabelsScreen> {
   final _messengerKey = GlobalKey<ScaffoldMessengerState>();
   final _searchController = TextEditingController();
+
+  /// Customers whose flavour rows are open. Collapsed is the default so the
+  /// whole board fits on a screen.
+  final Set<String> _expanded = <String>{};
   late final ProviderSubscription<LabelsState> _errorListener;
 
   @override
@@ -68,6 +72,8 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
     final state = ref.watch(labelsNotifierProvider);
     final notifier = ref.read(labelsNotifierProvider.notifier);
     final groups = state.visibleGroups;
+    final allExpanded = groups.isNotEmpty &&
+        groups.every((g) => _expanded.contains(g.customer));
 
     return ScaffoldMessenger(
       key: _messengerKey,
@@ -76,6 +82,20 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
         appBar: AppBar(
           title: Text(context.l10n.labelsTitle),
           actions: [
+            if (groups.isNotEmpty)
+              IconButton(
+                tooltip: allExpanded
+                    ? context.l10n.labelsCollapseAll
+                    : context.l10n.labelsExpandAll,
+                icon: Icon(allExpanded ? Icons.unfold_less : Icons.unfold_more),
+                onPressed: () => setState(() {
+                  if (allExpanded) {
+                    _expanded.clear();
+                  } else {
+                    _expanded.addAll(groups.map((g) => g.customer));
+                  }
+                }),
+              ),
             IconButton(
               tooltip: context.l10n.labelsHelpTooltip,
               icon: const Icon(Icons.help_outline),
@@ -106,14 +126,32 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
                     _FilterBar(
                       filter: state.filter,
                       summary: state.summary,
-                      locations: state.dashboard.locations,
-                      location: state.location,
                       onChanged: notifier.setFilter,
-                      onLocationChanged: notifier.setLocation,
                     ),
-                    _SearchField(
-                      controller: _searchController,
-                      onChanged: notifier.setSearch,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _SearchField(
+                              controller: _searchController,
+                              onChanged: notifier.setSearch,
+                            ),
+                          ),
+                          if (state.dashboard.locations.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            ConstrainedBox(
+                              constraints:
+                                  const BoxConstraints(maxWidth: 150),
+                              child: _LocationFilter(
+                                locations: state.dashboard.locations,
+                                location: state.location,
+                                onChanged: notifier.setLocation,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                     if (state.isLoading) const LinearProgressIndicator(),
                     Expanded(
@@ -127,12 +165,23 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
                           : ListView.builder(
                               physics:
                                   const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.only(bottom: 90, top: 4),
+                              padding: const EdgeInsets.only(bottom: 90),
                               itemCount: groups.length,
                               itemBuilder: (context, index) {
                                 final group = groups[index];
                                 return LabelCustomerCard(
+                                  key: ValueKey(group.customer),
                                   group: group,
+                                  expanded:
+                                      _expanded.contains(group.customer),
+                                  onToggle: () => setState(() {
+                                    if (!_expanded.remove(group.customer)) {
+                                      _expanded.add(group.customer);
+                                    }
+                                  }),
+                                  onQuickOrder: state.isSubmitting
+                                      ? null
+                                      : () => _quickOrder(context, group),
                                   onOpen: (label) =>
                                       _openDetail(context, label),
                                   onPrint: (label) =>
@@ -224,6 +273,62 @@ class _LabelsScreenState extends ConsumerState<LabelsScreen> {
     }
   }
 
+  /// "We already ordered for this customer": one sheet for every flavour and
+  /// branch, recorded as one print order per label it touches.
+  Future<void> _quickOrder(
+      BuildContext context, LabelCustomerGroup group) async {
+    final l10n = context.l10n;
+    // The whole customer, not just the rows the current filter shows.
+    final labels = ref
+        .read(labelsNotifierProvider)
+        .dashboard
+        .labels
+        .where((l) => l.customer == group.customer)
+        .toList();
+    final request = await showModalBottomSheet<QuickOrderRequest>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => QuickOrderSheet(
+        customerName: group.customerName,
+        labels: labels.isEmpty ? group.labels : labels,
+      ),
+    );
+    if (request == null || request.sheetsByLabel.isEmpty || !mounted) return;
+
+    final notifier = ref.read(labelsNotifierProvider.notifier);
+    final repo = ref.read(labelsRepositoryProvider);
+    var recorded = 0;
+    var sheets = 0;
+    var failed = 0;
+    for (final entry in request.sheetsByLabel.entries) {
+      final ok = await notifier.run(
+        () => repo.createPrintOrder(
+          label: entry.key,
+          qtySheets: entry.value,
+          supplier: request.supplier,
+          requestedOn: request.requestedOn,
+          notes: request.notes,
+        ),
+      );
+      if (ok != null) {
+        recorded++;
+        sheets += entry.value;
+      } else {
+        failed++;
+      }
+    }
+    if (!mounted) return;
+    await notifier.refresh();
+    _messengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(
+          l10n.labelsQuickOrderRecorded(recorded, sheets) +
+              (failed > 0 ? l10n.labelsQuickOrderFailedSuffix(failed) : ''),
+        ),
+      ),
+    );
+  }
+
   void _showHelp(BuildContext context, LabelSettings settings) {
     final l10n = context.l10n;
     showDialog<void>(
@@ -290,7 +395,7 @@ class _SummaryHeader extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       color: urgent > 0
           ? const Color(0xFFB3261E).withValues(alpha: 0.08)
           : theme.colorScheme.surfaceContainerHighest,
@@ -319,7 +424,7 @@ class _SummaryHeader extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 2),
           Text(
             l10n.labelsSummaryLeadTime(
                   settings.leadDaysMin,
@@ -335,6 +440,8 @@ class _SummaryHeader extends StatelessWidget {
                       ))),
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -345,18 +452,12 @@ class _SummaryHeader extends StatelessWidget {
 class _FilterBar extends StatelessWidget {
   final LabelFilter filter;
   final LabelSummary summary;
-  final List<String> locations;
-  final String? location;
   final ValueChanged<LabelFilter> onChanged;
-  final ValueChanged<String?> onLocationChanged;
 
   const _FilterBar({
     required this.filter,
     required this.summary,
-    required this.locations,
-    required this.location,
     required this.onChanged,
-    required this.onLocationChanged,
   });
 
   @override
@@ -389,19 +490,13 @@ class _FilterBar extends StatelessWidget {
                     : l10n.labelsFilterWithCount(text, count)),
               ),
             ),
-          if (locations.isNotEmpty)
-            _LocationFilter(
-              locations: locations,
-              location: location,
-              onChanged: onLocationChanged,
-            ),
         ],
       ),
     );
   }
 }
 
-/// Compact "where is it stored" dropdown, living alongside the status chips.
+/// Compact "where is it stored" dropdown, living beside the search box.
 class _LocationFilter extends StatelessWidget {
   final List<String> locations;
   final String? location;
@@ -429,13 +524,15 @@ class _LocationFilter extends StatelessWidget {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: selected ? location : null,
+          isExpanded: true,
           icon: const Icon(Icons.place_outlined, size: 18),
           style: theme.textTheme.labelLarge
               ?.copyWith(color: theme.colorScheme.onSurface),
           items: [
             DropdownMenuItem<String?>(
               value: null,
-              child: Text(context.l10n.labelsAllLocations),
+              child: Text(context.l10n.labelsAllLocations,
+                  overflow: TextOverflow.ellipsis),
             ),
             for (final loc in locations)
               DropdownMenuItem<String?>(
@@ -459,8 +556,8 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+    return SizedBox(
+      height: 44,
       child: TextField(
         controller: controller,
         onChanged: onChanged,
