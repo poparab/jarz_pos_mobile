@@ -1011,6 +1011,10 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
           'stock_uom': refill.stockUom,
           'uoms': refill.uoms,
           'prices': refill.prices,
+          // So a later unit change prices from the last paid too.
+          'last_purchase_rate': refill.lastPurchaseRate,
+          'last_purchase_uom': refill.lastPurchaseUom,
+          'last_purchase_uom_rate': refill.lastPurchaseUomRate,
           // "The same as before" includes the VAT that line carried.
           'item_tax_template': refill.itemTaxTemplate,
         });
@@ -2197,6 +2201,9 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
   String? _error;
   int _page = 0;
   static const _pageSize = 30;
+  // Bumped by every load. A filter change mid-load starts a new one, and the
+  // reply of the old one — another filter's invoices — is thrown away.
+  int _loadToken = 0;
 
   String? _statusFilter;
   // The item filter: code goes to the server, name labels the chip.
@@ -2394,7 +2401,10 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
   }
 
   Future<void> _loadInvoices({bool append = false}) async {
-    if (_loading) return;
+    // Only load-more waits its turn. A refresh always runs: dropping it left
+    // the chips showing one filter over another filter's list.
+    if (append && _loading) return;
+    final token = ++_loadToken;
     setState(() {
       _loading = true;
       _error = null;
@@ -2409,6 +2419,7 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
         itemCode: _itemCode,
       );
       final list = (result['invoices'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      if (!mounted || token != _loadToken) return;
       setState(() {
         if (append) {
           _invoices.addAll(list);
@@ -2419,6 +2430,7 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
         _loading = false;
       });
     } catch (e) {
+      if (!mounted || token != _loadToken) return;
       setState(() {
         _error = e.toString();
         _loading = false;

@@ -129,6 +129,55 @@ void main() {
     });
   });
 
+  group('reorderLineFrom — latest paid price', () {
+    Map<String, dynamic> paid(Map<String, dynamic> d,
+            {num perStock = 11, String uom = 'Box of 12', num uomRate = 132}) =>
+        {
+          ...d,
+          'last_purchase_rate': perStock,
+          'last_purchase_uom': uom,
+          'last_purchase_uom_rate': uomRate,
+        };
+
+    test('a refill prices at the last paid, not the old invoice', () {
+      final line = reorderLineFrom(boxLine(),
+          detail: paid(detail(boxStillOffered: true)),
+          itemTaxTemplates: const []);
+      expect(line.uom, 'Box of 12');
+      expect(line.rate, 132, reason: 'the box went up from 120 to 132');
+      expect(line.lastPurchaseRate, 11);
+      expect(line.lastPurchaseUom, 'Box of 12');
+      expect(line.lastPurchaseUomRate, 132);
+    });
+
+    test('in another unit it is restated from the per-stock price', () {
+      final line = reorderLineFrom(boxLine(),
+          detail: paid(detail(boxStillOffered: true), uom: 'Nos', uomRate: 11),
+          itemTaxTemplates: const []);
+      expect(line.rate, 132, reason: '11 a unit x 12 per box');
+    });
+
+    test('a removed UOM restated in stock units takes the per-stock price', () {
+      final line = reorderLineFrom(boxLine(),
+          detail: paid(detail()), itemTaxTemplates: const []);
+      expect(line.uom, 'Nos');
+      expect(line.qty, 60);
+      expect(line.rate, 11);
+    });
+
+    test('never bought keeps the old invoice rate', () {
+      final line = reorderLineFrom(boxLine(),
+          detail: detail(boxStillOffered: true), itemTaxTemplates: const []);
+      expect(line.rate, 120);
+      expect(line.lastPurchaseRate, 0);
+    });
+
+    test('a failed lookup keeps the old invoice rate', () {
+      final line = reorderLineFrom(boxLine(), itemTaxTemplates: const []);
+      expect(line.rate, 120);
+    });
+  });
+
   group('reorderLineFrom — VAT', () {
     test('a template the company still offers is kept', () {
       final line = reorderLineFrom(boxLine(template: 'VAT 14% - JZ'),

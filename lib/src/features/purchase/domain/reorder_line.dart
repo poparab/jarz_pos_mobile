@@ -25,6 +25,14 @@ class ReorderLine {
   /// submit expansion drops it — so submit refuses it: see [linesWithoutQty].
   final bool needsQty;
 
+  /// The last price actually paid, as the server sent it with [detail]: per
+  /// stock unit, plus the unit and exact price of that purchase. Carried onto
+  /// the cart line so a later unit change prices from it too. 0 / '' when the
+  /// item was never bought or the lookup failed.
+  final double lastPurchaseRate;
+  final String lastPurchaseUom;
+  final double lastPurchaseUomRate;
+
   const ReorderLine({
     required this.uom,
     required this.qty,
@@ -34,6 +42,9 @@ class ReorderLine {
     required this.prices,
     required this.itemTaxTemplate,
     required this.needsQty,
+    this.lastPurchaseRate = 0,
+    this.lastPurchaseUom = '',
+    this.lastPurchaseUomRate = 0,
   });
 }
 
@@ -92,6 +103,28 @@ ReorderLine reorderLineFrom(
     }
   }
 
+  // Today's price, not the old invoice's: a supplier's price moves, and a
+  // refill at the historic rate bought at yesterday's figure unless someone
+  // noticed. The historic rate stays only when the item has no paid purchase
+  // to go by (or the lookup failed). The field stays editable either way.
+  final lastPerStock = _num(detail?['last_purchase_rate']);
+  final lastUom = (detail?['last_purchase_uom'] ?? '').toString();
+  final lastUomRate = _num(detail?['last_purchase_uom_rate']);
+  if (lastPerStock > 0) {
+    if (lastUom.isNotEmpty && lastUom == uom && lastUomRate > 0) {
+      rate = lastUomRate;
+    } else {
+      final conv = uom == stockUom
+          ? 1.0
+          : _num(uoms
+              .firstWhere((u) => u['uom'] == uom,
+                  orElse: () => const {})['conversion_factor']);
+      // An unknown factor is never "1:1": keep the historic rate rather than
+      // price a carton at the price of one Kg.
+      if (conv > 0) rate = _round(lastPerStock * conv);
+    }
+  }
+
   var template = (source['item_tax_template'] ?? '').toString();
   // A template no longer offered would show as "No VAT" yet still be sent, and
   // the server would reject the purchase with no visible cause. That check
@@ -118,6 +151,9 @@ ReorderLine reorderLineFrom(
     prices: prices,
     itemTaxTemplate: template.isEmpty ? null : template,
     needsQty: needsQty,
+    lastPurchaseRate: lastPerStock,
+    lastPurchaseUom: lastUom,
+    lastPurchaseUomRate: lastUomRate,
   );
 }
 
