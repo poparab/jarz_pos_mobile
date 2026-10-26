@@ -2199,6 +2199,9 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
   static const _pageSize = 30;
 
   String? _statusFilter;
+  // The item filter: code goes to the server, name labels the chip.
+  String? _itemCode;
+  String? _itemName;
   String _searchQuery = '';
   Timer? _searchDebounce;
   final _searchController = TextEditingController();
@@ -2226,6 +2229,27 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
 
   void _setStatus(String? status) {
     setState(() => _statusFilter = status);
+    _refresh();
+  }
+
+  Future<void> _pickItem() async {
+    final picked = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (_) => const _HistoryItemPickerDialog(),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _itemCode = (picked['item_code'] ?? '').toString();
+      _itemName = (picked['item_name'] ?? _itemCode).toString();
+    });
+    _refresh();
+  }
+
+  void _clearItem() {
+    setState(() {
+      _itemCode = null;
+      _itemName = null;
+    });
     _refresh();
   }
 
@@ -2382,6 +2406,7 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
         page: _page,
         status: _statusFilter,
         search: _searchQuery,
+        itemCode: _itemCode,
       );
       final list = (result['invoices'] as List?)?.cast<Map<String, dynamic>>() ?? [];
       setState(() {
@@ -2455,6 +2480,28 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 6),
+                  child: _itemCode == null
+                      ? ActionChip(
+                          avatar: const Icon(Icons.inventory_2_outlined, size: 18),
+                          label: Text(l10n.commonItemLabel),
+                          onPressed: _pickItem,
+                        )
+                      : InputChip(
+                          avatar: const Icon(Icons.inventory_2, size: 18),
+                          label: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 180),
+                            child: Text(
+                              _itemName ?? _itemCode!,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          selected: true,
+                          onPressed: _pickItem,
+                          onDeleted: _clearItem,
+                        ),
+                ),
                 for (final entry in <(String?, String)>[
                   (null, l10n.purchaseHistoryFilterAll),
                   ('Unpaid', l10n.purchaseOutstandingLabel),
@@ -2528,6 +2575,115 @@ class _PurchaseHistoryTabState extends ConsumerState<_PurchaseHistoryTab> {
           },
         ),
       ),
+    );
+  }
+}
+
+/// Item search for the history's item filter. Pops the chosen item row.
+class _HistoryItemPickerDialog extends ConsumerStatefulWidget {
+  const _HistoryItemPickerDialog();
+
+  @override
+  ConsumerState<_HistoryItemPickerDialog> createState() =>
+      _HistoryItemPickerDialogState();
+}
+
+class _HistoryItemPickerDialogState
+    extends ConsumerState<_HistoryItemPickerDialog> {
+  List<Map<String, dynamic>> _results = const [];
+  bool _loading = false;
+  Timer? _debounce;
+  // Same guard as the cart search: a slow reply must not replace newer results.
+  int _token = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _search('');
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () => _search(value));
+  }
+
+  Future<void> _search(String query) async {
+    final token = ++_token;
+    setState(() => _loading = true);
+    try {
+      final results =
+          await ref.read(purchaseServiceProvider).searchItems(query.trim());
+      if (!mounted || token != _token) return;
+      setState(() {
+        _results = results;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted || token != _token) return;
+      setState(() {
+        _results = const [];
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(l10n.commonItemLabel),
+      contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      content: SizedBox(
+        width: 420,
+        height: 420,
+        child: Column(
+          children: [
+            TextField(
+              autofocus: true,
+              decoration: InputDecoration(
+                isDense: true,
+                prefixIcon: const Icon(Icons.search, size: 20),
+                hintText: l10n.commonSearchItems,
+              ),
+              onChanged: _onChanged,
+            ),
+            const SizedBox(height: 8),
+            if (_loading) const LinearProgressIndicator(minHeight: 2),
+            Expanded(
+              child: !_loading && _results.isEmpty
+                  ? Center(child: Text(l10n.commonNoItems))
+                  : ListView.builder(
+                      itemCount: _results.length,
+                      itemBuilder: (context, index) {
+                        final it = _results[index];
+                        final code = (it['item_code'] ?? '').toString();
+                        final name = (it['item_name'] ?? code).toString();
+                        return ListTile(
+                          dense: true,
+                          title: ItemTitleWithArabic(
+                            title: l10n.commonNameWithCode(name, code),
+                            arabicName: it['item_name_ar'],
+                          ),
+                          onTap: () => Navigator.pop(context, it),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.commonCancel),
+        ),
+      ],
     );
   }
 }

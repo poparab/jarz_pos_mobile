@@ -131,6 +131,7 @@ class PurchaseService {
     String? fromDate,
     String? toDate,
     String? search,
+    String? itemCode,
   }) async {
     final resp = await _dio.post(
       ApiEndpoints.getPurchaseInvoices,
@@ -142,6 +143,7 @@ class PurchaseService {
         if (fromDate != null) 'from_date': fromDate,
         if (toDate != null) 'to_date': toDate,
         if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+        if (itemCode != null) 'item_code': itemCode,
       },
     );
     return _asMap(resp.data, 'get PI');
