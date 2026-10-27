@@ -15,6 +15,7 @@ import '../../pos/state/pos_notifier.dart';
 import '../../purchase/data/purchase_service.dart';
 import 'package:jarz_pos/l10n/app_localizations.dart';
 
+import '../domain/default_supplier.dart';
 import '../domain/missing_uom_conversion.dart';
 import '../domain/reorder_line.dart';
 import '../domain/request_allocation.dart';
@@ -1596,8 +1597,16 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
           'request_links': links,
         });
       }
+      // Without a supplier the submit button stays disabled, and nothing here
+      // used to choose one — start on whoever last billed these items.
+      supplier ??= defaultSupplierFor(selections.map((s) => s.demand.lastSupplier));
     });
     _sheetSetState?.call(() {});
+    // None of these items was ever bought: ask now rather than leaving a full
+    // cart behind a disabled button.
+    if (supplier == null && mounted) {
+      await _openSupplierPicker(initialRecent: true);
+    }
   }
 
   /// Expand a cart line into one or more invoice rows.

@@ -282,6 +282,9 @@ class RequestDemandLine {
   final String? lastPurchaseUom;
   final double lastPurchaseUomRate;
 
+  /// Who billed that last paid line — the purchase starts on this supplier.
+  final String? lastSupplier;
+
   /// Every unit the item can be bought in, `{uom, conversion_factor}`.
   final List<Map<String, dynamic>> uoms;
 
@@ -302,6 +305,7 @@ class RequestDemandLine {
     required this.lastPurchaseRate,
     this.lastPurchaseUom,
     this.lastPurchaseUomRate = 0,
+    this.lastSupplier,
     this.uoms = const [],
     this.itemTaxTemplate,
     required this.earliestNeededBy,
@@ -339,6 +343,7 @@ class RequestDemandLine {
       lastPurchaseRate: _toDouble(json['last_purchase_rate']),
       lastPurchaseUom: _toNullableStr(json['last_purchase_uom']),
       lastPurchaseUomRate: _toDouble(json['last_purchase_uom_rate']),
+      lastSupplier: _toNullableStr(json['last_supplier']),
       uoms: ((json['uoms'] as List?) ?? const [])
           .whereType<Map>()
           .map((e) => Map<String, dynamic>.from(e))
