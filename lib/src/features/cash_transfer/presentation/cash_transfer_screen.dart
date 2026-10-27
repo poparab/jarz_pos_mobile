@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/localization_extensions.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/posting_date_confirmation_dialog.dart';
-import '../../manager/state/manager_providers.dart';
+import '../../../core/network/user_service.dart';
 import '../data/cash_transfer_service.dart';
 import 'widgets/cash_transfer_history.dart';
 
@@ -104,7 +104,15 @@ class _CashTransferScreenState extends ConsumerState<CashTransferScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final allowed = ref.watch(managerAccessProvider).maybeWhen(data: (v) => v, orElse: () => false);
+    // Role-derived, the same gate the side menu uses. The old screen gated on
+    // `managerAccessProvider`, which loads the whole manager-dashboard summary
+    // first and said "Managers only" while that was still loading or had timed
+    // out — so a slow server refused real managers until they retried.
+    final rolesAsync = ref.watch(userRolesFutureProvider);
+    if (rolesAsync.isLoading && !rolesAsync.hasValue) {
+      return Scaffold(appBar: AppBar(title: Text(l10n.menuCashTransfer)), body: const Center(child: CircularProgressIndicator()));
+    }
+    final allowed = rolesAsync.valueOrNull?.canAccessCashTransfer ?? false;
     if (!allowed) {
       return Scaffold(appBar: AppBar(title: Text(l10n.menuCashTransfer)), body: Center(child: Text(l10n.stockTransferManagersOnly)));
     }
