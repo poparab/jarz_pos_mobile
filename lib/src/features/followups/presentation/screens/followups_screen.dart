@@ -17,6 +17,7 @@ import '../../state/followups_providers.dart';
 import '../widgets/call_brief_sheet.dart';
 import '../widgets/followup_card.dart';
 import '../widgets/log_touch_sheet.dart';
+import 'followup_sent_screen.dart';
 import 'followup_stats_screen.dart';
 
 /// "Follow-ups today" (المتابعات): the sender's daily list of reorder-plan
@@ -275,6 +276,16 @@ class _FollowupsScreenState extends ConsumerState<FollowupsScreen> {
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => const FollowupStatsScreen(),
+              ),
+            ),
+          ),
+          if (canViewStats)
+          IconButton(
+            tooltip: l10n.followupsSentAction,
+            icon: const Icon(Icons.mark_chat_read_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const FollowupSentScreen(),
               ),
             ),
           ),

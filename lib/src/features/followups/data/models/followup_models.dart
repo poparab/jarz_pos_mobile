@@ -529,3 +529,117 @@ class FollowupBriefResult {
 
   bool get isClaude => source.toLowerCase() == 'claude';
 }
+
+/// One template message the follow-up sender sent (`get_sent_report` item).
+class FollowupSentItem {
+  final String name;
+  final String customer;
+  final String customerName;
+  final String phone;
+  final String step;
+  final String sentAt;
+  final String offerCode;
+  final String orderNo;
+
+  /// `sent` / `delivered` / `read` / `failed`, as Meta last reported it.
+  final String waStatus;
+  final String error;
+  final bool replied;
+
+  /// The first retail invoice within 30 days of the send, or empty.
+  final String reorderInvoice;
+
+  const FollowupSentItem({
+    required this.name,
+    this.customer = '',
+    this.customerName = '',
+    this.phone = '',
+    this.step = '',
+    this.sentAt = '',
+    this.offerCode = '',
+    this.orderNo = '',
+    this.waStatus = 'sent',
+    this.error = '',
+    this.replied = false,
+    this.reorderInvoice = '',
+  });
+
+  factory FollowupSentItem.fromJson(Map json) => FollowupSentItem(
+        name: followupString(json['name']),
+        customer: followupString(json['customer']),
+        customerName: followupString(json['customer_name']),
+        phone: followupString(json['phone']),
+        step: followupString(json['step']),
+        sentAt: followupString(json['sent_at']),
+        offerCode: followupString(json['offer_code']),
+        orderNo: followupString(json['order_no']),
+        waStatus: followupString(json['wa_status'], fallback: 'sent'),
+        error: followupString(json['error']),
+        replied: followupBool(json['replied']),
+        reorderInvoice: followupString(json['reorder_invoice']),
+      );
+
+  bool get reordered => reorderInvoice.isNotEmpty;
+}
+
+/// `get_sent_report`: what the automatic WhatsApp follow-ups sent, and what
+/// came of it.
+class FollowupSentReport {
+  final String fromDate;
+  final String toDate;
+
+  /// sent / delivered / read / failed / replied / reordered.
+  final Map<String, int> totals;
+
+  /// step -> {sent, delivered, read, reordered}.
+  final Map<String, Map<String, int>> byStep;
+
+  /// `YYYY-MM-DD` -> messages sent that day.
+  final Map<String, int> byDay;
+
+  /// Cancel reason -> touches cancelled in the range.
+  final Map<String, int> cancelled;
+  final int optedOutCustomers;
+
+  /// Sends Meta refused, now waiting on the staff worklist.
+  final int refusedWaitingForStaff;
+  final List<FollowupSentItem> items;
+
+  const FollowupSentReport({
+    this.fromDate = '',
+    this.toDate = '',
+    this.totals = const <String, int>{},
+    this.byStep = const <String, Map<String, int>>{},
+    this.byDay = const <String, int>{},
+    this.cancelled = const <String, int>{},
+    this.optedOutCustomers = 0,
+    this.refusedWaitingForStaff = 0,
+    this.items = const <FollowupSentItem>[],
+  });
+
+  int total(String key) => totals[key] ?? 0;
+
+  factory FollowupSentReport.fromJson(dynamic json) {
+    if (json is! Map) return const FollowupSentReport();
+    final steps = json['by_step'];
+    final items = json['items'];
+    return FollowupSentReport(
+      fromDate: followupString(json['from_date']),
+      toDate: followupString(json['to_date']),
+      totals: _countMap(json['totals']),
+      byStep: {
+        if (steps is Map)
+          for (final e in steps.entries) e.key.toString(): _countMap(e.value),
+      },
+      byDay: _countMap(json['by_day']),
+      cancelled: _countMap(json['cancelled']),
+      optedOutCustomers: followupInt(json['opted_out_customers']),
+      refusedWaitingForStaff: followupInt(json['refused_waiting_for_staff']),
+      items: [
+        if (items is List)
+          for (final i in items)
+            if (i is Map) FollowupSentItem.fromJson(i),
+      ],
+    );
+  }
+}

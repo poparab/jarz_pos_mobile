@@ -27551,6 +27551,144 @@ abstract class AppLocalizations {
   /// **'Reorder rate'**
   String get followupsStatsReorderRate;
 
+  /// No description provided for @followupsSentAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent WhatsApp messages'**
+  String get followupsSentAction;
+
+  /// No description provided for @followupsSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent messages: last 7 days'**
+  String get followupsSentTitle;
+
+  /// No description provided for @followupsSentTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get followupsSentTotal;
+
+  /// No description provided for @followupsSentDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get followupsSentDelivered;
+
+  /// No description provided for @followupsSentRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get followupsSentRead;
+
+  /// No description provided for @followupsSentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get followupsSentFailed;
+
+  /// No description provided for @followupsSentReplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Replied on WhatsApp'**
+  String get followupsSentReplied;
+
+  /// No description provided for @followupsSentReordered.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered again (30 days)'**
+  String get followupsSentReordered;
+
+  /// No description provided for @followupsSentOptedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers who stopped messages'**
+  String get followupsSentOptedOut;
+
+  /// No description provided for @followupsSentRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'Refused by WhatsApp, waiting for staff'**
+  String get followupsSentRefused;
+
+  /// No description provided for @followupsSentByStep.
+  ///
+  /// In en, this message translates to:
+  /// **'By step'**
+  String get followupsSentByStep;
+
+  /// No description provided for @followupsSentByDay.
+  ///
+  /// In en, this message translates to:
+  /// **'By day'**
+  String get followupsSentByDay;
+
+  /// No description provided for @followupsSentCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled before sending'**
+  String get followupsSentCancelled;
+
+  /// No description provided for @followupsSentMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get followupsSentMessages;
+
+  /// No description provided for @followupsSentStepSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{sent} sent · {read} read · {reordered} ordered again'**
+  String followupsSentStepSummary(String sent, String read, String reordered);
+
+  /// No description provided for @followupsSentCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code {code}'**
+  String followupsSentCode(String code);
+
+  /// No description provided for @followupsSentReorderInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered again: {invoice}'**
+  String followupsSentReorderInvoice(String invoice);
+
+  /// No description provided for @followupsSentReasonOrderCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Order cancelled'**
+  String get followupsSentReasonOrderCancelled;
+
+  /// No description provided for @followupsSentReasonOrderReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Order returned'**
+  String get followupsSentReasonOrderReturned;
+
+  /// No description provided for @followupsSentReasonExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'B2B / employee'**
+  String get followupsSentReasonExcluded;
+
+  /// No description provided for @followupsSentReasonNewOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered again'**
+  String get followupsSentReasonNewOrder;
+
+  /// No description provided for @followupsSentReasonOptedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped messages'**
+  String get followupsSentReasonOptedOut;
+
+  /// No description provided for @followupsSentReasonQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality complaint'**
+  String get followupsSentReasonQuality;
+
   /// No description provided for @customerSegmentRegular.
   ///
   /// In en, this message translates to:

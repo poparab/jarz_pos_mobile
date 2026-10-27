@@ -52,6 +52,13 @@ class _FakeRepo implements FollowupsRepository {
     required String toDate,
   }) async =>
       const FollowupStats();
+
+  @override
+  Future<FollowupSentReport> fetchSentReport({
+    required String fromDate,
+    required String toDate,
+  }) async =>
+      const FollowupSentReport();
 }
 
 FollowupsToday _today() => FollowupsToday.fromJson({

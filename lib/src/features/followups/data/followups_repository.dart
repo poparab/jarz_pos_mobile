@@ -73,6 +73,19 @@ class FollowupsRepository {
     return FollowupStats.fromJson(_payload(response));
   }
 
+  /// `get_sent_report` - the automatic WhatsApp sends in the range with their
+  /// delivered / read / replied / reordered results.
+  Future<FollowupSentReport> fetchSentReport({
+    required String fromDate,
+    required String toDate,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.followupSentReport,
+      data: {'from_date': fromDate, 'to_date': toDate},
+    );
+    return FollowupSentReport.fromJson(_payload(response));
+  }
+
   /// Claude calls can take ~45 s, so these two outlast the default timeout.
   static final Options _slow = Options(
     sendTimeout: const Duration(seconds: 70),

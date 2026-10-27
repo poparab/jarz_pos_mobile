@@ -995,6 +995,8 @@ abstract final class ApiEndpoints {
       '/api/method/jarz_pos.api.customer_followups.get_call_brief';
   static const followupStats =
       '/api/method/jarz_pos.api.customer_followups.get_followup_stats';
+  static const followupSentReport =
+      '/api/method/jarz_pos.api.customer_followups.get_sent_report';
 
   // ── Warehouse alignment watchlist (read-only) ─────────────────────────
   // Submitted invoices whose item warehouses disagree with their branch —

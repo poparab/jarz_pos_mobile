@@ -96,3 +96,14 @@ final followupStatsLast7DaysProvider =
         toDate: fmt.format(today),
       );
 });
+
+/// The automatic WhatsApp sends of the last 7 days, today included.
+final followupSentLast7DaysProvider =
+    FutureProvider.autoDispose<FollowupSentReport>((ref) {
+  final fmt = DateFormat('yyyy-MM-dd');
+  final today = DateTime.now();
+  return ref.watch(followupsRepositoryProvider).fetchSentReport(
+        fromDate: fmt.format(today.subtract(const Duration(days: 6))),
+        toDate: fmt.format(today),
+      );
+});

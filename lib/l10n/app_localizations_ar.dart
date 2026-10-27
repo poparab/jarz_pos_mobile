@@ -16783,6 +16783,81 @@ class AppLocalizationsAr extends AppLocalizations {
   String get followupsStatsReorderRate => 'نسبة الطلب تاني';
 
   @override
+  String get followupsSentAction => 'رسايل الواتساب اللي اتبعتت';
+
+  @override
+  String get followupsSentTitle => 'الرسايل المبعوتة: آخر ٧ أيام';
+
+  @override
+  String get followupsSentTotal => 'اتبعتت';
+
+  @override
+  String get followupsSentDelivered => 'وصلت';
+
+  @override
+  String get followupsSentRead => 'اتقرت';
+
+  @override
+  String get followupsSentFailed => 'فشلت';
+
+  @override
+  String get followupsSentReplied => 'ردّوا على واتساب';
+
+  @override
+  String get followupsSentReordered => 'طلبوا تاني (خلال ٣٠ يوم)';
+
+  @override
+  String get followupsSentOptedOut => 'عملاء وقفوا الرسايل';
+
+  @override
+  String get followupsSentRefused => 'واتساب رفضها، مستنية الموظفين';
+
+  @override
+  String get followupsSentByStep => 'حسب المرحلة';
+
+  @override
+  String get followupsSentByDay => 'حسب اليوم';
+
+  @override
+  String get followupsSentCancelled => 'اتلغت قبل الإرسال';
+
+  @override
+  String get followupsSentMessages => 'الرسايل';
+
+  @override
+  String followupsSentStepSummary(String sent, String read, String reordered) {
+    return '$sent اتبعتت · $read اتقرت · $reordered طلبوا تاني';
+  }
+
+  @override
+  String followupsSentCode(String code) {
+    return 'كود $code';
+  }
+
+  @override
+  String followupsSentReorderInvoice(String invoice) {
+    return 'طلب تاني: $invoice';
+  }
+
+  @override
+  String get followupsSentReasonOrderCancelled => 'الطلب اتلغى';
+
+  @override
+  String get followupsSentReasonOrderReturned => 'الطلب اترجع';
+
+  @override
+  String get followupsSentReasonExcluded => 'شركات / موظفين';
+
+  @override
+  String get followupsSentReasonNewOrder => 'طلب تاني';
+
+  @override
+  String get followupsSentReasonOptedOut => 'وقف الرسايل';
+
+  @override
+  String get followupsSentReasonQuality => 'شكوى جودة';
+
+  @override
   String get customerSegmentRegular => 'منتظمين';
 
   @override

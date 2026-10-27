@@ -91,5 +91,20 @@ void main() {
       final sent = mockDio.requestLog.last['data'] as Map;
       expect(sent, {'from_date': '2026-10-06', 'to_date': '2026-10-12'});
     });
+
+    test('fetchSentReport sends the date range', () async {
+      mockDio.setResponse(ApiEndpoints.followupSentReport, {
+        'message': {
+          'totals': {'sent': 5, 'read': 2},
+        },
+      });
+
+      final report = await repo.fetchSentReport(
+          fromDate: '2026-10-21', toDate: '2026-10-27');
+
+      expect(report.total('sent'), 5);
+      final sent = mockDio.requestLog.last['data'] as Map;
+      expect(sent, {'from_date': '2026-10-21', 'to_date': '2026-10-27'});
+    });
   });
 }

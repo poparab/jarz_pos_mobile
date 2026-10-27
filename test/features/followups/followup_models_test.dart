@@ -306,4 +306,45 @@ void main() {
       [FollowupOutcome.quality, FollowupOutcome.optedOut],
     );
   });
+
+  test('FollowupSentReport parses the get_sent_report payload', () {
+    final report = FollowupSentReport.fromJson({
+      'from_date': '2026-10-21',
+      'to_date': '2026-10-27',
+      'totals': {'sent': 2, 'delivered': 1, 'read': 1, 'failed': 0, 'replied': 1, 'reordered': 1},
+      'by_step': {
+        'day50': {'sent': 2, 'delivered': 1, 'read': 1, 'reordered': 1},
+      },
+      'by_day': {'2026-10-27': 2},
+      'cancelled': {'Order cancelled': 3},
+      'opted_out_customers': 4,
+      'refused_waiting_for_staff': '1',
+      'items': [
+        {
+          'name': 'FUT-00001',
+          'customer_name': 'منى',
+          'step': 'day50',
+          'wa_status': 'read',
+          'offer_code': 'JRZ50',
+          'replied': 1,
+          'reorder_invoice': 'ACC-SINV-1',
+        },
+        'junk',
+      ],
+    });
+    expect(report.total('sent'), 2);
+    expect(report.total('missing'), 0);
+    expect(report.byStep['day50']!['reordered'], 1);
+    expect(report.byDay['2026-10-27'], 2);
+    expect(report.cancelled['Order cancelled'], 3);
+    expect(report.optedOutCustomers, 4);
+    expect(report.refusedWaitingForStaff, 1);
+    expect(report.items, hasLength(1));
+    final item = report.items.single;
+    expect(item.waStatus, 'read');
+    expect(item.replied, isTrue);
+    expect(item.reordered, isTrue);
+    expect(item.offerCode, 'JRZ50');
+    expect(FollowupSentReport.fromJson(null).items, isEmpty);
+  });
 }

@@ -16802,6 +16802,81 @@ class AppLocalizationsEn extends AppLocalizations {
   String get followupsStatsReorderRate => 'Reorder rate';
 
   @override
+  String get followupsSentAction => 'Sent WhatsApp messages';
+
+  @override
+  String get followupsSentTitle => 'Sent messages: last 7 days';
+
+  @override
+  String get followupsSentTotal => 'Sent';
+
+  @override
+  String get followupsSentDelivered => 'Delivered';
+
+  @override
+  String get followupsSentRead => 'Read';
+
+  @override
+  String get followupsSentFailed => 'Failed';
+
+  @override
+  String get followupsSentReplied => 'Replied on WhatsApp';
+
+  @override
+  String get followupsSentReordered => 'Ordered again (30 days)';
+
+  @override
+  String get followupsSentOptedOut => 'Customers who stopped messages';
+
+  @override
+  String get followupsSentRefused => 'Refused by WhatsApp, waiting for staff';
+
+  @override
+  String get followupsSentByStep => 'By step';
+
+  @override
+  String get followupsSentByDay => 'By day';
+
+  @override
+  String get followupsSentCancelled => 'Cancelled before sending';
+
+  @override
+  String get followupsSentMessages => 'Messages';
+
+  @override
+  String followupsSentStepSummary(String sent, String read, String reordered) {
+    return '$sent sent · $read read · $reordered ordered again';
+  }
+
+  @override
+  String followupsSentCode(String code) {
+    return 'Code $code';
+  }
+
+  @override
+  String followupsSentReorderInvoice(String invoice) {
+    return 'Ordered again: $invoice';
+  }
+
+  @override
+  String get followupsSentReasonOrderCancelled => 'Order cancelled';
+
+  @override
+  String get followupsSentReasonOrderReturned => 'Order returned';
+
+  @override
+  String get followupsSentReasonExcluded => 'B2B / employee';
+
+  @override
+  String get followupsSentReasonNewOrder => 'Ordered again';
+
+  @override
+  String get followupsSentReasonOptedOut => 'Stopped messages';
+
+  @override
+  String get followupsSentReasonQuality => 'Quality complaint';
+
+  @override
   String get customerSegmentRegular => 'Regulars';
 
   @override
