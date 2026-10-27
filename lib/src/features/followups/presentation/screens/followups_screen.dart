@@ -4,11 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
 import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/network/user_service.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../../printing/receipt/receipt_delivery.dart';
+import '../../data/followup_filter.dart';
 import '../../data/followup_whatsapp.dart';
 import '../../data/models/followup_models.dart';
 import '../../state/followups_providers.dart';
@@ -38,6 +40,23 @@ class _FollowupsScreenState extends ConsumerState<FollowupsScreen> {
   /// Touches already asked for a message this session, so a template
   /// fallback is not re-requested (and re-waited for) on every tap.
   final Set<String> _drafted = <String>{};
+
+  /// What the sender narrowed the list to; kept across refreshes.
+  FollowupFilter _filter = FollowupFilter.none;
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  void _setFilter(FollowupFilter next) => setState(() => _filter = next);
+
+  void _clearFilter() {
+    _searchCtrl.clear();
+    _setFilter(FollowupFilter.none);
+  }
 
   /// The row as it is now in state (the drafted text may have arrived).
   FollowupRow _fresh(FollowupRow row) {
@@ -278,8 +297,9 @@ class _FollowupsScreenState extends ConsumerState<FollowupsScreen> {
 
   Widget _buildList(BuildContext context, FollowupsToday data) {
     final l10n = context.l10n;
-    final overdue = data.overdueRows;
-    final today = data.todayRows;
+    final shown = _filter.apply(data.rows);
+    final overdue = shown.where((r) => r.isOverdue).toList(growable: false);
+    final today = shown.where((r) => !r.isOverdue).toList(growable: false);
 
     Widget card(FollowupRow row) => FollowupCard(
           key: ValueKey(row.name),
@@ -300,6 +320,25 @@ class _FollowupsScreenState extends ConsumerState<FollowupsScreen> {
       padding: const EdgeInsets.only(bottom: 24),
       children: [
         _SummaryChips(summary: data.summary),
+        if (data.rows.isNotEmpty)
+          _FilterBar(
+            filter: _filter,
+            options: FollowupFilterOptions.of(data.rows),
+            searchCtrl: _searchCtrl,
+            onChanged: _setFilter,
+            onClear: _clearFilter,
+          ),
+        if (data.rows.isNotEmpty && shown.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(48),
+            child: Center(
+              child: Text(
+                l10n.labelsEmptyNoMatch,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ),
+          ),
         if (data.rows.isEmpty)
           Padding(
             padding: const EdgeInsets.all(48),
@@ -361,6 +400,220 @@ class _SummaryChips extends StatelessWidget {
           chip(Icons.chat_outlined, l10n.followupsSummaryMessages,
               summary.messages, Colors.green.shade700),
         ],
+      ),
+    );
+  }
+}
+
+/// Search plus filter chips over today's list: channel, overdue, customer
+/// type, value band, regular, and menus for step, segment and territory.
+class _FilterBar extends StatelessWidget {
+  const _FilterBar({
+    required this.filter,
+    required this.options,
+    required this.searchCtrl,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final FollowupFilter filter;
+  final FollowupFilterOptions options;
+  final TextEditingController searchCtrl;
+  final ValueChanged<FollowupFilter> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final f = filter;
+
+    Widget toggle(String label, bool selected, VoidCallback onTap,
+            {IconData? icon}) =>
+        FilterChip(
+          avatar: icon == null ? null : Icon(icon, size: 18),
+          label: Text(label),
+          selected: selected,
+          showCheckmark: icon == null,
+          onSelected: (_) => onTap(),
+        );
+
+    String stepLabel(String step) =>
+        followupStepLabel(context, FollowupRow(name: '', step: step));
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: searchCtrl,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              isDense: true,
+              prefixIcon: const Icon(Icons.search),
+              hintText: l10n.customerSearchHint,
+              border: const OutlineInputBorder(),
+              suffixIcon: f.query.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: l10n.commonClear,
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        searchCtrl.clear();
+                        onChanged(f.copyWith(query: ''));
+                      },
+                    ),
+            ),
+            onChanged: (v) => onChanged(f.copyWith(query: v)),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              toggle(
+                l10n.followupsChannelCall,
+                f.channel == FollowupChannel.call,
+                () => onChanged(f.channel == FollowupChannel.call
+                    ? f.copyWith(clearChannel: true)
+                    : f.copyWith(channel: FollowupChannel.call)),
+                icon: Icons.call_outlined,
+              ),
+              toggle(
+                l10n.followupsChannelMessage,
+                f.channel == FollowupChannel.message,
+                () => onChanged(f.channel == FollowupChannel.message
+                    ? f.copyWith(clearChannel: true)
+                    : f.copyWith(channel: FollowupChannel.message)),
+                icon: Icons.chat_outlined,
+              ),
+              toggle(
+                l10n.followupsSummaryOverdue,
+                f.overdueOnly,
+                () => onChanged(f.copyWith(overdueOnly: !f.overdueOnly)),
+              ),
+              for (final type in const ['New', 'Repeat'])
+                toggle(
+                  type == 'New'
+                      ? l10n.followupsCustomerNew
+                      : l10n.followupsCustomerRepeat,
+                  f.customerType == type,
+                  () => onChanged(f.customerType == type
+                      ? f.copyWith(clearCustomerType: true)
+                      : f.copyWith(customerType: type)),
+                ),
+              for (final band in const ['High', 'Low'])
+                toggle(
+                  band == 'High'
+                      ? l10n.followupsValueHigh
+                      : l10n.followupsValueLow,
+                  f.valueBand == band,
+                  () => onChanged(f.valueBand == band
+                      ? f.copyWith(clearValueBand: true)
+                      : f.copyWith(valueBand: band)),
+                ),
+              toggle(
+                l10n.followupsRegular,
+                f.regularOnly,
+                () => onChanged(f.copyWith(regularOnly: !f.regularOnly)),
+              ),
+              if (options.steps.length > 1)
+                _MenuChip(
+                  icon: Icons.timeline,
+                  allLabel: l10n.productionFilterAll,
+                  values: options.steps,
+                  selected: f.step,
+                  labelOf: stepLabel,
+                  onSelected: (v) => onChanged(v == null
+                      ? f.copyWith(clearStep: true)
+                      : f.copyWith(step: v)),
+                ),
+              if (options.segments.isNotEmpty)
+                _MenuChip(
+                  icon: Icons.groups_outlined,
+                  allLabel: l10n.productionFilterAll,
+                  values: options.segments,
+                  selected: f.segment,
+                  labelOf: (s) => localizedCustomerSegment(context, s),
+                  onSelected: (v) => onChanged(v == null
+                      ? f.copyWith(clearSegment: true)
+                      : f.copyWith(segment: v)),
+                ),
+              if (options.territories.isNotEmpty)
+                _MenuChip(
+                  icon: Icons.place_outlined,
+                  allLabel: l10n.leadFieldTerritory,
+                  values: options.territories,
+                  selected: f.territory,
+                  labelOf: (t) => t,
+                  onSelected: (v) => onChanged(v == null
+                      ? f.copyWith(clearTerritory: true)
+                      : f.copyWith(territory: v)),
+                ),
+              if (f.isActive)
+                ActionChip(
+                  avatar: const Icon(Icons.filter_alt_off_outlined, size: 18),
+                  label: Text(l10n.masterOrdersClearFilters),
+                  onPressed: onClear,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A chip that opens a menu of [values]; shows the picked one, or
+/// [allLabel] when nothing is picked. Picking the first entry clears it.
+class _MenuChip extends StatelessWidget {
+  const _MenuChip({
+    required this.icon,
+    required this.allLabel,
+    required this.values,
+    required this.selected,
+    required this.labelOf,
+    required this.onSelected,
+  });
+
+  final IconData icon;
+  final String allLabel;
+  final List<String> values;
+  final String? selected;
+  final String Function(String) labelOf;
+  final ValueChanged<String?> onSelected;
+
+  /// Menu value for "all"; real values are never empty.
+  static const _all = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final picked = selected;
+    return PopupMenuButton<String>(
+      tooltip: allLabel,
+      onSelected: (v) => onSelected(v == _all ? null : v),
+      itemBuilder: (_) => [
+        PopupMenuItem(value: _all, child: Text(allLabel)),
+        for (final v in values)
+          CheckedPopupMenuItem(
+            value: v,
+            checked: v == picked,
+            child: Text(labelOf(v)),
+          ),
+      ],
+      child: Chip(
+        avatar: Icon(icon, size: 18),
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(picked == null ? allLabel : labelOf(picked)),
+            const Icon(Icons.arrow_drop_down, size: 18),
+          ],
+        ),
+        backgroundColor: picked == null
+            ? null
+            : Theme.of(context).colorScheme.secondaryContainer,
       ),
     );
   }

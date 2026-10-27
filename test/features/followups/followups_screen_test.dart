@@ -9,6 +9,7 @@ import 'package:jarz_pos/src/core/network/user_service.dart';
 import 'package:jarz_pos/src/features/followups/data/followups_repository.dart';
 import 'package:jarz_pos/src/features/followups/data/models/followup_models.dart';
 import 'package:jarz_pos/src/features/followups/presentation/screens/followups_screen.dart';
+import 'package:jarz_pos/src/features/followups/presentation/widgets/followup_card.dart';
 
 class _FakeRepo implements FollowupsRepository {
   _FakeRepo(this.today, {this.logError});
@@ -124,11 +125,37 @@ void main() {
     expect(find.text('Today (1)'), findsOneWidget);
     expect(find.text('Mona'), findsOneWidget);
     expect(find.text('Omar'), findsOneWidget);
-    expect(find.text('High value (≥ 1000)'), findsOneWidget);
-    expect(find.text('Regular'), findsOneWidget);
+    Finder inCard(Finder f) =>
+        find.descendant(of: find.byType(FollowupCard), matching: f);
+    expect(inCard(find.text('High value (≥ 1000)')), findsOneWidget);
+    expect(inCard(find.text('Regular')), findsOneWidget);
     expect(find.textContaining('Order #17901'), findsOneWidget);
-    expect(find.textContaining('Day 2'), findsOneWidget);
-    expect(find.textContaining('After 3 hours'), findsOneWidget);
+    expect(inCard(find.textContaining('Day 2')), findsOneWidget);
+    expect(inCard(find.textContaining('After 3 hours')), findsOneWidget);
+  });
+
+  testWidgets('filters narrow the list and clear restores it', (tester) async {
+    await _pump(tester, _FakeRepo(_today()));
+    Finder chip(String label) =>
+        find.descendant(of: find.byType(FilterChip), matching: find.text(label));
+
+    await tester.tap(chip('Regular'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mona'), findsNothing);
+    expect(find.text('Omar'), findsOneWidget);
+
+    await tester.tap(find.text('Clear Filters'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mona'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '0101234');
+    await tester.pumpAndSettle();
+    expect(find.text('Mona'), findsOneWidget);
+    expect(find.text('Omar'), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'nobody');
+    await tester.pumpAndSettle();
+    expect(find.text('Nothing matches this filter'), findsOneWidget);
   });
 
   testWidgets('Arabic step labels', (tester) async {
