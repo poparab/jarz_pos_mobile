@@ -68,6 +68,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
   bool _chatCartPending = false;
   bool _chatPanelDismissed = false;
   ChatOrderApplyResult? _chatApplyResult;
+  List<ChatPromoOutcome>? _chatPromoOutcomes;
   late final ChatPrefillOrder? _chatOrder = _readChatOrder();
 
   bool get _isB2bOrderRoute =>
@@ -264,15 +265,39 @@ class _PosScreenState extends ConsumerState<PosScreen>
       if (!mounted) return;
       final notifier = ref.read(posNotifierProvider.notifier);
       final result = notifier.applyChatOrder(order);
+      // Pickup before the codes: free-delivery promos depend on it.
       if (order.pickup) notifier.setPickup(true);
       setState(() => _chatApplyResult = result);
+      if (order.promoCodes.isNotEmpty) {
+        unawaited(_applyChatPromos(order.promoCodes));
+      }
+    });
+  }
+
+  /// The chat's promo codes, through the cart's own promo path, once the
+  /// cart is filled (an empty cart leaves them "not applied").
+  Future<void> _applyChatPromos(List<String> codes) async {
+    final outcomes = await ref
+        .read(posNotifierProvider.notifier)
+        .applyChatPromoCodes(codes);
+    if (!mounted) return;
+    setState(() {
+      final merged = [...?_chatPromoOutcomes];
+      for (final outcome in outcomes) {
+        merged.removeWhere((o) => o.code == outcome.code);
+        merged.add(outcome);
+      }
+      _chatPromoOutcomes = merged;
     });
   }
 
   /// "Add as new address" on the chat panel: the POS address dialog opened
-  /// on its new-address tab with the customer's text. Staff edit and confirm;
-  /// only then is the address saved and selected for this order.
-  Future<void> _addChatAddress(String text) async {
+  /// on its new-address tab with the customer's text and map pin. Staff edit
+  /// and confirm; only then is the address saved (with its pin) and selected
+  /// for this order.
+  Future<void> _addChatAddress() async {
+    final order = _chatOrder;
+    if (order == null) return;
     final customer = ref.read(posNotifierProvider).selectedCustomer;
     final customerName = customer?['name']?.toString().trim() ?? '';
     if (customer == null || customerName.isEmpty) return;
@@ -280,7 +305,9 @@ class _PosScreenState extends ConsumerState<PosScreen>
       context,
       customer: customer,
       repository: ref.read(customerAddressRepositoryProvider),
-      initialNewAddress: text,
+      // Empty text with a pin still opens the new-address tab.
+      initialNewAddress: order.addressText ?? '',
+      initialNewLocation: chatLocationLinkValue(order.location),
     );
     if (merged == null || !mounted) return;
     final active = ref
@@ -300,6 +327,8 @@ class _PosScreenState extends ConsumerState<PosScreen>
     return ChatOrderPanel(
       order: order,
       result: _chatApplyResult,
+      promoOutcomes: _chatPromoOutcomes,
+      onApplyPromo: (code) => unawaited(_applyChatPromos([code])),
       onDismiss: () => setState(() => _chatPanelDismissed = true),
       onAddAddress: hasCustomer && !state.isB2bOrder ? _addChatAddress : null,
     );

@@ -13,6 +13,35 @@ import 'package:jarz_pos/src/features/pos/state/pos_notifier.dart';
 
 class _FakePosRepository extends PosRepository {
   _FakePosRepository() : super(Dio());
+
+  /// Codes the server refuses, with the reason it gives.
+  final Map<String, String> refuse = {};
+  bool promoThrows = false;
+  final List<List<String>> promoCalls = [];
+  final List<int> promoCartSizes = [];
+
+  @override
+  Future<Map<String, dynamic>> validatePromoCodes({
+    required List<String> codes,
+    required List<Map<String, dynamic>> items,
+    String? customer,
+    required String posProfile,
+    bool isPickup = false,
+  }) async {
+    promoCalls.add(List.of(codes));
+    promoCartSizes.add(items.length);
+    if (promoThrows) throw Exception('promo service down');
+    return {
+      'results': [
+        for (final code in codes)
+          refuse.containsKey(code)
+              ? {'code': code, 'accepted': false, 'reason': refuse[code]}
+              : {'code': code, 'accepted': true, 'discount_amount': 10},
+      ],
+      'total_discount': 10.0 * codes.where((c) => !refuse.containsKey(c)).length,
+      'free_delivery': false,
+    };
+  }
 }
 
 class _FakeDraftCartRepository extends DraftCartRepository {
@@ -336,6 +365,75 @@ void main() {
       );
       expect(notifier.state.cartItems.single['quantity'], 3);
       expect(result.overStock, [_lotus]);
+    });
+  });
+
+  group('PosNotifier.applyChatPromoCodes', () {
+    late _FakePosRepository repo;
+    late PosNotifier notifier;
+
+    setUp(() {
+      repo = _FakePosRepository();
+      notifier = PosNotifier(repo, _FakeDraftCartRepository());
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Dokki'},
+        items: _items,
+        bundles: [_trio()],
+        selectedCustomer: const {'name': 'CUST-1', 'customer_name': 'Mona'},
+      );
+    });
+
+    tearDown(() => notifier.dispose());
+
+    test('codes go through the POS promo path once, after the cart', () async {
+      notifier.applyChatOrder(
+        ChatPrefillOrder(lines: [_itemLine(_hazelnut, 2)]),
+      );
+      final outcomes = await notifier.applyChatPromoCodes(
+        ['backxq33vv', 'BACKXQ33VV', 'SPRING'],
+      );
+
+      expect(outcomes.map((o) => (o.code, o.status)), [
+        ('BACKXQ33VV', ChatPromoStatus.applied),
+        ('SPRING', ChatPromoStatus.applied),
+      ]);
+      // One preview per code, each sent with the filled cart.
+      expect(repo.promoCalls, [
+        ['BACKXQ33VV'],
+        ['BACKXQ33VV', 'SPRING'],
+      ]);
+      expect(repo.promoCartSizes, everyElement(1));
+      expect(notifier.state.appliedPromoCodes, ['BACKXQ33VV', 'SPRING']);
+      expect(notifier.state.promoDiscount, 20.0);
+
+      // Applying again is a no-op, as typing the same code twice is.
+      await notifier.applyChatPromoCodes(['BACKXQ33VV']);
+      expect(repo.promoCalls, hasLength(2));
+    });
+
+    test('nothing is applied when the cart is empty', () async {
+      final outcomes = await notifier.applyChatPromoCodes(['BACKXQ33VV']);
+      expect(outcomes.single.status, ChatPromoStatus.notApplied);
+      expect(repo.promoCalls, isEmpty);
+      expect(notifier.state.appliedPromoCodes, isEmpty);
+    });
+
+    test('a refused code carries the server reason', () async {
+      repo.refuse['OLD10'] = 'This code has expired';
+      notifier.addToCart(_items.first);
+      final outcomes = await notifier.applyChatPromoCodes(['OLD10']);
+      expect(outcomes.single.status, ChatPromoStatus.refused);
+      expect(outcomes.single.reason, 'This code has expired');
+      // Left on the cart as a refused chip, exactly as if typed.
+      expect(notifier.state.appliedPromoCodes, ['OLD10']);
+    });
+
+    test('a failed preview is a refusal with the error', () async {
+      repo.promoThrows = true;
+      notifier.addToCart(_items.first);
+      final outcomes = await notifier.applyChatPromoCodes(['BACKXQ33VV']);
+      expect(outcomes.single.status, ChatPromoStatus.refused);
+      expect(outcomes.single.reason, contains('promo service down'));
     });
   });
 }

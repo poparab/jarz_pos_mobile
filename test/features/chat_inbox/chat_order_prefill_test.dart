@@ -156,6 +156,87 @@ void main() {
     });
   });
 
+  group('location, promo codes and payment method', () {
+    test('parse, normalise and round-trip', () {
+      final order = ChatPrefillOrder.fromJson({
+        'lines': <dynamic>[],
+        'location': {
+          'latitude': 30.0600493,
+          'longitude': '31.2086096',
+          'link': 'https://www.google.com/maps/search/?api=1&query=30.06,31.20',
+        },
+        'promo_codes': [' backxq33vv ', 'BACKXQ33VV', 'spring'],
+        'payment_method': 'InstaPay',
+      });
+      expect(order.location!.latitude, 30.0600493);
+      expect(order.location!.longitude, 31.2086096);
+      expect(order.location!.hasCoordinates, isTrue);
+      expect(order.location!.mapUrl, startsWith('https://www.google.com/maps'));
+      expect(order.promoCodes, ['BACKXQ33VV', 'SPRING']);
+      expect(order.paymentMethod, ChatPaymentMethods.instapay);
+      expect(order.hasNewAddress, isTrue, reason: 'a pin alone is an address');
+
+      final again = ChatPrefillOrder.fromJson(order.toJson());
+      expect(again.location!.latitude, 30.0600493);
+      expect(again.location!.link, order.location!.link);
+      expect(again.promoCodes, order.promoCodes);
+      expect(again.paymentMethod, 'instapay');
+    });
+
+    test('a short link without coordinates is kept; half a pin is dropped', () {
+      final short = ChatPrefillLocation.maybeFromJson({
+        'latitude': null,
+        'longitude': null,
+        'link': 'https://maps.app.goo.gl/abc',
+      })!;
+      expect(short.hasCoordinates, isFalse);
+      expect(short.mapUrl, 'https://maps.app.goo.gl/abc');
+
+      final half = ChatPrefillLocation.maybeFromJson({
+        'latitude': 30.1,
+        'longitude': null,
+        'link': '',
+      });
+      expect(half, isNull);
+
+      final coordsOnly = ChatPrefillLocation.maybeFromJson({
+        'latitude': 30.1,
+        'longitude': 31.2,
+      })!;
+      expect(coordsOnly.mapUrl,
+          'https://www.google.com/maps/search/?api=1&query=30.1,31.2');
+      expect(ChatPrefillLocation.maybeFromJson(null), isNull);
+      expect(ChatPrefillLocation.maybeFromJson('x'), isNull);
+    });
+
+    test('older backends omit the keys', () {
+      final order = ChatPrefillOrder.fromJson({
+        'lines': [
+          {'kind': 'item', 'item_code': 'A', 'qty': 1},
+        ],
+      });
+      expect(order.location, isNull);
+      expect(order.promoCodes, isEmpty);
+      expect(order.paymentMethod, isNull);
+    });
+
+    test('promo codes and payment count for isEmpty / changesCart', () {
+      final promoOnly = ChatPrefillOrder.fromJson({'promo_codes': ['X1']});
+      expect(promoOnly.isEmpty, isFalse);
+      expect(promoOnly.changesCart, isTrue);
+
+      final paymentOnly = ChatPrefillOrder.fromJson({'payment_method': 'cash'});
+      expect(paymentOnly.isEmpty, isFalse);
+      expect(paymentOnly.changesCart, isFalse);
+
+      final pinOnly = ChatPrefillOrder.fromJson({
+        'location': {'link': 'https://maps.app.goo.gl/abc'},
+      });
+      expect(pinOnly.isEmpty, isFalse);
+      expect(pinOnly.changesCart, isFalse);
+    });
+  });
+
   group('ChatRepository.fetchOrderPrefill', () {
     late MockDio dio;
     late ChatRepository repo;

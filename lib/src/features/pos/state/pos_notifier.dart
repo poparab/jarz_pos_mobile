@@ -1677,6 +1677,52 @@ class PosNotifier extends StateNotifier<PosState> {
     );
   }
 
+  /// Applies the chat's promo [codes] one after another through
+  /// [applyPromoCode], the path the cart's promo field uses, so the server's
+  /// evaluation and any refusal land in [PosState.promoResults] exactly as if
+  /// typed. Call it after the cart is filled. With an empty cart nothing is
+  /// applied and every code comes back as [ChatPromoStatus.notApplied].
+  Future<List<ChatPromoOutcome>> applyChatPromoCodes(List<String> codes) async {
+    final outcomes = <ChatPromoOutcome>[];
+    final seen = <String>{};
+    for (final raw in codes) {
+      final code = raw.trim().toUpperCase();
+      if (code.isEmpty || !seen.add(code)) continue;
+      if (state.cartItems.isEmpty) {
+        outcomes.add(ChatPromoOutcome(code, ChatPromoStatus.notApplied));
+        continue;
+      }
+      final previousError = state.error;
+      await applyPromoCode(code);
+      final result = state.promoResults.cast<Map<String, dynamic>?>().firstWhere(
+        (r) => r?['code']?.toString().trim().toUpperCase() == code,
+        orElse: () => null,
+      );
+      if (result != null) {
+        final reason = result['reason']?.toString().trim();
+        outcomes.add(
+          ChatPromoOutcome(
+            code,
+            result['accepted'] == true
+                ? ChatPromoStatus.applied
+                : ChatPromoStatus.refused,
+            reason: (reason == null || reason.isEmpty) ? null : reason,
+          ),
+        );
+        continue;
+      }
+      final error = state.error;
+      outcomes.add(
+        ChatPromoOutcome(
+          code,
+          ChatPromoStatus.refused,
+          reason: error != null && error != previousError ? error : null,
+        ),
+      );
+    }
+    return outcomes;
+  }
+
   void updateBundleInCart(
     int cartIndex,
     Map<String, List<Map<String, dynamic>>> newSelectedItems,

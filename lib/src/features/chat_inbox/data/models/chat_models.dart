@@ -765,6 +765,58 @@ class ChatPrefillArea {
       };
 }
 
+/// A map pin the customer sent in the chat (`order.location`). A resolved
+/// link carries coordinates; a short link (maps.app.goo.gl) may not.
+class ChatPrefillLocation {
+  final double? latitude;
+  final double? longitude;
+  final String link;
+
+  const ChatPrefillLocation({this.latitude, this.longitude, this.link = ''});
+
+  bool get hasCoordinates => latitude != null && longitude != null;
+
+  /// What "Open map" opens: the link, else a search on the coordinates.
+  String? get mapUrl {
+    if (link.isNotEmpty) return link;
+    if (!hasCoordinates) return null;
+    return 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+  }
+
+  static ChatPrefillLocation? maybeFromJson(dynamic raw) {
+    if (raw is! Map) return null;
+    final json = _asMap(raw);
+    var latitude = chatNullableDouble(json['latitude']);
+    var longitude = chatNullableDouble(json['longitude']);
+    // Half a coordinate is no coordinate.
+    if (latitude == null || longitude == null) {
+      latitude = null;
+      longitude = null;
+    }
+    final link = chatNullableString(json['link']) ?? '';
+    if (link.isEmpty && latitude == null) return null;
+    return ChatPrefillLocation(
+      latitude: latitude,
+      longitude: longitude,
+      link: link,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'latitude': latitude,
+        'longitude': longitude,
+        'link': link,
+      };
+}
+
+/// The payment methods the chat reader names (`order.payment_method`).
+abstract final class ChatPaymentMethods {
+  static const cash = 'cash';
+  static const instapay = 'instapay';
+  static const wallet = 'wallet';
+  static const card = 'card';
+}
+
 /// `get_order_prefill(with_order=1)`'s `order`: what the customer asked for
 /// in the chat, read by the AI. Nothing here is applied to the customer
 /// record; the POS only fills the cart and shows the rest to staff.
@@ -775,6 +827,9 @@ class ChatPrefillOrder {
   final String? addressText;
   final ChatPrefillArea? area;
 
+  /// A map pin the customer sent, for the new address.
+  final ChatPrefillLocation? location;
+
   /// A phone / name the customer typed that differs from the one on file.
   final String? phone;
   final String? contactName;
@@ -782,15 +837,27 @@ class ChatPrefillOrder {
   final String? notes;
   final List<String> warnings;
 
+  /// Promo codes the customer gave, already checked server-side (exist,
+  /// usable now, this customer's or public). Applied through the POS's own
+  /// promo path once the cart is filled.
+  final List<String> promoCodes;
+
+  /// How the customer said they will pay ([ChatPaymentMethods]), lower-case;
+  /// display only.
+  final String? paymentMethod;
+
   const ChatPrefillOrder({
     this.lines = const [],
     this.addressText,
     this.area,
+    this.location,
     this.phone,
     this.contactName,
     this.pickup = false,
     this.notes,
     this.warnings = const [],
+    this.promoCodes = const [],
+    this.paymentMethod,
   });
 
   /// True when there is nothing to put in the cart or show to staff.
@@ -798,14 +865,21 @@ class ChatPrefillOrder {
       lines.isEmpty &&
       addressText == null &&
       area == null &&
+      location == null &&
       phone == null &&
       contactName == null &&
       !pickup &&
       notes == null &&
-      warnings.isEmpty;
+      warnings.isEmpty &&
+      promoCodes.isEmpty &&
+      paymentMethod == null;
 
-  /// True when opening the POS changes the cart (lines or pickup).
-  bool get changesCart => lines.isNotEmpty || pickup;
+  /// True when opening the POS changes the cart (lines, pickup or promo
+  /// codes), so the chat order gets a cart of its own.
+  bool get changesCart => lines.isNotEmpty || pickup || promoCodes.isNotEmpty;
+
+  /// True when "Add as new address" has something to prefill.
+  bool get hasNewAddress => addressText != null || location != null;
 
   static ChatPrefillOrder? maybeFromJson(dynamic raw) {
     if (raw is! Map) return null;
@@ -819,6 +893,11 @@ class ChatPrefillOrder {
     final addressText = address is Map
         ? chatNullableString(address['text'])
         : chatNullableString(address);
+    final promoCodes = <String>[];
+    for (final code in chatStringList(json['promo_codes'])) {
+      final normalized = code.toUpperCase();
+      if (!promoCodes.contains(normalized)) promoCodes.add(normalized);
+    }
     return ChatPrefillOrder(
       lines: rawLines is List
           ? rawLines
@@ -829,11 +908,14 @@ class ChatPrefillOrder {
           : const [],
       addressText: addressText,
       area: ChatPrefillArea.maybeFromJson(json['area']),
+      location: ChatPrefillLocation.maybeFromJson(json['location']),
       phone: chatNullableString(json['phone']),
       contactName: chatNullableString(json['contact_name']),
       pickup: chatBool(json['pickup']),
       notes: chatNullableString(json['notes']),
       warnings: chatStringList(json['warnings']),
+      promoCodes: List.unmodifiable(promoCodes),
+      paymentMethod: chatNullableString(json['payment_method'])?.toLowerCase(),
     );
   }
 
@@ -842,11 +924,14 @@ class ChatPrefillOrder {
         'lines': lines.map((l) => l.toJson()).toList(),
         'address': addressText == null ? null : {'text': addressText},
         'area': area?.toJson(),
+        'location': location?.toJson(),
         'phone': phone,
         'contact_name': contactName,
         'pickup': pickup,
         'notes': notes,
         'warnings': warnings,
+        'promo_codes': promoCodes,
+        'payment_method': paymentMethod,
       };
 }
 

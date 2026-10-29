@@ -102,6 +102,26 @@ class ChatOrderApplyResult {
   });
 }
 
+/// What happened to a promo code the customer gave in the chat.
+enum ChatPromoStatus {
+  /// The POS's promo preview accepted it.
+  applied,
+
+  /// The POS refused it (reason in [ChatPromoOutcome.reason] when known).
+  refused,
+
+  /// Not tried: the cart was empty. Staff can apply it once items are in.
+  notApplied,
+}
+
+class ChatPromoOutcome {
+  final String code;
+  final ChatPromoStatus status;
+  final String? reason;
+
+  const ChatPromoOutcome(this.code, this.status, {this.reason});
+}
+
 String _str(dynamic value) => value?.toString().trim() ?? '';
 
 double _asDouble(dynamic value) {

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../chat_inbox/data/models/chat_models.dart';
+import '../../../geo/presentation/widgets/location_link_field.dart'
+    show LocationLinkValue;
 import '../../state/chat_order_apply.dart';
 
 /// Inline bilingual text. The chat-order panel deliberately carries no .arb
@@ -45,6 +48,41 @@ String chatOrderSkipReasonText(
   ),
 };
 
+/// The chat's map pin as the address dialog's location value. With
+/// coordinates the pin is already confirmed; a short link without them
+/// arrives unresolved and the location field checks it like a pasted link.
+LocationLinkValue? chatLocationLinkValue(ChatPrefillLocation? location) {
+  if (location == null) return null;
+  final link = location.link.isNotEmpty
+      ? location.link
+      : (location.hasCoordinates
+            ? '${location.latitude},${location.longitude}'
+            : '');
+  if (link.isEmpty) return null;
+  return LocationLinkValue(
+    link: link,
+    latitude: location.hasCoordinates ? location.latitude : null,
+    longitude: location.hasCoordinates ? location.longitude : null,
+  );
+}
+
+String chatPaymentMethodText(BuildContext context, String method) =>
+    switch (method) {
+      ChatPaymentMethods.cash => chatOrderText(context, 'cash', 'نقدًا'),
+      ChatPaymentMethods.instapay => chatOrderText(
+        context,
+        'InstaPay',
+        'إنستاباي',
+      ),
+      ChatPaymentMethods.wallet => chatOrderText(
+        context,
+        'mobile wallet',
+        'محفظة إلكترونية',
+      ),
+      ChatPaymentMethods.card => chatOrderText(context, 'card', 'بطاقة'),
+      _ => method,
+    };
+
 String _qty(double qty) =>
     qty == qty.roundToDouble() ? qty.toInt().toString() : qty.toString();
 
@@ -58,7 +96,10 @@ class ChatOrderPanel extends StatefulWidget {
     required this.order,
     required this.result,
     required this.onDismiss,
+    this.promoOutcomes,
     this.onAddAddress,
+    this.onApplyPromo,
+    this.onOpenMap,
   });
 
   final ChatPrefillOrder order;
@@ -67,8 +108,19 @@ class ChatOrderPanel extends StatefulWidget {
   final ChatOrderApplyResult? result;
   final VoidCallback onDismiss;
 
-  /// Opens the POS address dialog prefilled with the chat's address text.
-  final ValueChanged<String>? onAddAddress;
+  /// What the chat's promo codes did; null until they were tried.
+  final List<ChatPromoOutcome>? promoOutcomes;
+
+  /// Opens the POS address dialog on its new-address tab, prefilled with the
+  /// chat's address text and map pin.
+  final VoidCallback? onAddAddress;
+
+  /// Applies one chat promo code through the POS promo path (for a code that
+  /// was not tried because the cart was empty).
+  final ValueChanged<String>? onApplyPromo;
+
+  /// Opens a map URL; defaults to url_launcher (tests inject a fake).
+  final ValueChanged<Uri>? onOpenMap;
 
   @override
   State<ChatOrderPanel> createState() => _ChatOrderPanelState();
@@ -85,6 +137,24 @@ class _ChatOrderPanelState extends State<ChatOrderPanel> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(_t('Copied', 'تم النسخ'))));
+  }
+
+  Future<void> _openMap(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    final open = widget.onOpenMap;
+    if (open != null) {
+      open(uri);
+      return;
+    }
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(_t('Could not open the map', 'تعذّر فتح الخريطة'))),
+        );
+    }
   }
 
   String _status() {
@@ -163,6 +233,65 @@ class _ChatOrderPanelState extends State<ChatOrderPanel> {
       .map((pick) => '${pick.itemCode} ×${pick.qty}')
       .join('، ');
 
+  List<Widget> _promoRows() {
+    final outcomes = widget.promoOutcomes;
+    final rows = <Widget>[];
+    for (final code in widget.order.promoCodes) {
+      final outcome = outcomes?.cast<ChatPromoOutcome?>().firstWhere(
+        (o) => o?.code == code,
+        orElse: () => null,
+      );
+      final String status;
+      Widget? action;
+      switch (outcome?.status) {
+        case null:
+          status = _t('waiting for the cart', 'بانتظار السلة');
+        case ChatPromoStatus.applied:
+          status = outcome!.reason ?? _t('applied', 'تم التطبيق');
+        case ChatPromoStatus.refused:
+          status =
+              '${_t('refused', 'مرفوض')}'
+              '${outcome!.reason == null ? '' : ': ${outcome.reason}'}';
+        case ChatPromoStatus.notApplied:
+          status = _t(
+            'not applied (the cart was empty)',
+            'لم يُطبَّق (السلة كانت فارغة)',
+          );
+          final apply = widget.onApplyPromo;
+          if (apply != null) {
+            action = TextButton(
+              key: ValueKey('chat-order-apply-promo-$code'),
+              onPressed: () => apply(code),
+              child: Text(_t('Apply', 'تطبيق')),
+            );
+          }
+      }
+      final icon = switch (outcome?.status) {
+        ChatPromoStatus.applied => Icons.check_circle_outline,
+        ChatPromoStatus.refused => Icons.error_outline,
+        _ => Icons.local_offer_outlined,
+      };
+      rows.add(
+        Row(
+          key: ValueKey('chat-order-promo-$code'),
+          children: [
+            Icon(icon, size: 16),
+            const SizedBox(width: 6),
+            Expanded(child: Text('$code — $status')),
+            IconButton(
+              tooltip: _t('Copy', 'نسخ'),
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.copy, size: 18),
+              onPressed: () => _copy(code),
+            ),
+            if (action != null) action,
+          ],
+        ),
+      );
+    }
+    return rows;
+  }
+
   List<Widget> _body() {
     final order = widget.order;
     final result = widget.result;
@@ -218,6 +347,26 @@ class _ChatOrderPanelState extends State<ChatOrderPanel> {
       );
     }
 
+    if (order.promoCodes.isNotEmpty) {
+      widgets.add(_section(_t('Promo codes', 'أكواد الخصم'), _promoRows()));
+    }
+
+    final payment = order.paymentMethod;
+    if (payment != null) {
+      final method = chatPaymentMethodText(context, payment);
+      widgets.add(
+        _section(_t('Payment', 'الدفع'), [
+          Text(
+            _t(
+              'Customer said they will pay by $method.',
+              'قال العميل إنه سيدفع عن طريق $method.',
+            ),
+            key: const ValueKey('chat-order-payment'),
+          ),
+        ]),
+      );
+    }
+
     if (order.pickup) {
       widgets.add(
         _section(
@@ -246,7 +395,6 @@ class _ChatOrderPanelState extends State<ChatOrderPanel> {
     final details = <Widget>[];
     final address = order.addressText;
     if (address != null) {
-      final onAdd = widget.onAddAddress;
       details.add(
         _copyRow(
           _t('New address', 'عنوان جديد'),
@@ -254,19 +402,63 @@ class _ChatOrderPanelState extends State<ChatOrderPanel> {
           key: const ValueKey('chat-order-address'),
         ),
       );
-      if (onAdd != null) {
-        details.add(
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton.icon(
-              key: const ValueKey('chat-order-add-address'),
-              onPressed: () => onAdd(address),
-              icon: const Icon(Icons.add_location_alt_outlined, size: 18),
-              label: Text(_t('Add as new address', 'إضافة كعنوان جديد')),
+    }
+    final location = order.location;
+    if (location != null) {
+      final shown = location.link.isNotEmpty
+          ? location.link
+          : '${location.latitude}, ${location.longitude}';
+      final mapUrl = location.mapUrl;
+      details.add(
+        Row(
+          key: const ValueKey('chat-order-location'),
+          children: [
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '${_t('Map pin', 'موقع على الخريطة')}: ',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    TextSpan(text: shown),
+                  ],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
+            IconButton(
+              tooltip: _t('Copy', 'نسخ'),
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.copy, size: 18),
+              onPressed: () => _copy(shown),
+            ),
+            if (mapUrl != null)
+              IconButton(
+                key: const ValueKey('chat-order-open-map'),
+                tooltip: _t('Open map', 'فتح الخريطة'),
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.map_outlined, size: 18),
+                onPressed: () => _openMap(mapUrl),
+              ),
+          ],
+        ),
+      );
+    }
+    final onAdd = widget.onAddAddress;
+    if (order.hasNewAddress && onAdd != null) {
+      details.add(
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            key: const ValueKey('chat-order-add-address'),
+            onPressed: onAdd,
+            icon: const Icon(Icons.add_location_alt_outlined, size: 18),
+            label: Text(_t('Add as new address', 'إضافة كعنوان جديد')),
           ),
-        );
-      }
+        ),
+      );
     }
     final area = order.area;
     if (area != null) {
