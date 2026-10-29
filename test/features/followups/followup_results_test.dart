@@ -42,6 +42,19 @@ Map<String, Object?> _order(
 };
 
 void main() {
+  test('customer filter matches the ID exactly, not the name', () {
+    final items = [
+      _item('a', customerName: 'Ali'),
+      _item('b', customerName: 'Alia'),
+      _item('c', customerName: 'Ali'),
+    ];
+    final f = const FollowupMessageFilter(customer: 'CUST-a', customerName: 'Ali');
+    expect(f.isActive, isTrue);
+    expect(filterSentItems(items, f).map((i) => i.name), ['a']);
+    final cleared = f.copyWith(customer: '', customerName: '');
+    expect(filterSentItems(items, cleared).length, 3);
+  });
+
   group('filterSentItems', () {
     final mona = _item(
       'A',

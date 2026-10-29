@@ -21,6 +21,10 @@ class FollowupResultsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final canPop = Navigator.of(context).canPop();
+    // Only the Messages tab watches the filter, and TabBarView unmounts tabs
+    // off screen, so without this the autoDispose filter is dropped the moment
+    // "all messages to this customer" sets it from Replies or Orders.
+    ref.listen(followupMessageFilterProvider, (_, _) {});
 
     return DefaultTabController(
       length: 5,

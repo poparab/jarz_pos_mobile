@@ -26,7 +26,12 @@ void _openMessage(
     currency: currency,
     onShowCustomer: (name) {
       ref.read(followupMessageFilterProvider.notifier).state =
-          FollowupMessageFilter(query: name);
+          item.customer.isEmpty
+              ? FollowupMessageFilter(query: name)
+              : FollowupMessageFilter(
+                  customer: item.customer,
+                  customerName: name,
+                );
       tabs?.animateTo(kFollowupMessagesTabIndex);
     },
   );
@@ -198,6 +203,21 @@ class _FilterHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (filter.customer.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: InputChip(
+              avatar: const Icon(Icons.person_outline, size: 18),
+              label: Text(
+                filter.customerName.isEmpty
+                    ? filter.customer
+                    : filter.customerName,
+              ),
+              onDeleted: () => onChanged(
+                filter.copyWith(customer: '', customerName: ''),
+              ),
+            ),
+          ),
         TextField(
           controller: controller,
           textInputAction: TextInputAction.search,
@@ -586,11 +606,14 @@ class _OrdersList extends ConsumerWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
+                      // The server totals every order; the list below shows at
+                      // most 5 per message, so prefer its figures to match
+                      // Overview.
                       l10n.followupResultsOrdersSummary(
-                        formatCount(context, rows.length),
+                        formatCount(context, report.money?.orders ?? rows.length),
                         followupMoneyText(
                           context,
-                          ordersTotal(rows),
+                          report.money?.revenue ?? ordersTotal(rows),
                           currency: currency,
                         ),
                       ),

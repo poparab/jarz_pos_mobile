@@ -84,29 +84,41 @@ class FollowupMessageFilter {
   final Set<String> statuses;
   final Set<FollowupMessageOutcome> outcomes;
 
+  /// One customer by ID, matched exactly ("all messages to this customer"), so
+  /// two customers sharing a name never merge. [customerName] is its label.
+  final String customer;
+  final String customerName;
+
   const FollowupMessageFilter({
     this.query = '',
     this.steps = const <String>{},
     this.statuses = const <String>{},
     this.outcomes = const <FollowupMessageOutcome>{},
+    this.customer = '',
+    this.customerName = '',
   });
 
   bool get isActive =>
       query.trim().isNotEmpty ||
       steps.isNotEmpty ||
       statuses.isNotEmpty ||
-      outcomes.isNotEmpty;
+      outcomes.isNotEmpty ||
+      customer.isNotEmpty;
 
   FollowupMessageFilter copyWith({
     String? query,
     Set<String>? steps,
     Set<String>? statuses,
     Set<FollowupMessageOutcome>? outcomes,
+    String? customer,
+    String? customerName,
   }) => FollowupMessageFilter(
     query: query ?? this.query,
     steps: steps ?? this.steps,
     statuses: statuses ?? this.statuses,
     outcomes: outcomes ?? this.outcomes,
+    customer: customer ?? this.customer,
+    customerName: customerName ?? this.customerName,
   );
 
   /// Toggles [value] in [set], returning a new set.
@@ -170,7 +182,8 @@ List<FollowupSentItem> filterSentItems(
   if (!filter.isActive) return items;
   return [
     for (final item in items)
-      if (_matchesQuery(item, filter.query) &&
+      if ((filter.customer.isEmpty || item.customer == filter.customer) &&
+          _matchesQuery(item, filter.query) &&
           (filter.steps.isEmpty || filter.steps.contains(item.step)) &&
           _matchesStatus(item, filter.statuses) &&
           _matchesOutcome(item, filter.outcomes))
