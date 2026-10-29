@@ -580,6 +580,41 @@ List<ChatMessage> mergeChatMessages(
 bool chatDraftIsShowable(ChatDraft? draft) =>
     draft != null && (draft.isPending || draft.isFailed);
 
+/// Whether the newest message in the thread is ours (outbound: sent from the
+/// app or echoed from the phone). Falls back to the summary's
+/// `last_direction` when no message is loaded.
+bool chatNewestIsOurs(ChatThreadState state) {
+  if (state.messages.isNotEmpty) return state.messages.last.isOutbound;
+  return state.conversation.lastDirection == 'Outbound';
+}
+
+/// What sits between the message list and the composer.
+enum ChatAiSlot {
+  /// Nothing: the customer spoke last and no draft is showable (the server
+  /// drafts on its own; unchanged behaviour).
+  none,
+
+  /// The draft panel for [ChatThreadState.draft] (Pending or Failed).
+  draft,
+
+  /// We spoke last: offer "Ask AI for a message" (an instruction is required).
+  askForMessage,
+
+  /// We spoke last and the 24-hour reply window is closed: a short note
+  /// instead of the ask action, since a free-form message cannot be sent.
+  windowClosed,
+}
+
+/// Which AI affordance the thread shows. A showable draft always wins, so the
+/// customer-spoke-last flow is untouched.
+ChatAiSlot chatAiSlot(ChatThreadState state) {
+  if (chatDraftIsShowable(state.draft)) return ChatAiSlot.draft;
+  if (!chatNewestIsOurs(state)) return ChatAiSlot.none;
+  return state.conversation.windowOpen
+      ? ChatAiSlot.askForMessage
+      : ChatAiSlot.windowClosed;
+}
+
 class ChatThreadNotifier
     extends AutoDisposeFamilyAsyncNotifier<ChatThreadState, String> {
   static const pageSize = 50;

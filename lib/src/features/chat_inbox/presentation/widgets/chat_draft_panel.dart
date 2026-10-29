@@ -10,6 +10,9 @@ import '../../data/models/chat_models.dart';
 /// from the draft (the server refuses an unchanged complaint reply anyway).
 /// A Failed draft shows "draft unavailable — type your reply" and only
 /// Regenerate.
+///
+/// See also [ChatAskAiBar], shown in this panel's place when our message is
+/// the newest and no draft is waiting.
 class ChatDraftPanel extends StatefulWidget {
   const ChatDraftPanel({
     super.key,
@@ -242,6 +245,72 @@ class _ChatDraftPanelState extends State<ChatDraftPanel> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Shown above the composer when our message is the newest and no draft is
+/// waiting: "Ask AI for a message" (opens the required-instruction dialog),
+/// or, when the 24-hour reply window is closed, a short note instead, since
+/// a free-form message could not be delivered.
+class ChatAskAiBar extends StatelessWidget {
+  const ChatAskAiBar({
+    super.key,
+    required this.windowClosed,
+    required this.busy,
+    required this.onAsk,
+  });
+
+  final bool windowClosed;
+
+  /// The ask is in flight: spinner, button disabled.
+  final bool busy;
+  final VoidCallback onAsk;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    String bi(String en, String arText) => ar ? arText : en;
+
+    return Material(
+      key: const ValueKey('chat-ask-ai-bar'),
+      color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.30),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+        child: windowClosed
+            ? _NoteRow(
+                key: const ValueKey('chat-ask-ai-window-closed'),
+                icon: Icons.schedule,
+                color: theme.colorScheme.error,
+                text: bi(
+                  'The 24-hour window is closed, so the AI cannot draft a new '
+                  'message. Wait for the customer to write again.',
+                  'فترة الـ 24 ساعة خلصت، فالذكاء الاصطناعي مش هيقدر يكتب رسالة '
+                      'جديدة. استنى لحد ما العميل يبعت تاني.',
+                ),
+              )
+            : Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  key: const ValueKey('chat-ask-ai'),
+                  onPressed: busy ? null : onAsk,
+                  icon: busy
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.auto_awesome),
+                  label: Text(
+                    bi(
+                      'Ask AI for a message',
+                      'اطلب رسالة من الذكاء الاصطناعي',
+                    ),
+                  ),
+                ),
+              ),
       ),
     );
   }

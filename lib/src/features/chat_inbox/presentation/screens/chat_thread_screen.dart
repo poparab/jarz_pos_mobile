@@ -110,13 +110,29 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
     }
   }
 
+  /// `regenerate_draft` with the moderator's instruction. When our message
+  /// is the newest (the "Ask AI for a message" bar, or Regenerate on a draft
+  /// it produced) the AI drafts an extra message from Jarz, so the
+  /// instruction is required.
   Future<void> _regenerate() async {
     if (_draftBusy) return;
-    final hint = await showChatRegenerateDialog(context);
+    final current = ref.read(chatThreadProvider(_name)).valueOrNull;
+    final requireHint = current != null && chatNewestIsOurs(current);
+    final hint = await showChatRegenerateDialog(
+      context,
+      requireHint: requireHint,
+    );
     if (hint == null || !mounted) return;
+    if (requireHint && hint.isEmpty) return;
     setState(() => _draftBusy = true);
     try {
-      await _notifier.regenerateDraft(hint: hint);
+      final draft = await _notifier.regenerateDraft(hint: hint);
+      if (draft == null && requireHint) {
+        _snack(_bi(
+          'The AI did not return a message. Try again or type it yourself.',
+          'الذكاء الاصطناعي مرجعش رسالة. جرّب تاني أو اكتبها بنفسك.',
+        ));
+      }
     } catch (e) {
       _snackError(e);
     } finally {
@@ -516,15 +532,27 @@ class _ThreadBody extends StatelessWidget {
             },
           ),
         ),
-        if (chatDraftIsShowable(draft))
-          ChatDraftPanel(
-            key: ValueKey('chat-draft-${draft!.name}'),
-            draft: draft,
-            busy: draftBusy,
-            onSend: onSendDraft,
-            onReject: onRejectDraft,
-            onRegenerate: onRegenerate,
-          ),
+        switch (chatAiSlot(state)) {
+          ChatAiSlot.draft => ChatDraftPanel(
+              key: ValueKey('chat-draft-${draft!.name}'),
+              draft: draft,
+              busy: draftBusy,
+              onSend: onSendDraft,
+              onReject: onRejectDraft,
+              onRegenerate: onRegenerate,
+            ),
+          ChatAiSlot.askForMessage => ChatAskAiBar(
+              windowClosed: false,
+              busy: draftBusy,
+              onAsk: onRegenerate,
+            ),
+          ChatAiSlot.windowClosed => ChatAskAiBar(
+              windowClosed: true,
+              busy: draftBusy,
+              onAsk: onRegenerate,
+            ),
+          ChatAiSlot.none => const SizedBox.shrink(),
+        },
         Material(
           elevation: 4,
           child: SafeArea(

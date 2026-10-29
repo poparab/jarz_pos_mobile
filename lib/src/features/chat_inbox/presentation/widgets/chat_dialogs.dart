@@ -217,17 +217,26 @@ class _RejectSheetState extends State<_RejectSheet> {
   }
 }
 
-/// Optional instruction for `regenerate_draft`. Returns the hint (possibly
-/// empty) or null when cancelled.
-Future<String?> showChatRegenerateDialog(BuildContext context) {
+/// Instruction for `regenerate_draft`. Returns the hint (possibly empty) or
+/// null when cancelled.
+///
+/// With [requireHint] (our message is the newest, so the AI drafts an extra
+/// message from Jarz) the dialog asks what the message should say and the
+/// confirm button stays disabled until something is typed.
+Future<String?> showChatRegenerateDialog(
+  BuildContext context, {
+  bool requireHint = false,
+}) {
   return showDialog<String>(
     context: context,
-    builder: (context) => const _RegenerateDialog(),
+    builder: (context) => _RegenerateDialog(requireHint: requireHint),
   );
 }
 
 class _RegenerateDialog extends StatefulWidget {
-  const _RegenerateDialog();
+  const _RegenerateDialog({this.requireHint = false});
+
+  final bool requireHint;
 
   @override
   State<_RegenerateDialog> createState() => _RegenerateDialogState();
@@ -237,25 +246,53 @@ class _RegenerateDialogState extends State<_RegenerateDialog> {
   final _hint = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _hint.addListener(_onChanged);
+  }
+
+  @override
   void dispose() {
+    _hint.removeListener(_onChanged);
     _hint.dispose();
     super.dispose();
   }
 
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  /// Inline bilingual text (no .arb key: an .arb edit forces a full APK).
+  String _bi(String en, String ar) =>
+      Localizations.localeOf(context).languageCode == 'ar' ? ar : en;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final mustHint = widget.requireHint;
+    final canConfirm = !mustHint || _hint.text.trim().isNotEmpty;
     return AlertDialog(
-      title: Text(l10n.chatRegenerateTitle),
+      title: Text(
+        mustHint
+            ? _bi('Ask AI for a message', 'اطلب رسالة من الذكاء الاصطناعي')
+            : l10n.chatRegenerateTitle,
+      ),
       content: TextField(
         key: const ValueKey('chat-regenerate-hint'),
         controller: _hint,
         autofocus: true,
-        minLines: 1,
-        maxLines: 3,
+        minLines: mustHint ? 2 : 1,
+        maxLines: mustHint ? 4 : 3,
         decoration: InputDecoration(
-          labelText: l10n.chatRegenerateHintLabel,
-          hintText: l10n.chatRegenerateHintExample,
+          labelText: mustHint
+              ? _bi('What should the message say?', 'الرسالة تقول إيه؟')
+              : l10n.chatRegenerateHintLabel,
+          hintText: mustHint
+              ? _bi(
+                  'e.g. remind them the offer ends today',
+                  'مثلاً: فكّره إن العرض بيخلص النهارده',
+                )
+              : l10n.chatRegenerateHintExample,
         ),
       ),
       actions: [
@@ -265,8 +302,14 @@ class _RegenerateDialogState extends State<_RegenerateDialog> {
         ),
         FilledButton(
           key: const ValueKey('chat-regenerate-confirm'),
-          onPressed: () => Navigator.of(context).pop(_hint.text.trim()),
-          child: Text(l10n.chatDraftRegenerate),
+          onPressed: canConfirm
+              ? () => Navigator.of(context).pop(_hint.text.trim())
+              : null,
+          child: Text(
+            mustHint
+                ? _bi('Draft it', 'اكتب المسودة')
+                : l10n.chatDraftRegenerate,
+          ),
         ),
       ],
     );
