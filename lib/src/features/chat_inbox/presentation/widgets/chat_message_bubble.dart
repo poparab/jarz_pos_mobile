@@ -1,16 +1,15 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_formatters.dart';
-import '../../../../core/localization/user_error_message.dart';
 import '../../data/chat_repository.dart';
 import '../../data/models/chat_models.dart';
 import '../../state/chat_providers.dart';
 import '../chat_labels.dart';
+import 'chat_media_open.dart';
+import 'chat_voice_note_player.dart';
 
 /// One message: inbound on the start side, outbound on the end side.
 class ChatMessageBubble extends StatelessWidget {
@@ -111,8 +110,8 @@ class ChatMessageBubble extends StatelessWidget {
   }
 }
 
-/// The body of a message by type: text, image, location link, or an "open"
-/// tile for audio / video / documents.
+/// The body of a message by type: text, image, location link, an inline
+/// player for voice notes, or an "open" tile for video / documents.
 class ChatMessageContent extends StatelessWidget {
   const ChatMessageContent({super.key, required this.message});
 
@@ -148,7 +147,10 @@ class ChatMessageContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            ChatMediaOpenTile(message: message),
+            if (type == 'audio')
+              ChatVoiceNotePlayer(message: message)
+            else
+              ChatMediaOpenTile(message: message),
             if (transcript != null) ...[
               const SizedBox(height: 6),
               ChatVoiceTranscript(text: transcript),
@@ -253,10 +255,8 @@ class ChatMessageImage extends ConsumerWidget {
   }
 }
 
-/// Audio / video / document as a tile that opens the file: the browser on
-/// web (its own cookie), otherwise download with the session and hand the
-/// bytes to the system share sheet (a plain URL launch would open a browser
-/// without the session cookie and get a 403 on a private file).
+/// Video / document as a tile that opens the file (see
+/// [openChatMediaAttachment]: the browser on web, the share sheet elsewhere).
 class ChatMediaOpenTile extends ConsumerStatefulWidget {
   const ChatMediaOpenTile({super.key, required this.message});
 
@@ -269,48 +269,16 @@ class ChatMediaOpenTile extends ConsumerStatefulWidget {
 class _ChatMediaOpenTileState extends ConsumerState<ChatMediaOpenTile> {
   bool _busy = false;
 
-  String _fileName(String url) {
-    final last = url.split('/').last;
-    return last.isEmpty ? 'attachment' : Uri.decodeComponent(last);
-  }
-
   Future<void> _open() async {
-    final url = widget.message.mediaUrl;
-    if (!ChatRepository.isSessionMediaUrl(url) || _busy) return;
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    final repo = ref.read(chatRepositoryProvider);
+    if (!ChatRepository.isSessionMediaUrl(widget.message.mediaUrl) || _busy) {
+      return;
+    }
     setState(() => _busy = true);
     try {
-      if (kIsWeb) {
-        await launchUrl(
-          Uri.parse(repo.absoluteMediaUrl(url!)),
-          webOnlyWindowName: '_blank',
-        );
-        return;
-      }
-      final bytes = await repo.fetchMediaBytes(url!);
-      final name = _fileName(url);
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [
-            XFile.fromData(
-              bytes,
-              name: name,
-              mimeType: widget.message.mediaMime,
-            ),
-          ],
-          fileNameOverrides: [name],
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            context.userErrorMessage(e, fallback: l10n.chatMediaLoadFailed),
-          ),
-        ),
+      await openChatMediaAttachment(
+        context,
+        ref.read(chatRepositoryProvider),
+        widget.message,
       );
     } finally {
       if (mounted) setState(() => _busy = false);

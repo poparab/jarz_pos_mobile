@@ -89,6 +89,12 @@ dependencies:
   # the direct "Send via WhatsApp" action stays a url_launcher deep link and
   # this is the only way the customer gets the receipt as an image.
   share_plus: ^12.0.2
+  # Chat inbox voice notes: inline playback (ExoPlayer on Android plays the
+  # WhatsApp ogg/opus notes; the browser audio element on web).
+  just_audio: ^0.10.6
+  # The voice-note player writes the fetched (session-authenticated) bytes to
+  # a temp file on Android/iOS. Already in the tree via just_audio.
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
