@@ -552,6 +552,10 @@ class ChatThreadState {
 /// Union of two message lists by `name` ([incoming] wins), oldest → newest.
 /// Timestamps are `YYYY-MM-DD HH:MM:SS`, so string order is time order; the
 /// sort is stable, so equal timestamps keep their arrival order.
+///
+/// A voice-note transcript only ever goes from null to text, so an incoming
+/// copy without one (a page read that left before the transcript landed and
+/// arrived after the socket update) keeps the transcript already held.
 List<ChatMessage> mergeChatMessages(
   List<ChatMessage> existing,
   List<ChatMessage> incoming,
@@ -562,8 +566,11 @@ List<ChatMessage> mergeChatMessages(
     final key = message.name.isEmpty
         ? 'anon-${order.length}'
         : message.name;
-    if (!byName.containsKey(key)) order.add(key);
-    byName[key] = message;
+    final previous = byName[key];
+    if (previous == null) order.add(key);
+    byName[key] = message.transcript == null && previous?.transcript != null
+        ? message.withTranscript(previous!.transcript)
+        : message;
   }
   final merged = [for (final key in order) byName[key]!];
   final indexed = merged.asMap().entries.toList()

@@ -143,11 +143,16 @@ class ChatMessageContent extends StatelessWidget {
       case 'audio':
       case 'video':
       case 'document':
+        final transcript = type == 'audio' ? message.transcript : null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             ChatMediaOpenTile(message: message),
+            if (transcript != null) ...[
+              const SizedBox(height: 6),
+              ChatVoiceTranscript(text: transcript),
+            ],
             if (caption() != null) ...[
               const SizedBox(height: 6),
               caption()!,
@@ -333,6 +338,134 @@ class _ChatMediaOpenTileState extends ConsumerState<ChatMediaOpenTile> {
       ),
     );
   }
+}
+
+/// The server's transcript of a voice note, under the player: a small muted
+/// label, then the text (selectable), capped at [collapsedLines] lines with
+/// tap-to-expand when longer. The text runs in its own direction (an Arabic
+/// note reads right-to-left even in the English UI).
+class ChatVoiceTranscript extends StatefulWidget {
+  const ChatVoiceTranscript({
+    super.key,
+    required this.text,
+    this.collapsedLines = 6,
+  });
+
+  final String text;
+  final int collapsedLines;
+
+  @override
+  State<ChatVoiceTranscript> createState() => _ChatVoiceTranscriptState();
+}
+
+class _ChatVoiceTranscriptState extends State<ChatVoiceTranscript> {
+  bool _expanded = false;
+
+  String _bi(String en, String ar) =>
+      Localizations.localeOf(context).languageCode == 'ar' ? ar : en;
+
+  void _toggle() => setState(() => _expanded = !_expanded);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final base = DefaultTextStyle.of(context).style;
+    final muted = (base.color ?? theme.colorScheme.onSurface)
+        .withValues(alpha: 0.72);
+    final textStyle = base.merge(theme.textTheme.bodySmall).copyWith(
+          color: muted,
+        );
+    final labelStyle = theme.textTheme.labelSmall?.copyWith(
+      color: muted,
+      fontWeight: FontWeight.w600,
+    );
+    final direction = chatTextDirectionOf(widget.text) ??
+        Directionality.of(context);
+
+    return Column(
+      key: const ValueKey('chat-voice-transcript'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.subtitles_outlined, size: 14, color: muted),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                _bi('Transcript', 'نص الرسالة الصوتية'),
+                style: labelStyle,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final painter = TextPainter(
+              text: TextSpan(text: widget.text, style: textStyle),
+              textDirection: direction,
+              textScaler: MediaQuery.textScalerOf(context),
+              maxLines: widget.collapsedLines,
+            )..layout(maxWidth: constraints.maxWidth);
+            final long = painter.didExceedMaxLines;
+            painter.dispose();
+            final collapsed = long && !_expanded;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SelectableText(
+                  widget.text,
+                  style: textStyle,
+                  textDirection: direction,
+                  textAlign: TextAlign.start,
+                  maxLines: collapsed ? widget.collapsedLines : null,
+                  onTap: long ? _toggle : null,
+                ),
+                if (long)
+                  InkWell(
+                    key: const ValueKey('chat-voice-transcript-toggle'),
+                    onTap: _toggle,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Text(
+                        _expanded
+                            ? _bi('Show less', 'عرض أقل')
+                            : _bi('Show more', 'عرض المزيد'),
+                        style: labelStyle?.copyWith(
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// The direction of [text] from its first strong character: right-to-left
+/// for Arabic / Hebrew script, left-to-right for a Latin-style letter, null
+/// when there is none (digits, punctuation, emoji only).
+TextDirection? chatTextDirectionOf(String text) {
+  for (final rune in text.runes) {
+    if ((rune >= 0x0590 && rune <= 0x08FF) ||
+        (rune >= 0xFB1D && rune <= 0xFDFF) ||
+        (rune >= 0xFE70 && rune <= 0xFEFF)) {
+      return TextDirection.rtl;
+    }
+    if ((rune >= 0x41 && rune <= 0x5A) ||
+        (rune >= 0x61 && rune <= 0x7A) ||
+        (rune >= 0x00C0 && rune <= 0x024F)) {
+      return TextDirection.ltr;
+    }
+  }
+  return null;
 }
 
 class _MediaPlaceholder extends StatelessWidget {

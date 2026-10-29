@@ -275,6 +275,11 @@ class ChatMessage {
   final String? timestamp;
   final String? error;
 
+  /// The text of a customer's voice note, filled by the server a few seconds
+  /// after the note arrives (a socket update re-sends the message with it).
+  /// Null when absent (older servers), not yet transcribed, or blank.
+  final String? transcript;
+
   const ChatMessage({
     required this.name,
     this.direction = 'Inbound',
@@ -288,6 +293,7 @@ class ChatMessage {
     this.sentByName,
     this.timestamp,
     this.error,
+    this.transcript,
   });
 
   factory ChatMessage.fromJson(dynamic raw) {
@@ -305,6 +311,27 @@ class ChatMessage {
       sentByName: chatNullableString(json['sent_by_name']),
       timestamp: chatNullableString(json['timestamp']),
       error: chatNullableString(json['error']),
+      transcript: chatNullableString(json['transcript']),
+    );
+  }
+
+  /// A copy carrying [value] as its transcript.
+  ChatMessage withTranscript(String? value) {
+    if (value == transcript) return this;
+    return ChatMessage(
+      name: name,
+      direction: direction,
+      messageType: messageType,
+      body: body,
+      mediaUrl: mediaUrl,
+      mediaMime: mediaMime,
+      status: status,
+      sentVia: sentVia,
+      sentBy: sentBy,
+      sentByName: sentByName,
+      timestamp: timestamp,
+      error: error,
+      transcript: value,
     );
   }
 
