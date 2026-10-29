@@ -30,6 +30,11 @@ class LocationPointPicker extends ConsumerStatefulWidget {
 
 class _LocationPointPickerState extends ConsumerState<LocationPointPicker> {
   late LatLng _point = widget.initial ?? LocationPointPicker.fallbackCenter;
+
+  /// False until the user taps the map, when there was no pin to start from.
+  /// Confirming the untouched fallback centre saved Tahrir as the door for 21
+  /// addresses (order #19830 in El Shorouk), so the confirm stays disabled.
+  late bool _hasPoint = widget.initial != null;
   final MapController _controller = MapController();
 
   @override
@@ -48,7 +53,10 @@ class _LocationPointPickerState extends ConsumerState<LocationPointPicker> {
               initialZoom: 16,
               minZoom: 4,
               maxZoom: 19,
-              onTap: (tapPosition, point) => setState(() => _point = point),
+              onTap: (tapPosition, point) => setState(() {
+                _point = point;
+                _hasPoint = true;
+              }),
             ),
             children: [
               TileLayer(
@@ -102,7 +110,9 @@ class _LocationPointPickerState extends ConsumerState<LocationPointPicker> {
                     const SizedBox(width: 8),
                     FilledButton(
                       key: const ValueKey('location_point_picker_confirm'),
-                      onPressed: () => Navigator.of(context).pop(_point),
+                      onPressed: _hasPoint
+                          ? () => Navigator.of(context).pop(_point)
+                          : null,
                       child: Text(l10n.addressPinUseThisPoint),
                     ),
                   ],
