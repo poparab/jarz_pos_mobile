@@ -16738,12 +16738,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get followupsSkipped => 'المتابعة اتخطّت';
 
   @override
-  String get followupsStatsAction => 'إحصائيات المتابعات';
-
-  @override
-  String get followupsStatsTitle => 'المتابعات: آخر ٧ أيام';
-
-  @override
   String get followupsStatsCalls => 'مكالمات اتعملت';
 
   @override
@@ -16781,12 +16775,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get followupsStatsReorderRate => 'نسبة الطلب تاني';
-
-  @override
-  String get followupsSentAction => 'رسايل الواتساب اللي اتبعتت';
-
-  @override
-  String get followupsSentTitle => 'الرسايل المبعوتة: آخر ٧ أيام';
 
   @override
   String get followupsSentTotal => 'اتبعتت';
@@ -20325,4 +20313,254 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get followupsBriefEmpty => 'مفيش نبذة متاحة للعميل ده.';
+
+  @override
+  String get followupResultsTitle => 'نتائج المتابعة';
+
+  @override
+  String get followupResultsRange7 => '٧ أيام';
+
+  @override
+  String get followupResultsRange30 => '٣٠ يوم';
+
+  @override
+  String get followupResultsRangeMonth => 'الشهر ده';
+
+  @override
+  String get followupResultsRangeCustom => 'فترة محددة';
+
+  @override
+  String get followupResultsRangePickerHelp => 'اختار الفترة';
+
+  @override
+  String get followupResultsTabOverview => 'نظرة عامة';
+
+  @override
+  String get followupResultsTabMessages => 'الرسايل';
+
+  @override
+  String get followupResultsTabReplies => 'الردود';
+
+  @override
+  String get followupResultsTabOrders => 'الطلبات';
+
+  @override
+  String get followupResultsTabCalls => 'المكالمات';
+
+  @override
+  String get followupResultsCostTitle => 'التكلفة مقابل الطلبات';
+
+  @override
+  String get followupResultsTotalCost => 'إجمالي التكلفة';
+
+  @override
+  String get followupResultsMessagesCost => 'الرسايل';
+
+  @override
+  String followupResultsMessagesCostDetail(String count, String each) {
+    return '$count × $each';
+  }
+
+  @override
+  String get followupResultsDiscountsCost => 'خصومات اتدّت';
+
+  @override
+  String get followupResultsOrders => 'الطلبات';
+
+  @override
+  String get followupResultsRevenue => 'المبيعات';
+
+  @override
+  String get followupResultsNet => 'الصافي';
+
+  @override
+  String get followupResultsRoi => 'العائد';
+
+  @override
+  String followupResultsRoiValue(String value) {
+    return '×$value';
+  }
+
+  @override
+  String get followupResultsCostPerOrder => 'تكلفة الطلب';
+
+  @override
+  String followupResultsOrdersWithCode(String count, String amount) {
+    return 'طلبات استخدمت كود: $count ($amount)';
+  }
+
+  @override
+  String get followupResultsCostNote =>
+      'الطلبات المحسوبة هي اللي اتعملت خلال ٣٠ يوم بعد الرسالة. تكلفة الرسالة الواحدة بتتحدد من إعدادات المتابعة.';
+
+  @override
+  String followupResultsCustomers(String count) {
+    return '$count عميل اتبعتلهم رسايل';
+  }
+
+  @override
+  String get followupResultsFunnelTitle => 'من الرسالة للطلب';
+
+  @override
+  String get followupResultsReplied => 'ردّوا';
+
+  @override
+  String get followupResultsOrdered => 'طلبوا';
+
+  @override
+  String get followupResultsCodesTitle => 'الأكواد';
+
+  @override
+  String get followupResultsCodesIssued => 'اتصدرت';
+
+  @override
+  String get followupResultsCodesUsed => 'اتستخدمت';
+
+  @override
+  String get followupResultsCodesUnused => 'لسه متستخدمتش';
+
+  @override
+  String get followupResultsCodesExpired => 'انتهت';
+
+  @override
+  String get followupResultsAttentionTitle => 'حاجات تستاهل نظرة';
+
+  @override
+  String get followupResultsSearchHint =>
+      'الاسم أو التليفون أو الكود أو الفاتورة';
+
+  @override
+  String get followupResultsFilterStep => 'المرحلة';
+
+  @override
+  String get followupResultsFilterStatus => 'الحالة';
+
+  @override
+  String get followupResultsFilterOutcome => 'النتيجة';
+
+  @override
+  String get followupResultsOutcomeUsedCode => 'استخدموا الكود';
+
+  @override
+  String get followupResultsOutcomeNoResponse => 'مفيش استجابة';
+
+  @override
+  String get followupResultsClearFilters => 'مسح الفلاتر';
+
+  @override
+  String followupResultsCountLine(String shown, String total) {
+    return '$shown من $total رسالة';
+  }
+
+  @override
+  String followupResultsTruncated(String shown, String total) {
+    return 'معروض آخر $shown من $total رسالة. ضيّق الفترة عشان تشوف الباقي.';
+  }
+
+  @override
+  String get followupResultsMessagesEmpty => 'مفيش رسايل مطابقة';
+
+  @override
+  String get followupResultsRepliesEmpty => 'مفيش ردود في الفترة دي';
+
+  @override
+  String get followupResultsOrdersEmpty =>
+      'مفيش طلبات جت بعد الرسايل في الفترة دي';
+
+  @override
+  String get followupResultsCodeUsed => 'اتستخدم';
+
+  @override
+  String get followupResultsCodeUnused => 'متستخدمش';
+
+  @override
+  String get followupResultsCodeExpired => 'انتهى';
+
+  @override
+  String get followupResultsTierVip => 'VIP';
+
+  @override
+  String get followupResultsTierLoyal => 'وفيّ';
+
+  @override
+  String get followupResultsTierRepeat => 'بيكرر الطلب';
+
+  @override
+  String get followupResultsTierOneBig => 'طلب واحد كبير';
+
+  @override
+  String get followupResultsTierOne => 'طلب واحد';
+
+  @override
+  String get followupResultsReplyImage => '[صورة]';
+
+  @override
+  String get followupResultsReplyVoice => '[رسالة صوتية]';
+
+  @override
+  String get followupResultsReplyVideo => '[فيديو]';
+
+  @override
+  String get followupResultsReplyDocument => '[ملف]';
+
+  @override
+  String get followupResultsReplySticker => '[ملصق]';
+
+  @override
+  String get followupResultsReplyLocation => '[موقع]';
+
+  @override
+  String get followupResultsReplyButton => '[ضغط على زر]';
+
+  @override
+  String get followupResultsReplyOther => '[مرفق]';
+
+  @override
+  String get followupResultsStopReply => 'طلب وقف الرسايل';
+
+  @override
+  String followupResultsRepliesCount(String count) {
+    return '$count ردود';
+  }
+
+  @override
+  String get followupResultsSheetReplies => 'الردود';
+
+  @override
+  String get followupResultsSheetOrders => 'الطلبات بعد الرسالة';
+
+  @override
+  String get followupResultsSheetNoReplies => 'مفيش ردود';
+
+  @override
+  String get followupResultsSheetNoOrders => 'مفيش طلبات';
+
+  @override
+  String followupResultsSheetMoreReplies(String count) {
+    return '$count ردود تانية مش معروضة';
+  }
+
+  @override
+  String get followupResultsSheetCode => 'الكود';
+
+  @override
+  String followupResultsSheetDiscount(String amount) {
+    return 'الخصم $amount';
+  }
+
+  @override
+  String get followupResultsSheetError => 'سبب الفشل';
+
+  @override
+  String get followupResultsSheetAllMessages => 'اعرض كل الرسايل لنفس العميل';
+
+  @override
+  String followupResultsOrdersSummary(String count, String amount) {
+    return '$count طلب · $amount';
+  }
+
+  @override
+  String followupResultsOrderAfterStep(String step) {
+    return 'بعد رسالة: $step';
+  }
 }

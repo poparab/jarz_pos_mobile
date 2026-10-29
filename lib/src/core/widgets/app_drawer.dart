@@ -61,6 +61,7 @@ class AppDrawer extends ConsumerWidget {
     final canViewPricing = ref.watch(canViewPricingProvider);
     final canAccessBranchAccess = ref.watch(canAccessBranchAccessProvider);
     final canAccessFollowups = ref.watch(canAccessFollowupsProvider);
+    final canViewFollowupStats = ref.watch(canViewFollowupStatsProvider);
     final canAccessChats = ref.watch(canAccessChatsProvider);
     final canRaiseItemRequest = ref.watch(canRaiseItemRequestProvider);
     final canManageUsers = ref.watch(canManageUsersProvider);
@@ -482,6 +483,14 @@ class AppDrawer extends ConsumerWidget {
           title: l10n.followupsMenuTitle,
           onTap: () => navigate(AppRoutes.followups),
         ),
+      // What the follow-ups sent and brought in. Same gate as the old stats
+      // links: managers only.
+      if (canViewFollowupStats)
+        navTile(
+          icon: Icons.insights_outlined,
+          title: l10n.followupResultsTitle,
+          onTap: () => navigate(AppRoutes.followupResults),
+        ),
       // Gated on the OTHER app's `ROLES.OPERATOR`, which includes JARZ Manager
       // by the owner's decision, plus the dedicated `WooCommerce Sync Operator`
       // role for anyone who runs the sync without being a manager. The
@@ -625,6 +634,7 @@ class AppDrawer extends ConsumerWidget {
           // reports added later.
           AppRoutes.reports,
           AppRoutes.followups,
+          AppRoutes.followupResults,
           AppRoutes.wooSync,
           AppRoutes.users,
         ],

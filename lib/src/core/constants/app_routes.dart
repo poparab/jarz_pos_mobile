@@ -168,6 +168,7 @@ abstract final class AppRoutes {
   // ── Customer follow-ups (reorder plan) ────────────────────────────────
   // The sender's daily due list of WhatsApp / call touches after delivery.
   static const followups = '/followups';
+  static const followupResults = '/followups/results';
 
   // ── Chat inbox (moderator reply copilot) ──────────────────────────────
   // WhatsApp / Instagram / Messenger conversations with an AI-drafted reply.

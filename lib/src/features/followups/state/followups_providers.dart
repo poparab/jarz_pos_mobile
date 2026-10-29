@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
+import '../data/followup_results.dart';
 import '../data/followups_repository.dart';
 import '../data/models/followup_models.dart';
 
@@ -86,24 +86,34 @@ final followupsTodayProvider =
   FollowupsTodayNotifier.new,
 );
 
-/// Follow-up stats for the last 7 days, today included.
-final followupStatsLast7DaysProvider =
-    FutureProvider.autoDispose<FollowupStats>((ref) {
-  final fmt = DateFormat('yyyy-MM-dd');
-  final today = DateTime.now();
+/// The date range the results page shows; every tab reads it. Defaults to the
+/// last 7 days, today included, each time the page opens.
+final followupResultsRangeProvider = StateProvider.autoDispose<FollowupRange>(
+  (ref) => FollowupRange.preset(FollowupRangePreset.last7),
+);
+
+/// The Messages tab filter. Lives here so the "all messages to this customer"
+/// button can set it from a sheet and from the other tabs.
+final followupMessageFilterProvider =
+    StateProvider.autoDispose<FollowupMessageFilter>(
+  (ref) => const FollowupMessageFilter(),
+);
+
+/// Call follow-up stats for the selected range.
+final followupStatsProvider = FutureProvider.autoDispose<FollowupStats>((ref) {
+  final range = ref.watch(followupResultsRangeProvider);
   return ref.watch(followupsRepositoryProvider).fetchStats(
-        fromDate: fmt.format(today.subtract(const Duration(days: 6))),
-        toDate: fmt.format(today),
+        fromDate: range.fromDate,
+        toDate: range.toDate,
       );
 });
 
-/// The automatic WhatsApp sends of the last 7 days, today included.
-final followupSentLast7DaysProvider =
+/// The automatic WhatsApp sends of the selected range, with their results.
+final followupSentReportProvider =
     FutureProvider.autoDispose<FollowupSentReport>((ref) {
-  final fmt = DateFormat('yyyy-MM-dd');
-  final today = DateTime.now();
+  final range = ref.watch(followupResultsRangeProvider);
   return ref.watch(followupsRepositoryProvider).fetchSentReport(
-        fromDate: fmt.format(today.subtract(const Duration(days: 6))),
-        toDate: fmt.format(today),
+        fromDate: range.fromDate,
+        toDate: range.toDate,
       );
 });

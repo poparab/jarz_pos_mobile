@@ -27461,18 +27461,6 @@ abstract class AppLocalizations {
   /// **'Follow-up skipped'**
   String get followupsSkipped;
 
-  /// No description provided for @followupsStatsAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Follow-up stats'**
-  String get followupsStatsAction;
-
-  /// No description provided for @followupsStatsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Follow-ups: last 7 days'**
-  String get followupsStatsTitle;
-
   /// No description provided for @followupsStatsCalls.
   ///
   /// In en, this message translates to:
@@ -27550,18 +27538,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reorder rate'**
   String get followupsStatsReorderRate;
-
-  /// No description provided for @followupsSentAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Sent WhatsApp messages'**
-  String get followupsSentAction;
-
-  /// No description provided for @followupsSentTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sent messages: last 7 days'**
-  String get followupsSentTitle;
 
   /// No description provided for @followupsSentTotal.
   ///
@@ -33577,6 +33553,456 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No brief available for this customer.'**
   String get followupsBriefEmpty;
+
+  /// No description provided for @followupResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up results'**
+  String get followupResultsTitle;
+
+  /// No description provided for @followupResultsRange7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get followupResultsRange7;
+
+  /// No description provided for @followupResultsRange30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get followupResultsRange30;
+
+  /// No description provided for @followupResultsRangeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get followupResultsRangeMonth;
+
+  /// No description provided for @followupResultsRangeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get followupResultsRangeCustom;
+
+  /// No description provided for @followupResultsRangePickerHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the period'**
+  String get followupResultsRangePickerHelp;
+
+  /// No description provided for @followupResultsTabOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get followupResultsTabOverview;
+
+  /// No description provided for @followupResultsTabMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get followupResultsTabMessages;
+
+  /// No description provided for @followupResultsTabReplies.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies'**
+  String get followupResultsTabReplies;
+
+  /// No description provided for @followupResultsTabOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get followupResultsTabOrders;
+
+  /// No description provided for @followupResultsTabCalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Calls'**
+  String get followupResultsTabCalls;
+
+  /// No description provided for @followupResultsCostTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost vs. orders'**
+  String get followupResultsCostTitle;
+
+  /// No description provided for @followupResultsTotalCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Total cost'**
+  String get followupResultsTotalCost;
+
+  /// No description provided for @followupResultsMessagesCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get followupResultsMessagesCost;
+
+  /// No description provided for @followupResultsMessagesCostDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} × {each}'**
+  String followupResultsMessagesCostDetail(String count, String each);
+
+  /// No description provided for @followupResultsDiscountsCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Discounts given'**
+  String get followupResultsDiscountsCost;
+
+  /// No description provided for @followupResultsOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get followupResultsOrders;
+
+  /// No description provided for @followupResultsRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get followupResultsRevenue;
+
+  /// No description provided for @followupResultsNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get followupResultsNet;
+
+  /// No description provided for @followupResultsRoi.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get followupResultsRoi;
+
+  /// No description provided for @followupResultsRoiValue.
+  ///
+  /// In en, this message translates to:
+  /// **'×{value}'**
+  String followupResultsRoiValue(String value);
+
+  /// No description provided for @followupResultsCostPerOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost per order'**
+  String get followupResultsCostPerOrder;
+
+  /// No description provided for @followupResultsOrdersWithCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders that used a code: {count} ({amount})'**
+  String followupResultsOrdersWithCode(String count, String amount);
+
+  /// No description provided for @followupResultsCostNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders counted are those placed within 30 days after a message. The cost of each message comes from Follow-up Settings.'**
+  String get followupResultsCostNote;
+
+  /// No description provided for @followupResultsCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} customers messaged'**
+  String followupResultsCustomers(String count);
+
+  /// No description provided for @followupResultsFunnelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From message to order'**
+  String get followupResultsFunnelTitle;
+
+  /// No description provided for @followupResultsReplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Replied'**
+  String get followupResultsReplied;
+
+  /// No description provided for @followupResultsOrdered.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered'**
+  String get followupResultsOrdered;
+
+  /// No description provided for @followupResultsCodesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Codes'**
+  String get followupResultsCodesTitle;
+
+  /// No description provided for @followupResultsCodesIssued.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get followupResultsCodesIssued;
+
+  /// No description provided for @followupResultsCodesUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get followupResultsCodesUsed;
+
+  /// No description provided for @followupResultsCodesUnused.
+  ///
+  /// In en, this message translates to:
+  /// **'Not used yet'**
+  String get followupResultsCodesUnused;
+
+  /// No description provided for @followupResultsCodesExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get followupResultsCodesExpired;
+
+  /// No description provided for @followupResultsAttentionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Worth a look'**
+  String get followupResultsAttentionTitle;
+
+  /// No description provided for @followupResultsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, phone, code or invoice'**
+  String get followupResultsSearchHint;
+
+  /// No description provided for @followupResultsFilterStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Step'**
+  String get followupResultsFilterStep;
+
+  /// No description provided for @followupResultsFilterStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get followupResultsFilterStatus;
+
+  /// No description provided for @followupResultsFilterOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get followupResultsFilterOutcome;
+
+  /// No description provided for @followupResultsOutcomeUsedCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Used the code'**
+  String get followupResultsOutcomeUsedCode;
+
+  /// No description provided for @followupResultsOutcomeNoResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'No response'**
+  String get followupResultsOutcomeNoResponse;
+
+  /// No description provided for @followupResultsClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get followupResultsClearFilters;
+
+  /// No description provided for @followupResultsCountLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total} messages'**
+  String followupResultsCountLine(String shown, String total);
+
+  /// No description provided for @followupResultsTruncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the latest {shown} of {total} messages. Narrow the dates to see the rest.'**
+  String followupResultsTruncated(String shown, String total);
+
+  /// No description provided for @followupResultsMessagesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages match'**
+  String get followupResultsMessagesEmpty;
+
+  /// No description provided for @followupResultsRepliesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No replies in this period'**
+  String get followupResultsRepliesEmpty;
+
+  /// No description provided for @followupResultsOrdersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders followed the messages in this period'**
+  String get followupResultsOrdersEmpty;
+
+  /// No description provided for @followupResultsCodeUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get followupResultsCodeUsed;
+
+  /// No description provided for @followupResultsCodeUnused.
+  ///
+  /// In en, this message translates to:
+  /// **'Not used'**
+  String get followupResultsCodeUnused;
+
+  /// No description provided for @followupResultsCodeExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get followupResultsCodeExpired;
+
+  /// No description provided for @followupResultsTierVip.
+  ///
+  /// In en, this message translates to:
+  /// **'VIP'**
+  String get followupResultsTierVip;
+
+  /// No description provided for @followupResultsTierLoyal.
+  ///
+  /// In en, this message translates to:
+  /// **'Loyal'**
+  String get followupResultsTierLoyal;
+
+  /// No description provided for @followupResultsTierRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get followupResultsTierRepeat;
+
+  /// No description provided for @followupResultsTierOneBig.
+  ///
+  /// In en, this message translates to:
+  /// **'One big order'**
+  String get followupResultsTierOneBig;
+
+  /// No description provided for @followupResultsTierOne.
+  ///
+  /// In en, this message translates to:
+  /// **'One order'**
+  String get followupResultsTierOne;
+
+  /// No description provided for @followupResultsReplyImage.
+  ///
+  /// In en, this message translates to:
+  /// **'[image]'**
+  String get followupResultsReplyImage;
+
+  /// No description provided for @followupResultsReplyVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'[voice note]'**
+  String get followupResultsReplyVoice;
+
+  /// No description provided for @followupResultsReplyVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'[video]'**
+  String get followupResultsReplyVideo;
+
+  /// No description provided for @followupResultsReplyDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'[document]'**
+  String get followupResultsReplyDocument;
+
+  /// No description provided for @followupResultsReplySticker.
+  ///
+  /// In en, this message translates to:
+  /// **'[sticker]'**
+  String get followupResultsReplySticker;
+
+  /// No description provided for @followupResultsReplyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'[location]'**
+  String get followupResultsReplyLocation;
+
+  /// No description provided for @followupResultsReplyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'[button tap]'**
+  String get followupResultsReplyButton;
+
+  /// No description provided for @followupResultsReplyOther.
+  ///
+  /// In en, this message translates to:
+  /// **'[attachment]'**
+  String get followupResultsReplyOther;
+
+  /// No description provided for @followupResultsStopReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Asked to stop messages'**
+  String get followupResultsStopReply;
+
+  /// No description provided for @followupResultsRepliesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} replies'**
+  String followupResultsRepliesCount(String count);
+
+  /// No description provided for @followupResultsSheetReplies.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies'**
+  String get followupResultsSheetReplies;
+
+  /// No description provided for @followupResultsSheetOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders after this message'**
+  String get followupResultsSheetOrders;
+
+  /// No description provided for @followupResultsSheetNoReplies.
+  ///
+  /// In en, this message translates to:
+  /// **'No replies'**
+  String get followupResultsSheetNoReplies;
+
+  /// No description provided for @followupResultsSheetNoOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders'**
+  String get followupResultsSheetNoOrders;
+
+  /// No description provided for @followupResultsSheetMoreReplies.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more replies not shown'**
+  String followupResultsSheetMoreReplies(String count);
+
+  /// No description provided for @followupResultsSheetCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get followupResultsSheetCode;
+
+  /// No description provided for @followupResultsSheetDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount {amount}'**
+  String followupResultsSheetDiscount(String amount);
+
+  /// No description provided for @followupResultsSheetError.
+  ///
+  /// In en, this message translates to:
+  /// **'Why it failed'**
+  String get followupResultsSheetError;
+
+  /// No description provided for @followupResultsSheetAllMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all messages to this customer'**
+  String get followupResultsSheetAllMessages;
+
+  /// No description provided for @followupResultsOrdersSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} orders · {amount}'**
+  String followupResultsOrdersSummary(String count, String amount);
+
+  /// No description provided for @followupResultsOrderAfterStep.
+  ///
+  /// In en, this message translates to:
+  /// **'After: {step}'**
+  String followupResultsOrderAfterStep(String step);
 }
 
 class _AppLocalizationsDelegate

@@ -530,6 +530,74 @@ class FollowupBriefResult {
   bool get isClaude => source.toLowerCase() == 'claude';
 }
 
+/// One inbound WhatsApp message a customer sent after a follow-up.
+class FollowupSentReply {
+  /// `YYYY-MM-DD HH:MM:SS`.
+  final String at;
+  final String text;
+
+  /// `text`, `image`, `audio`, `button`, ... as Meta names it.
+  final String type;
+
+  /// The customer asked to stop receiving messages.
+  final bool isStop;
+
+  const FollowupSentReply({
+    this.at = '',
+    this.text = '',
+    this.type = 'text',
+    this.isStop = false,
+  });
+
+  factory FollowupSentReply.fromJson(Map json) => FollowupSentReply(
+        at: followupString(json['at']),
+        text: followupString(json['text']),
+        type:
+            followupString(json['type'], fallback: 'text').trim().toLowerCase(),
+        isStop: followupBool(json['is_stop']),
+      );
+
+  /// The reply carries written text that can be shown as is.
+  bool get hasText => text.trim().isNotEmpty;
+}
+
+/// A retail invoice the customer placed after a follow-up message.
+class FollowupSentOrder {
+  final String invoice;
+  final String at;
+  final double grandTotal;
+  final String wooOrderId;
+
+  /// This invoice redeemed the follow-up code.
+  final bool usedCode;
+
+  const FollowupSentOrder({
+    required this.invoice,
+    this.at = '',
+    this.grandTotal = 0,
+    this.wooOrderId = '',
+    this.usedCode = false,
+  });
+
+  factory FollowupSentOrder.fromJson(Map json) => FollowupSentOrder(
+        invoice: followupString(json['invoice']),
+        at: followupString(json['at']),
+        grandTotal: followupDouble(json['grand_total']),
+        wooOrderId: followupString(json['woo_order_id']),
+        usedCode: followupBool(json['used_code']),
+      );
+
+  /// What the user knows the order as: the website order number when there is
+  /// one, the invoice name otherwise.
+  String get displayId => wooOrderId.isNotEmpty ? wooOrderId : invoice;
+}
+
+List<T> _mapList<T>(dynamic value, T Function(Map) parse) => [
+      if (value is List)
+        for (final v in value)
+          if (v is Map) parse(v),
+    ];
+
 /// One template message the follow-up sender sent (`get_sent_report` item).
 class FollowupSentItem {
   final String name;
@@ -549,6 +617,23 @@ class FollowupSentItem {
   /// The first retail invoice within 30 days of the send, or empty.
   final String reorderInvoice;
 
+  /// Tier of the offer code: vip / loyal / repeat / one_big / one, or empty.
+  final String tier;
+
+  /// `used` / `expired` / `unused`, or empty when the message had no code.
+  final String codeStatus;
+  final double codeDiscount;
+  final String codeInvoice;
+
+  /// The first replies (at most 5, oldest first) and how many there were.
+  final List<FollowupSentReply> replies;
+  final int replyCount;
+
+  /// The first orders within 30 days (at most 5, oldest first), and the sum of
+  /// all of them.
+  final List<FollowupSentOrder> orders;
+  final double reorderTotal;
+
   const FollowupSentItem({
     required this.name,
     this.customer = '',
@@ -562,24 +647,125 @@ class FollowupSentItem {
     this.error = '',
     this.replied = false,
     this.reorderInvoice = '',
+    this.tier = '',
+    this.codeStatus = '',
+    this.codeDiscount = 0,
+    this.codeInvoice = '',
+    this.replies = const <FollowupSentReply>[],
+    this.replyCount = 0,
+    this.orders = const <FollowupSentOrder>[],
+    this.reorderTotal = 0,
   });
 
-  factory FollowupSentItem.fromJson(Map json) => FollowupSentItem(
-        name: followupString(json['name']),
-        customer: followupString(json['customer']),
-        customerName: followupString(json['customer_name']),
-        phone: followupString(json['phone']),
-        step: followupString(json['step']),
-        sentAt: followupString(json['sent_at']),
-        offerCode: followupString(json['offer_code']),
-        orderNo: followupString(json['order_no']),
-        waStatus: followupString(json['wa_status'], fallback: 'sent'),
-        error: followupString(json['error']),
-        replied: followupBool(json['replied']),
-        reorderInvoice: followupString(json['reorder_invoice']),
-      );
+  factory FollowupSentItem.fromJson(Map json) {
+    final replies = _mapList(json['replies'], FollowupSentReply.fromJson);
+    final replyCount = followupInt(json['reply_count'], fallback: replies.length);
+    return FollowupSentItem(
+      name: followupString(json['name']),
+      customer: followupString(json['customer']),
+      customerName: followupString(json['customer_name']),
+      phone: followupString(json['phone']),
+      step: followupString(json['step']),
+      sentAt: followupString(json['sent_at']),
+      offerCode: followupString(json['offer_code']),
+      orderNo: followupString(json['order_no']),
+      waStatus: followupString(json['wa_status'], fallback: 'sent'),
+      error: followupString(json['error']),
+      replied: followupBool(json['replied']) ||
+          replies.isNotEmpty ||
+          replyCount > 0,
+      reorderInvoice: followupString(json['reorder_invoice']),
+      tier: followupString(json['tier']),
+      codeStatus: followupString(json['code_status']),
+      codeDiscount: followupDouble(json['code_discount']),
+      codeInvoice: followupString(json['code_invoice']),
+      replies: replies,
+      replyCount: replyCount,
+      orders: _mapList(json['orders'], FollowupSentOrder.fromJson),
+      reorderTotal: followupDouble(json['reorder_total']),
+    );
+  }
 
-  bool get reordered => reorderInvoice.isNotEmpty;
+  bool get reordered => reorderInvoice.isNotEmpty || orders.isNotEmpty;
+  bool get hasCode => offerCode.isNotEmpty;
+  bool get codeUsed => codeStatus == 'used';
+}
+
+/// Cost of the campaign against what it brought (`get_sent_report.money`).
+class FollowupMoney {
+  final String currency;
+  final double messageCostEach;
+  final int billableMessages;
+  final double messagesCost;
+  final double discountCost;
+  final double totalCost;
+
+  /// Distinct orders (one invoice can follow two messages).
+  final int orders;
+  final double revenue;
+  final int ordersWithCode;
+  final double revenueWithCode;
+  final double net;
+
+  /// Revenue / total cost; null when nothing was spent.
+  final double? roi;
+  final double? costPerOrder;
+
+  const FollowupMoney({
+    this.currency = 'EGP',
+    this.messageCostEach = 0,
+    this.billableMessages = 0,
+    this.messagesCost = 0,
+    this.discountCost = 0,
+    this.totalCost = 0,
+    this.orders = 0,
+    this.revenue = 0,
+    this.ordersWithCode = 0,
+    this.revenueWithCode = 0,
+    this.net = 0,
+    this.roi,
+    this.costPerOrder,
+  });
+
+  factory FollowupMoney.fromJson(Map json) => FollowupMoney(
+        currency: followupString(json['currency'], fallback: 'EGP'),
+        messageCostEach: followupDouble(json['message_cost_each']),
+        billableMessages: followupInt(json['billable_messages']),
+        messagesCost: followupDouble(json['messages_cost']),
+        discountCost: followupDouble(json['discount_cost']),
+        totalCost: followupDouble(json['total_cost']),
+        orders: followupInt(json['orders']),
+        revenue: followupDouble(json['revenue']),
+        ordersWithCode: followupInt(json['orders_with_code']),
+        revenueWithCode: followupDouble(json['revenue_with_code']),
+        net: followupDouble(json['net']),
+        roi: json['roi'] == null ? null : followupDouble(json['roi']),
+        costPerOrder: json['cost_per_order'] == null
+            ? null
+            : followupDouble(json['cost_per_order']),
+      );
+}
+
+/// Distinct codes the messages carried and what became of them.
+class FollowupCodes {
+  final int issued;
+  final int used;
+  final int unused;
+  final int expired;
+
+  const FollowupCodes({
+    this.issued = 0,
+    this.used = 0,
+    this.unused = 0,
+    this.expired = 0,
+  });
+
+  factory FollowupCodes.fromJson(Map json) => FollowupCodes(
+        issued: followupInt(json['issued']),
+        used: followupInt(json['used']),
+        unused: followupInt(json['unused']),
+        expired: followupInt(json['expired']),
+      );
 }
 
 /// `get_sent_report`: what the automatic WhatsApp follow-ups sent, and what
@@ -605,6 +791,18 @@ class FollowupSentReport {
   final int refusedWaitingForStaff;
   final List<FollowupSentItem> items;
 
+  /// Messages in the range; [items] is capped, so this can be larger.
+  final int itemsTotal;
+
+  /// Null when the server predates the cost report.
+  final FollowupMoney? money;
+
+  /// Null when the server predates the code report.
+  final FollowupCodes? codes;
+
+  /// Distinct customers messaged in the range.
+  final int customers;
+
   const FollowupSentReport({
     this.fromDate = '',
     this.toDate = '',
@@ -615,14 +813,26 @@ class FollowupSentReport {
     this.optedOutCustomers = 0,
     this.refusedWaitingForStaff = 0,
     this.items = const <FollowupSentItem>[],
+    this.itemsTotal = 0,
+    this.money,
+    this.codes,
+    this.customers = 0,
   });
 
   int total(String key) => totals[key] ?? 0;
 
+  /// Messages the server counted, never fewer than the ones it sent us.
+  int get messageCount => itemsTotal > items.length ? itemsTotal : items.length;
+
+  /// Some messages exist that [items] does not carry.
+  bool get itemsTruncated => itemsTotal > items.length;
+
   factory FollowupSentReport.fromJson(dynamic json) {
     if (json is! Map) return const FollowupSentReport();
     final steps = json['by_step'];
-    final items = json['items'];
+    final items = _mapList(json['items'], FollowupSentItem.fromJson);
+    final money = json['money'];
+    final codes = json['codes'];
     return FollowupSentReport(
       fromDate: followupString(json['from_date']),
       toDate: followupString(json['to_date']),
@@ -635,11 +845,11 @@ class FollowupSentReport {
       cancelled: _countMap(json['cancelled']),
       optedOutCustomers: followupInt(json['opted_out_customers']),
       refusedWaitingForStaff: followupInt(json['refused_waiting_for_staff']),
-      items: [
-        if (items is List)
-          for (final i in items)
-            if (i is Map) FollowupSentItem.fromJson(i),
-      ],
+      items: items,
+      itemsTotal: followupInt(json['items_total'], fallback: items.length),
+      money: money is Map ? FollowupMoney.fromJson(money) : null,
+      codes: codes is Map ? FollowupCodes.fromJson(codes) : null,
+      customers: followupInt(json['customers']),
     );
   }
 }

@@ -38,6 +38,7 @@ import '../features/user_admin/presentation/user_admin_list_screen.dart';
 import '../features/geo/presentation/screens/address_pin_screen.dart';
 import '../features/inventory_count/presentation/inventory_count_screen.dart';
 import '../features/partner_settlements/presentation/partner_settlements_screen.dart';
+import '../features/followups/presentation/screens/followup_results_screen.dart';
 import '../features/followups/presentation/screens/followups_screen.dart';
 import '../features/chat_inbox/presentation/screens/chat_inbox_screen.dart';
 import '../features/chat_inbox/presentation/screens/chat_metrics_screen.dart';
@@ -716,6 +717,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.followups,
         name: 'followups',
         builder: (context, state) => const FollowupsScreen(),
+        // Nested so Back from the results lands on the worklist, also when the
+        // drawer `go`es straight to it.
+        routes: [
+          GoRoute(
+            path: 'results',
+            name: 'followup-results',
+            builder: (context, state) => const FollowupResultsScreen(),
+          ),
+        ],
       ),
       // Chat inbox. The thread and metrics are nested so a push that opens a
       // thread directly (`go('/chats/CHAT-00001')`) still has the inbox under

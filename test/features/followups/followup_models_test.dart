@@ -347,4 +347,137 @@ void main() {
     expect(item.offerCode, 'JRZ50');
     expect(FollowupSentReport.fromJson(null).items, isEmpty);
   });
+
+  test('FollowupSentReport parses replies, orders, codes and money', () {
+    final report = FollowupSentReport.fromJson({
+      'items_total': 40,
+      'customers': 7,
+      'money': {
+        'currency': 'EGP',
+        'message_cost_each': 0.9,
+        'billable_messages': 38,
+        'messages_cost': 34.2,
+        'discount_cost': 120,
+        'total_cost': 154.2,
+        'orders': 3,
+        'revenue': '1500.5',
+        'orders_with_code': 1,
+        'revenue_with_code': 400,
+        'net': 1346.3,
+        'roi': 9.73,
+        'cost_per_order': 51.4,
+      },
+      'codes': {'issued': 10, 'used': 2, 'unused': 6, 'expired': 2},
+      'items': [
+        {
+          'name': 'FUT-1',
+          'customer': 'CUST-1',
+          'customer_name': 'Mona',
+          'step': 'day32',
+          'sent_at': '2026-10-20 10:00:00',
+          'offer_code': 'JRZ-MONA',
+          'tier': 'vip',
+          'code_status': 'used',
+          'code_discount': 45.5,
+          'code_invoice': 'SINV-1',
+          'replied': 1,
+          'reply_count': 7,
+          'replies': [
+            {
+              'at': '2026-10-20 12:00:00',
+              'text': 'thanks',
+              'type': 'text',
+              'is_stop': 0,
+            },
+            {'at': '2026-10-20 12:05:00', 'text': '', 'type': 'IMAGE'},
+            {
+              'at': '2026-10-21 08:00:00',
+              'text': 'STOP',
+              'type': 'text',
+              'is_stop': 1,
+            },
+          ],
+          'reorder_invoice': 'SINV-1',
+          'reorder_total': 700,
+          'orders': [
+            {
+              'invoice': 'SINV-1',
+              'at': '2026-10-22 09:00:00',
+              'grand_total': 400,
+              'woo_order_id': '17901',
+              'used_code': 1,
+            },
+            {'invoice': 'SINV-2', 'at': '2026-10-25 09:00:00', 'grand_total': '300'},
+            'junk',
+          ],
+        },
+      ],
+    });
+    expect(report.itemsTotal, 40);
+    expect(report.itemsTruncated, isTrue);
+    expect(report.messageCount, 40);
+    expect(report.customers, 7);
+    final money = report.money!;
+    expect(money.messageCostEach, 0.9);
+    expect(money.billableMessages, 38);
+    expect(money.totalCost, 154.2);
+    expect(money.revenue, 1500.5);
+    expect(money.roi, 9.73);
+    expect(money.costPerOrder, 51.4);
+    expect(report.codes!.used, 2);
+    expect(report.codes!.expired, 2);
+
+    final item = report.items.single;
+    expect(item.tier, 'vip');
+    expect(item.codeStatus, 'used');
+    expect(item.codeUsed, isTrue);
+    expect(item.codeDiscount, 45.5);
+    expect(item.codeInvoice, 'SINV-1');
+    expect(item.replyCount, 7);
+    expect(item.replies, hasLength(3));
+    expect(item.replies[1].type, 'image');
+    expect(item.replies[1].hasText, isFalse);
+    expect(item.replies[2].isStop, isTrue);
+    expect(item.orders, hasLength(2));
+    expect(item.orders.first.usedCode, isTrue);
+    expect(item.orders.first.displayId, '17901');
+    expect(item.orders.last.displayId, 'SINV-2');
+    expect(item.orders.last.grandTotal, 300);
+    expect(item.reorderTotal, 700);
+    expect(item.reordered, isTrue);
+  });
+
+  test('FollowupSentReport parses a payload from an older server', () {
+    final report = FollowupSentReport.fromJson({
+      'totals': {'sent': 1},
+      'items': [
+        {
+          'name': 'FUT-1',
+          'customer_name': 'Mona',
+          'replied': 1,
+          'reorder_invoice': 'SINV-1',
+        },
+      ],
+    });
+    expect(report.money, isNull);
+    expect(report.codes, isNull);
+    expect(report.customers, 0);
+    expect(report.itemsTotal, 1);
+    expect(report.itemsTruncated, isFalse);
+    final item = report.items.single;
+    expect(item.tier, '');
+    expect(item.codeStatus, '');
+    expect(item.replies, isEmpty);
+    expect(item.orders, isEmpty);
+    expect(item.replied, isTrue);
+    expect(item.reordered, isTrue);
+    expect(item.codeUsed, isFalse);
+  });
+
+  test('FollowupMoney leaves roi and cost per order null when absent', () {
+    final money = FollowupMoney.fromJson({'total_cost': 0, 'roi': null});
+    expect(money.roi, isNull);
+    expect(money.costPerOrder, isNull);
+    expect(money.currency, 'EGP');
+  });
 }

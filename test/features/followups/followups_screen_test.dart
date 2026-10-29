@@ -230,18 +230,21 @@ void main() {
     );
   });
 
-  testWidgets('stats link is hidden for a line manager', (tester) async {
+  testWidgets('results link is hidden for a line manager', (tester) async {
     await _pump(tester, _FakeRepo(_today()));
-    expect(find.byIcon(Icons.query_stats), findsNothing);
+    expect(find.byIcon(Icons.insights_outlined), findsNothing);
   });
 
-  testWidgets('stats link is shown for a JARZ Manager', (tester) async {
+  testWidgets('one results link is shown for a JARZ Manager', (tester) async {
     await _pump(
       tester,
       _FakeRepo(_today()),
       roles: const [RoleNames.jarzManager],
     );
-    expect(find.byIcon(Icons.query_stats), findsOneWidget);
+    expect(find.byIcon(Icons.insights_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.query_stats), findsNothing);
+    expect(find.byIcon(Icons.mark_chat_read_outlined), findsNothing);
+    expect(find.byTooltip('Follow-up results'), findsOneWidget);
   });
 
   testWidgets('shows the server reason when logging fails', (tester) async {

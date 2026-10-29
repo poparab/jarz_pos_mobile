@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/localized_display_mappers.dart';
 import '../../../../core/localization/localized_formatters.dart';
@@ -17,8 +19,6 @@ import '../../state/followups_providers.dart';
 import '../widgets/call_brief_sheet.dart';
 import '../widgets/followup_card.dart';
 import '../widgets/log_touch_sheet.dart';
-import 'followup_sent_screen.dart';
-import 'followup_stats_screen.dart';
 
 /// "Follow-ups today" (المتابعات): the sender's daily list of reorder-plan
 /// touches — WhatsApp messages and calls after delivery — split into overdue
@@ -270,25 +270,11 @@ class _FollowupsScreenState extends ConsumerState<FollowupsScreen> {
         title: Text(l10n.followupsTitle),
         actions: [
           if (canViewStats)
-          IconButton(
-            tooltip: l10n.followupsStatsAction,
-            icon: const Icon(Icons.query_stats),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const FollowupStatsScreen(),
-              ),
+            IconButton(
+              tooltip: l10n.followupResultsTitle,
+              icon: const Icon(Icons.insights_outlined),
+              onPressed: () => context.push(AppRoutes.followupResults),
             ),
-          ),
-          if (canViewStats)
-          IconButton(
-            tooltip: l10n.followupsSentAction,
-            icon: const Icon(Icons.mark_chat_read_outlined),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const FollowupSentScreen(),
-              ),
-            ),
-          ),
         ],
       ),
       body: async.when(

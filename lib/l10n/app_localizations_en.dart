@@ -16757,12 +16757,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get followupsSkipped => 'Follow-up skipped';
 
   @override
-  String get followupsStatsAction => 'Follow-up stats';
-
-  @override
-  String get followupsStatsTitle => 'Follow-ups: last 7 days';
-
-  @override
   String get followupsStatsCalls => 'Calls made';
 
   @override
@@ -16800,12 +16794,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get followupsStatsReorderRate => 'Reorder rate';
-
-  @override
-  String get followupsSentAction => 'Sent WhatsApp messages';
-
-  @override
-  String get followupsSentTitle => 'Sent messages: last 7 days';
 
   @override
   String get followupsSentTotal => 'Sent';
@@ -20338,4 +20326,254 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get followupsBriefEmpty => 'No brief available for this customer.';
+
+  @override
+  String get followupResultsTitle => 'Follow-up results';
+
+  @override
+  String get followupResultsRange7 => '7 days';
+
+  @override
+  String get followupResultsRange30 => '30 days';
+
+  @override
+  String get followupResultsRangeMonth => 'This month';
+
+  @override
+  String get followupResultsRangeCustom => 'Custom';
+
+  @override
+  String get followupResultsRangePickerHelp => 'Choose the period';
+
+  @override
+  String get followupResultsTabOverview => 'Overview';
+
+  @override
+  String get followupResultsTabMessages => 'Messages';
+
+  @override
+  String get followupResultsTabReplies => 'Replies';
+
+  @override
+  String get followupResultsTabOrders => 'Orders';
+
+  @override
+  String get followupResultsTabCalls => 'Calls';
+
+  @override
+  String get followupResultsCostTitle => 'Cost vs. orders';
+
+  @override
+  String get followupResultsTotalCost => 'Total cost';
+
+  @override
+  String get followupResultsMessagesCost => 'Messages';
+
+  @override
+  String followupResultsMessagesCostDetail(String count, String each) {
+    return '$count × $each';
+  }
+
+  @override
+  String get followupResultsDiscountsCost => 'Discounts given';
+
+  @override
+  String get followupResultsOrders => 'Orders';
+
+  @override
+  String get followupResultsRevenue => 'Revenue';
+
+  @override
+  String get followupResultsNet => 'Net';
+
+  @override
+  String get followupResultsRoi => 'Return';
+
+  @override
+  String followupResultsRoiValue(String value) {
+    return '×$value';
+  }
+
+  @override
+  String get followupResultsCostPerOrder => 'Cost per order';
+
+  @override
+  String followupResultsOrdersWithCode(String count, String amount) {
+    return 'Orders that used a code: $count ($amount)';
+  }
+
+  @override
+  String get followupResultsCostNote =>
+      'Orders counted are those placed within 30 days after a message. The cost of each message comes from Follow-up Settings.';
+
+  @override
+  String followupResultsCustomers(String count) {
+    return '$count customers messaged';
+  }
+
+  @override
+  String get followupResultsFunnelTitle => 'From message to order';
+
+  @override
+  String get followupResultsReplied => 'Replied';
+
+  @override
+  String get followupResultsOrdered => 'Ordered';
+
+  @override
+  String get followupResultsCodesTitle => 'Codes';
+
+  @override
+  String get followupResultsCodesIssued => 'Issued';
+
+  @override
+  String get followupResultsCodesUsed => 'Used';
+
+  @override
+  String get followupResultsCodesUnused => 'Not used yet';
+
+  @override
+  String get followupResultsCodesExpired => 'Expired';
+
+  @override
+  String get followupResultsAttentionTitle => 'Worth a look';
+
+  @override
+  String get followupResultsSearchHint => 'Name, phone, code or invoice';
+
+  @override
+  String get followupResultsFilterStep => 'Step';
+
+  @override
+  String get followupResultsFilterStatus => 'Status';
+
+  @override
+  String get followupResultsFilterOutcome => 'Result';
+
+  @override
+  String get followupResultsOutcomeUsedCode => 'Used the code';
+
+  @override
+  String get followupResultsOutcomeNoResponse => 'No response';
+
+  @override
+  String get followupResultsClearFilters => 'Clear filters';
+
+  @override
+  String followupResultsCountLine(String shown, String total) {
+    return '$shown of $total messages';
+  }
+
+  @override
+  String followupResultsTruncated(String shown, String total) {
+    return 'Showing the latest $shown of $total messages. Narrow the dates to see the rest.';
+  }
+
+  @override
+  String get followupResultsMessagesEmpty => 'No messages match';
+
+  @override
+  String get followupResultsRepliesEmpty => 'No replies in this period';
+
+  @override
+  String get followupResultsOrdersEmpty =>
+      'No orders followed the messages in this period';
+
+  @override
+  String get followupResultsCodeUsed => 'Used';
+
+  @override
+  String get followupResultsCodeUnused => 'Not used';
+
+  @override
+  String get followupResultsCodeExpired => 'Expired';
+
+  @override
+  String get followupResultsTierVip => 'VIP';
+
+  @override
+  String get followupResultsTierLoyal => 'Loyal';
+
+  @override
+  String get followupResultsTierRepeat => 'Repeat';
+
+  @override
+  String get followupResultsTierOneBig => 'One big order';
+
+  @override
+  String get followupResultsTierOne => 'One order';
+
+  @override
+  String get followupResultsReplyImage => '[image]';
+
+  @override
+  String get followupResultsReplyVoice => '[voice note]';
+
+  @override
+  String get followupResultsReplyVideo => '[video]';
+
+  @override
+  String get followupResultsReplyDocument => '[document]';
+
+  @override
+  String get followupResultsReplySticker => '[sticker]';
+
+  @override
+  String get followupResultsReplyLocation => '[location]';
+
+  @override
+  String get followupResultsReplyButton => '[button tap]';
+
+  @override
+  String get followupResultsReplyOther => '[attachment]';
+
+  @override
+  String get followupResultsStopReply => 'Asked to stop messages';
+
+  @override
+  String followupResultsRepliesCount(String count) {
+    return '$count replies';
+  }
+
+  @override
+  String get followupResultsSheetReplies => 'Replies';
+
+  @override
+  String get followupResultsSheetOrders => 'Orders after this message';
+
+  @override
+  String get followupResultsSheetNoReplies => 'No replies';
+
+  @override
+  String get followupResultsSheetNoOrders => 'No orders';
+
+  @override
+  String followupResultsSheetMoreReplies(String count) {
+    return '$count more replies not shown';
+  }
+
+  @override
+  String get followupResultsSheetCode => 'Code';
+
+  @override
+  String followupResultsSheetDiscount(String amount) {
+    return 'Discount $amount';
+  }
+
+  @override
+  String get followupResultsSheetError => 'Why it failed';
+
+  @override
+  String get followupResultsSheetAllMessages =>
+      'Show all messages to this customer';
+
+  @override
+  String followupResultsOrdersSummary(String count, String amount) {
+    return '$count orders · $amount';
+  }
+
+  @override
+  String followupResultsOrderAfterStep(String step) {
+    return 'After: $step';
+  }
 }
