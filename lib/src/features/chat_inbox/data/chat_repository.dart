@@ -23,6 +23,9 @@ class ChatRepository {
   /// side), longer than the app's default receive timeout.
   static const regenerateTimeout = Duration(seconds: 40);
 
+  /// `get_order_prefill(with_order=1)` reads the chat with a model call.
+  static const orderPrefillTimeout = Duration(seconds: 45);
+
   String get baseUrl => _dio.options.baseUrl;
 
   /// The `message` payload, or the bare body when it is not enveloped.
@@ -177,11 +180,21 @@ class ChatRepository {
     return ChatLinkResult.fromJson(_payload(response));
   }
 
-  /// `get_order_prefill` — what "Start order" hands to the POS.
-  Future<ChatOrderPrefill> fetchOrderPrefill(String conversation) async {
+  /// `get_order_prefill` — what "Start order" hands to the POS. With
+  /// [withOrder] the server also reads the order out of the chat with a model
+  /// call (~5-15 s), so the receive timeout is raised for that request only.
+  Future<ChatOrderPrefill> fetchOrderPrefill(
+    String conversation, {
+    bool withOrder = false,
+  }) async {
     final response = await _dio.get(
       ApiEndpoints.chatGetOrderPrefill,
-      queryParameters: {'conversation': conversation},
+      queryParameters: {
+        'conversation': conversation,
+        if (withOrder) 'with_order': 1,
+      },
+      options:
+          withOrder ? Options(receiveTimeout: orderPrefillTimeout) : null,
     );
     return ChatOrderPrefill.fromJson(_payload(response));
   }

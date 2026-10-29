@@ -876,7 +876,10 @@ class ChatThreadNotifier
     });
   }
 
-  Future<ChatOrderPrefill> orderPrefill() => _repo.fetchOrderPrefill(arg);
+  /// What "Start order" hands to the POS; [withOrder] also has the server
+  /// read the order out of the chat (slow: a model call).
+  Future<ChatOrderPrefill> orderPrefill({bool withOrder = false}) =>
+      _repo.fetchOrderPrefill(arg, withOrder: withOrder);
 
   void _onChatUpdate(ChatUpdateEvent event) {
     if (event.conversation != arg) return;

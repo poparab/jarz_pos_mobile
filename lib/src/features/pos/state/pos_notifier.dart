@@ -11,6 +11,8 @@ import '../data/models/pos_models.dart';
 import '../data/repositories/draft_cart_repository.dart';
 import '../data/repositories/pos_repository.dart';
 import '../domain/models/delivery_slot.dart';
+import '../../chat_inbox/data/models/chat_models.dart';
+import 'chat_order_apply.dart';
 import '../../../core/constants/business_constants.dart';
 import '../../../core/utils/order_display_id.dart';
 
@@ -1608,6 +1610,71 @@ class PosNotifier extends StateNotifier<PosState> {
     state = state.copyWith(cartItems: updatedCart, draftDirty: true);
     _autoSaveDebounced();
     unawaited(_revalidatePromosIfAny());
+  }
+
+  /// Adds [qty] of catalog [item] exactly as [qty] taps on its grid tile
+  /// would: one [addToCart] (so pricing and policy discounts are the grid's),
+  /// then the quantity raised on that same cart line.
+  bool addCatalogItem(Map<String, dynamic> item, int qty) {
+    if (qty <= 0) return false;
+    if (!addToCart(item)) return false;
+    if (qty == 1) return true;
+    final index = state.cartItems.indexWhere(
+      (cartItem) => cartItem['item_code'] == item['name'],
+    );
+    if (index < 0) return true;
+    final current = (state.cartItems[index]['quantity'] as num?)?.toInt() ?? 1;
+    updateCartItemQuantity(index, current + qty - 1);
+    return true;
+  }
+
+  /// Fills the cart with the order the chat reader found (see
+  /// [planChatOrder]): catalog items with their quantity, and bundles whose
+  /// every group was filled. Anything it cannot place without guessing comes
+  /// back in [ChatOrderApplyResult.skipped] for staff to add by hand. Pickup
+  /// is the caller's ([setPickup]); the customer is never touched here.
+  ChatOrderApplyResult applyChatOrder(ChatPrefillOrder order) {
+    final plan = planChatOrder(
+      order,
+      items: state.items,
+      bundles: state.bundles,
+    );
+    final added = <ChatPrefillLine>[];
+    final skipped = <ChatOrderSkippedLine>[...plan.skipped];
+    final overStock = <String>[];
+
+    for (final add in plan.items) {
+      if (addCatalogItem(add.item, add.qty)) {
+        added.add(add.line);
+        final code = add.item['name']?.toString() ?? '';
+        if (code.isNotEmpty &&
+            cartItemExceedsAvailableStock(code) &&
+            !overStock.contains(add.line.displayName)) {
+          overStock.add(add.line.displayName);
+        }
+      } else {
+        skipped.add(ChatOrderSkippedLine(add.line, ChatOrderSkipReason.refused));
+      }
+    }
+    for (final add in plan.bundles) {
+      for (var n = 0; n < add.instances; n++) {
+        // A fresh copy per instance: editing one bundle line in the cart
+        // mutates its selected_items in place.
+        addBundleToCart(add.bundle, {
+          for (final entry in add.selectedItems.entries)
+            entry.key: [
+              for (final pick in entry.value) Map<String, dynamic>.from(pick),
+            ],
+        });
+      }
+      added.add(add.line);
+    }
+
+    return ChatOrderApplyResult(
+      added: added,
+      skipped: skipped,
+      overStock: overStock,
+    );
   }
 
   void updateBundleInCart(

@@ -630,6 +630,226 @@ class ChatLinkResult {
   }
 }
 
+/// One flavour picked into a bundle group by the chat order reader.
+class ChatPrefillSelection {
+  final String itemCode;
+  final int qty;
+
+  const ChatPrefillSelection({required this.itemCode, required this.qty});
+
+  factory ChatPrefillSelection.fromJson(dynamic raw) {
+    final json = _asMap(raw);
+    return ChatPrefillSelection(
+      itemCode: chatString(json['item_code']).trim(),
+      qty: chatInt(json['qty'], fallback: 1),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {'item_code': itemCode, 'qty': qty};
+}
+
+/// One line of the order the AI read from the chat (`order.lines[]`).
+///
+/// An item line is `{kind: item, item_code, item_name, qty}`. A bundle line is
+/// ONE bundle instance: `{kind: bundle, bundle_id, item_code, item_name, qty,
+/// selections: {group_key: [{item_code, qty}]}, complete}`.
+class ChatPrefillLine {
+  static const kindItem = 'item';
+  static const kindBundle = 'bundle';
+
+  final String kind;
+  final String itemCode;
+  final String itemName;
+  final double qty;
+
+  /// `Jarz Bundle` name, which is the POS catalog bundle's `id`.
+  final String? bundleId;
+
+  /// group_key -> the flavours picked into that group.
+  final Map<String, List<ChatPrefillSelection>> selections;
+
+  /// True when every group's selections add up to the group's quantity.
+  final bool complete;
+
+  const ChatPrefillLine({
+    required this.kind,
+    required this.itemCode,
+    required this.itemName,
+    required this.qty,
+    this.bundleId,
+    this.selections = const {},
+    this.complete = false,
+  });
+
+  bool get isBundle => kind == kindBundle;
+
+  String get displayName => itemName.isNotEmpty ? itemName : itemCode;
+
+  factory ChatPrefillLine.fromJson(dynamic raw) {
+    final json = _asMap(raw);
+    final bundleId = chatNullableString(json['bundle_id']);
+    final rawKind = chatString(json['kind']).trim().toLowerCase();
+    // An unknown kind is read from the payload: a bundle id means a bundle.
+    final kind = rawKind == kindBundle || (rawKind != kindItem && bundleId != null)
+        ? kindBundle
+        : kindItem;
+    final selections = <String, List<ChatPrefillSelection>>{};
+    final rawSelections = json['selections'];
+    if (rawSelections is Map) {
+      rawSelections.forEach((key, value) {
+        final groupKey = key?.toString().trim() ?? '';
+        if (groupKey.isEmpty || value is! List) return;
+        selections[groupKey] = value
+            .whereType<Map>()
+            .map(ChatPrefillSelection.fromJson)
+            .where((s) => s.itemCode.isNotEmpty)
+            .toList(growable: false);
+      });
+    }
+    final itemCode = chatString(json['item_code']).trim();
+    return ChatPrefillLine(
+      kind: kind,
+      itemCode: itemCode,
+      itemName: chatNullableString(json['item_name']) ?? itemCode,
+      qty: chatDouble(json['qty'], fallback: 1),
+      bundleId: bundleId,
+      selections: selections,
+      complete: chatBool(json['complete']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'kind': kind,
+        'item_code': itemCode,
+        'item_name': itemName,
+        'qty': qty,
+        if (bundleId != null) 'bundle_id': bundleId,
+        if (isBundle)
+          'selections': selections.map(
+            (key, value) =>
+                MapEntry(key, value.map((s) => s.toJson()).toList()),
+          ),
+        if (isBundle) 'complete': complete,
+      };
+}
+
+/// A delivery area the customer named that differs from the one on file.
+class ChatPrefillArea {
+  final String territory;
+  final String label;
+  final double? deliveryIncome;
+
+  const ChatPrefillArea({
+    required this.territory,
+    required this.label,
+    this.deliveryIncome,
+  });
+
+  static ChatPrefillArea? maybeFromJson(dynamic raw) {
+    if (raw is! Map) return null;
+    final json = _asMap(raw);
+    final territory = chatString(json['territory']).trim();
+    final label = chatNullableString(json['label']) ?? territory;
+    if (territory.isEmpty && label.isEmpty) return null;
+    return ChatPrefillArea(
+      territory: territory,
+      label: label,
+      deliveryIncome: chatNullableDouble(json['delivery_income']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'territory': territory,
+        'label': label,
+        if (deliveryIncome != null) 'delivery_income': deliveryIncome,
+      };
+}
+
+/// `get_order_prefill(with_order=1)`'s `order`: what the customer asked for
+/// in the chat, read by the AI. Nothing here is applied to the customer
+/// record; the POS only fills the cart and shows the rest to staff.
+class ChatPrefillOrder {
+  final List<ChatPrefillLine> lines;
+
+  /// The customer's own message carrying a NEW address, verbatim.
+  final String? addressText;
+  final ChatPrefillArea? area;
+
+  /// A phone / name the customer typed that differs from the one on file.
+  final String? phone;
+  final String? contactName;
+  final bool pickup;
+  final String? notes;
+  final List<String> warnings;
+
+  const ChatPrefillOrder({
+    this.lines = const [],
+    this.addressText,
+    this.area,
+    this.phone,
+    this.contactName,
+    this.pickup = false,
+    this.notes,
+    this.warnings = const [],
+  });
+
+  /// True when there is nothing to put in the cart or show to staff.
+  bool get isEmpty =>
+      lines.isEmpty &&
+      addressText == null &&
+      area == null &&
+      phone == null &&
+      contactName == null &&
+      !pickup &&
+      notes == null &&
+      warnings.isEmpty;
+
+  /// True when opening the POS changes the cart (lines or pickup).
+  bool get changesCart => lines.isNotEmpty || pickup;
+
+  static ChatPrefillOrder? maybeFromJson(dynamic raw) {
+    if (raw is! Map) return null;
+    return ChatPrefillOrder.fromJson(raw);
+  }
+
+  factory ChatPrefillOrder.fromJson(dynamic raw) {
+    final json = _asMap(raw);
+    final rawLines = json['lines'];
+    final address = json['address'];
+    final addressText = address is Map
+        ? chatNullableString(address['text'])
+        : chatNullableString(address);
+    return ChatPrefillOrder(
+      lines: rawLines is List
+          ? rawLines
+              .whereType<Map>()
+              .map(ChatPrefillLine.fromJson)
+              .where((l) => l.itemCode.isNotEmpty || l.bundleId != null)
+              .toList(growable: false)
+          : const [],
+      addressText: addressText,
+      area: ChatPrefillArea.maybeFromJson(json['area']),
+      phone: chatNullableString(json['phone']),
+      contactName: chatNullableString(json['contact_name']),
+      pickup: chatBool(json['pickup']),
+      notes: chatNullableString(json['notes']),
+      warnings: chatStringList(json['warnings']),
+    );
+  }
+
+  /// The wire shape again, so the order can travel in a route's `extra`.
+  Map<String, dynamic> toJson() => {
+        'lines': lines.map((l) => l.toJson()).toList(),
+        'address': addressText == null ? null : {'text': addressText},
+        'area': area?.toJson(),
+        'phone': phone,
+        'contact_name': contactName,
+        'pickup': pickup,
+        'notes': notes,
+        'warnings': warnings,
+      };
+}
+
 /// `get_order_prefill` answer.
 class ChatOrderPrefill {
   /// `{name, customer_name, mobile_no}` ready for `PosNotifier.selectCustomer`,
@@ -638,7 +858,18 @@ class ChatOrderPrefill {
   final String? phone;
   final String? contactName;
 
-  const ChatOrderPrefill({this.customer, this.phone, this.contactName});
+  /// The order read from the chat (`with_order=1` only); null when it was not
+  /// asked for or the reader is off / failed ([orderError] then says why).
+  final ChatPrefillOrder? order;
+  final String? orderError;
+
+  const ChatOrderPrefill({
+    this.customer,
+    this.phone,
+    this.contactName,
+    this.order,
+    this.orderError,
+  });
 
   factory ChatOrderPrefill.fromJson(dynamic raw) {
     final json = _asMap(raw);
@@ -656,6 +887,8 @@ class ChatOrderPrefill {
       customer: customerMap,
       phone: chatNullableString(json['phone']),
       contactName: chatNullableString(json['contact_name']),
+      order: ChatPrefillOrder.maybeFromJson(json['order']),
+      orderError: chatNullableString(json['order_error']),
     );
   }
 }

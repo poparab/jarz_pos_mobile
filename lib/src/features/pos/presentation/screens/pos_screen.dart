@@ -21,6 +21,11 @@ import '../../../credit/state/credit_providers.dart';
 // Merged system status: connectivity, realtime, sync, couriers, partner chip
 // Removed unused system status imports (connectivity, sync, websocket) to satisfy analyzer.
 import '../../state/pos_notifier.dart';
+import '../../state/chat_order_apply.dart';
+import '../../../chat_inbox/data/models/chat_models.dart';
+import '../../../../core/repositories/customer_address_repository.dart';
+import '../../../../core/widgets/customer_shipping_address_flow.dart';
+import '../widgets/chat_order_panel.dart';
 import '../widgets/customer_search_widget.dart';
 import '../widgets/draft_tabs_bar.dart';
 import '../widgets/sales_partner_selector.dart';
@@ -58,6 +63,12 @@ class _PosScreenState extends ConsumerState<PosScreen>
   bool _b2bBindingInProgress = false;
   String? _b2bBindingError;
   bool _chatOrderApplied = false;
+  // Chat order ("Start order" from the inbox): lines still to be put in the
+  // cart, what applying them did, and whether staff closed the panel.
+  bool _chatCartPending = false;
+  bool _chatPanelDismissed = false;
+  ChatOrderApplyResult? _chatApplyResult;
+  late final ChatPrefillOrder? _chatOrder = _readChatOrder();
 
   bool get _isB2bOrderRoute =>
       widget.launchData?['mode']?.toString() == 'b2b_order';
@@ -182,28 +193,116 @@ class _PosScreenState extends ConsumerState<PosScreen>
     return requiredProfile.isNotEmpty;
   }
 
+  /// The order the chat reader found (`launchData['chat_order']`), or null.
+  ChatPrefillOrder? _readChatOrder() {
+    final launchData = widget.launchData;
+    if (launchData?['mode']?.toString() != 'chat_order') return null;
+    final raw = launchData?['chat_order'];
+    final order = raw is ChatPrefillOrder
+        ? raw
+        : ChatPrefillOrder.maybeFromJson(raw);
+    return (order == null || order.isEmpty) ? null : order;
+  }
+
+  String get _chatCustomerName {
+    final customer = widget.launchData?['customer'];
+    return customer is Map ? customer['name']?.toString().trim() ?? '' : '';
+  }
+
   /// Applies a chat binding passed via [PosScreen.launchData]:
-  /// `{mode: 'chat_order', conversation, customer}` (from the chat inbox's
-  /// "Start order"). Only preselects the linked customer, once, after a POS
-  /// profile is chosen; the order then follows the normal path.
+  /// `{mode: 'chat_order', conversation, customer, chat_order?}` (from the
+  /// chat inbox's "Start order"). Once a POS profile is chosen it preselects
+  /// the linked customer; when the chat's order changes the cart and a cart
+  /// is already in progress, that cart is saved as a draft first so the two
+  /// orders never mix. The order's lines are applied later, once, by
+  /// [_scheduleChatCartApply].
   void _scheduleChatOrderBinding(PosState state) {
     final launchData = widget.launchData;
-    if (_chatOrderApplied ||
-        launchData?['mode']?.toString() != 'chat_order' ||
-        state.selectedProfile == null) {
+    if (launchData?['mode']?.toString() != 'chat_order') return;
+    if (_chatOrderApplied) {
+      _scheduleChatCartApply(state);
       return;
     }
+    if (state.selectedProfile == null) return;
     final customer = launchData?['customer'];
     if (customer is! Map ||
         (customer['name']?.toString().trim().isEmpty ?? true)) {
       return;
     }
     _chatOrderApplied = true;
+    _chatCartPending = _chatOrder?.changesCart ?? false;
     final selected = Map<String, dynamic>.from(customer);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(posNotifierProvider.notifier).selectCustomer(selected);
+      final notifier = ref.read(posNotifierProvider.notifier);
+      final current = ref.read(posNotifierProvider);
+      if (_chatCartPending &&
+          (current.cartItems.isNotEmpty ||
+              current.isB2bOrder ||
+              current.isAmendmentDraft)) {
+        notifier.newDraft();
+      }
+      notifier.selectCustomer(selected);
     });
+  }
+
+  /// Puts the chat's order in the cart exactly once, after the chat customer
+  /// is selected AND the catalog (items + bundles) is loaded.
+  void _scheduleChatCartApply(PosState state) {
+    final order = _chatOrder;
+    if (!_chatCartPending || order == null) return;
+    final customerName = _chatCustomerName;
+    if (state.isLoading ||
+        state.error != null ||
+        (state.items.isEmpty && state.bundles.isEmpty) ||
+        customerName.isEmpty ||
+        state.selectedCustomer?['name']?.toString().trim() != customerName) {
+      return;
+    }
+    _chatCartPending = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final notifier = ref.read(posNotifierProvider.notifier);
+      final result = notifier.applyChatOrder(order);
+      if (order.pickup) notifier.setPickup(true);
+      setState(() => _chatApplyResult = result);
+    });
+  }
+
+  /// "Add as new address" on the chat panel: the POS address dialog opened
+  /// on its new-address tab with the customer's text. Staff edit and confirm;
+  /// only then is the address saved and selected for this order.
+  Future<void> _addChatAddress(String text) async {
+    final customer = ref.read(posNotifierProvider).selectedCustomer;
+    final customerName = customer?['name']?.toString().trim() ?? '';
+    if (customer == null || customerName.isEmpty) return;
+    final merged = await chooseCustomerShippingAddress(
+      context,
+      customer: customer,
+      repository: ref.read(customerAddressRepositoryProvider),
+      initialNewAddress: text,
+    );
+    if (merged == null || !mounted) return;
+    final active = ref
+        .read(posNotifierProvider)
+        .selectedCustomer?['name']
+        ?.toString()
+        .trim();
+    if (active != customerName) return;
+    ref.read(posNotifierProvider.notifier).selectCustomer(merged);
+  }
+
+  Widget? _buildChatOrderPanel(PosState state) {
+    final order = _chatOrder;
+    if (order == null || _chatPanelDismissed) return null;
+    final hasCustomer =
+        state.selectedCustomer?['name']?.toString().trim().isNotEmpty ?? false;
+    return ChatOrderPanel(
+      order: order,
+      result: _chatApplyResult,
+      onDismiss: () => setState(() => _chatPanelDismissed = true),
+      onAddAddress: hasCustomer && !state.isB2bOrder ? _addChatAddress : null,
+    );
   }
 
   void _scheduleB2bBinding(PosState state) {
@@ -647,6 +746,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
     // Only show the shift banner for the shift that actually gated this screen.
     // Keeping the stale value across a refresh stops the banner flickering out.
     final matchedActiveShift = hasShiftForProfile ? shiftForThisProfile : null;
+    final chatOrderPanel = _buildChatOrderPanel(state);
 
     // ── Phone: scroll-to-hide header + FAB ──────────────────────────
     if (isPhone) {
@@ -723,6 +823,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
                             ShiftStatusBanner(shift: matchedActiveShift),
                           if (state.isAmendmentDraft)
                             _buildAmendmentDraftBanner(context, state),
+                          if (chatOrderPanel != null) chatOrderPanel,
                           Expanded(
                             child: state.isLoading
                                 ? const Center(
@@ -800,6 +901,7 @@ class _PosScreenState extends ConsumerState<PosScreen>
                 ShiftStatusBanner(shift: matchedActiveShift),
               if (state.isAmendmentDraft)
                 _buildAmendmentDraftBanner(context, state),
+              if (chatOrderPanel != null) chatOrderPanel,
               Expanded(
                 child: state.isLoading
                     ? const Center(child: CircularProgressIndicator())

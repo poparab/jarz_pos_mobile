@@ -8,6 +8,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../core/localization/user_error_message.dart';
 import '../../../../core/network/user_service.dart';
+import '../../data/chat_repository.dart';
 import '../../data/models/chat_models.dart';
 import '../../state/chat_providers.dart';
 import '../widgets/chat_dialogs.dart';
@@ -168,11 +169,76 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
     });
   }
 
+  /// Inline bilingual text (no .arb key: an .arb edit forces a full APK).
+  String _bi(String en, String ar) =>
+      Localizations.localeOf(context).languageCode == 'ar' ? ar : en;
+
+  void _showReadingOrder() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        key: const ValueKey('chat-reading-order'),
+        duration: ChatRepository.orderPrefillTimeout,
+        content: Row(
+          children: [
+            const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(_bi(
+                'Reading the order from the chat…',
+                'جارٍ قراءة الطلب من المحادثة…',
+              )),
+            ),
+          ],
+        ),
+      ));
+  }
+
+  /// `get_order_prefill` with the chat's order read by the AI. A failed or
+  /// timed-out read falls back to the plain (customer-only) prefill, with
+  /// the reason in [ChatOrderPrefill.orderError], so "Start order" still
+  /// opens the POS as it did before.
+  Future<ChatOrderPrefill> _prefillWithOrder() async {
+    final messenger = ScaffoldMessenger.of(context);
+    _showReadingOrder();
+    try {
+      return await _notifier.orderPrefill(withOrder: true);
+    } catch (e) {
+      final reason = mounted
+          ? context.userErrorMessage(e, fallback: context.l10n.chatActionFailed)
+          : e.toString();
+      final plain = await _notifier.orderPrefill();
+      return ChatOrderPrefill(
+        customer: plain.customer,
+        phone: plain.phone,
+        contactName: plain.contactName,
+        orderError: reason,
+      );
+    } finally {
+      messenger.hideCurrentSnackBar();
+    }
+  }
+
   Future<void> _startOrder(ChatConversationSummary conversation) async {
     final l10n = context.l10n;
     await _runAction(() async {
-      final prefill = await _notifier.orderPrefill();
+      // Reading the order costs a model call; skip it when the chat has no
+      // linked customer, because the POS cannot open without one anyway.
+      final linked = conversation.customer != null;
+      var prefill = linked
+          ? await _prefillWithOrder()
+          : await _notifier.orderPrefill();
       if (!mounted) return;
+      if (!linked && prefill.customer != null) {
+        // The summary was stale: the server has a customer on this chat.
+        prefill = await _prefillWithOrder();
+        if (!mounted) return;
+      }
       final customer = prefill.customer;
       if (customer == null) {
         _snack(
@@ -184,10 +250,24 @@ class _ChatThreadScreenState extends ConsumerState<ChatThreadScreen> {
         );
         return;
       }
+      final order = prefill.order;
+      final orderError = prefill.orderError;
+      if (order == null && orderError != null) {
+        _snack(_bi(
+          'Could not read the order from the chat: $orderError',
+          'تعذّرت قراءة الطلب من المحادثة: $orderError',
+        ));
+      } else if (order != null && order.isEmpty) {
+        _snack(_bi(
+          'No order found in the chat; add the items by hand.',
+          'لم يُعثر على طلب في المحادثة؛ أضف الأصناف يدويًا.',
+        ));
+      }
       unawaited(context.push(AppRoutes.pos, extra: <String, dynamic>{
         'mode': 'chat_order',
         'conversation': _name,
         'customer': customer,
+        if (order != null && !order.isEmpty) 'chat_order': order.toJson(),
       }));
     });
   }
