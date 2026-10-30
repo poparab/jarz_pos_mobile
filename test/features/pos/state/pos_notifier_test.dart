@@ -22,6 +22,7 @@ class _FakePosRepository extends PosRepository {
   List<Map<String, dynamic>>? lastAmendmentItems;
   /// Promo codes handed to the last submitInvoiceAmendment call.
   List<String>? lastAmendmentPromoCodes;
+  bool? lastAmendmentKeepSourcePromoCodes;
   /// amendedFrom handed to each validatePromoCodes call, in order.
   final List<String?> promoAmendedFrom = [];
   int itemsCalls = 0;
@@ -159,11 +160,13 @@ class _FakePosRepository extends PosRepository {
     String? policyReason,
     String? employeePayment,
     List<String>? promoCodes,
+    bool keepSourcePromoCodes = false,
   }) async {
     submitInvoiceAmendmentCalls += 1;
     lastAmendmentSourceInvoiceId = sourceInvoiceId;
     lastAmendmentItems = items;
     lastAmendmentPromoCodes = promoCodes;
+    lastAmendmentKeepSourcePromoCodes = keepSourcePromoCodes;
     final error = amendmentError;
     if (error != null) throw error;
     return {'replacement_invoice_id': 'INV-AMD-001'};
@@ -1867,6 +1870,7 @@ void main() {
       await notifier.checkout();
       expect(notifier.state.error, isNull);
       expect(repository.lastAmendmentPromoCodes, ['STG10', 'BACK42R4FV']);
+      expect(repository.lastAmendmentKeepSourcePromoCodes, isFalse);
     });
 
     test('a removed code is sent as removed, and none leak into a new order',
@@ -3224,6 +3228,119 @@ void main() {
           isTrue,
           reason: 'isAmendmentDraft must be true for restored amendment draft',
         );
+      },
+    );
+
+    test(
+      'a blocked draft switch keeps the open amendment\'s removal of a code',
+      () async {
+        final staleDraft = DraftCart(
+          id: 'stale-promo-draft',
+          label: 'Stale Amendment',
+          cartItems: const [
+            {
+              'item_code': 'BDL-OLD',
+              'rate': 0.0,
+              'quantity': 1,
+              'type': 'bundle',
+              '_bundle_catalog_miss': true,
+              'bundle_details': {'bundle_id': 'BDL-OLD', 'selected_items': {}},
+            },
+          ],
+          customer: const {'name': 'CUST-001'},
+          isPickup: false,
+          createdAt: DateTime(2026, 10, 30),
+          updatedAt: DateTime(2026, 10, 30),
+          amendmentSourceInvoiceId: 'INV-STALE-PROMO',
+        );
+        final notifier = PosNotifier(
+          repository,
+          _StubbedDraftCartRepository(drafts: [staleDraft]),
+        );
+        await notifier.startAmendmentDraft({
+          'name': 'INV-OPEN-001',
+          'pos_profile': 'Main POS',
+          'grand_total': 120,
+          'amendment_promo_codes': ['WIN10'],
+          'items': [
+            {'item_code': 'ITEM-A', 'item_name': 'A', 'qty': 1, 'rate': 120},
+          ],
+        });
+        notifier.state = notifier.state.copyWith(
+          selectedProfile: const {'name': 'Main POS'},
+          isPickup: true,
+        );
+        await notifier.removePromoCode('WIN10');
+
+        await notifier.switchDraft('stale-promo-draft');
+        expect(notifier.state.amendmentSourceInvoiceId, 'INV-OPEN-001');
+
+        notifier.state = notifier.state.copyWith(clearError: true);
+        await notifier.checkout();
+        expect(repository.lastAmendmentPromoCodes, isEmpty,
+            reason: 'WIN10 was removed on purpose and must stay removed');
+        expect(repository.lastAmendmentKeepSourcePromoCodes, isFalse);
+      },
+    );
+
+    // Review of 606d087: drafts keep no promo codes, so a restored amendment
+    // draft must never send a list the server reads as "remove the order's codes".
+    test(
+      'a restored amendment draft only adds promo codes, never removes them',
+      () async {
+        final draft = DraftCart(
+          id: 'promo-draft-001',
+          label: 'Promo Amendment',
+          cartItems: const [
+            {'item_code': 'ITEM-A', 'rate': 120.0, 'quantity': 1, 'type': 'item'},
+          ],
+          customer: const {'name': 'CUST-PROMO', 'customer_name': 'Promo'},
+          isPickup: true,
+          createdAt: DateTime(2026, 10, 30),
+          updatedAt: DateTime(2026, 10, 30),
+          amendmentSourceInvoiceId: 'INV-PROMO-001',
+          amendmentSourceGrandTotal: 120.0,
+        );
+        final notifier = PosNotifier(
+          repository,
+          _StubbedDraftCartRepository(drafts: [draft]),
+        );
+
+        // The same order opened from Kanban with its code, then abandoned.
+        await notifier.startAmendmentDraft({
+          'name': 'INV-PROMO-001',
+          'pos_profile': 'Main POS',
+          'grand_total': 120,
+          'amendment_promo_codes': ['WIN10'],
+          'items': [
+            {'item_code': 'ITEM-A', 'item_name': 'A', 'qty': 1, 'rate': 120},
+          ],
+        });
+        expect(notifier.state.appliedPromoCodes, ['WIN10']);
+        notifier.newDraft();
+
+        await notifier.switchDraft('promo-draft-001');
+        expect(notifier.state.appliedPromoCodes, isEmpty);
+        notifier.state = notifier.state.copyWith(
+          selectedProfile: const {'name': 'Main POS'},
+          isPickup: true,
+        );
+        await notifier.checkout();
+        expect(repository.lastAmendmentPromoCodes, isNull,
+            reason: 'an empty restored list must not remove WIN10');
+
+        await notifier.switchDraft('promo-draft-001');
+        notifier.state = notifier.state.copyWith(
+          selectedProfile: const {'name': 'Main POS'},
+          isPickup: true,
+          isAmendmentDraft: true,
+          amendmentSourceInvoiceId: 'INV-PROMO-001',
+        );
+        await notifier.applyPromoCode('NEW15');
+        await notifier.checkout();
+        expect(repository.lastAmendmentPromoCodes, ['NEW15']);
+        expect(repository.lastAmendmentKeepSourcePromoCodes, isTrue,
+            reason: 'NEW15 is added on top of WIN10, not instead of it');
       },
     );
 

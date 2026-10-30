@@ -748,6 +748,7 @@ class PosNotifier extends StateNotifier<PosState> {
   /// Auto-saves the current cart first if there are unsaved changes.
   void newDraft() {
     _orderContextToken++;
+    _promoCodesLoadedFor = null;
     if (state.draftDirty) {
       _autoSaveTimer?.cancel();
       _persistCurrentCart();
@@ -900,6 +901,9 @@ class PosNotifier extends StateNotifier<PosState> {
       final restoredPriceListChanged =
           (restoredPriceList?['name']?.toString().trim() ?? '') !=
           (target.selectedPriceList?['name']?.toString().trim() ?? '');
+      // Only here, where the cart is really replaced: an early return above
+      // leaves the open amendment, and its codes, in place.
+      _promoCodesLoadedFor = null;
       state = state.copyWith(
         cartItems: List<Map<String, dynamic>>.from(target.cartItems),
         selectedCustomer: target.customer,
@@ -947,6 +951,9 @@ class PosNotifier extends StateNotifier<PosState> {
             target.amendmentSourceInvoiceId != state.amendmentSourceInvoiceId,
         customDeliveryIncome: target.customDeliveryIncome,
         clearCustomDeliveryIncome: target.customDeliveryIncome == null,
+        // Drafts do not persist promo codes: the previous cart's must not be
+        // submitted with this one.
+        clearPromos: true,
       );
       if (target.isB2bOrder &&
           target.customer != null &&
@@ -994,6 +1001,8 @@ class PosNotifier extends StateNotifier<PosState> {
       _autoSaveTimer?.cancel();
     }
 
+    // A promo reply for the abandoned cart must not land on the fresh one.
+    if (wasActive) _orderContextToken++;
     try {
       await _draftRepo.delete(id);
       final allDrafts = await _draftRepo.loadAll();
@@ -1026,7 +1035,9 @@ class PosNotifier extends StateNotifier<PosState> {
           clearAmendmentSourceInvoiceId: true,
           draftDirty: false,
           clearError: true,
+          clearPromos: true,
         );
+        _promoCodesLoadedFor = null;
         if (state.selectedProfile != null) {
           unawaited(refreshCatalog());
         }
@@ -4302,7 +4313,9 @@ class PosNotifier extends StateNotifier<PosState> {
         // or add to them; the list is sent back as-is on submit.
         clearPromos: true,
       );
-      _amendmentPromoCodesKnown = invoiceData['amendment_promo_codes'] is List;
+      _promoCodesLoadedFor = invoiceData['amendment_promo_codes'] is List
+          ? invoiceId
+          : null;
       final sourcePromoCodes = _amendmentPromoCodes(
         invoiceData['amendment_promo_codes'],
       );
@@ -4335,9 +4348,11 @@ class PosNotifier extends StateNotifier<PosState> {
   // user can re-apply. The server re-computes authoritatively at checkout, so a
   // stale preview can never produce an incorrect invoice.
 
-  /// Whether the open amendment draft was loaded with the order's own promo
-  /// codes, i.e. whether the cart's code list is the whole truth.
-  bool _amendmentPromoCodesKnown = false;
+  /// The amendment source whose own promo codes were loaded into the cart, i.e.
+  /// for which the cart's code list is the whole truth. Cleared whenever the
+  /// cart changes context: a draft restored from storage keeps no codes, so its
+  /// list only ADDS to the order's codes (see `keep_source_promo_codes`).
+  String? _promoCodesLoadedFor;
 
   static List<String> _amendmentPromoCodes(dynamic raw) {
     if (raw is! List) return const [];
@@ -4378,6 +4393,9 @@ class PosNotifier extends StateNotifier<PosState> {
     }
 
     final newList = [...state.appliedPromoCodes, normalized];
+    // A reply for a cart the operator has since left must not land on the next
+    // one: on an amendment its code list is sent to the server as authoritative.
+    final contextToken = _orderContextToken;
     state = state.copyWith(promoLoading: true, clearError: true);
     try {
       final preview = await _repository.validatePromoCodes(
@@ -4388,8 +4406,10 @@ class PosNotifier extends StateNotifier<PosState> {
         isPickup: state.isPickup,
         amendedFrom: _promoAmendedFrom,
       );
+      if (contextToken != _orderContextToken) return _settleStalePromoReply();
       _applyPromoPreview(submittedCodes: newList, preview: preview);
     } catch (e) {
+      if (contextToken != _orderContextToken) return _settleStalePromoReply();
       if (kDebugMode) {
         debugPrint('❌ APPLY PROMO ERROR: $e');
       }
@@ -4427,6 +4447,7 @@ class PosNotifier extends StateNotifier<PosState> {
       return;
     }
 
+    final contextToken = _orderContextToken;
     state = state.copyWith(promoLoading: true, clearError: true);
     try {
       final preview = await _repository.validatePromoCodes(
@@ -4437,8 +4458,10 @@ class PosNotifier extends StateNotifier<PosState> {
         isPickup: state.isPickup,
         amendedFrom: _promoAmendedFrom,
       );
+      if (contextToken != _orderContextToken) return _settleStalePromoReply();
       _applyPromoPreview(submittedCodes: remaining, preview: preview);
     } catch (e) {
+      if (contextToken != _orderContextToken) return _settleStalePromoReply();
       if (kDebugMode) {
         debugPrint('❌ REMOVE PROMO ERROR: $e');
       }
@@ -4459,6 +4482,7 @@ class PosNotifier extends StateNotifier<PosState> {
     if (posProfile == null) return;
 
     final codes = List<String>.from(state.appliedPromoCodes);
+    final contextToken = _orderContextToken;
     state = state.copyWith(promoLoading: true);
     try {
       final preview = await _repository.validatePromoCodes(
@@ -4472,10 +4496,16 @@ class PosNotifier extends StateNotifier<PosState> {
       // The operator added or removed a code while this was in flight: that
       // call owns the preview now, and folding this one in would put a removed
       // code back.
-      if (!listEquals(state.appliedPromoCodes, codes)) return;
+      if (contextToken != _orderContextToken ||
+          !listEquals(state.appliedPromoCodes, codes)) {
+        return _settleStalePromoReply();
+      }
       _applyPromoPreview(submittedCodes: codes, preview: preview);
     } catch (e) {
-      if (!listEquals(state.appliedPromoCodes, codes)) return;
+      if (contextToken != _orderContextToken ||
+          !listEquals(state.appliedPromoCodes, codes)) {
+        return _settleStalePromoReply();
+      }
       if (kDebugMode) {
         debugPrint('⚠️ PROMO REVALIDATION FAILED (clearing discount): $e');
       }
@@ -4487,6 +4517,13 @@ class PosNotifier extends StateNotifier<PosState> {
         promoResults: const [],
       );
     }
+  }
+
+  /// A dropped stale reply still ends its spinner: the token also moves on
+  /// B2B re-binds that keep the cart's codes, and the Apply button would stay
+  /// disabled otherwise.
+  void _settleStalePromoReply() {
+    if (state.promoLoading) state = state.copyWith(promoLoading: false);
   }
 
   /// Fold a preview response into state. Keeps ALL submitted codes (including
@@ -4728,6 +4765,9 @@ class PosNotifier extends StateNotifier<PosState> {
           (overridePosProfileName != null && overridePosProfileName.isNotEmpty)
           ? overridePosProfileName
           : state.selectedProfile!['name'];
+      final promoCodesAuthoritative =
+          _promoCodesLoadedFor != null &&
+          _promoCodesLoadedFor == state.amendmentSourceInvoiceId;
       final invoice = state.isAmendmentDraft
           ? await _repository.submitInvoiceAmendment(
               sourceInvoiceId: state.amendmentSourceInvoiceId ?? '',
@@ -4754,14 +4794,15 @@ class PosNotifier extends StateNotifier<PosState> {
               commercialPolicy: state.selectedCommercialPolicy?.name,
               policyReason: state.policyReason,
               employeePayment: requestedEmployeePayment,
-              // Authoritative on the server: codes added here are applied,
-              // codes removed here are dropped (order 20029). Without the
-              // order's own codes (an older backend) an empty cart list is not
-              // a removal, so it is left out and the server keeps them.
-              promoCodes:
-                  _amendmentPromoCodesKnown || state.appliedPromoCodes.isNotEmpty
+              // With the order's own codes loaded, the list is authoritative:
+              // codes added here are applied, codes removed here are dropped
+              // (order 20029). Without them (an older backend, a restored
+              // draft) it may only add, and an empty list is left out.
+              promoCodes: promoCodesAuthoritative ||
+                      state.appliedPromoCodes.isNotEmpty
                   ? state.appliedPromoCodes
                   : null,
+              keepSourcePromoCodes: !promoCodesAuthoritative,
             )
           : await _repository.createInvoice(
               posProfile: effectivePosProfile,
@@ -4830,6 +4871,7 @@ class PosNotifier extends StateNotifier<PosState> {
 
       // Reset invoice context (cart, customer, delivery slot, sales partner) for a fresh start.
       _orderContextToken++;
+      _promoCodesLoadedFor = null;
       final defaultPriceList = _defaultFreePriceListSelection();
       state = state.copyWith(
         cartItems: [],
@@ -4921,6 +4963,7 @@ class PosNotifier extends StateNotifier<PosState> {
   // Explicit public method to start a new invoice manually (also clears sales partner)
   void startNewInvoice() {
     _orderContextToken++;
+    _promoCodesLoadedFor = null;
     _priceListResolutionToken++;
     final defaultPriceList = _defaultFreePriceListSelection();
     state = state.copyWith(

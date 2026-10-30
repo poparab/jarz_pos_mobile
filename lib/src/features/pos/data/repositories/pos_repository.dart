@@ -1211,6 +1211,9 @@ class PosRepository {
     // authoritative (an empty one removes the order's codes); null leaves the
     // field out, and the server keeps the order's own codes.
     List<String>? promoCodes,
+    // True when the cart never held the order's own codes (a restored draft):
+    // [promoCodes] then only adds to them on the server.
+    bool keepSourcePromoCodes = false,
   }) async {
     try {
       final amendmentEmployeePayment =
@@ -1238,6 +1241,7 @@ class PosRepository {
       requestData['invoice_id'] = sourceInvoiceId;
       if (promoCodes != null) {
         requestData['promo_codes'] = jsonEncode(promoCodes);
+        if (keepSourcePromoCodes) requestData['keep_source_promo_codes'] = 1;
       }
       // The cart carries the source's custom line prices itself, so a line with no
       // override was reset to list by the operator: the server must not put the
