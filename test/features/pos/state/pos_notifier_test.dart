@@ -20,6 +20,10 @@ class _FakePosRepository extends PosRepository {
   String? lastAmendmentSourceInvoiceId;
   /// Cart items handed to the last submitInvoiceAmendment call.
   List<Map<String, dynamic>>? lastAmendmentItems;
+  /// Promo codes handed to the last submitInvoiceAmendment call.
+  List<String>? lastAmendmentPromoCodes;
+  /// amendedFrom handed to each validatePromoCodes call, in order.
+  final List<String?> promoAmendedFrom = [];
   int itemsCalls = 0;
   int bundlesCalls = 0;
   int createInvoiceCalls = 0;
@@ -111,6 +115,26 @@ class _FakePosRepository extends PosRepository {
   }
 
   @override
+  Future<Map<String, dynamic>> validatePromoCodes({
+    required List<String> codes,
+    required List<Map<String, dynamic>> items,
+    String? customer,
+    required String posProfile,
+    bool isPickup = false,
+    String? amendedFrom,
+  }) async {
+    promoAmendedFrom.add(amendedFrom);
+    return {
+      'results': [
+        for (final code in codes)
+          {'code': code, 'accepted': true, 'discount_amount': 24},
+      ],
+      'total_discount': 24.0 * codes.length,
+      'free_delivery': false,
+    };
+  }
+
+  @override
   Future<Map<String, dynamic>> submitInvoiceAmendment({
     required String sourceInvoiceId,
     required String posProfile,
@@ -134,10 +158,12 @@ class _FakePosRepository extends PosRepository {
     String? commercialPolicy,
     String? policyReason,
     String? employeePayment,
+    List<String>? promoCodes,
   }) async {
     submitInvoiceAmendmentCalls += 1;
     lastAmendmentSourceInvoiceId = sourceInvoiceId;
     lastAmendmentItems = items;
+    lastAmendmentPromoCodes = promoCodes;
     final error = amendmentError;
     if (error != null) throw error;
     return {'replacement_invoice_id': 'INV-AMD-001'};
@@ -1814,6 +1840,85 @@ void main() {
       });
       expect(notifier.state.isAmendmentDraft, isTrue);
       expect(notifier.state.amendmentPaymentMethod, isNull);
+    });
+
+    // Order 20029 (2026-10-30): a code added while amending was never sent.
+    test('promo codes open applied and are sent with the amendment', () async {
+      await notifier.startAmendmentDraft({
+        'name': 'ACC-SINV-2026-19207',
+        'pos_profile': 'Main POS',
+        'grand_total': 480,
+        'amendment_promo_codes': ['stg10', ' STG10 '],
+        'items': [
+          {'item_code': 'ITEM-BURGER', 'item_name': 'Burger', 'qty': 1, 'rate': 480},
+        ],
+      });
+      expect(notifier.state.appliedPromoCodes, ['STG10']);
+
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Main POS'},
+        isPickup: true,
+      );
+      await notifier.applyPromoCode('back42r4fv');
+      expect(notifier.state.appliedPromoCodes, ['STG10', 'BACK42R4FV']);
+      expect(repository.promoAmendedFrom.last, 'ACC-SINV-2026-19207',
+          reason: 'the preview must not count the order\'s own redemption');
+
+      await notifier.checkout();
+      expect(notifier.state.error, isNull);
+      expect(repository.lastAmendmentPromoCodes, ['STG10', 'BACK42R4FV']);
+    });
+
+    test('a removed code is sent as removed, and none leak into a new order',
+        () async {
+      await notifier.startAmendmentDraft({
+        'name': 'ACC-SINV-2026-19300',
+        'pos_profile': 'Main POS',
+        'grand_total': 160,
+        'amendment_promo_codes': ['STG10'],
+        'items': [
+          {'item_code': 'ITEM-BURGER', 'item_name': 'Burger', 'qty': 1, 'rate': 160},
+        ],
+      });
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Main POS'},
+        isPickup: true,
+      );
+      await notifier.removePromoCode('STG10');
+      await notifier.checkout();
+      expect(repository.lastAmendmentPromoCodes, isEmpty);
+
+      await notifier.startAmendmentDraft({
+        'name': 'ACC-SINV-2026-19301',
+        'pos_profile': 'Main POS',
+        'grand_total': 160,
+        'amendment_promo_codes': ['STG10'],
+        'items': [
+          {'item_code': 'ITEM-BURGER', 'item_name': 'Burger', 'qty': 1, 'rate': 160},
+        ],
+      });
+      notifier.newDraft();
+      expect(notifier.state.appliedPromoCodes, isEmpty);
+    });
+
+    test('without the order\'s codes an empty cart list is not sent', () async {
+      // An older backend sends no amendment_promo_codes: an empty list would
+      // read as "remove every code", so the field is left out.
+      await notifier.startAmendmentDraft({
+        'name': 'ACC-SINV-2026-19302',
+        'pos_profile': 'Main POS',
+        'grand_total': 160,
+        'items': [
+          {'item_code': 'ITEM-BURGER', 'item_name': 'Burger', 'qty': 1, 'rate': 160},
+        ],
+      });
+      notifier.state = notifier.state.copyWith(
+        selectedProfile: const {'name': 'Main POS'},
+        isPickup: true,
+      );
+      await notifier.checkout();
+      expect(repository.submitInvoiceAmendmentCalls, 1);
+      expect(repository.lastAmendmentPromoCodes, isNull);
     });
 
     test('an on-account source marks its customer so Credit stays offered',

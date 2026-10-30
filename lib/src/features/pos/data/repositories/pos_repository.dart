@@ -1049,6 +1049,9 @@ class PosRepository {
     String? customer,
     required String posProfile,
     bool isPickup = false,
+    // The invoice being amended: its own redemption is not counted, so a
+    // single-use code the order already carries does not preview as used up.
+    String? amendedFrom,
   }) async {
     try {
       final cartItems = _buildCartRequestItems(items);
@@ -1061,6 +1064,9 @@ class PosRepository {
       };
       if (customer != null && customer.trim().isNotEmpty) {
         requestData['customer'] = customer;
+      }
+      if (amendedFrom != null && amendedFrom.trim().isNotEmpty) {
+        requestData['amended_from'] = amendedFrom;
       }
 
       final response = await _dio.post(
@@ -1201,6 +1207,10 @@ class PosRepository {
     // derives the choice from the source invoice, which the amendment cart
     // never loaded: a default 'credit' here would un-pay an amended cash order.
     String? employeePayment,
+    // Every code left applied in the edit cart. The server treats a sent list as
+    // authoritative (an empty one removes the order's codes); null leaves the
+    // field out, and the server keeps the order's own codes.
+    List<String>? promoCodes,
   }) async {
     try {
       final amendmentEmployeePayment =
@@ -1226,6 +1236,9 @@ class PosRepository {
         employeePayment: amendmentEmployeePayment,
       );
       requestData['invoice_id'] = sourceInvoiceId;
+      if (promoCodes != null) {
+        requestData['promo_codes'] = jsonEncode(promoCodes);
+      }
       // The cart carries the source's custom line prices itself, so a line with no
       // override was reset to list by the operator: the server must not put the
       // old price back. A cart with no such line (an older draft, or a reply

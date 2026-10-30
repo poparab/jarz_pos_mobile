@@ -27,6 +27,7 @@ class _FakePosRepository extends PosRepository {
     String? customer,
     required String posProfile,
     bool isPickup = false,
+    String? amendedFrom,
   }) async {
     promoCalls.add(List.of(codes));
     promoCartSizes.add(items.length);

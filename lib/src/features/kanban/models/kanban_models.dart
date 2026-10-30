@@ -156,6 +156,10 @@ class InvoiceCard {
   // How much of the order is already paid (the carried payment). The POS skips
   // its dialog only while the edited total stays within it.
   final double? amendmentPaidAmount;
+  // The order's promo codes, for the POS edit cart. Null when the server did
+  // not send the key (an older backend): the POS then leaves the codes to the
+  // server instead of sending an empty list that would remove them.
+  final List<String>? amendmentPromoCodes;
   final bool? canReturnFlag;
   final String? returnBlockCode;
   final String? returnBlockReason;
@@ -288,6 +292,7 @@ class InvoiceCard {
     this.amendmentBlockReason,
     this.amendmentPaymentMethod,
     this.amendmentPaidAmount,
+    this.amendmentPromoCodes,
     this.canReturnFlag,
     this.returnBlockCode,
     this.returnBlockReason,
@@ -457,6 +462,13 @@ class InvoiceCard {
       amendmentPaidAmount: json['amendment_paid_amount'] == null
           ? null
           : double.tryParse(json['amendment_paid_amount'].toString()),
+      amendmentPromoCodes: json['amendment_promo_codes'] is List
+          ? [
+              for (final code in json['amendment_promo_codes'] as List)
+                if ((code?.toString().trim() ?? '').isNotEmpty)
+                  code.toString().trim(),
+            ]
+          : null,
       canReturnFlag: _parseFlag(json['can_return']),
       returnBlockCode: json['return_block_code']?.toString(),
       returnBlockReason: json['return_block_reason']?.toString(),
@@ -586,6 +598,8 @@ class InvoiceCard {
       'amendment_block_reason': amendmentBlockReason,
       'amendment_payment_method': amendmentPaymentMethod,
       'amendment_paid_amount': amendmentPaidAmount,
+      if (amendmentPromoCodes != null)
+        'amendment_promo_codes': amendmentPromoCodes,
       'can_return': canReturnFlag,
       'return_block_code': returnBlockCode,
       'return_block_reason': returnBlockReason,
@@ -678,6 +692,7 @@ class InvoiceCard {
   String? amendmentBlockReason,
   String? amendmentPaymentMethod,
   double? amendmentPaidAmount,
+  List<String>? amendmentPromoCodes,
   double? customDeliveryIncome,
   bool clearCustomDeliveryIncome = false,
   int? wooOrderId,
@@ -765,6 +780,7 @@ class InvoiceCard {
       amendmentBlockReason: amendmentBlockReason ?? this.amendmentBlockReason,
       amendmentPaymentMethod: amendmentPaymentMethod ?? this.amendmentPaymentMethod,
       amendmentPaidAmount: amendmentPaidAmount ?? this.amendmentPaidAmount,
+      amendmentPromoCodes: amendmentPromoCodes ?? this.amendmentPromoCodes,
       customDeliveryIncome: clearCustomDeliveryIncome ? null : (customDeliveryIncome ?? this.customDeliveryIncome),
       wooOrderId: clearWooOrderId ? null : (wooOrderId ?? this.wooOrderId),
       addressLatitude: addressLatitude ?? this.addressLatitude,

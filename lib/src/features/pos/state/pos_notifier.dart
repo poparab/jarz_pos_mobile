@@ -774,6 +774,9 @@ class PosNotifier extends StateNotifier<PosState> {
       isAmendmentDraft: false,
       clearAmendmentSourceInvoiceId: true,
       clearCustomDeliveryIncome: true,
+      // An abandoned amendment opens with the order's codes applied; they must
+      // not ride along into the next order.
+      clearPromos: true,
     );
     // Invalidate any in-flight tier resolution from the previous cart.
     _priceListResolutionToken++;
@@ -4295,7 +4298,18 @@ class PosNotifier extends StateNotifier<PosState> {
         clearAmendmentPaymentMethod: lockedPaymentMethod == null,
         clearCurrentDraftId: true,
         draftDirty: false,
+        // The order's own codes open applied, so the operator can keep, remove
+        // or add to them; the list is sent back as-is on submit.
+        clearPromos: true,
       );
+      _amendmentPromoCodesKnown = invoiceData['amendment_promo_codes'] is List;
+      final sourcePromoCodes = _amendmentPromoCodes(
+        invoiceData['amendment_promo_codes'],
+      );
+      if (sourcePromoCodes.isNotEmpty) {
+        state = state.copyWith(appliedPromoCodes: sourcePromoCodes);
+        unawaited(_revalidatePromosIfAny());
+      }
     } catch (e) {
       state = state.copyWith(
         error: e.toString(),
@@ -4320,6 +4334,27 @@ class PosNotifier extends StateNotifier<PosState> {
   // UI never shows an out-of-date discount; the codes remain applied and the
   // user can re-apply. The server re-computes authoritatively at checkout, so a
   // stale preview can never produce an incorrect invoice.
+
+  /// Whether the open amendment draft was loaded with the order's own promo
+  /// codes, i.e. whether the cart's code list is the whole truth.
+  bool _amendmentPromoCodesKnown = false;
+
+  static List<String> _amendmentPromoCodes(dynamic raw) {
+    if (raw is! List) return const [];
+    final codes = <String>[];
+    for (final entry in raw) {
+      final code = entry?.toString().trim().toUpperCase() ?? '';
+      if (code.isNotEmpty && !codes.contains(code)) codes.add(code);
+    }
+    return codes;
+  }
+
+  /// The invoice an amendment draft replaces, for the promo preview.
+  String? get _promoAmendedFrom {
+    if (!state.isAmendmentDraft) return null;
+    final source = state.amendmentSourceInvoiceId?.trim() ?? '';
+    return source.isEmpty ? null : source;
+  }
 
   /// Effective POS profile name used for promo validation, mirroring checkout.
   String? get _effectivePosProfileName {
@@ -4351,6 +4386,7 @@ class PosNotifier extends StateNotifier<PosState> {
         customer: state.selectedCustomer?['name']?.toString(),
         posProfile: posProfile,
         isPickup: state.isPickup,
+        amendedFrom: _promoAmendedFrom,
       );
       _applyPromoPreview(submittedCodes: newList, preview: preview);
     } catch (e) {
@@ -4399,6 +4435,7 @@ class PosNotifier extends StateNotifier<PosState> {
         customer: state.selectedCustomer?['name']?.toString(),
         posProfile: posProfile,
         isPickup: state.isPickup,
+        amendedFrom: _promoAmendedFrom,
       );
       _applyPromoPreview(submittedCodes: remaining, preview: preview);
     } catch (e) {
@@ -4430,9 +4467,15 @@ class PosNotifier extends StateNotifier<PosState> {
         customer: state.selectedCustomer?['name']?.toString(),
         posProfile: posProfile,
         isPickup: state.isPickup,
+        amendedFrom: _promoAmendedFrom,
       );
+      // The operator added or removed a code while this was in flight: that
+      // call owns the preview now, and folding this one in would put a removed
+      // code back.
+      if (!listEquals(state.appliedPromoCodes, codes)) return;
       _applyPromoPreview(submittedCodes: codes, preview: preview);
     } catch (e) {
+      if (!listEquals(state.appliedPromoCodes, codes)) return;
       if (kDebugMode) {
         debugPrint('⚠️ PROMO REVALIDATION FAILED (clearing discount): $e');
       }
@@ -4711,6 +4754,14 @@ class PosNotifier extends StateNotifier<PosState> {
               commercialPolicy: state.selectedCommercialPolicy?.name,
               policyReason: state.policyReason,
               employeePayment: requestedEmployeePayment,
+              // Authoritative on the server: codes added here are applied,
+              // codes removed here are dropped (order 20029). Without the
+              // order's own codes (an older backend) an empty cart list is not
+              // a removal, so it is left out and the server keeps them.
+              promoCodes:
+                  _amendmentPromoCodesKnown || state.appliedPromoCodes.isNotEmpty
+                  ? state.appliedPromoCodes
+                  : null,
             )
           : await _repository.createInvoice(
               posProfile: effectivePosProfile,

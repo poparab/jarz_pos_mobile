@@ -229,6 +229,19 @@ void main() {
         expect(buildCard().amendmentPaymentMethod, isNull);
       });
 
+      // Order 20029: the edit cart must open with the order's promo codes.
+      test('the promo codes survive the trip to the POS', () {
+        final card = buildCard(overrides: {
+          'amendment_promo_codes': ['BACK42R4FV', ' '],
+        });
+        expect(card.amendmentPromoCodes, ['BACK42R4FV']);
+        expect(card.toJson()['amendment_promo_codes'], ['BACK42R4FV']);
+        expect(buildCard(overrides: {'amendment_promo_codes': []}).toJson()['amendment_promo_codes'], isEmpty);
+        // Absent (older backend) stays absent, so the POS does not read it as
+        // "the order has no codes".
+        expect(buildCard().toJson().containsKey('amendment_promo_codes'), isFalse);
+      });
+
       test('an explicit server verdict wins', () {
         expect(
           buildCard(overrides: {'outstanding_amount': 150, 'can_amend': false}).canAmend,

@@ -125,6 +125,7 @@ class _FakePosRepository extends PosRepository {
     String? commercialPolicy,
     String? policyReason,
     String? employeePayment,
+    List<String>? promoCodes,
   }) async {
     submitInvoiceAmendmentCalls += 1;
     lastAmendmentEmployeePayment = employeePayment;
