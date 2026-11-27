@@ -115,6 +115,34 @@ class _PostScreenState extends ConsumerState<PostScreen> {
     );
   }
 
+  Future<void> _sendTikTokNow() async {
+    final c = CalendarStrings.of(context);
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const ValueKey('send-tiktok-dialog'),
+        title: Text(c.sendTikTokTitle),
+        actions: [
+          TextButton(
+            key: const ValueKey('send-tiktok-cancel'),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(c.cancel),
+          ),
+          FilledButton(
+            key: const ValueKey('send-tiktok-confirm'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(c.sendTikTokConfirm),
+          ),
+        ],
+      ),
+    );
+    if (sure != true || !mounted) return;
+    await _run(
+      () => _notifier.sendTikTokNow(requestId: const Uuid().v4()),
+      done: c.sentToTikTok,
+    );
+  }
+
   Future<void> _editCaption(SocialPost post) async {
     final c = CalendarStrings.of(context);
     final text = await askText(
@@ -236,6 +264,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                 onMarkPosted: _markPosted,
                 onWontPost: _wontPost,
                 onRetry: _retry,
+                onSendTikTokNow: _sendTikTokNow,
               ),
               const SizedBox(height: StudioSpacing.xxl),
             ],
@@ -857,6 +886,7 @@ class _Actions extends StatelessWidget {
     required this.onMarkPosted,
     required this.onWontPost,
     required this.onRetry,
+    required this.onSendTikTokNow,
   });
 
   final SocialPost post;
@@ -864,6 +894,7 @@ class _Actions extends StatelessWidget {
   final VoidCallback onMarkPosted;
   final VoidCallback onWontPost;
   final VoidCallback onRetry;
+  final VoidCallback onSendTikTokNow;
 
   @override
   Widget build(BuildContext context) {
@@ -883,6 +914,13 @@ class _Actions extends StatelessWidget {
           icon: const Icon(Icons.refresh),
           onPressed: busy ? null : onRetry,
           label: Text(c.actionRetry),
+        ),
+      if (a.contains('send_tiktok_now'))
+        FilledButton.icon(
+          key: const ValueKey('send-tiktok-now'),
+          icon: const Icon(Icons.send),
+          onPressed: busy ? null : onSendTikTokNow,
+          label: Text(c.actionSendTikTokNow),
         ),
       if (a.contains('wont_post'))
         OutlinedButton.icon(

@@ -58,6 +58,7 @@ class StudioLabels {
     'mark_posted': ('Mark posted', 'علّم إنه اتنشر'),
     'posted': ('Mark posted', 'علّم إنه اتنشر'),
     'retry': ('Try again', 'جرّب تاني'),
+    'send_tiktok_now': ('Send to TikTok now', 'ابعت على TikTok دلوقتي'),
     'reopen': ('Reopen', 'افتحه تاني'),
     'set_caption': ('Edit the caption', 'عدّل الكابشن'),
     'frame_set': ('Post the frames', 'انشر الفريمات'),

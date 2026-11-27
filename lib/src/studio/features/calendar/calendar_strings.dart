@@ -188,6 +188,14 @@ class CalendarStrings {
   String get actionWontPost => tr('Won\'t post', 'مش هيتنشر');
   String get actionRetry => tr('Try again', 'جرّب تاني');
   String get actionMove => tr('Move', 'انقل');
+  String get actionSendTikTokNow =>
+      tr('Send to TikTok now', 'ابعت على TikTok دلوقتي');
+  String get sendTikTokTitle => tr(
+    'Send this post to TikTok now? Instagram is not touched.',
+    'تبعت البوست ده على TikTok دلوقتي؟ الـ Instagram مش هيتلمس.',
+  );
+  String get sendTikTokConfirm => tr('Send now', 'ابعت دلوقتي');
+  String get sentToTikTok => tr('Sent to TikTok.', 'اتبعت على TikTok.');
   String get actionSetCaption => tr('Edit the caption', 'تعديل الكابشن');
   String get actionEditSlot => tr('Edit the slot', 'تعديل الميعاد');
   String actionFramePosted(int n) =>

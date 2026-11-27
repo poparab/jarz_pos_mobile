@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/studio_api.dart';
 import '../../../data/models/studio_models.dart';
 import '../../../data/paging.dart';
+import '../../settings/data/tiktok_repository.dart' show tiktokMethodPrefix;
 
 class CalendarRepository {
   CalendarRepository(this._api);
@@ -77,6 +78,20 @@ class CalendarRepository {
 
   Future<SocialPost> retry(String id, {String? requestId}) =>
       _api.calendarPostRetry(postId: id, requestId: requestId);
+
+  /// Sends the TikTok part of a published post now (founder only). The
+  /// endpoint is outside the frozen contract, so it goes through the raw
+  /// method call, like the TikTok connect ones. Answers the post wire.
+  Future<SocialPost> sendTikTokNow(
+    String id, {
+    required String requestId,
+  }) async {
+    final d = await _api.call(
+      '${tiktokMethodPrefix}send_tiktok_now',
+      params: {'post_id': id, 'request_id': requestId},
+    );
+    return SocialPost.fromJson(Map<String, dynamic>.from(d as Map));
+  }
 
   Future<SocialPost> frameSet(
     String id,
@@ -202,6 +217,9 @@ class PostNotifier extends EntityNotifier<SocialPost> {
 
   Future<void> retry({String? requestId}) =>
       mutate(call: () => _repo.retry(arg, requestId: requestId));
+
+  Future<void> sendTikTokNow({required String requestId}) =>
+      mutate(call: () => _repo.sendTikTokNow(arg, requestId: requestId));
 
   Future<void> frameSet(
     int position,

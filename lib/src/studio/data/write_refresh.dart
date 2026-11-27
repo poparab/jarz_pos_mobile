@@ -153,6 +153,8 @@ final Map<String, List<ProviderOrFamily>> studioWriteRefreshes = () {
     'calendar.post_wont_post': post,
     'calendar.post_set': post,
     'calendar.post_retry': post,
+    // Outside the contract: the raw method name is the key.
+    'jarz_social.api.tiktok.send_tiktok_now': post,
     'calendar.frame_set': post,
     'calendar.actual_match': post,
     'calendar.actual_ignore': post,

@@ -148,7 +148,9 @@ class FakeStudioApi extends StudioApi {
     Map<String, dynamic>? params,
     bool get = false,
   }) async {
-    if (method.startsWith(_tiktokPrefix)) return _tiktok(method);
+    if (method.startsWith(_tiktokPrefix)) {
+      return _tiktok(method, params ?? const {});
+    }
     final key = method.startsWith(studioMethodPrefix)
         ? method.substring(studioMethodPrefix.length)
         : method;
@@ -173,7 +175,7 @@ class FakeStudioApi extends StudioApi {
 
   /// The TikTok connect endpoints (outside the contract). Only the founder may
   /// use them; the fake browser round trip of Connect is instant.
-  Future<dynamic> _tiktok(String method) async {
+  Future<dynamic> _tiktok(String method, Map<String, dynamic> p) async {
     await Future<void>.delayed(delay);
     final fn = method.substring(_tiktokPrefix.length);
     _calls.add('tiktok.$fn');
@@ -190,6 +192,27 @@ class FakeStudioApi extends StudioApi {
       'error': null,
     };
     switch (fn) {
+      case 'send_tiktok_now':
+        // The server answers the post wire, its TikTok part now posted.
+        _throwIfArmed('tiktok.send_tiktok_now');
+        final id = '${p['post_id']}';
+        _callLog.add((key: 'tiktok.send_tiktok_now', params: p));
+        final base = _post(_fixture('calendar.post_get') as Map, {
+          'post_id': id,
+        });
+        final platformStatus = Map<String, dynamic>.from(
+          (base['platform_status'] as Map?) ?? const {},
+        )..['TikTok'] = 'posted';
+        _patches[id] = {
+          ...?_patches[id],
+          'platform_status': platformStatus,
+          'actions': [
+            for (final a in (base['actions'] as List? ?? const []))
+              if (a != 'send_tiktok_now') a,
+          ],
+        };
+        announceCall('${_tiktokPrefix}send_tiktok_now');
+        return _overlay(base);
       case 'status':
         return status();
       case 'connect_url':
@@ -250,6 +273,13 @@ class FakeStudioApi extends StudioApi {
         m['actions'] = [
           for (final a in m['actions'] as List)
             if (a != 'shortlist') a,
+        ];
+      }
+      // Send to TikTok now is the founder's alone (outside the contract).
+      if (kind == 'post' && role != 'founder') {
+        m['actions'] = [
+          for (final a in m['actions'] as List)
+            if (a != 'send_tiktok_now') a,
         ];
       }
       // A creator may add a line to the scorecard and nothing else on it.
