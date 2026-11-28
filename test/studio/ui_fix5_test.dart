@@ -5,6 +5,10 @@ import 'package:jarz_pos/src/studio/core/l10n/plural.dart';
 import 'helpers.dart';
 
 /// Round 5: what the fourth day-one walk found.
+/// The calendar opens on the week holding today, and the fixtures carry fixed
+/// dates (week of 21-27 Nov 2026), so the tests that read them pin today.
+final _fixtureToday = DateTime(2026, 11, 25);
+
 void main() {
   group('12. Arabic counts follow the Arabic number rules (one helper)', () {
     test('1, 2, 3 to 10 and 11 and over', () {
@@ -127,7 +131,7 @@ void main() {
       tester,
     ) async {
       usePhone(tester, height: 1800);
-      final c = await pumpStudio(tester);
+      final c = await pumpStudio(tester, today: _fixtureToday);
       await goTo(tester, c, '/calendar');
       await tester.tap(find.byKey(const ValueKey('calendar-skipped')));
       await tester.pumpAndSettle();
@@ -146,7 +150,7 @@ void main() {
 
     testWidgets('a post marked won\'t post lands in the list', (tester) async {
       usePhone(tester, height: 1800);
-      final c = await pumpStudio(tester);
+      final c = await pumpStudio(tester, today: _fixtureToday);
       await goTo(tester, c, '/calendar/post/SP-2026-00221');
       await tester.scrollUntilVisible(
         find.byKey(const ValueKey('wont-post')),
@@ -208,7 +212,7 @@ void main() {
   group('5. Moments show on the calendar', () {
     testWidgets('the week shows the moment chip on its day', (tester) async {
       usePhone(tester, height: 2400);
-      final c = await pumpStudio(tester);
+      final c = await pumpStudio(tester, today: _fixtureToday);
       await goTo(tester, c, '/calendar');
       await tester.tap(find.byKey(const ValueKey('calendar-next')));
       await tester.pumpAndSettle();
@@ -285,7 +289,7 @@ void main() {
   group('13. One name for the same action', () {
     testWidgets('the static post says Mark posted', (tester) async {
       usePhone(tester, height: 2000);
-      final c = await pumpStudio(tester);
+      final c = await pumpStudio(tester, today: _fixtureToday);
       await goTo(tester, c, '/calendar/post/SP-2026-00221');
       expect(find.text('Mark posted'), findsWidgets);
       expect(find.text('I posted it'), findsNothing);
@@ -295,7 +299,7 @@ void main() {
   group('14. Skipped in round 4', () {
     testWidgets('tapping the active tab goes back to its root', (tester) async {
       usePhone(tester, height: 1800);
-      final c = await pumpStudio(tester);
+      final c = await pumpStudio(tester, today: _fixtureToday);
       await goTo(tester, c, '/calendar/post/SP-2026-00221');
       expect(currentLocation(c), '/calendar/post/SP-2026-00221');
       await tester.tap(

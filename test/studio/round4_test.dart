@@ -294,7 +294,8 @@ void main() {
   group('6 calendar', () {
     testWidgets('status chips filter the posts', (tester) async {
       usePhone(tester, height: 1400);
-      final c = await pumpStudioWith(tester, RecordingApi());
+      final c = await pumpStudioWith(tester, RecordingApi(),
+        today: DateTime(2026, 11, 25));
       await goTo(tester, c, '/calendar');
       expect(_key('status-filter'), findsOneWidget);
       await tester.tap(_key('status-Published'));

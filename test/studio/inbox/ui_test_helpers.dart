@@ -17,6 +17,7 @@ import 'package:jarz_pos/src/studio/core/theme/studio_theme.dart';
 import 'package:jarz_pos/src/studio/data/fake/fake_studio_api.dart';
 import 'package:jarz_pos/src/studio/data/fake/studio_fixtures.g.dart';
 import 'package:jarz_pos/src/studio/features/inbox/inbox_routes.dart';
+import 'package:jarz_pos/src/studio/features/calendar/state/calendar_state.dart';
 import 'package:jarz_pos/src/studio/features/inbox/state/inbox_state.dart';
 import 'package:jarz_pos/src/studio/studio_app.dart';
 import 'package:jarz_pos/src/studio/shared/studio_toast.dart';
@@ -57,6 +58,7 @@ Future<ProviderContainer> pumpStudioWith(
   String locale = 'en',
   bool settle = true,
   DateTime? now,
+  DateTime? today,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -69,6 +71,7 @@ Future<ProviderContainer> pumpStudioWith(
         studioFakeRoleProvider.overrideWithValue(api.role),
         studioLocaleProvider.overrideWith((ref) => Locale(locale)),
         if (now != null) studioNowProvider.overrideWithValue(() => now),
+        if (today != null) calendarTodayProvider.overrideWithValue(today),
       ],
       child: const StudioApp(),
     ),

@@ -7,6 +7,7 @@ import 'package:jarz_pos/src/studio/core/l10n/studio_locale.dart';
 import 'package:jarz_pos/src/studio/core/network/studio_api.dart';
 import 'package:jarz_pos/src/studio/data/fake/fake_studio_api.dart';
 import 'package:jarz_pos/src/studio/core/router/studio_router.dart';
+import 'package:jarz_pos/src/studio/features/calendar/state/calendar_state.dart';
 import 'package:jarz_pos/src/studio/features/inbox/state/inbox_state.dart';
 import 'package:jarz_pos/src/studio/studio_app.dart';
 import 'package:go_router/go_router.dart';
@@ -29,6 +30,10 @@ Future<ProviderContainer> pumpStudio(
   /// A fixed "now" for text that counts from the clock ("waiting 12 hours"),
   /// so a golden does not change with the day it is run.
   DateTime? now,
+
+  /// A fixed "today" for the calendar, which opens on the week holding it.
+  /// The fixtures carry fixed dates, so a test that reads them pins this.
+  DateTime? today,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -41,6 +46,7 @@ Future<ProviderContainer> pumpStudio(
           MemoryKvStore({'studio.lang.device': locale}),
         ),
         if (now != null) studioNowProvider.overrideWithValue(() => now),
+        if (today != null) calendarTodayProvider.overrideWithValue(today),
         studioFakeRoleProvider.overrideWithValue(role),
         studioLocaleProvider.overrideWith((ref) => Locale(locale)),
       ],
