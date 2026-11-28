@@ -39,6 +39,7 @@ class AssetsTestApi extends UploadTestApi {
   List<StudioAsset>? items;
 
   /// Rows per page; the rest follows behind a cursor.
+  // ignore: overridden_fields, annotate_overrides
   int? pageSize;
 
   /// No buttons on any asset.
